@@ -30,3 +30,18 @@ it("preserves lexer errors during fallback and does not swallow implementation e
   const other = createTokenCursor("a");
   expect(() => other.attempt(() => { throw new Error("bug"); })).toThrow("bug");
 });
+
+it("retains the matching comment span after a grammar alternative reads later lines", () => {
+  const cursor = createTokenCursor("1 + # first\n2 # later\n");
+  expect(cursor.attempt(() => {
+    while (cursor.peek().kind !== "end") cursor.take();
+    throw cursor.error();
+  })).toBeUndefined();
+  cursor.take();
+  cursor.take();
+  expect(cursor.newlineError()).toMatchObject({
+    message: "invalid syntax", sourceLine: "1 + # first\n",
+    position: {offset: 4, line: 1, column: 4},
+    endPosition: {line: 1, column: 12}
+  });
+});

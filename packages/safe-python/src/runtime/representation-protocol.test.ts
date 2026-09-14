@@ -35,9 +35,9 @@ it("uses repr fallback for absent str and the default for absent repr", () => {
   expect(representationObject({ name: "C" }, "str", context, budget())).toBe(fallback);
   expect(representationObject({ name: "C" }, "repr", context, budget())).toBe(fallback);
 });
-it("reports the requested slot when fallback repr returns a non-string", () => {
+it("reports the invoked slot when fallback repr returns a non-string", () => {
   const { context } = fixture(), value = { name: "C", repr: () => ({ name: "int" }) };
-  expect(() => representationObject(value, "str", context, budget())).toThrow("__str__ returned non-string (type int)");
+  expect(() => representationObject(value, "str", context, budget())).toThrow("__repr__ returned non-string (type int)");
   for (const mode of ["repr", "ascii"] as const) expect(() => representationObject(value, mode, context, budget())).toThrow("__repr__ returned non-string (type int)");
   expect(() => representationObject({ name: "C", str: () => ({ name: "€".repeat(100) }) }, "str", context, budget())).toThrow("__str__ returned non-string (type " + "€".repeat(66) + ")");
 });

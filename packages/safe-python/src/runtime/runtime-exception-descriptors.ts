@@ -31,7 +31,7 @@ export function installRuntimeExceptionDescriptors(owner:TypeValue,values:Runtim
     },
     delete(){throw new PythonRuntimeError("TypeError","args may not be deleted");}
   }));
-  owner.value.namespace.items.set(values.string("__init__"),values.wrapperDescriptor({owner,name:"__init__",doc:"Initialize self.  See help(type(self)) for accurate signature.",accepts:value=>runtimeExceptionPayload(value)!==undefined,
+  owner.value.namespace.items.set(values.string("__init__"),values.wrapperDescriptor({owner,name:"__init__",doc:"Initialize self.  See help(type(self)) for accurate signature.",textSignature:"($self, /, *args, **kwargs)",accepts:value=>runtimeExceptionPayload(value)!==undefined,
     invoke(receiver,positional,keywords,meter) {
       meter.checkpoint();
       if(receiver.kind!=="instance")throw Error("exception initializer requires an instance");

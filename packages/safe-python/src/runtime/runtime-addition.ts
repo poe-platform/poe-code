@@ -1,3 +1,4 @@
+import {runtimeBytesConcat} from "./runtime-bytes-arithmetic.js";
 import { dispatchBinaryOperation } from "./binary-dispatch.js";
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import { PythonRuntimeError } from "./error.js";
@@ -8,6 +9,7 @@ import { runtimeIterate } from "./runtime-iteration.js";
 import { runtimeListPayload } from "./runtime-list-payload.js";
 import { runtimeTuplePayload } from "./runtime-tuple-payload.js";
 import { runtimeTupleConcat } from "./runtime-tuple-arithmetic.js";
+import {runtimeBytesPayload} from "./runtime-bytes-payload.js";
 import {runtimeStringPayload} from "./runtime-string-payload.js";
 import {runtimeStringConcat} from "./runtime-string-arithmetic.js";
 import type { RuntimeBufferContext, RuntimeBufferLease } from "./runtime-buffer-context.js";
@@ -48,9 +50,14 @@ export function runtimeAddition(left: RuntimeValue, right: RuntimeValue, values:
     const joined=runtimeStringConcat(left,right,values,meter);
     if(joined!==values.notImplemented)return joined;
   }
+  const bytesLeft=context.sequenceFallbacks?.left===false?undefined:runtimeBytesPayload(left);
+  if(bytesLeft!==undefined){
+    const joined=runtimeBytesConcat(left,right,values,meter);
+    if(joined!==values.notImplemented)return joined;
+  }
   const sequence = nativeLeft !== undefined || tupleLeft !== undefined || stringLeft!==undefined || left.kind === "bytes";
   if (sequence && nativeLeft === undefined && tupleLeft === undefined && left.kind === right.kind) return runtimeBinary("+", left, right, values, meter);
-  if (left.kind === "bytes" && buffers !== undefined) {
+  if (bytesLeft !== undefined && buffers !== undefined) {
     let lease: RuntimeBufferLease | undefined;
     try {
       try { lease = buffers.acquireSimple(right); }
@@ -58,8 +65,8 @@ export function runtimeAddition(left: RuntimeValue, right: RuntimeValue, values:
       meter.checkpoint();
       if (lease !== undefined) {
         const storage = lease.copy(); meter.checkpoint();
-        const joined = left.value.concat(storage, meter);
-        return joined === left.value ? left : values.bytes(joined, joined.length === 0 ? "canonical" : "fresh");
+        const joined = bytesLeft.value.concat(storage, meter);
+        return joined === bytesLeft.value && left.kind==="bytes" ? left : values.bytes(joined, joined.length === 0 ? "canonical" : "fresh");
       }
     } finally {
       lease?.release(); meter.checkpoint();

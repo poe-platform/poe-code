@@ -10,6 +10,10 @@ function fixture() {
 }
 
 describe("concrete immutable hashing", () => {
+  it("uses CPython's fixed None hash without invoking the identity policy", () => {
+    const { meter, values: v, context } = fixture();
+    expect(constantHash(v.none, { ...context, identity() { throw Error("unexpected identity hash"); } }, meter)).toBe(0xfca86420n);
+  });
   it("gives equal numeric values identical hashes across numeric kinds", () => {
     const { meter, values: v, context } = fixture();
     for (const value of [v.true, v.integer(1), v.float(1), v.complex(1, 0)]) expect(constantHash(value, context, meter)).toBe(1n);
@@ -38,7 +42,7 @@ describe("concrete immutable hashing", () => {
   });
   it("normalizes host hash width and the reserved minus-one result", () => {
     const { meter, values: v, context } = fixture();
-    expect(constantHash(v.none, { ...context, identity: () => -1n }, meter)).toBe(-2n);
+    expect(constantHash(v.ellipsis, { ...context, identity: () => -1n }, meter)).toBe(-2n);
     expect(constantHash(v.string("x"), { ...context, string: () => (1n << 64n) + 3n }, meter)).toBe(3n);
   });
   it("walks deeply nested immutable containers without host recursion", () => {
@@ -62,6 +66,6 @@ describe("concrete immutable hashing", () => {
   it("observes cancellation by a trusted policy before publishing its result", () => {
     const { values: v, context } = fixture(), controller = new AbortController();
     const meter = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 100, signal: controller.signal });
-    expect(() => constantHash(v.none, { ...context, identity: () => { controller.abort(); return 1n; } }, meter)).toThrow(ExecutionLimitError);
+    expect(() => constantHash(v.ellipsis, { ...context, identity: () => { controller.abort(); return 1n; } }, meter)).toThrow(ExecutionLimitError);
   });
 });

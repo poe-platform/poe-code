@@ -12,7 +12,7 @@ import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues, TypeValue } fro
  * this allocator never invokes init or allocates incompatible native payloads. */
 export function createObjectNewBuiltin(values: RuntimeValues, meter: ExecutionMeter, keys: KeyOperations<RuntimeValue>, objectType: TypeValue, owns: (type: TypeValue) => boolean): BuiltinFunctionValue {
   meter.checkpoint(1, 96);
-  const newName = values.string("__new__"), initName = values.string("__init__");
+  const newName = values.internString("__new__"), initName = values.internString("__init__");
   const builtin: BuiltinFunctionValue = values.builtinFunction({ name: "__new__", owner: objectType, keywordValidation: "callee", doc: "Create and return a new object.  See help(type) for accurate signature.", invoke(positional, keywords, meter, invocation) {
     meter.checkpoint();
     if (positional.length === 0) throw new PythonRuntimeError("TypeError", "object.__new__(): not enough arguments");
@@ -24,7 +24,7 @@ export function createObjectNewBuiltin(values: RuntimeValues, meter: ExecutionMe
     }
     const owned = owns(type); meter.checkpoint();
     if (!owned) throw Error("type is not owned by this object allocator");
-    if (type.value.mro.length === 0 || !type.value.isInstantiable) {
+    if (type.value.mro.length === 0 || !type.value.isInstantiable || type.value.nativeSlots.methods.get(newName)?.kind === "absent") {
       meter.checkpoint(0, 128 + 2 * type.value.diagnosticName.length);
       throw new PythonRuntimeError("TypeError", `cannot create '${type.value.diagnosticName}' instances`);
     }

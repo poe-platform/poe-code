@@ -1,0 +1,113 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0"
+  },
+  "cases": [
+    {
+      "name": "str subtype empty positional",
+      "source": "events=[]\nclass Start(str):\n def __add__(self,other):\n  events.append('add')\n  return 123\n def __getattribute__(self,name):\n  events.append(name)\n  return super().__getattribute__(name)\nstart=Start()\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nsource=Source()\ntry:\n answer=sum(source, start)\n result=('returned',answer,events)\nexcept Exception as e:\n result=(type(e).__name__,e.args,events)",
+      "expected": "('TypeError', (\"sum() can't sum strings [use ''.join(seq) instead]\",), ['iter'])"
+    },
+    {
+      "name": "str subtype empty keyword",
+      "source": "events=[]\nclass Start(str):\n def __add__(self,other):\n  events.append('add')\n  return 123\n def __getattribute__(self,name):\n  events.append(name)\n  return super().__getattribute__(name)\nstart=Start()\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nsource=Source()\ntry:\n answer=sum(source, start=start)\n result=('returned',answer,events)\nexcept Exception as e:\n result=(type(e).__name__,e.args,events)",
+      "expected": "('TypeError', (\"sum() can't sum strings [use ''.join(seq) instead]\",), ['iter'])"
+    },
+    {
+      "name": "str subtype nonempty positional",
+      "source": "events=[]\nclass Start(str):\n def __add__(self,other):\n  events.append('add')\n  return 123\n def __getattribute__(self,name):\n  events.append(name)\n  return super().__getattribute__(name)\nstart=Start()\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter([1])\nsource=Source()\ntry:\n answer=sum(source, start)\n result=('returned',answer,events)\nexcept Exception as e:\n result=(type(e).__name__,e.args,events)",
+      "expected": "('TypeError', (\"sum() can't sum strings [use ''.join(seq) instead]\",), ['iter'])"
+    },
+    {
+      "name": "str subtype nonempty keyword",
+      "source": "events=[]\nclass Start(str):\n def __add__(self,other):\n  events.append('add')\n  return 123\n def __getattribute__(self,name):\n  events.append(name)\n  return super().__getattribute__(name)\nstart=Start()\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter([1])\nsource=Source()\ntry:\n answer=sum(source, start=start)\n result=('returned',answer,events)\nexcept Exception as e:\n result=(type(e).__name__,e.args,events)",
+      "expected": "('TypeError', (\"sum() can't sum strings [use ''.join(seq) instead]\",), ['iter'])"
+    },
+    {
+      "name": "str subtype raises positional",
+      "source": "events=[]\nclass Start(str):\n def __add__(self,other):\n  events.append('add')\n  return 123\n def __getattribute__(self,name):\n  events.append(name)\n  return super().__getattribute__(name)\nstart=Start()\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('acquire')\nsource=Source()\ntry:\n answer=sum(source, start)\n result=('returned',answer,events)\nexcept Exception as e:\n result=(type(e).__name__,e.args,events)",
+      "expected": "('ValueError', ('acquire',), ['iter'])"
+    },
+    {
+      "name": "str subtype raises keyword",
+      "source": "events=[]\nclass Start(str):\n def __add__(self,other):\n  events.append('add')\n  return 123\n def __getattribute__(self,name):\n  events.append(name)\n  return super().__getattribute__(name)\nstart=Start()\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('acquire')\nsource=Source()\ntry:\n answer=sum(source, start=start)\n result=('returned',answer,events)\nexcept Exception as e:\n result=(type(e).__name__,e.args,events)",
+      "expected": "('ValueError', ('acquire',), ['iter'])"
+    },
+    {
+      "name": "str subtype bad_iter positional",
+      "source": "events=[]\nclass Start(str):\n def __add__(self,other):\n  events.append('add')\n  return 123\n def __getattribute__(self,name):\n  events.append(name)\n  return super().__getattribute__(name)\nstart=Start()\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return 1\nsource=Source()\ntry:\n answer=sum(source, start)\n result=('returned',answer,events)\nexcept Exception as e:\n result=(type(e).__name__,e.args,events)",
+      "expected": "('TypeError', (\"iter() returned non-iterator of type 'int'\",), ['iter'])"
+    },
+    {
+      "name": "str subtype bad_iter keyword",
+      "source": "events=[]\nclass Start(str):\n def __add__(self,other):\n  events.append('add')\n  return 123\n def __getattribute__(self,name):\n  events.append(name)\n  return super().__getattribute__(name)\nstart=Start()\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return 1\nsource=Source()\ntry:\n answer=sum(source, start=start)\n result=('returned',answer,events)\nexcept Exception as e:\n result=(type(e).__name__,e.args,events)",
+      "expected": "('TypeError', (\"iter() returned non-iterator of type 'int'\",), ['iter'])"
+    },
+    {
+      "name": "str subtype not_iterable positional",
+      "source": "events=[]\nclass Start(str):\n def __add__(self,other):\n  events.append('add')\n  return 123\n def __getattribute__(self,name):\n  events.append(name)\n  return super().__getattribute__(name)\nstart=Start()\nsource=None\ntry:\n answer=sum(source, start)\n result=('returned',answer,events)\nexcept Exception as e:\n result=(type(e).__name__,e.args,events)",
+      "expected": "('TypeError', (\"'NoneType' object is not iterable\",), [])"
+    },
+    {
+      "name": "str subtype not_iterable keyword",
+      "source": "events=[]\nclass Start(str):\n def __add__(self,other):\n  events.append('add')\n  return 123\n def __getattribute__(self,name):\n  events.append(name)\n  return super().__getattribute__(name)\nstart=Start()\nsource=None\ntry:\n answer=sum(source, start=start)\n result=('returned',answer,events)\nexcept Exception as e:\n result=(type(e).__name__,e.args,events)",
+      "expected": "('TypeError', (\"'NoneType' object is not iterable\",), [])"
+    },
+    {
+      "name": "bytes subtype empty positional",
+      "source": "events=[]\nclass Start(bytes):\n def __add__(self,other):\n  events.append('add')\n  return 123\n def __getattribute__(self,name):\n  events.append(name)\n  return super().__getattribute__(name)\nstart=Start()\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nsource=Source()\ntry:\n answer=sum(source, start)\n result=('returned',answer,events)\nexcept Exception as e:\n result=(type(e).__name__,e.args,events)",
+      "expected": "('TypeError', (\"sum() can't sum bytes [use b''.join(seq) instead]\",), ['iter'])"
+    },
+    {
+      "name": "bytes subtype empty keyword",
+      "source": "events=[]\nclass Start(bytes):\n def __add__(self,other):\n  events.append('add')\n  return 123\n def __getattribute__(self,name):\n  events.append(name)\n  return super().__getattribute__(name)\nstart=Start()\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nsource=Source()\ntry:\n answer=sum(source, start=start)\n result=('returned',answer,events)\nexcept Exception as e:\n result=(type(e).__name__,e.args,events)",
+      "expected": "('TypeError', (\"sum() can't sum bytes [use b''.join(seq) instead]\",), ['iter'])"
+    },
+    {
+      "name": "bytes subtype nonempty positional",
+      "source": "events=[]\nclass Start(bytes):\n def __add__(self,other):\n  events.append('add')\n  return 123\n def __getattribute__(self,name):\n  events.append(name)\n  return super().__getattribute__(name)\nstart=Start()\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter([1])\nsource=Source()\ntry:\n answer=sum(source, start)\n result=('returned',answer,events)\nexcept Exception as e:\n result=(type(e).__name__,e.args,events)",
+      "expected": "('TypeError', (\"sum() can't sum bytes [use b''.join(seq) instead]\",), ['iter'])"
+    },
+    {
+      "name": "bytes subtype nonempty keyword",
+      "source": "events=[]\nclass Start(bytes):\n def __add__(self,other):\n  events.append('add')\n  return 123\n def __getattribute__(self,name):\n  events.append(name)\n  return super().__getattribute__(name)\nstart=Start()\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter([1])\nsource=Source()\ntry:\n answer=sum(source, start=start)\n result=('returned',answer,events)\nexcept Exception as e:\n result=(type(e).__name__,e.args,events)",
+      "expected": "('TypeError', (\"sum() can't sum bytes [use b''.join(seq) instead]\",), ['iter'])"
+    },
+    {
+      "name": "bytes subtype raises positional",
+      "source": "events=[]\nclass Start(bytes):\n def __add__(self,other):\n  events.append('add')\n  return 123\n def __getattribute__(self,name):\n  events.append(name)\n  return super().__getattribute__(name)\nstart=Start()\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('acquire')\nsource=Source()\ntry:\n answer=sum(source, start)\n result=('returned',answer,events)\nexcept Exception as e:\n result=(type(e).__name__,e.args,events)",
+      "expected": "('ValueError', ('acquire',), ['iter'])"
+    },
+    {
+      "name": "bytes subtype raises keyword",
+      "source": "events=[]\nclass Start(bytes):\n def __add__(self,other):\n  events.append('add')\n  return 123\n def __getattribute__(self,name):\n  events.append(name)\n  return super().__getattribute__(name)\nstart=Start()\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('acquire')\nsource=Source()\ntry:\n answer=sum(source, start=start)\n result=('returned',answer,events)\nexcept Exception as e:\n result=(type(e).__name__,e.args,events)",
+      "expected": "('ValueError', ('acquire',), ['iter'])"
+    },
+    {
+      "name": "bytes subtype bad_iter positional",
+      "source": "events=[]\nclass Start(bytes):\n def __add__(self,other):\n  events.append('add')\n  return 123\n def __getattribute__(self,name):\n  events.append(name)\n  return super().__getattribute__(name)\nstart=Start()\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return 1\nsource=Source()\ntry:\n answer=sum(source, start)\n result=('returned',answer,events)\nexcept Exception as e:\n result=(type(e).__name__,e.args,events)",
+      "expected": "('TypeError', (\"iter() returned non-iterator of type 'int'\",), ['iter'])"
+    },
+    {
+      "name": "bytes subtype bad_iter keyword",
+      "source": "events=[]\nclass Start(bytes):\n def __add__(self,other):\n  events.append('add')\n  return 123\n def __getattribute__(self,name):\n  events.append(name)\n  return super().__getattribute__(name)\nstart=Start()\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return 1\nsource=Source()\ntry:\n answer=sum(source, start=start)\n result=('returned',answer,events)\nexcept Exception as e:\n result=(type(e).__name__,e.args,events)",
+      "expected": "('TypeError', (\"iter() returned non-iterator of type 'int'\",), ['iter'])"
+    },
+    {
+      "name": "bytes subtype not_iterable positional",
+      "source": "events=[]\nclass Start(bytes):\n def __add__(self,other):\n  events.append('add')\n  return 123\n def __getattribute__(self,name):\n  events.append(name)\n  return super().__getattribute__(name)\nstart=Start()\nsource=None\ntry:\n answer=sum(source, start)\n result=('returned',answer,events)\nexcept Exception as e:\n result=(type(e).__name__,e.args,events)",
+      "expected": "('TypeError', (\"'NoneType' object is not iterable\",), [])"
+    },
+    {
+      "name": "bytes subtype not_iterable keyword",
+      "source": "events=[]\nclass Start(bytes):\n def __add__(self,other):\n  events.append('add')\n  return 123\n def __getattribute__(self,name):\n  events.append(name)\n  return super().__getattribute__(name)\nstart=Start()\nsource=None\ntry:\n answer=sum(source, start=start)\n result=('returned',answer,events)\nexcept Exception as e:\n result=(type(e).__name__,e.args,events)",
+      "expected": "('TypeError', (\"'NoneType' object is not iterable\",), [])"
+    },
+    {
+      "name": "ordinary start identity and addition",
+      "source": "events=[]\nclass Start:\n def __add__(self, other):\n  events.append(('add',other))\n  return self\n def __iadd__(self,other):\n  raise AssertionError('inplace')\nstart=Start()\nresult=(sum([],start) is start,sum([1,2],start) is start,events)",
+      "expected": "(True, True, [('add', 1), ('add', 2)])"
+    }
+  ]
+}

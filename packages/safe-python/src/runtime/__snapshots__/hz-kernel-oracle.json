@@ -1,0 +1,292 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "byteorder": "little"
+  },
+  "results": [
+    {
+      "kind": "decode",
+      "policy": "strict",
+      "mode": 0,
+      "count": 65536,
+      "digest": "eb6b97d781531ca2ecb90587bf4c8c1436d11aeb0ca0343c12874ac0467d45d7"
+    },
+    {
+      "kind": "decode",
+      "policy": "strict",
+      "mode": 1,
+      "count": 65536,
+      "digest": "3d03535d947f19ca5393a67e7e557fc38406cf5f6241463a68a511cf52223dfc"
+    },
+    {
+      "kind": "decode",
+      "policy": "strict",
+      "mode": 2,
+      "count": 65536,
+      "digest": "b0782a17898b1b2966e8f5880fcc801fe59ccfe0af9063ee9681d503c6da877b"
+    },
+    {
+      "kind": "encode",
+      "policy": "strict",
+      "count": 2916,
+      "digest": "316f581248ca95360c473dbed2117b85907f0dbbad8feffe85f227571c9bec83"
+    },
+    {
+      "kind": "decode",
+      "policy": "ignore",
+      "mode": 0,
+      "count": 65536,
+      "digest": "50dea577b36657eb03b6ca903e15917b93a9584b252cb7fc0e8a74b0d889393f"
+    },
+    {
+      "kind": "decode",
+      "policy": "ignore",
+      "mode": 1,
+      "count": 65536,
+      "digest": "f87b787f9d398853d98c4a880f31d17b3852b06a99c5bc29a5f76fb9d471883b"
+    },
+    {
+      "kind": "decode",
+      "policy": "ignore",
+      "mode": 2,
+      "count": 65536,
+      "digest": "6200418c7eac229c638d14a1feb08abd9be14b7bdf97e8b049be0354b247c8ca"
+    },
+    {
+      "kind": "encode",
+      "policy": "ignore",
+      "count": 2916,
+      "digest": "7dc2893acea29c2ff7a361de4e14c8961a1bcebe7474cb40a6097269653c3a1c"
+    },
+    {
+      "kind": "all-points",
+      "policy": "ignore",
+      "length": 15023,
+      "digest": "3182bc105b711dda9b1503011fc41e5cf2c3de9e6a163174252772fbd8345c21"
+    },
+    {
+      "kind": "decode",
+      "policy": "replace",
+      "mode": 0,
+      "count": 65536,
+      "digest": "c0d7f07b12aa0e91aa322208fbb41c2cefd44ebd17e8725a6d5865a7e77ddbed"
+    },
+    {
+      "kind": "decode",
+      "policy": "replace",
+      "mode": 1,
+      "count": 65536,
+      "digest": "aed2ec718f164e0bdb7b9660a345af8c01a6e1fc0dbe7ccd23aa7fa764b2430a"
+    },
+    {
+      "kind": "decode",
+      "policy": "replace",
+      "mode": 2,
+      "count": 65536,
+      "digest": "462d68866878bf2309e85b65c1e28fb3b4b31783de6e0333640df83fc9c283c0"
+    },
+    {
+      "kind": "encode",
+      "policy": "replace",
+      "count": 2916,
+      "digest": "2d8c7cd0de000d71429ce552dd7e480b47b09330fb0fd3d30c624044922157ef"
+    },
+    {
+      "kind": "all-points",
+      "policy": "replace",
+      "length": 1136078,
+      "digest": "c5f61bf4c210996ebdab22208c863d332e5f59adf399c26041a0fad216e463fc"
+    }
+  ],
+  "oracleSource": "import codecs,sys,unicodedata,hashlib,json,itertools,platform\nassert sys.version_info[:3] == (3,14,7)\nassert unicodedata.unidata_version == '16.0.0'\ndef attempt(f):\n try:\n  result=f()\n  return ['ok', list(result) if isinstance(result,bytes) else list(map(ord,result))]\n except (UnicodeEncodeError,UnicodeDecodeError) as e:\n  return ['error', list(e.object) if isinstance(e.object,bytes) else list(map(ord,e.object)),e.start,e.end,e.reason]\ndef add(h,row): h.update((json.dumps(row,separators=(',',':'),ensure_ascii=True)+'\\n').encode('ascii'))\nresults=[]\nfor policy in ('strict','ignore','replace'):\n for mode in (0,1,2):\n  h=hashlib.sha256();count=0\n  for a in range(256):\n   for b in range(256):\n    d=codecs.getincrementaldecoder('hz')(policy);d.setstate((b'',0x123400+mode))\n    row=[]\n    for chunk,final in [(bytes([a]),False),(bytes([b]),False),(b'',True),(b'~}A',True)]:\n     row.append(attempt(lambda:d.decode(chunk,final)))\n     pending,state=d.getstate();row.append([list(pending),str(state)])\n    add(h,row);count+=1\n  results.append(dict(kind='decode',policy=policy,mode=mode,count=count,digest=h.hexdigest()))\n alphabet=[65,126,10,0x4e2d,0x6587,0x30fb,0x2015,0xd800,0x1f600]\n h=hashlib.sha256();count=0\n for points in itertools.product(alphabet,repeat=3):\n  s=''.join(map(chr,points))\n  for split in range(4):\n   e=codecs.getincrementalencoder('hz')(policy)\n   row=[attempt(lambda:s.encode('hz',policy))]\n   for chunk,final in [(s[:split],False),(s[split:],False),('',True),('A',True)]:\n    row.extend([attempt(lambda:e.encode(chunk,final)),str(e.getstate())])\n   add(h,row);count+=1\n results.append(dict(kind='encode',policy=policy,count=count,digest=h.hexdigest()))\n if policy!='strict':\n  out=''.join(map(chr,range(0x110000))).encode('hz',policy)\n  results.append(dict(kind='all-points',policy=policy,length=len(out),digest=hashlib.sha256(out).hexdigest()))\nprint(json.dumps(dict(reference=dict(version=sys.version,unicode=unicodedata.unidata_version,platform=platform.platform(),machine=platform.machine(),byteorder=sys.byteorder),results=results),indent=2))\n",
+  "sources": [
+    {
+      "url": "https://raw.githubusercontent.com/python/cpython/v3.14.7/Modules/cjkcodecs/_codecs_cn.c",
+      "sha256": "8b28def11821d71acb90ef3e74d7d6d597246daf4c196415107d19ebeeb73e55"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/python/cpython/v3.14.7/Modules/cjkcodecs/multibytecodec.c",
+      "sha256": "8891773ee72fa47ffbdde9eeef5abf476b14b8027c2a812d180f0fefedd906e6"
+    }
+  ],
+  "encoderReentrancy": {
+    "source": "import codecs, hashlib, json\noriginals=['','中','文']\npendings=['','中','12345678']\nactions=['end','negative','rewind','out-of-bounds','overflow','raise','reset','nested','nested-failure','policy']\ndef state(text,opaque):\n    b=text.encode('utf-8'); return int.from_bytes(bytes([len(b)])+b+opaque.to_bytes(8,'little'),'little')\ndef describe(e,failure):\n    if isinstance(e,UnicodeEncodeError): return ['error',type(e).__name__,e.encoding,list(map(ord,e.object)),e.start,e.end,e.reason]\n    return ['error',type(e).__name__,str(e),e is failure]\nfor name in ['hz']:\n    rows=[]\n    for original in originals:\n      for pending in pendings:\n       for final in [False,True]:\n        for action in actions:\n         for replacement in ['bytes','text','invalid']:\n          seen=[]; count=[0]; failure=ValueError('guest failure')\n          encoder=codecs.getincrementalencoder(name)('encoder_matrix')\n          retained_policy=encoder.errors\n          def handler(error):\n            count[0]+=1\n            seen.append([error.encoding,list(map(ord,error.object)),error.start,error.end,error.reason])\n            encoder.setstate(state(pending,99))\n            if action=='raise': raise failure\n            if action=='reset': encoder.reset()\n            if action=='policy': encoder.errors='ignore'\n            if action in ('nested','nested-failure'):\n              encoder.setstate(state('中',123))\n              if action=='nested-failure': encoder.errors='strict'\n              try: result=['ok',list(encoder.encode('・' if action=='nested' else '\\ud800',False))]\n              except BaseException as e: result=describe(e,failure)\n              encoder.errors='encoder_matrix'\n              seen.append(['nested',result,str(encoder.getstate())])\n            position=error.end\n            if action=='negative' and position<len(error.object): position-=len(error.object)\n            if action=='rewind' and count[0]==1: position=0\n            if action=='out-of-bounds': position=len(error.object)+1\n            if action=='overflow': position=1<<63\n            return (b'\\x80\\xff' if replacement=='bytes' else '文' if replacement=='text' else '\\ud800',position)\n          codecs.register_error('encoder_matrix',handler)\n          encoder.setstate(state(original,42))\n          try: result=['ok',list(encoder.encode('\\ud800中・\\udfff文',final))]\n          except BaseException as e: result=describe(e,failure)\n          rows.append([list(map(ord,original)),list(map(ord,pending)),final,action,replacement,seen,result,str(encoder.getstate())])\n    data=''.join(json.dumps(row,separators=(',',':'),ensure_ascii=True)+'\\n' for row in rows)\n    print(name,len(rows),hashlib.sha256(data.encode()).hexdigest(),flush=True)\n    with open('/tmp/safe-python-encoder-matrix-'+name+'.json','w') as f: json.dump(rows,f)\n",
+    "count": 540,
+    "digest": "1d1d3bd947c9d778db6897ee86170d86f8773c9c68875eeba37973d40bb7af9c",
+    "retainedPolicy": true
+  },
+  "services": {
+    "source": "import codecs\ndef nested(error):\n    return (input(), -1)\ndef outer(error):\n    return (('\\ud800' + 'Z').encode('ascii', 'nested_service'), -1)\ncodecs.register_error('nested_service', nested)\ncodecs.register_error('outer_service', outer)\nprint(('\\udfff' + 'A').encode('ascii', 'outer_service'))\n",
+    "driver": "import fs from 'node:fs';\nimport assert from 'node:assert/strict';\nimport {PythonSession} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/index.ts';\nconst mode=process.argv[2],source=fs.readFileSync(process.argv[3],'utf8'),controller=new AbortController();\nlet reads=0,writes=0;\nconst session=new PythonSession({limits:{maxSteps:2000000,maxAllocatedBytes:24000000,maxDepth:100},hashSeed:[1n,2n],signal:controller.signal,\ninput:{readLine(){reads++;const bytes=Buffer.alloc(1);let line='';while(fs.readSync(0,bytes,0,1,null)){line+=bytes.toString();if(line.endsWith('\\n'))break;}if(mode==='return'||mode==='throw')controller.abort();if(mode==='throw')throw Error('service failed after read');return line||null;}},\noutput:{write(text){writes++;fs.writeSync(1,text);},flush(){/* writeSync has no userspace output buffer to flush. */}}});\nconst result=session.exec(source);\nif(mode==='return'||mode==='throw'){\nassert.deepEqual(result,{status:'terminated',reason:'cancelled',message:'execution cancelled'});assert.deepEqual(session.eval('1'),{status:'terminated',reason:'cancelled',message:'execution cancelled'});assert.equal(reads,1);assert.equal(writes,0);\n}else assert.equal(result.status,'ok');\n",
+    "native": {
+      "exit": 0,
+      "signal": null,
+      "stdout": "b'?ZA'\n",
+      "stderr": ""
+    },
+    "runs": [
+      {
+        "mode": "normal",
+        "exit": 0,
+        "signal": null,
+        "stdout": "b'?ZA'\n",
+        "stderr": ""
+      },
+      {
+        "mode": "return",
+        "exit": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      },
+      {
+        "mode": "throw",
+        "exit": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": ""
+      }
+    ],
+    "publicSource": "import codecs\ntry:\n    print(codecs.lookup('hz').name)\nexcept LookupError as error:\n    print(type(error).__name__, str(error))\n",
+    "publicNative": {
+      "exit": 0,
+      "signal": null,
+      "stdout": "hz\n",
+      "stderr": ""
+    },
+    "publicSession": {
+      "exit": 0,
+      "signal": null,
+      "stdout": "LookupError unknown encoding: hz\n",
+      "stderr": ""
+    }
+  },
+  "decoderReentrancy": {
+    "source": "import codecs, hashlib, json, sys, unicodedata\nassert sys.version_info[:3] == (3, 14, 7)\nassert unicodedata.unidata_version == '16.0.0'\ninputs = [[],[126],[126,123],[126,125],[126,126],[126,10],[126,123,86,80,126,125],[126,123,255,86],[65,126,123,86,80,126,125,90]]\nactions = ['end','negative','rewind','bounds','overflow','raise','reset','nested','policy']\nh = hashlib.sha256()\ncount = 0\nfor data in inputs:\n for split in range(len(data)+1):\n  for original in [[],[126],[126,123],[126,123,86]]:\n   for pending in [[],[90],[49,50,51,52,53,54,55,56]]:\n    for action in actions:\n     for replacement in ['?', '\\ud800']:\n      seen = []\n      failure = ValueError('guest failure')\n      rewound = False\n      def handler(error):\n       global rewound\n       seen.append([error.encoding,list(error.object),error.start,error.end,error.reason])\n       decoder.setstate((bytes(pending),99))\n       if action == 'raise': raise failure\n       if action == 'reset': decoder.reset()\n       if action == 'nested':\n        decoder.setstate((b'V',123))\n        seen.append(['nested',list(map(ord,decoder.decode(b'P',False)))])\n       if action == 'policy': decoder.errors = 'replace'\n       position = error.end\n       if action == 'negative' and not rewound:\n        rewound = True\n        position = -1\n       if action == 'rewind' and not rewound:\n        rewound = True\n        position = 0\n       if action == 'bounds': position = len(error.object)+1\n       if action == 'overflow': position = 1<<70\n       return replacement, position\n      codecs.register_error('hz-edge',handler)\n      decoder = codecs.getincrementaldecoder('hz')('hz-edge')\n      retained_policy = decoder.errors\n      decoder.setstate((bytes(original),0))\n      results = []\n      for chunk, final in [(bytes(data[:split]),False),(bytes(data[split:]),False),(b'',True),(b'A',True)]:\n       try: result = ['ok',list(map(ord,decoder.decode(chunk,final)))]\n       except UnicodeDecodeError as error:\n        result = ['error',type(error).__name__,error.encoding,list(error.object),error.start,error.end,error.reason]\n       except Exception as error:\n        result = ['error',type(error).__name__,str(error),error is failure]\n       state = decoder.getstate()\n       results.append([result,[list(state[0]),str(state[1])]])\n      row = [data,split,original,pending,action,list(map(ord,replacement)),seen,results]\n      h.update((json.dumps(row,separators=(',',':'),ensure_ascii=True)+'\\n').encode())\n      count += 1\nprint(json.dumps({'version':sys.version,'unicode':unicodedata.unidata_version,'count':count,'sha256':h.hexdigest()}))\n",
+    "result": {
+      "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+      "unicode": "16.0.0",
+      "count": 7776,
+      "sha256": "2257b7d9b4eefcf4327e79c17fba570f66eafa969c9a3e5aab7d5b807dde0d6c"
+    }
+  },
+  "retainedGate": {
+    "passed": 11711,
+    "failed": 84,
+    "total": 11795,
+    "pending": 0,
+    "files": 184,
+    "failures": [
+      "packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts\u0000retains ascii encoding source identity, cached errors, index side effects and rejected replacement fields",
+      "packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts\u0000retains latin_1 encoding source identity, cached errors, index side effects and rejected replacement fields",
+      "packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts\u0000retains utf_8 encoding source identity, cached errors, index side effects and rejected replacement fields",
+      "packages/safe-python/src/session-charmap-codec-api.test.ts\u0000preserves 'decode' 'handler' failure identity",
+      "packages/safe-python/src/session-charmap-codec-api.test.ts\u0000preserves 'decode' 'mapping' failure identity",
+      "packages/safe-python/src/session-charmap-codec-api.test.ts\u0000preserves 'encode' 'handler' failure identity",
+      "packages/safe-python/src/session-charmap-codec-api.test.ts\u0000preserves 'encode' 'mapping' failure identity",
+      "packages/safe-python/src/session-codec-decoder-consumers.test.ts\u0000registered decoder consumer: 'bytes.decode(source, \\'decoder-contra…'",
+      "packages/safe-python/src/session-codec-decoder-consumers.test.ts\u0000registered decoder consumer: 'bytes.decode(source, \\'decoder-contra…'",
+      "packages/safe-python/src/session-codec-decoder-consumers.test.ts\u0000registered decoder consumer: 'source.decode(\\'decoder-contract\\'): …'",
+      "packages/safe-python/src/session-codec-decoder-consumers.test.ts\u0000registered decoder consumer: 'source.decode(\\'decoder-contract\\'): …'",
+      "packages/safe-python/src/session-codec-decoder-consumers.test.ts\u0000registered decoder consumer: 'str(source, \\'decoder-contract\\'): ex…'",
+      "packages/safe-python/src/session-codec-decoder-consumers.test.ts\u0000registered decoder consumer: 'str(source, \\'decoder-contract\\'): om…'",
+      "packages/safe-python/src/session-codec-decoder-consumers.test.ts\u0000registered decoder consumer: 'str.__new__(str, source, \\'decoder-co…'",
+      "packages/safe-python/src/session-codec-decoder-consumers.test.ts\u0000registered decoder consumer: 'str.__new__(str, source, \\'decoder-co…'",
+      "packages/safe-python/src/session-codec-frozen-execution.test.ts\u0000frozen execution: 'late frozen import failure retains es…'",
+      "packages/safe-python/src/session-codec-module.test.ts\u0000shares imported registrations with native text methods and constructors",
+      "packages/safe-python/src/session-codec-native-failures.test.ts\u0000native codec failure: 'u16: bytes(text, encoding)'",
+      "packages/safe-python/src/session-codec-native-failures.test.ts\u0000native codec failure: 'u16: bytes.__new__(bytes, text, encod…'",
+      "packages/safe-python/src/session-codec-native-failures.test.ts\u0000native codec failure: 'u16: str.encode(text, encoding)'",
+      "packages/safe-python/src/session-codec-native-failures.test.ts\u0000native codec failure: 'u16: text.encode(encoding)'",
+      "packages/safe-python/src/session-codec-native-failures.test.ts\u0000native codec failure: 'u32: bytes(text, encoding)'",
+      "packages/safe-python/src/session-codec-native-failures.test.ts\u0000native codec failure: 'u32: bytes.__new__(bytes, text, encod…'",
+      "packages/safe-python/src/session-codec-native-failures.test.ts\u0000native codec failure: 'u32: str.encode(text, encoding)'",
+      "packages/safe-python/src/session-codec-native-failures.test.ts\u0000native codec failure: 'u32: text.encode(encoding)'",
+      "packages/safe-python/src/session-codec-native-wide-modules.test.ts\u0000native wide codec module: 'utf-16 every incremental split and st…'",
+      "packages/safe-python/src/session-codec-native-wide-modules.test.ts\u0000native wide codec module: 'utf-16 incremental encoder state and …'",
+      "packages/safe-python/src/session-codec-native-wide-modules.test.ts\u0000native wide codec module: 'utf-16 missing BOM and truncated inpu…'",
+      "packages/safe-python/src/session-codec-native-wide-modules.test.ts\u0000native wide codec module: 'utf-16 registry and module API'",
+      "packages/safe-python/src/session-codec-native-wide-modules.test.ts\u0000native wide codec module: 'utf-16 stream adapters BOM and reset'",
+      "packages/safe-python/src/session-codec-native-wide-modules.test.ts\u0000native wide codec module: 'utf-32 every incremental split and st…'",
+      "packages/safe-python/src/session-codec-native-wide-modules.test.ts\u0000native wide codec module: 'utf-32 incremental encoder state and …'",
+      "packages/safe-python/src/session-codec-native-wide-modules.test.ts\u0000native wide codec module: 'utf-32 missing BOM and truncated inpu…'",
+      "packages/safe-python/src/session-codec-native-wide-modules.test.ts\u0000native wide codec module: 'utf-32 registry and module API'",
+      "packages/safe-python/src/session-codec-native-wide-modules.test.ts\u0000native wide codec module: 'utf-32 stream adapters BOM and reset'",
+      "packages/safe-python/src/session-codec-platform-modules.test.ts\u0000platform codec: 'Windows code-page factory imports laz…'",
+      "packages/safe-python/src/session-codec-platform-modules.test.ts\u0000platform codec: 'mbcs import failure and registry cache'",
+      "packages/safe-python/src/session-codec-platform-modules.test.ts\u0000platform codec: 'oem import failure and registry cache'",
+      "packages/safe-python/src/session-codec-public-contracts.test.ts\u0000public codec contract: 'Punycode public decoder factories ret…'",
+      "packages/safe-python/src/session-codec-public-contracts.test.ts\u0000public codec contract: 'UTF-16/32 rejected replacements resto…'",
+      "packages/safe-python/src/session-codec-public-contracts.test.ts\u0000public codec contract: 'all standard handlers through publish…'",
+      "packages/safe-python/src/session-codec-public-contracts.test.ts\u0000public codec contract: 'byte escape types, argument precedenc…'",
+      "packages/safe-python/src/session-codec-public-contracts.test.ts\u0000public codec contract: 'callback failures preserve identity, …'",
+      "packages/safe-python/src/session-codec-public-contracts.test.ts\u0000public codec contract: 'charmap surrogateescape retains origi…'",
+      "packages/safe-python/src/session-codec-public-contracts.test.ts\u0000public codec contract: 'custom codecs shared by encode/decode…'",
+      "packages/safe-python/src/session-codec-public-contracts.test.ts\u0000public codec contract: 'decoder subtype identity and tuple ov…'",
+      "packages/safe-python/src/session-codec-public-contracts.test.ts\u0000public codec contract: 'stream reader/writer adapters over a …'",
+      "packages/safe-python/src/session-codec-rot13-undefined-integration.test.ts\u0000'ROT13 bytes consumer nontext rejection'",
+      "packages/safe-python/src/session-codec-rot13-undefined-integration.test.ts\u0000'guest module spec'",
+      "packages/safe-python/src/session-codec-rot13-undefined-integration.test.ts\u0000'undefined bytes consumer'",
+      "packages/safe-python/src/session-codec-rot13-undefined-integration.test.ts\u0000'undefined traceback'",
+      "packages/safe-python/src/session-codec-source-registry.test.ts\u0000keeps cancellation in source decoder callbacks terminal",
+      "packages/safe-python/src/session-codec-source-registry.test.ts\u0000source registry: 'source callback failures retain nativ…'",
+      "packages/safe-python/src/session-codec-source-registry.test.ts\u0000source registry: 'source codec callbacks use the suppli…'",
+      "packages/safe-python/src/session-codec-source-registry.test.ts\u0000source registry: 'source decoder receives an ownerless …'",
+      "packages/safe-python/src/session-codec-stream-mutation.test.ts\u0000'stream reader bytearray and memoryvie…'",
+      "packages/safe-python/src/session-codec-stream-traceback.test.ts\u0000retains caller and codec frames with pinned instruction positions",
+      "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000keeps cancellation in 'ascii' buffer acquisition fatal (throws=false)",
+      "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000keeps cancellation in 'ascii' buffer acquisition fatal (throws=true)",
+      "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000keeps cancellation in 'latin_1' buffer acquisition fatal (throws=false)",
+      "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000keeps cancellation in 'latin_1' buffer acquisition fatal (throws=true)",
+      "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000keeps cancellation in 'utf_8' buffer acquisition fatal (throws=false)",
+      "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000keeps cancellation in 'utf_8' buffer acquisition fatal (throws=true)",
+      "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'ascii inherited buffer failure preced…'",
+      "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'ascii rejects a strided memoryview'",
+      "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'ascii uses and releases an overridden…'",
+      "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'ascii validates buffer hook result be…'",
+      "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'latin_1 inherited buffer failure prec…'",
+      "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'latin_1 rejects a strided memoryview'",
+      "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'latin_1 uses and releases an overridd…'",
+      "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'latin_1 validates buffer hook result …'",
+      "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'utf_8 inherited buffer failure preced…'",
+      "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'utf_8 rejects a strided memoryview'",
+      "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'utf_8 uses and releases an overridden…'",
+      "packages/safe-python/src/session-core-codec-buffers.test.ts\u0000public codec buffer contract: 'utf_8 validates buffer hook result be…'",
+      "packages/safe-python/src/session-punycode-module.test.ts\u0000Punycode library: 'decoder policies, input variants and …'",
+      "packages/safe-python/src/session-punycode-module.test.ts\u0000Punycode library: 'encoding helpers and public encoders …'",
+      "packages/safe-python/src/session-punycode-module.test.ts\u0000Punycode library: 'stream adapters preserve serviced cal…'",
+      "packages/safe-python/src/session-punycode-prefix-termination.test.ts\u0000keeps prefix recovery cancellation terminal through 'codecs.decode(data, \\'punycode\\')' (throws=false)",
+      "packages/safe-python/src/session-punycode-prefix-termination.test.ts\u0000keeps prefix recovery cancellation terminal through 'codecs.decode(data, \\'punycode\\')' (throws=true)",
+      "packages/safe-python/src/session-punycode-prefix-termination.test.ts\u0000keeps prefix recovery cancellation terminal through 'codecs.getincrementaldecoder(\\'punyco…' (throws=false)",
+      "packages/safe-python/src/session-punycode-prefix-termination.test.ts\u0000keeps prefix recovery cancellation terminal through 'codecs.getincrementaldecoder(\\'punyco…' (throws=true)",
+      "packages/safe-python/src/session-punycode.test.ts\u0000uses Punycode through real guest text consumers and exception storage",
+      "packages/safe-python/src/session-utf7-codec-api.test.ts\u0000preserves decoder guest failures, traceback and native-call note behavior"
+    ],
+    "identitiesSha256": "4205ef14af04ae08c671735da5fb27655ad36136e3289981e9f215c47ff18bed"
+  },
+  "focusedGate": {
+    "command": "npm run test --workspace=@poe-code/safe-python -- hz- runtime-multibyte-recovery --maxWorkers=2 --reporter=json --outputFile=/tmp/safe-python-hz-focused.json",
+    "passed": 228,
+    "failed": 0,
+    "pending": 0,
+    "files": 5
+  },
+  "validation": {
+    "typecheck": "npm run typecheck --workspace=@poe-code/safe-python",
+    "scopedEslint": [
+      "packages/safe-python/src/runtime/double-byte-codec.ts",
+      "packages/safe-python/src/runtime/double-byte-incremental-decoder.ts",
+      "packages/safe-python/src/runtime/double-byte-incremental-encoder.ts",
+      "packages/safe-python/src/runtime/hz-codec.ts",
+      "packages/safe-python/src/runtime/hz-codec.test.ts",
+      "packages/safe-python/src/runtime/hz-codec-oracle.test.ts",
+      "packages/safe-python/src/runtime/hz-encoder-reentrancy.test.ts",
+      "packages/safe-python/src/runtime/hz-decoder-reentrancy.test.ts",
+      "packages/safe-python/src/runtime/runtime-multibyte-recovery.test.ts"
+    ],
+    "status": "passed"
+  }
+}

@@ -1,0 +1,332 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "cases": [
+    {
+      "name": "outer lookup publishes after nested cache population and unregistration",
+      "source": "import codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\ninner = (None, None, None, None)\nouter = (False, False, False, False)\nactive = False\ndef search(name):\n    global active\n    events.append(name)\n    if active:\n        return inner\n    active = True\n    assert codecs.lookup(name) is inner\n    codecs.unregister(search)\n    return outer\ncodecs.register(search)\nassert codecs.lookup('Nested-Cache') is outer\nassert codecs.lookup('NESTED CACHE') is outer\nassert events == ['nested_cache', 'nested_cache']\ncodecs.unregister(search)\nassert codecs.lookup('nested_cache') is outer\ncodecs.register(search)\ncodecs.unregister(search)\ntry:\n    codecs.lookup('nested_cache')\nexcept LookupError as error:\n    assert error.args == (\"no codec search functions registered: can't find encoding\",)\nelse:\n    raise AssertionError('cache survived a registered removal')\nprint('ok')\n",
+      "exitCode": 0,
+      "stdout": "ok\n",
+      "stderr": ""
+    },
+    {
+      "name": "error position hooks replace registry handlers without replacing the active handler",
+      "source": "import codecs\nseen = []\ndef next_handler(error):\n    seen.append(('next', error.start))\n    return ('N', error.end)\nclass Position:\n    def __init__(self, position):\n        self.position = position\n    def __index__(self):\n        codecs.register_error('reentrant-policy', next_handler)\n        return self.position\ndef first_handler(error):\n    seen.append(('first', error.start))\n    return ('F', Position(error.end - len(error.object)))\ncodecs.register_error('reentrant-policy', first_handler)\nassert codecs.ascii_decode(b'\\xffA\\xffB', 'reentrant-policy') == ('FAFB', 4)\nassert seen == [('first', 0), ('first', 2)]\nassert codecs.ascii_decode(b'\\xff', 'reentrant-policy') == ('N', 1)\nassert seen == [('first', 0), ('first', 2), ('next', 0)]\nprint('ok')\n",
+      "exitCode": 0,
+      "stdout": "ok\n",
+      "stderr": ""
+    },
+    {
+      "name": "UTF8 BOM decoder restores every three-chunk split with surrogate recovery: first=0",
+      "source": "import codecs\ntext = 'Aé🐍\\ud800Z'\ndata = codecs.BOM_UTF8 + text.encode('utf-8', 'surrogatepass')\nassert len(data) == 14\nfor first in [0]:\n    for second in range(first, len(data) + 1):\n        decoder = codecs.getincrementaldecoder('utf-8-sig')('surrogatepass')\n        output = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = codecs.getincrementaldecoder('utf-8-sig')('surrogatepass')\n        restored.setstate(state)\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert output + middle + tail == text\n        assert decoder.getstate() == (b'', 0)\n        decoder.reset()\n        assert decoder.getstate() == (b'', 1)\n        assert decoder.decode(data, True) == text\nprint('ok')\n",
+      "exitCode": 0,
+      "stdout": "ok\n",
+      "stderr": ""
+    },
+    {
+      "name": "UTF8 BOM decoder restores every three-chunk split with surrogate recovery: first=1",
+      "source": "import codecs\ntext = 'Aé🐍\\ud800Z'\ndata = codecs.BOM_UTF8 + text.encode('utf-8', 'surrogatepass')\nassert len(data) == 14\nfor first in [1]:\n    for second in range(first, len(data) + 1):\n        decoder = codecs.getincrementaldecoder('utf-8-sig')('surrogatepass')\n        output = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = codecs.getincrementaldecoder('utf-8-sig')('surrogatepass')\n        restored.setstate(state)\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert output + middle + tail == text\n        assert decoder.getstate() == (b'', 0)\n        decoder.reset()\n        assert decoder.getstate() == (b'', 1)\n        assert decoder.decode(data, True) == text\nprint('ok')\n",
+      "exitCode": 0,
+      "stdout": "ok\n",
+      "stderr": ""
+    },
+    {
+      "name": "UTF8 BOM decoder restores every three-chunk split with surrogate recovery: first=2",
+      "source": "import codecs\ntext = 'Aé🐍\\ud800Z'\ndata = codecs.BOM_UTF8 + text.encode('utf-8', 'surrogatepass')\nassert len(data) == 14\nfor first in [2]:\n    for second in range(first, len(data) + 1):\n        decoder = codecs.getincrementaldecoder('utf-8-sig')('surrogatepass')\n        output = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = codecs.getincrementaldecoder('utf-8-sig')('surrogatepass')\n        restored.setstate(state)\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert output + middle + tail == text\n        assert decoder.getstate() == (b'', 0)\n        decoder.reset()\n        assert decoder.getstate() == (b'', 1)\n        assert decoder.decode(data, True) == text\nprint('ok')\n",
+      "exitCode": 0,
+      "stdout": "ok\n",
+      "stderr": ""
+    },
+    {
+      "name": "UTF8 BOM decoder restores every three-chunk split with surrogate recovery: first=3",
+      "source": "import codecs\ntext = 'Aé🐍\\ud800Z'\ndata = codecs.BOM_UTF8 + text.encode('utf-8', 'surrogatepass')\nassert len(data) == 14\nfor first in [3]:\n    for second in range(first, len(data) + 1):\n        decoder = codecs.getincrementaldecoder('utf-8-sig')('surrogatepass')\n        output = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = codecs.getincrementaldecoder('utf-8-sig')('surrogatepass')\n        restored.setstate(state)\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert output + middle + tail == text\n        assert decoder.getstate() == (b'', 0)\n        decoder.reset()\n        assert decoder.getstate() == (b'', 1)\n        assert decoder.decode(data, True) == text\nprint('ok')\n",
+      "exitCode": 0,
+      "stdout": "ok\n",
+      "stderr": ""
+    },
+    {
+      "name": "UTF8 BOM decoder restores every three-chunk split with surrogate recovery: first=4",
+      "source": "import codecs\ntext = 'Aé🐍\\ud800Z'\ndata = codecs.BOM_UTF8 + text.encode('utf-8', 'surrogatepass')\nassert len(data) == 14\nfor first in [4]:\n    for second in range(first, len(data) + 1):\n        decoder = codecs.getincrementaldecoder('utf-8-sig')('surrogatepass')\n        output = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = codecs.getincrementaldecoder('utf-8-sig')('surrogatepass')\n        restored.setstate(state)\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert output + middle + tail == text\n        assert decoder.getstate() == (b'', 0)\n        decoder.reset()\n        assert decoder.getstate() == (b'', 1)\n        assert decoder.decode(data, True) == text\nprint('ok')\n",
+      "exitCode": 0,
+      "stdout": "ok\n",
+      "stderr": ""
+    },
+    {
+      "name": "UTF8 BOM decoder restores every three-chunk split with surrogate recovery: first=5",
+      "source": "import codecs\ntext = 'Aé🐍\\ud800Z'\ndata = codecs.BOM_UTF8 + text.encode('utf-8', 'surrogatepass')\nassert len(data) == 14\nfor first in [5]:\n    for second in range(first, len(data) + 1):\n        decoder = codecs.getincrementaldecoder('utf-8-sig')('surrogatepass')\n        output = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = codecs.getincrementaldecoder('utf-8-sig')('surrogatepass')\n        restored.setstate(state)\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert output + middle + tail == text\n        assert decoder.getstate() == (b'', 0)\n        decoder.reset()\n        assert decoder.getstate() == (b'', 1)\n        assert decoder.decode(data, True) == text\nprint('ok')\n",
+      "exitCode": 0,
+      "stdout": "ok\n",
+      "stderr": ""
+    },
+    {
+      "name": "UTF8 BOM decoder restores every three-chunk split with surrogate recovery: first=6",
+      "source": "import codecs\ntext = 'Aé🐍\\ud800Z'\ndata = codecs.BOM_UTF8 + text.encode('utf-8', 'surrogatepass')\nassert len(data) == 14\nfor first in [6]:\n    for second in range(first, len(data) + 1):\n        decoder = codecs.getincrementaldecoder('utf-8-sig')('surrogatepass')\n        output = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = codecs.getincrementaldecoder('utf-8-sig')('surrogatepass')\n        restored.setstate(state)\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert output + middle + tail == text\n        assert decoder.getstate() == (b'', 0)\n        decoder.reset()\n        assert decoder.getstate() == (b'', 1)\n        assert decoder.decode(data, True) == text\nprint('ok')\n",
+      "exitCode": 0,
+      "stdout": "ok\n",
+      "stderr": ""
+    },
+    {
+      "name": "UTF8 BOM decoder restores every three-chunk split with surrogate recovery: first=7",
+      "source": "import codecs\ntext = 'Aé🐍\\ud800Z'\ndata = codecs.BOM_UTF8 + text.encode('utf-8', 'surrogatepass')\nassert len(data) == 14\nfor first in [7]:\n    for second in range(first, len(data) + 1):\n        decoder = codecs.getincrementaldecoder('utf-8-sig')('surrogatepass')\n        output = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = codecs.getincrementaldecoder('utf-8-sig')('surrogatepass')\n        restored.setstate(state)\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert output + middle + tail == text\n        assert decoder.getstate() == (b'', 0)\n        decoder.reset()\n        assert decoder.getstate() == (b'', 1)\n        assert decoder.decode(data, True) == text\nprint('ok')\n",
+      "exitCode": 0,
+      "stdout": "ok\n",
+      "stderr": ""
+    },
+    {
+      "name": "UTF8 BOM decoder restores every three-chunk split with surrogate recovery: first=8",
+      "source": "import codecs\ntext = 'Aé🐍\\ud800Z'\ndata = codecs.BOM_UTF8 + text.encode('utf-8', 'surrogatepass')\nassert len(data) == 14\nfor first in [8]:\n    for second in range(first, len(data) + 1):\n        decoder = codecs.getincrementaldecoder('utf-8-sig')('surrogatepass')\n        output = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = codecs.getincrementaldecoder('utf-8-sig')('surrogatepass')\n        restored.setstate(state)\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert output + middle + tail == text\n        assert decoder.getstate() == (b'', 0)\n        decoder.reset()\n        assert decoder.getstate() == (b'', 1)\n        assert decoder.decode(data, True) == text\nprint('ok')\n",
+      "exitCode": 0,
+      "stdout": "ok\n",
+      "stderr": ""
+    },
+    {
+      "name": "UTF8 BOM decoder restores every three-chunk split with surrogate recovery: first=9",
+      "source": "import codecs\ntext = 'Aé🐍\\ud800Z'\ndata = codecs.BOM_UTF8 + text.encode('utf-8', 'surrogatepass')\nassert len(data) == 14\nfor first in [9]:\n    for second in range(first, len(data) + 1):\n        decoder = codecs.getincrementaldecoder('utf-8-sig')('surrogatepass')\n        output = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = codecs.getincrementaldecoder('utf-8-sig')('surrogatepass')\n        restored.setstate(state)\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert output + middle + tail == text\n        assert decoder.getstate() == (b'', 0)\n        decoder.reset()\n        assert decoder.getstate() == (b'', 1)\n        assert decoder.decode(data, True) == text\nprint('ok')\n",
+      "exitCode": 0,
+      "stdout": "ok\n",
+      "stderr": ""
+    },
+    {
+      "name": "UTF8 BOM decoder restores every three-chunk split with surrogate recovery: first=10",
+      "source": "import codecs\ntext = 'Aé🐍\\ud800Z'\ndata = codecs.BOM_UTF8 + text.encode('utf-8', 'surrogatepass')\nassert len(data) == 14\nfor first in [10]:\n    for second in range(first, len(data) + 1):\n        decoder = codecs.getincrementaldecoder('utf-8-sig')('surrogatepass')\n        output = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = codecs.getincrementaldecoder('utf-8-sig')('surrogatepass')\n        restored.setstate(state)\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert output + middle + tail == text\n        assert decoder.getstate() == (b'', 0)\n        decoder.reset()\n        assert decoder.getstate() == (b'', 1)\n        assert decoder.decode(data, True) == text\nprint('ok')\n",
+      "exitCode": 0,
+      "stdout": "ok\n",
+      "stderr": ""
+    },
+    {
+      "name": "UTF8 BOM decoder restores every three-chunk split with surrogate recovery: first=11",
+      "source": "import codecs\ntext = 'Aé🐍\\ud800Z'\ndata = codecs.BOM_UTF8 + text.encode('utf-8', 'surrogatepass')\nassert len(data) == 14\nfor first in [11]:\n    for second in range(first, len(data) + 1):\n        decoder = codecs.getincrementaldecoder('utf-8-sig')('surrogatepass')\n        output = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = codecs.getincrementaldecoder('utf-8-sig')('surrogatepass')\n        restored.setstate(state)\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert output + middle + tail == text\n        assert decoder.getstate() == (b'', 0)\n        decoder.reset()\n        assert decoder.getstate() == (b'', 1)\n        assert decoder.decode(data, True) == text\nprint('ok')\n",
+      "exitCode": 0,
+      "stdout": "ok\n",
+      "stderr": ""
+    },
+    {
+      "name": "UTF8 BOM decoder restores every three-chunk split with surrogate recovery: first=12",
+      "source": "import codecs\ntext = 'Aé🐍\\ud800Z'\ndata = codecs.BOM_UTF8 + text.encode('utf-8', 'surrogatepass')\nassert len(data) == 14\nfor first in [12]:\n    for second in range(first, len(data) + 1):\n        decoder = codecs.getincrementaldecoder('utf-8-sig')('surrogatepass')\n        output = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = codecs.getincrementaldecoder('utf-8-sig')('surrogatepass')\n        restored.setstate(state)\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert output + middle + tail == text\n        assert decoder.getstate() == (b'', 0)\n        decoder.reset()\n        assert decoder.getstate() == (b'', 1)\n        assert decoder.decode(data, True) == text\nprint('ok')\n",
+      "exitCode": 0,
+      "stdout": "ok\n",
+      "stderr": ""
+    },
+    {
+      "name": "UTF8 BOM decoder restores every three-chunk split with surrogate recovery: first=13",
+      "source": "import codecs\ntext = 'Aé🐍\\ud800Z'\ndata = codecs.BOM_UTF8 + text.encode('utf-8', 'surrogatepass')\nassert len(data) == 14\nfor first in [13]:\n    for second in range(first, len(data) + 1):\n        decoder = codecs.getincrementaldecoder('utf-8-sig')('surrogatepass')\n        output = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = codecs.getincrementaldecoder('utf-8-sig')('surrogatepass')\n        restored.setstate(state)\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert output + middle + tail == text\n        assert decoder.getstate() == (b'', 0)\n        decoder.reset()\n        assert decoder.getstate() == (b'', 1)\n        assert decoder.decode(data, True) == text\nprint('ok')\n",
+      "exitCode": 0,
+      "stdout": "ok\n",
+      "stderr": ""
+    },
+    {
+      "name": "UTF8 BOM decoder restores every three-chunk split with surrogate recovery: first=14",
+      "source": "import codecs\ntext = 'Aé🐍\\ud800Z'\ndata = codecs.BOM_UTF8 + text.encode('utf-8', 'surrogatepass')\nassert len(data) == 14\nfor first in [14]:\n    for second in range(first, len(data) + 1):\n        decoder = codecs.getincrementaldecoder('utf-8-sig')('surrogatepass')\n        output = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = codecs.getincrementaldecoder('utf-8-sig')('surrogatepass')\n        restored.setstate(state)\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert output + middle + tail == text\n        assert decoder.getstate() == (b'', 0)\n        decoder.reset()\n        assert decoder.getstate() == (b'', 1)\n        assert decoder.decode(data, True) == text\nprint('ok')\n",
+      "exitCode": 0,
+      "stdout": "ok\n",
+      "stderr": ""
+    }
+  ],
+  "realServices": {
+    "source": "import codecs\ndef nested(error):\n    return (input(), -1)\ndef outer(error):\n    return (('\\ud800' + 'Z').encode('ascii', 'nested_service'), -1)\ncodecs.register_error('nested_service', nested)\ncodecs.register_error('outer_service', outer)\nprint(('\\udfff' + 'A').encode('ascii', 'outer_service'))\n",
+    "input": "test\n",
+    "driver": "import fs from 'node:fs';\nimport assert from 'node:assert/strict';\nimport {PythonSession} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/index.ts';\nconst mode=process.argv[1],source=\"import codecs\\ndef nested(error):\\n    return (input(), -1)\\ndef outer(error):\\n    return (('\\\\ud800' + 'Z').encode('ascii', 'nested_service'), -1)\\ncodecs.register_error('nested_service', nested)\\ncodecs.register_error('outer_service', outer)\\nprint(('\\\\udfff' + 'A').encode('ascii', 'outer_service'))\\n\",controller=new AbortController();\nlet reads=0,writes=0;\nconst session=new PythonSession({limits:{maxSteps:2000000,maxAllocatedBytes:24000000,maxDepth:100},hashSeed:[1n,2n],signal:controller.signal,\ninput:{readLine(){reads++;const bytes=Buffer.alloc(1);let line='';while(fs.readSync(0,bytes,0,1,null)){line+=bytes.toString();if(line.endsWith('\\n'))break;}if(mode==='return'||mode==='throw')controller.abort();if(mode==='throw')throw Error('service failed after read');return line||null;}},\noutput:{write(text){writes++;fs.writeSync(1,text);},flush(){/* writeSync has no userspace output buffer to flush. */}}});\nconst result=session.exec(source);\nif(mode==='return'||mode==='throw'){\nassert.deepEqual(result,{status:'terminated',reason:'cancelled',message:'execution cancelled'});assert.deepEqual(session.eval('1'),{status:'terminated',reason:'cancelled',message:'execution cancelled'});assert.equal(reads,1);assert.equal(writes,0);\n}else assert.equal(result.status,'ok');\n\nfs.writeSync(2,JSON.stringify({reads,writes})+\"\\n\");\n",
+    "oracle": {
+      "exitCode": 0,
+      "signal": null,
+      "stdout": "b'testZA'\n",
+      "stderr": ""
+    },
+    "results": [
+      {
+        "mode": "normal",
+        "exitCode": 0,
+        "signal": null,
+        "stdout": "b'testZA'\n",
+        "stderr": "{\"reads\":1,\"writes\":2}\n"
+      },
+      {
+        "mode": "return",
+        "exitCode": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": "{\"reads\":1,\"writes\":0}\n"
+      },
+      {
+        "mode": "throw",
+        "exitCode": 0,
+        "signal": null,
+        "stdout": "",
+        "stderr": "{\"reads\":1,\"writes\":0}\n"
+      }
+    ]
+  },
+  "baseline": {
+    "passed": 241,
+    "failed": 8,
+    "pending": 0,
+    "total": 249,
+    "files": 7,
+    "slowestMs": 105.07266699999991,
+    "failures": [
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u16: text.encode(encoding)'",
+        "messages": [
+          "AssertionError: unknown encoding: u16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u16: str.encode(text, encoding)'",
+        "messages": [
+          "AssertionError: unknown encoding: u16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u16: bytes(text, encoding)'",
+        "messages": [
+          "AssertionError: unknown encoding: u16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u16: bytes.__new__(bytes, text, encod…'",
+        "messages": [
+          "AssertionError: unknown encoding: u16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u32: text.encode(encoding)'",
+        "messages": [
+          "AssertionError: unknown encoding: u32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u32: str.encode(text, encoding)'",
+        "messages": [
+          "AssertionError: unknown encoding: u32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u32: bytes(text, encoding)'",
+        "messages": [
+          "AssertionError: unknown encoding: u32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u32: bytes.__new__(bytes, text, encod…'",
+        "messages": [
+          "AssertionError: unknown encoding: u32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      }
+    ]
+  },
+  "unbounded": {
+    "passed": 2,
+    "failed": 1,
+    "pending": 0,
+    "total": 3,
+    "files": 1,
+    "slowestMs": 164.64358399999992,
+    "failures": [
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-reentrant-cache-audit.test.ts",
+        "name": "codec reentrant cache audit: 'UTF8 BOM decoder restores every three…'",
+        "messages": [
+          "AssertionError: undefined: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-reentrant-cache-audit.test.ts:18:45\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      }
+    ]
+  },
+  "bounded": {
+    "passed": 17,
+    "failed": 0,
+    "pending": 0,
+    "total": 17,
+    "files": 1,
+    "slowestMs": 57.470792000000074,
+    "failures": []
+  },
+  "final": {
+    "passed": 284,
+    "failed": 8,
+    "pending": 0,
+    "total": 292,
+    "files": 11,
+    "slowestMs": 149.6415419999994,
+    "failures": [
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u16: text.encode(encoding)'",
+        "messages": [
+          "AssertionError: unknown encoding: u16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u16: str.encode(text, encoding)'",
+        "messages": [
+          "AssertionError: unknown encoding: u16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u16: bytes(text, encoding)'",
+        "messages": [
+          "AssertionError: unknown encoding: u16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u16: bytes.__new__(bytes, text, encod…'",
+        "messages": [
+          "AssertionError: unknown encoding: u16: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u32: text.encode(encoding)'",
+        "messages": [
+          "AssertionError: unknown encoding: u32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u32: str.encode(text, encoding)'",
+        "messages": [
+          "AssertionError: unknown encoding: u32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u32: bytes(text, encoding)'",
+        "messages": [
+          "AssertionError: unknown encoding: u32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts",
+        "name": "native codec failure: 'u32: bytes.__new__(bytes, text, encod…'",
+        "messages": [
+          "AssertionError: unknown encoding: u32: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-failures.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      }
+    ]
+  },
+  "complete": false,
+  "checks": {
+    "typecheck": {
+      "command": "npm run typecheck --workspace=@poe-code/safe-python",
+      "exitCode": 0
+    },
+    "eslint": {
+      "command": "npx eslint packages/safe-python/src/codec-reentrant-cache-audit-cases.ts packages/safe-python/src/session-codec-reentrant-cache-audit.test.ts",
+      "exitCode": 0
+    }
+  }
+}

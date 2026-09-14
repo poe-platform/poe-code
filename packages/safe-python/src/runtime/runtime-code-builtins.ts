@@ -1,6 +1,8 @@
 import {createCompileBuiltin} from "./builtin-compile.js";
 import {createDynamicExecutionBuiltin} from "./builtin-dynamic-execution.js";
 import {createNamespaceBuiltin} from "./builtin-namespace.js";
+import {createVarsBuiltin} from "./builtin-vars.js";
+import {createDirBuiltin} from "./builtin-dir.js";
 import {ExecutionLimitError,type ExecutionMeter} from "./execution-budget.js";
 import type {RuntimeCodePrograms} from "./runtime-code-programs.js";
 import {createRuntimeCompilation,type RuntimeCompilationPolicy} from "./runtime-compilation.js";
@@ -19,7 +21,7 @@ export interface RuntimeCodeBuiltinPolicy extends Omit<RuntimeCompilationPolicy,
 /** Assemble the code/namespace builtin family against one execution context.
  * Caller future bits follow the active guest frame; optimization is an execution
  * default, not inherited from the caller's optimization at compile time. */
-export function createRuntimeCodeBuiltins(context:RuntimeExecutionContext,programs:RuntimeCodePrograms,policy:RuntimeCodeBuiltinPolicy,meter:ExecutionMeter):Readonly<Record<"compile"|"eval"|"exec"|"globals"|"locals",BuiltinFunctionValue>> {
+export function createRuntimeCodeBuiltins(context:RuntimeExecutionContext,programs:RuntimeCodePrograms,policy:RuntimeCodeBuiltinPolicy,meter:ExecutionMeter):Readonly<Record<"compile"|"eval"|"exec"|"globals"|"locals"|"vars"|"dir",BuiltinFunctionValue>> {
   let fatal=false;
   try {
   meter.checkpoint(1,512);
@@ -51,7 +53,9 @@ export function createRuntimeCodeBuiltins(context:RuntimeExecutionContext,progra
     eval:createDynamicExecutionBuiltin("eval",values,meter,dynamic),
     exec:createDynamicExecutionBuiltin("exec",values,meter,dynamic),
     globals:createNamespaceBuiltin("globals",values,meter,()=>{const object=globals();if(object===undefined)throw Error("globals require an original guest dictionary");return object;}),
-    locals:createNamespaceBuiltin("locals",values,meter,locals)
+    locals:createNamespaceBuiltin("locals",values,meter,locals),
+    vars:createVarsBuiltin(values,meter,locals),
+    dir:createDirBuiltin(values,meter,locals)
   });
   } catch(error){fatal=error instanceof ExecutionLimitError;throw error;}
   finally{if(!fatal)meter.checkpoint();}

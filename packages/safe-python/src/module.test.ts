@@ -31,18 +31,18 @@ describe("module assignment and expression statements", () => {
     expect(parseModule("a, *b,")).toMatchObject({ body: [{ kind: "expression-statement", expression: { kind: "tuple" } }] });
   });
 
-  it("parses and discards annotation expressions", () => {
+  it("parses and retains annotation expressions", () => {
     const tree = parseModule("x: Unknown[expensive()] = 1\ny: Missing\nobj.a: Other = 2");
     expect(tree).toMatchObject({ body: [
       { kind: "annotated-assignment", target: { name: "x" }, value: { value: 1n } },
       { kind: "annotated-assignment", target: { name: "y" }, value: null },
       { kind: "annotated-assignment", target: { kind: "attribute" }, value: { value: 2n } }
     ] });
-    expect(JSON.stringify(tree, (_, value) => typeof value === "bigint" ? String(value) : value)).not.toContain("expensive");
-    expect(() => parseModule("x: [(y:=1) for y in ys] = 1")).not.toThrow();
+    expect(JSON.stringify(tree, (_, value) => typeof value === "bigint" ? String(value) : value)).toContain("expensive");
+    expect(() => parseModule("x: [(y:=1) for y in ys] = 1")).toThrow(SyntaxError);
   });
 
-  it("applies expression scope validation outside ignored annotations", () => {
+  it("applies expression scope validation", () => {
     expect(() => parseModule("x = [(y:=1) for y in ys]")).toThrow(SyntaxError);
     expect(parseModule('s = t"{x # comment\n=}"')).toMatchObject({ body: [{ value: { parts: [{ debugText: "x \n=" }] } }] });
   });

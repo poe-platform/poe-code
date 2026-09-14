@@ -1,0 +1,646 @@
+{
+  "cases": [
+    {
+      "raw": false,
+      "final": false,
+      "source": "\nimport _codecs\nseen = []\nclass Position:\n    def __init__(self, error):\n        self.error = error\n    def __index__(self):\n        seen.append(input())\n        self.error.object = b'Z\\u0041'\n        return -6\ndef recover(error):\n    seen.append((error.encoding, error.object, error.start, error.end, error.reason))\n    return ('?', Position(error))\n_codecs.register_error('edge-resume', recover)\nprint(_codecs.unicode_escape_decode(b'\\uQ', 'edge-resume', False))\nprint(seen)\n",
+      "oracleSource": "import sys,json,warnings,io,contextlib,unicodedata\nsource=json.loads(sys.stdin.readline())\nstdout=io.StringIO()\nwith warnings.catch_warnings(record=True) as caught,contextlib.redirect_stdout(stdout):\n warnings.simplefilter('always')\n exec(compile(source,'edge-resume.py','exec'),{})\njson.dump({'reference':{'version':sys.version,'unicode':unicodedata.unidata_version,'platform':sys.platform,'byteorder':sys.byteorder},'stdout':stdout.getvalue(),'warnings':[{'category':w.category.__name__,'message':str(w.message),'filename':w.filename,'line':w.lineno} for w in caught]},sys.stdout)\n",
+      "oracle": {
+        "reference": {
+          "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+          "unicode": "16.0.0",
+          "platform": "darwin",
+          "byteorder": "little"
+        },
+        "stdout": "('?A', 3)\n[('unicodeescape', b'\\\\uQ', 0, 2, 'truncated \\\\uXXXX escape'), 'continue']\n",
+        "warnings": [
+          {
+            "category": "SyntaxWarning",
+            "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+            "filename": "edge-resume.py",
+            "line": 9
+          },
+          {
+            "category": "SyntaxWarning",
+            "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+            "filename": "edge-resume.py",
+            "line": 15
+          }
+        ]
+      },
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "runs": [
+        {
+          "mode": "normal",
+          "result": {
+            "status": "ok"
+          },
+          "output": "('?A', 3)\n[('unicodeescape', b'\\\\uQ', 0, 2, 'truncated \\\\uXXXX escape'), 'continue']\n",
+          "warnings": [
+            {
+              "category": "SyntaxWarning",
+              "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+              "position": {
+                "offset": 185,
+                "line": 9,
+                "column": 31
+              },
+              "filename": "edge-resume.py"
+            },
+            {
+              "category": "SyntaxWarning",
+              "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+              "position": {
+                "offset": 436,
+                "line": 15,
+                "column": 38
+              },
+              "filename": "edge-resume.py"
+            }
+          ],
+          "reads": 1,
+          "writes": 4,
+          "warningWrites": 2,
+          "pass": true
+        },
+        {
+          "mode": "cancel-return",
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "output": "",
+          "warnings": [
+            {
+              "category": "SyntaxWarning",
+              "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+              "position": {
+                "offset": 185,
+                "line": 9,
+                "column": 31
+              },
+              "filename": "edge-resume.py"
+            },
+            {
+              "category": "SyntaxWarning",
+              "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+              "position": {
+                "offset": 436,
+                "line": 15,
+                "column": 38
+              },
+              "filename": "edge-resume.py"
+            }
+          ],
+          "reads": 1,
+          "writes": 0,
+          "warningWrites": 2,
+          "followup": [
+            {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            }
+          ],
+          "pass": true
+        },
+        {
+          "mode": "cancel-throw",
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "output": "",
+          "warnings": [
+            {
+              "category": "SyntaxWarning",
+              "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+              "position": {
+                "offset": 185,
+                "line": 9,
+                "column": 31
+              },
+              "filename": "edge-resume.py"
+            },
+            {
+              "category": "SyntaxWarning",
+              "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+              "position": {
+                "offset": 436,
+                "line": 15,
+                "column": 38
+              },
+              "filename": "edge-resume.py"
+            }
+          ],
+          "reads": 1,
+          "writes": 0,
+          "warningWrites": 2,
+          "followup": [
+            {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            }
+          ],
+          "pass": true
+        }
+      ]
+    },
+    {
+      "raw": false,
+      "final": true,
+      "source": "\nimport _codecs\nseen = []\nclass Position:\n    def __init__(self, error):\n        self.error = error\n    def __index__(self):\n        seen.append(input())\n        self.error.object = b'Z\\u0041'\n        return -6\ndef recover(error):\n    seen.append((error.encoding, error.object, error.start, error.end, error.reason))\n    return ('?', Position(error))\n_codecs.register_error('edge-resume', recover)\nprint(_codecs.unicode_escape_decode(b'\\uQ', 'edge-resume', True))\nprint(seen)\n",
+      "oracleSource": "import sys,json,warnings,io,contextlib,unicodedata\nsource=json.loads(sys.stdin.readline())\nstdout=io.StringIO()\nwith warnings.catch_warnings(record=True) as caught,contextlib.redirect_stdout(stdout):\n warnings.simplefilter('always')\n exec(compile(source,'edge-resume.py','exec'),{})\njson.dump({'reference':{'version':sys.version,'unicode':unicodedata.unidata_version,'platform':sys.platform,'byteorder':sys.byteorder},'stdout':stdout.getvalue(),'warnings':[{'category':w.category.__name__,'message':str(w.message),'filename':w.filename,'line':w.lineno} for w in caught]},sys.stdout)\n",
+      "oracle": {
+        "reference": {
+          "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+          "unicode": "16.0.0",
+          "platform": "darwin",
+          "byteorder": "little"
+        },
+        "stdout": "('?A', 3)\n[('unicodeescape', b'\\\\uQ', 0, 2, 'truncated \\\\uXXXX escape'), 'continue']\n",
+        "warnings": [
+          {
+            "category": "SyntaxWarning",
+            "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+            "filename": "edge-resume.py",
+            "line": 9
+          },
+          {
+            "category": "SyntaxWarning",
+            "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+            "filename": "edge-resume.py",
+            "line": 15
+          }
+        ]
+      },
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "runs": [
+        {
+          "mode": "normal",
+          "result": {
+            "status": "ok"
+          },
+          "output": "('?A', 3)\n[('unicodeescape', b'\\\\uQ', 0, 2, 'truncated \\\\uXXXX escape'), 'continue']\n",
+          "warnings": [
+            {
+              "category": "SyntaxWarning",
+              "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+              "position": {
+                "offset": 185,
+                "line": 9,
+                "column": 31
+              },
+              "filename": "edge-resume.py"
+            },
+            {
+              "category": "SyntaxWarning",
+              "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+              "position": {
+                "offset": 436,
+                "line": 15,
+                "column": 38
+              },
+              "filename": "edge-resume.py"
+            }
+          ],
+          "reads": 1,
+          "writes": 4,
+          "warningWrites": 2,
+          "pass": true
+        },
+        {
+          "mode": "cancel-return",
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "output": "",
+          "warnings": [
+            {
+              "category": "SyntaxWarning",
+              "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+              "position": {
+                "offset": 185,
+                "line": 9,
+                "column": 31
+              },
+              "filename": "edge-resume.py"
+            },
+            {
+              "category": "SyntaxWarning",
+              "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+              "position": {
+                "offset": 436,
+                "line": 15,
+                "column": 38
+              },
+              "filename": "edge-resume.py"
+            }
+          ],
+          "reads": 1,
+          "writes": 0,
+          "warningWrites": 2,
+          "followup": [
+            {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            }
+          ],
+          "pass": true
+        },
+        {
+          "mode": "cancel-throw",
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "output": "",
+          "warnings": [
+            {
+              "category": "SyntaxWarning",
+              "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+              "position": {
+                "offset": 185,
+                "line": 9,
+                "column": 31
+              },
+              "filename": "edge-resume.py"
+            },
+            {
+              "category": "SyntaxWarning",
+              "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+              "position": {
+                "offset": 436,
+                "line": 15,
+                "column": 38
+              },
+              "filename": "edge-resume.py"
+            }
+          ],
+          "reads": 1,
+          "writes": 0,
+          "warningWrites": 2,
+          "followup": [
+            {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            }
+          ],
+          "pass": true
+        }
+      ]
+    },
+    {
+      "raw": true,
+      "final": false,
+      "source": "\nimport _codecs\nseen = []\nclass Position:\n    def __init__(self, error):\n        self.error = error\n    def __index__(self):\n        seen.append(input())\n        self.error.object = b'Z\\u0041'\n        return -6\ndef recover(error):\n    seen.append((error.encoding, error.object, error.start, error.end, error.reason))\n    return ('?', Position(error))\n_codecs.register_error('edge-resume', recover)\nprint(_codecs.raw_unicode_escape_decode(b'\\uQ', 'edge-resume', False))\nprint(seen)\n",
+      "oracleSource": "import sys,json,warnings,io,contextlib,unicodedata\nsource=json.loads(sys.stdin.readline())\nstdout=io.StringIO()\nwith warnings.catch_warnings(record=True) as caught,contextlib.redirect_stdout(stdout):\n warnings.simplefilter('always')\n exec(compile(source,'edge-resume.py','exec'),{})\njson.dump({'reference':{'version':sys.version,'unicode':unicodedata.unidata_version,'platform':sys.platform,'byteorder':sys.byteorder},'stdout':stdout.getvalue(),'warnings':[{'category':w.category.__name__,'message':str(w.message),'filename':w.filename,'line':w.lineno} for w in caught]},sys.stdout)\n",
+      "oracle": {
+        "reference": {
+          "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+          "unicode": "16.0.0",
+          "platform": "darwin",
+          "byteorder": "little"
+        },
+        "stdout": "('?A', 3)\n[('rawunicodeescape', b'\\\\uQ', 0, 2, 'truncated \\\\uXXXX escape'), 'continue']\n",
+        "warnings": [
+          {
+            "category": "SyntaxWarning",
+            "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+            "filename": "edge-resume.py",
+            "line": 9
+          },
+          {
+            "category": "SyntaxWarning",
+            "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+            "filename": "edge-resume.py",
+            "line": 15
+          }
+        ]
+      },
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "runs": [
+        {
+          "mode": "normal",
+          "result": {
+            "status": "ok"
+          },
+          "output": "('?A', 3)\n[('rawunicodeescape', b'\\\\uQ', 0, 2, 'truncated \\\\uXXXX escape'), 'continue']\n",
+          "warnings": [
+            {
+              "category": "SyntaxWarning",
+              "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+              "position": {
+                "offset": 185,
+                "line": 9,
+                "column": 31
+              },
+              "filename": "edge-resume.py"
+            },
+            {
+              "category": "SyntaxWarning",
+              "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+              "position": {
+                "offset": 440,
+                "line": 15,
+                "column": 42
+              },
+              "filename": "edge-resume.py"
+            }
+          ],
+          "reads": 1,
+          "writes": 4,
+          "warningWrites": 2,
+          "pass": true
+        },
+        {
+          "mode": "cancel-return",
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "output": "",
+          "warnings": [
+            {
+              "category": "SyntaxWarning",
+              "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+              "position": {
+                "offset": 185,
+                "line": 9,
+                "column": 31
+              },
+              "filename": "edge-resume.py"
+            },
+            {
+              "category": "SyntaxWarning",
+              "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+              "position": {
+                "offset": 440,
+                "line": 15,
+                "column": 42
+              },
+              "filename": "edge-resume.py"
+            }
+          ],
+          "reads": 1,
+          "writes": 0,
+          "warningWrites": 2,
+          "followup": [
+            {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            }
+          ],
+          "pass": true
+        },
+        {
+          "mode": "cancel-throw",
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "output": "",
+          "warnings": [
+            {
+              "category": "SyntaxWarning",
+              "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+              "position": {
+                "offset": 185,
+                "line": 9,
+                "column": 31
+              },
+              "filename": "edge-resume.py"
+            },
+            {
+              "category": "SyntaxWarning",
+              "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+              "position": {
+                "offset": 440,
+                "line": 15,
+                "column": 42
+              },
+              "filename": "edge-resume.py"
+            }
+          ],
+          "reads": 1,
+          "writes": 0,
+          "warningWrites": 2,
+          "followup": [
+            {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            }
+          ],
+          "pass": true
+        }
+      ]
+    },
+    {
+      "raw": true,
+      "final": true,
+      "source": "\nimport _codecs\nseen = []\nclass Position:\n    def __init__(self, error):\n        self.error = error\n    def __index__(self):\n        seen.append(input())\n        self.error.object = b'Z\\u0041'\n        return -6\ndef recover(error):\n    seen.append((error.encoding, error.object, error.start, error.end, error.reason))\n    return ('?', Position(error))\n_codecs.register_error('edge-resume', recover)\nprint(_codecs.raw_unicode_escape_decode(b'\\uQ', 'edge-resume', True))\nprint(seen)\n",
+      "oracleSource": "import sys,json,warnings,io,contextlib,unicodedata\nsource=json.loads(sys.stdin.readline())\nstdout=io.StringIO()\nwith warnings.catch_warnings(record=True) as caught,contextlib.redirect_stdout(stdout):\n warnings.simplefilter('always')\n exec(compile(source,'edge-resume.py','exec'),{})\njson.dump({'reference':{'version':sys.version,'unicode':unicodedata.unidata_version,'platform':sys.platform,'byteorder':sys.byteorder},'stdout':stdout.getvalue(),'warnings':[{'category':w.category.__name__,'message':str(w.message),'filename':w.filename,'line':w.lineno} for w in caught]},sys.stdout)\n",
+      "oracle": {
+        "reference": {
+          "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+          "unicode": "16.0.0",
+          "platform": "darwin",
+          "byteorder": "little"
+        },
+        "stdout": "('?A', 3)\n[('rawunicodeescape', b'\\\\uQ', 0, 2, 'truncated \\\\uXXXX escape'), 'continue']\n",
+        "warnings": [
+          {
+            "category": "SyntaxWarning",
+            "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+            "filename": "edge-resume.py",
+            "line": 9
+          },
+          {
+            "category": "SyntaxWarning",
+            "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+            "filename": "edge-resume.py",
+            "line": 15
+          }
+        ]
+      },
+      "oracleStatus": 0,
+      "oracleStderr": "",
+      "runs": [
+        {
+          "mode": "normal",
+          "result": {
+            "status": "ok"
+          },
+          "output": "('?A', 3)\n[('rawunicodeescape', b'\\\\uQ', 0, 2, 'truncated \\\\uXXXX escape'), 'continue']\n",
+          "warnings": [
+            {
+              "category": "SyntaxWarning",
+              "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+              "position": {
+                "offset": 185,
+                "line": 9,
+                "column": 31
+              },
+              "filename": "edge-resume.py"
+            },
+            {
+              "category": "SyntaxWarning",
+              "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+              "position": {
+                "offset": 440,
+                "line": 15,
+                "column": 42
+              },
+              "filename": "edge-resume.py"
+            }
+          ],
+          "reads": 1,
+          "writes": 4,
+          "warningWrites": 2,
+          "pass": true
+        },
+        {
+          "mode": "cancel-return",
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "output": "",
+          "warnings": [
+            {
+              "category": "SyntaxWarning",
+              "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+              "position": {
+                "offset": 185,
+                "line": 9,
+                "column": 31
+              },
+              "filename": "edge-resume.py"
+            },
+            {
+              "category": "SyntaxWarning",
+              "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+              "position": {
+                "offset": 440,
+                "line": 15,
+                "column": 42
+              },
+              "filename": "edge-resume.py"
+            }
+          ],
+          "reads": 1,
+          "writes": 0,
+          "warningWrites": 2,
+          "followup": [
+            {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            }
+          ],
+          "pass": true
+        },
+        {
+          "mode": "cancel-throw",
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "output": "",
+          "warnings": [
+            {
+              "category": "SyntaxWarning",
+              "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+              "position": {
+                "offset": 185,
+                "line": 9,
+                "column": 31
+              },
+              "filename": "edge-resume.py"
+            },
+            {
+              "category": "SyntaxWarning",
+              "message": "\"\\u\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\u\"? A raw string is also an option.",
+              "position": {
+                "offset": 440,
+                "line": 15,
+                "column": 42
+              },
+              "filename": "edge-resume.py"
+            }
+          ],
+          "reads": 1,
+          "writes": 0,
+          "warningWrites": 2,
+          "followup": [
+            {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            }
+          ],
+          "pass": true
+        }
+      ]
+    }
+  ],
+  "passed": 12,
+  "total": 12
+}

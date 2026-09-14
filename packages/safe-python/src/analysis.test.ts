@@ -60,9 +60,9 @@ describe("public module analysis", () => {
     expect(() => analyzeModule("return 1")).toThrow(PythonSyntaxError);
   });
 
-  it("does not resolve or execute discarded type syntax", () => {
+  it("binds alias names without evaluating deferred type expressions", () => {
     const result = analyzeModule("type Alias[T: missing_bound()] = missing_value()\ndef f[T](x: missing_annotation()) -> missing_return():\n local: missing_local()\n return x");
-    expect([...result.scopes.bindings.keys()]).toEqual(["f"]);
+    expect([...result.scopes.bindings.keys()]).toEqual(["Alias", "f"]);
     expect([...result.scopes.children[0].bindings.keys()]).toEqual(["x", "local"]);
   });
 

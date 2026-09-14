@@ -2,19 +2,27 @@ import {analyzeModule,analyzeExpression} from "../analysis.js";
 import type {LexerOptions} from "../lexer.js";
 import type {ClassConstants} from "./class-compilation.js";
 import {snapshotCompilationFilename,type CodeCompilationOptions} from "./compilation-source.js";
-import type {ExecutionMeter} from "./execution-budget.js";
+import {ExecutionLimitError,type ExecutionMeter} from "./execution-budget.js";
 import type {LiteralExpression} from "./literal-pool.js";
 import {compileProgram,type CompiledProgram} from "./program-compilation.js";
 import {normalizeFutureFlags} from "../future-flags.js";
 import {decodeByteSource,type SourceByteDecoder} from "./byte-source-decoding.js";
-import {PythonSyntaxError} from "../source.js";
+import {PythonSyntaxError,type SourcePosition} from "../source.js";
 import {compilationOptimization} from "./compilation-optimization.js";
+import type {Utf8DecodeRecovery} from "./utf8-decode.js";
 
-export interface SourceCompilationOptions<Value=unknown> extends CodeCompilationOptions<Value>,Pick<LexerOptions,"onWarning"|"onComment"|"futureFlags"> {
+export interface SourceCompilationOptions<Value=unknown> extends CodeCompilationOptions<Value>,Pick<LexerOptions,"onComment"|"futureFlags"> {
+  /** Warnings belong to the compiled source, which can differ from its caller. */
+  readonly onWarning?:(message:string,position:SourcePosition,filename:string)=>void;
   /** Module suites by default; eval preserves and returns one expression. */
   readonly mode?:"exec"|"eval";
   /** Additional byte-source codecs beyond UTF-8, Latin-1 and ASCII. */
   readonly decodeSource?:SourceByteDecoder;
+  /** Native source codec faults resolve strict in the owning interpreter. */
+  readonly sourceDecodeRecovery?:Utf8DecodeRecovery;
+  /** Execution-owned transport for tokenizer initialization failures. A guest
+   * runtime supplies exception rendering, identity and filename mutation. */
+  readonly sourceException?:(error:unknown)=>never;
   /** Required host recursion policy, shared with the calling execution. */
   readonly enterRecursiveCall:()=>()=>void;
 }
@@ -22,12 +30,14 @@ export interface ProgramConstants<Value> extends ClassConstants<Value> {
   literal?(node:LiteralExpression):Value;
 }
 
-/** Compile a module or expression without executing guest code or loading files/imports.
+/** Compile a module or expression without ambient files/imports. Explicit source
+ * decoding and exception services may reenter the owning guest interpreter.
  * Analysis and code preparation share one cumulative meter and diagnostic
  * filename. Constant adapters must charge their own guest allocations. These
  * cooperative controls do not preempt indivisible host operations.
  */
 export function compileSourceProgram<Value>(source:string|Uint8Array,options:SourceCompilationOptions<Value>,constants:ProgramConstants<Value>,meter:ExecutionMeter):CompiledProgram<Value> {
+  let fatal=false;
   try {
     meter.checkpoint(1,120);
     const enterRecursiveCall=options.enterRecursiveCall;
@@ -37,10 +47,12 @@ export function compileSourceProgram<Value>(source:string|Uint8Array,options:Sou
     const futureFlags=normalizeFutureFlags(options.futureFlags,meter);
     const optimize=compilationOptimization(options.optimize,meter);
     const filename=snapshotCompilationFilename(options.filename??"<string>",meter);
-    const settings={filename:typeof filename==="string"?filename:filename.displayName,stripDocstring:options.stripDocstring||optimize===2,optimize,onWarning:options.onWarning,onComment:options.onComment,enterRecursiveCall,meter,futureFlags};
+    const displayName=typeof filename==="string"?filename:filename.displayName;
+    const warning=options.onWarning;
+    const settings={filename:displayName,stripDocstring:options.stripDocstring||optimize===2,optimize,onWarning:warning===undefined?undefined:(message:string,position:SourcePosition)=>warning(message,position,displayName),onComment:options.onComment,enterRecursiveCall,meter,futureFlags};
     let compilation:CodeCompilationOptions<Value>=settings;
     if(typeof filename!=="string"){meter.checkpoint(1,56);compilation={filename,stripDocstring:settings.stripDocstring,optimize};}
-    const text=typeof source==="string"?source:decodeByteSource(source,settings.filename,meter,options.decodeSource);
+    const text=typeof source==="string"?source:decodeByteSource(source,settings.filename,meter,options.decodeSource,mode,options.sourceException,options.sourceDecodeRecovery);
     if(typeof source==="string"&&source.startsWith("\ufeff")){
       meter.checkpoint(1+source.length);
       // The lexical cursor accepts file BOMs; compile(str) does not. NUL source
@@ -54,5 +66,6 @@ export function compileSourceProgram<Value>(source:string|Uint8Array,options:Sou
     }
     const analysis=mode==="eval"?analyzeExpression(text,settings):analyzeModule(text,settings);
     return compileProgram(analysis,compilation,constants,meter);
-  } finally {meter.checkpoint();}
+  } catch(error){fatal=error instanceof ExecutionLimitError;throw error;}
+  finally {if(!fatal)meter.checkpoint();}
 }

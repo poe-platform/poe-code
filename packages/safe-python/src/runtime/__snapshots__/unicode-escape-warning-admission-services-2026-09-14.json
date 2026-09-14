@@ -1,0 +1,142 @@
+{
+  "limits": {
+    "maxSteps": 1000000,
+    "maxAllocatedBytes": 16000000,
+    "maxDepth": 100
+  },
+  "oracleSource": "import sys,json,unicodedata,warnings,io,contextlib\nassert sys.version_info[:3]==(3,14,7) and unicodedata.unidata_version=='16.0.0'\nsource=json.load(sys.stdin)\noutput=io.StringIO()\nwith warnings.catch_warnings(record=True) as caught,contextlib.redirect_stdout(output):\n warnings.simplefilter('always')\n exec(compile(source,'codec-warning.py','exec'),{})\nprint(json.dumps({'reference':{'version':sys.version,'unicode':unicodedata.unidata_version,'platform':sys.platform,'byteorder':sys.byteorder},'stdout':output.getvalue(),'warnings':[{'category':w.category.__name__,'message':str(w.message),'filename':w.filename,'line':w.lineno} for w in caught]}))",
+  "adapters": "Explicit warning and output adapters use partial fs.writeSync (at most three bytes); output flush uses fs.fsyncSync. Owned temporary files and descriptors cleaned up.",
+  "cases": [
+    {
+      "bytes": [
+        92,
+        113
+      ],
+      "source": "import codecs\ndata = bytes([92,113])\nprint(codecs.unicode_escape_decode(data), flush=True)\n",
+      "sha256": "90cf97ea98ce24404515d3cbdf12720e58080888c6d1ddc0ec4db7d4df10a85d",
+      "oracle": {
+        "reference": {
+          "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+          "unicode": "16.0.0",
+          "platform": "darwin",
+          "byteorder": "little"
+        },
+        "stdout": "('\\\\q', 2)\n",
+        "warnings": [
+          {
+            "category": "DeprecationWarning",
+            "message": "\"\\q\" is an invalid escape sequence. Such sequences will not work in the future. ",
+            "filename": "codec-warning.py",
+            "line": 3
+          }
+        ]
+      },
+      "result": {
+        "status": "ok"
+      },
+      "warnings": [
+        {
+          "category": "DeprecationWarning",
+          "message": "\"\\q\" is an invalid escape sequence. Such sequences will not work in the future. ",
+          "filename": "codec-warning.py",
+          "position": {
+            "offset": 43,
+            "line": 3,
+            "column": 6
+          }
+        }
+      ],
+      "serviceOutput": "{\"category\":\"DeprecationWarning\",\"message\":\"\\\"\\\\q\\\" is an invalid escape sequence. Such sequences will not work in the future. \",\"filename\":\"codec-warning.py\",\"position\":{\"offset\":43,\"line\":3,\"column\":6}}\n('\\\\q', 2)\n",
+      "writes": 74,
+      "flushes": 1
+    },
+    {
+      "bytes": [
+        92,
+        255
+      ],
+      "source": "import codecs\ndata = bytes([92,255])\nprint(codecs.unicode_escape_decode(data), flush=True)\n",
+      "sha256": "8b63a887ccb1ca7cbd6ecce4c3d909a0e0268741ccd015389bd10af0c5cbe31c",
+      "oracle": {
+        "reference": {
+          "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+          "unicode": "16.0.0",
+          "platform": "darwin",
+          "byteorder": "little"
+        },
+        "stdout": "('\\\\ÿ', 2)\n",
+        "warnings": [
+          {
+            "category": "DeprecationWarning",
+            "message": "\"\\ÿ\" is an invalid escape sequence. Such sequences will not work in the future. ",
+            "filename": "codec-warning.py",
+            "line": 3
+          }
+        ]
+      },
+      "result": {
+        "status": "ok"
+      },
+      "warnings": [
+        {
+          "category": "DeprecationWarning",
+          "message": "\"\\ÿ\" is an invalid escape sequence. Such sequences will not work in the future. ",
+          "filename": "codec-warning.py",
+          "position": {
+            "offset": 43,
+            "line": 3,
+            "column": 6
+          }
+        }
+      ],
+      "serviceOutput": "{\"category\":\"DeprecationWarning\",\"message\":\"\\\"\\\\ÿ\\\" is an invalid escape sequence. Such sequences will not work in the future. \",\"filename\":\"codec-warning.py\",\"position\":{\"offset\":43,\"line\":3,\"column\":6}}\n('\\\\ÿ', 2)\n",
+      "writes": 74,
+      "flushes": 1
+    },
+    {
+      "bytes": [
+        92,
+        55,
+        55,
+        55
+      ],
+      "source": "import codecs\ndata = bytes([92,55,55,55])\nprint(codecs.unicode_escape_decode(data), flush=True)\n",
+      "sha256": "54f0ee0c7f61617a47c27cc4a8e0ed1275a93d799ca93a72c5d983a964ca2deb",
+      "oracle": {
+        "reference": {
+          "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+          "unicode": "16.0.0",
+          "platform": "darwin",
+          "byteorder": "little"
+        },
+        "stdout": "('ǿ', 4)\n",
+        "warnings": [
+          {
+            "category": "DeprecationWarning",
+            "message": "\"\\777\" is an invalid octal escape sequence. Such sequences will not work in the future. ",
+            "filename": "codec-warning.py",
+            "line": 3
+          }
+        ]
+      },
+      "result": {
+        "status": "ok"
+      },
+      "warnings": [
+        {
+          "category": "DeprecationWarning",
+          "message": "\"\\777\" is an invalid octal escape sequence. Such sequences will not work in the future. ",
+          "filename": "codec-warning.py",
+          "position": {
+            "offset": 48,
+            "line": 3,
+            "column": 6
+          }
+        }
+      ],
+      "serviceOutput": "{\"category\":\"DeprecationWarning\",\"message\":\"\\\"\\\\777\\\" is an invalid octal escape sequence. Such sequences will not work in the future. \",\"filename\":\"codec-warning.py\",\"position\":{\"offset\":48,\"line\":3,\"column\":6}}\n('ǿ', 4)\n",
+      "writes": 75,
+      "flushes": 1
+    }
+  ]
+}

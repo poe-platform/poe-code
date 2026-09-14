@@ -1,0 +1,111 @@
+{
+  "reference": [
+    "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "16.0.0",
+    "darwin",
+    "little",
+    "arm64"
+  ],
+  "adapter": "Explicit synchronous file descriptors: readSync, partial-write-aware writeSync, fsyncSync; temporary files removed in finally.",
+  "rows": [
+    {
+      "name": "codecs.__doc__",
+      "sha256": "565f147be3221e9fe1403ad221f5776a7fe9c7231ca74e00bc9f2b8b53da0d63",
+      "status": "ok",
+      "reads": 1,
+      "stdout": "ok\n",
+      "oracleStatus": 0,
+      "oracleStdout": "ok\n"
+    },
+    {
+      "name": "_codecs.__doc__",
+      "sha256": "41a6ac05fe680a24e0a4010817f2f0cb3fbcf5f3222bd6e540d432b640d47ea0",
+      "status": "ok",
+      "reads": 1,
+      "stdout": "ok\n",
+      "oracleStatus": 0,
+      "oracleStdout": "ok\n"
+    },
+    {
+      "name": "encodings.__doc__",
+      "sha256": "92fa7e8d5c46ea16c18d4659456024cabee2f1a1ca5c9d5cf8f278b53d45a92d",
+      "status": "ok",
+      "reads": 1,
+      "stdout": "ok\n",
+      "oracleStatus": 0,
+      "oracleStdout": "ok\n"
+    },
+    {
+      "name": "encodings.aliases.__doc__",
+      "sha256": "ece3d758055f9d305a2aa6bbf9bf8c4bd452fa7c8f3f14ff494da17ae45be43a",
+      "status": "ok",
+      "reads": 1,
+      "stdout": "ok\n",
+      "oracleStatus": 0,
+      "oracleStdout": "ok\n"
+    },
+    {
+      "name": "encodings.ascii.__doc__",
+      "sha256": "958a9d10c9e9052cc20c58ee26778ec570182887c1dbfbe0c266997416b35e3c",
+      "status": "ok",
+      "reads": 1,
+      "stdout": "ok\n",
+      "oracleStatus": 0,
+      "oracleStdout": "ok\n"
+    },
+    {
+      "name": "encodings.latin_1.__doc__",
+      "sha256": "d26afbf5e976702343af5b2748d42957ee6c2c56f0a0c4e322bd1db6c5e5be3a",
+      "status": "ok",
+      "reads": 1,
+      "stdout": "ok\n",
+      "oracleStatus": 0,
+      "oracleStdout": "ok\n"
+    },
+    {
+      "name": "encodings.utf_8.__doc__",
+      "sha256": "d49c9e58000ee16f193b3bdfa9ab327ab89414446fd8f92ae9feb06d90552992",
+      "status": "ok",
+      "reads": 1,
+      "stdout": "ok\n",
+      "oracleStatus": 0,
+      "oracleStdout": "ok\n"
+    },
+    {
+      "name": "encodings.charmap.__doc__",
+      "sha256": "694df6fa911ac598925e74ed1673bf2c82bf46f601688f69c5a63c632ddb9c4a",
+      "status": "ok",
+      "reads": 1,
+      "stdout": "ok\n",
+      "oracleStatus": 0,
+      "oracleStdout": "ok\n"
+    },
+    {
+      "name": "encodings.CodecRegistryError.__firstlineno__",
+      "sha256": "a8eb71edebcf6d4665efa4da3c80ef50c1eab7fc2b2e9bb9e59e1cfadc02f32c",
+      "status": "ok",
+      "reads": 1,
+      "stdout": "ok\n",
+      "oracleStatus": 0,
+      "oracleStdout": "ok\n"
+    },
+    {
+      "name": "encodings.normalize_encoding.__code__.co_firstlineno",
+      "sha256": "6081ae77e221639833148fdeb1bdaabb9415a650331ee8fb5c2da9ce50f38e97",
+      "status": "ok",
+      "reads": 1,
+      "stdout": "ok\n",
+      "oracleStatus": 0,
+      "oracleStdout": "ok\n"
+    },
+    {
+      "name": "encodings.search_function.__code__.co_firstlineno",
+      "sha256": "c1233eb9f6805d68c22f3c30dbb52d775ec6dcafebe7e3ee2fa211bae41a96a6",
+      "status": "ok",
+      "reads": 1,
+      "stdout": "ok\n",
+      "oracleStatus": 0,
+      "oracleStdout": "ok\n"
+    }
+  ]
+}

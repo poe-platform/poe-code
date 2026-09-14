@@ -1,0 +1,89 @@
+{
+  "scope": "Unresolved reflection/serialization blockers, not compatibility exceptions.",
+  "cases": [
+    {
+      "expression": "type(None).__text_signature__",
+      "source": "try:\n result=('ok',type(None).__text_signature__)\nexcept Exception as e:\n result=(type(e).__name__,str(e))\n",
+      "actual": "('AttributeError', \"type object 'NoneType' has no attribute '__text_signature__'\")",
+      "expected": "('ok', '()')",
+      "matches": false
+    },
+    {
+      "expression": "type(None).__basicsize__",
+      "source": "try:\n result=('ok',type(None).__basicsize__)\nexcept Exception as e:\n result=(type(e).__name__,str(e))\n",
+      "actual": "('AttributeError', \"type object 'NoneType' has no attribute '__basicsize__'\")",
+      "expected": "('ok', 16)",
+      "matches": false
+    },
+    {
+      "expression": "type(None).__flags__",
+      "source": "try:\n result=('ok',type(None).__flags__)\nexcept Exception as e:\n result=(type(e).__name__,str(e))\n",
+      "actual": "('AttributeError', \"type object 'NoneType' has no attribute '__flags__'\")",
+      "expected": "('ok', 4354)",
+      "matches": false
+    },
+    {
+      "expression": "None.__reduce_ex__(4)",
+      "source": "try:\n result=('ok',None.__reduce_ex__(4))\nexcept Exception as e:\n result=(type(e).__name__,str(e))\n",
+      "actual": "('AttributeError', \"'NoneType' object has no attribute '__reduce_ex__'\")",
+      "expected": "('ok', (<function __newobj__ at 0x109eae1f0>, (<class 'NoneType'>,), None, None, None))",
+      "matches": false
+    },
+    {
+      "expression": "type(NotImplemented).__text_signature__",
+      "source": "try:\n result=('ok',type(NotImplemented).__text_signature__)\nexcept Exception as e:\n result=(type(e).__name__,str(e))\n",
+      "actual": "('AttributeError', \"type object 'NotImplementedType' has no attribute '__text_signature__'\")",
+      "expected": "('ok', '()')",
+      "matches": false
+    },
+    {
+      "expression": "type(NotImplemented).__basicsize__",
+      "source": "try:\n result=('ok',type(NotImplemented).__basicsize__)\nexcept Exception as e:\n result=(type(e).__name__,str(e))\n",
+      "actual": "('AttributeError', \"type object 'NotImplementedType' has no attribute '__basicsize__'\")",
+      "expected": "('ok', 16)",
+      "matches": false
+    },
+    {
+      "expression": "type(NotImplemented).__flags__",
+      "source": "try:\n result=('ok',type(NotImplemented).__flags__)\nexcept Exception as e:\n result=(type(e).__name__,str(e))\n",
+      "actual": "('AttributeError', \"type object 'NotImplementedType' has no attribute '__flags__'\")",
+      "expected": "('ok', 4354)",
+      "matches": false
+    },
+    {
+      "expression": "NotImplemented.__reduce_ex__(4)",
+      "source": "try:\n result=('ok',NotImplemented.__reduce_ex__(4))\nexcept Exception as e:\n result=(type(e).__name__,str(e))\n",
+      "actual": "('AttributeError', \"'not-implemented' object has no attribute '__reduce_ex__'\")",
+      "expected": "('ok', 'NotImplemented')",
+      "matches": false
+    },
+    {
+      "expression": "type(Ellipsis).__text_signature__",
+      "source": "try:\n result=('ok',type(Ellipsis).__text_signature__)\nexcept Exception as e:\n result=(type(e).__name__,str(e))\n",
+      "actual": "('AttributeError', \"type object 'ellipsis' has no attribute '__text_signature__'\")",
+      "expected": "('ok', '()')",
+      "matches": false
+    },
+    {
+      "expression": "type(Ellipsis).__basicsize__",
+      "source": "try:\n result=('ok',type(Ellipsis).__basicsize__)\nexcept Exception as e:\n result=(type(e).__name__,str(e))\n",
+      "actual": "('AttributeError', \"type object 'ellipsis' has no attribute '__basicsize__'\")",
+      "expected": "('ok', 16)",
+      "matches": false
+    },
+    {
+      "expression": "type(Ellipsis).__flags__",
+      "source": "try:\n result=('ok',type(Ellipsis).__flags__)\nexcept Exception as e:\n result=(type(e).__name__,str(e))\n",
+      "actual": "('AttributeError', \"type object 'ellipsis' has no attribute '__flags__'\")",
+      "expected": "('ok', 4354)",
+      "matches": false
+    },
+    {
+      "expression": "Ellipsis.__reduce_ex__(4)",
+      "source": "try:\n result=('ok',Ellipsis.__reduce_ex__(4))\nexcept Exception as e:\n result=(type(e).__name__,str(e))\n",
+      "actual": "('AttributeError', \"'ellipsis' object has no attribute '__reduce_ex__'\")",
+      "expected": "('ok', 'Ellipsis')",
+      "matches": false
+    }
+  ]
+}

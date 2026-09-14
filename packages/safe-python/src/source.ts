@@ -12,12 +12,19 @@ export interface SourceMeter {
 }
 
 export class PythonSyntaxError extends SyntaxError {
+  /** Tokenizer arbitration after a grammar failure. Unclosed delimiters only
+   * take priority on an earlier line; interpolated-string failures preserve
+   * the parser's expression diagnostic. This is interpreter metadata. */
+  tokenizerPriority?: "always" | "earlier-line" | "parser";
+  unclosedDelimiter = false;
   readonly filename: string;
   readonly position: SourcePosition;
   readonly endPosition: SourcePosition | undefined;
   #sourceLine: string | undefined;
 
-  constructor(message: string, filename: string, position: SourcePosition, endPosition?: SourcePosition) {
+  constructor(message: string, filename: string, position: SourcePosition, endPosition?: SourcePosition,
+    /** Tokenizer initialization can set filename after constructing args. */
+    readonly argumentFilename?: string | null) {
     super(message);
     this.name = "SyntaxError";
     this.filename = filename;

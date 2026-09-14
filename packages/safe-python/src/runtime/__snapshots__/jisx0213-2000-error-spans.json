@@ -1,0 +1,5457 @@
+{
+  "oracleSource": "import codecs,json,sys,unicodedata\nassert sys.version_info[:3]==(3,14,7) and unicodedata.unidata_version=='16.0.0'\nrows=[]\nfor name,raw in [('euc_jisx0213',b'\\xae\\xa1'),('shift_jisx0213',b'\\x87\\x9f')]:\n for split in range(5):\n  for final in [False,True]:\n   for position in [-1,-2,2,5]:\n    seen=[]\n    def handler(error):\n     seen.append([error.encoding,list(error.object),error.start,error.end,error.reason])\n     return ('?', position if len(seen)==1 else error.end)\n    codecs.register_error('span_probe',handler)\n    decoder=codecs.getincrementaldecoder(name)('span_probe')\n    data=raw+raw+b'A'\n    calls=[]\n    for b,last in [(data[:split],False),(data[split:],final),(b'',True)]:\n     try: result=['ok',list(map(ord,decoder.decode(b,last)))]\n     except UnicodeError as e: result=['error',type(e).__name__,e.encoding,list(e.object),e.start,e.end,e.reason]\n     except Exception as e: result=['error',type(e).__name__,str(e)]\n     pending,state=decoder.getstate()\n     calls.append([result,[list(pending),str(state)]])\n    rows.append(dict(name=name,raw=list(raw),split=split,final=final,position=position,seen=seen,calls=calls))\nprint(json.dumps(rows,indent=2))\n",
+  "rows": [
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 0,
+      "final": false,
+      "position": -1,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 0,
+      "final": false,
+      "position": -2,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161,
+            65
+          ],
+          3,
+          4,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 0,
+      "final": false,
+      "position": 2,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161,
+            65
+          ],
+          2,
+          4,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 0,
+      "final": false,
+      "position": 5,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 0,
+      "final": true,
+      "position": -1,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 0,
+      "final": true,
+      "position": -2,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161,
+            65
+          ],
+          3,
+          4,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 0,
+      "final": true,
+      "position": 2,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161,
+            65
+          ],
+          2,
+          4,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 0,
+      "final": true,
+      "position": 5,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 1,
+      "final": false,
+      "position": -1,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [
+              174
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 1,
+      "final": false,
+      "position": -2,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161,
+            65
+          ],
+          3,
+          4,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [
+              174
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 1,
+      "final": false,
+      "position": 2,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161,
+            65
+          ],
+          2,
+          4,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [
+              174
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 1,
+      "final": false,
+      "position": 5,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [
+              174
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 1,
+      "final": true,
+      "position": -1,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [
+              174
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 1,
+      "final": true,
+      "position": -2,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161,
+            65
+          ],
+          3,
+          4,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [
+              174
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 1,
+      "final": true,
+      "position": 2,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161,
+            65
+          ],
+          2,
+          4,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [
+              174
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 1,
+      "final": true,
+      "position": 5,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [
+              174
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 2,
+      "final": false,
+      "position": -1,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            161,
+            174,
+            161,
+            65
+          ],
+          2,
+          3,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          [
+            [
+              161
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65344,
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 2,
+      "final": false,
+      "position": -2,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63,
+              63
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 2,
+      "final": false,
+      "position": 2,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 2,
+      "final": false,
+      "position": 5,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "error",
+            "IndexError",
+            "position 5 from error handler out of bounds"
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 2,
+      "final": true,
+      "position": -1,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            161,
+            174,
+            161,
+            65
+          ],
+          2,
+          3,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          [
+            [
+              161
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65344,
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 2,
+      "final": true,
+      "position": -2,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63,
+              63
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 2,
+      "final": true,
+      "position": 2,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 2,
+      "final": true,
+      "position": 5,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "error",
+            "IndexError",
+            "position 5 from error handler out of bounds"
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 3,
+      "final": false,
+      "position": -1,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          [
+            [
+              174
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 3,
+      "final": false,
+      "position": -2,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            161,
+            65
+          ],
+          0,
+          1,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63,
+              65344
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 3,
+      "final": false,
+      "position": 2,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          [
+            [
+              174
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 3,
+      "final": false,
+      "position": 5,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            161,
+            65
+          ],
+          0,
+          1,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "error",
+            "IndexError",
+            "position 5 from error handler out of bounds"
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 3,
+      "final": true,
+      "position": -1,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          [
+            [
+              174
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 3,
+      "final": true,
+      "position": -2,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            161,
+            65
+          ],
+          0,
+          1,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63,
+              65344
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 3,
+      "final": true,
+      "position": 2,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          [
+            [
+              174
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 3,
+      "final": true,
+      "position": 5,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            161,
+            65
+          ],
+          0,
+          1,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "error",
+            "IndexError",
+            "position 5 from error handler out of bounds"
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 4,
+      "final": false,
+      "position": -1,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            161,
+            65
+          ],
+          0,
+          1,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          [
+            [
+              161
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 4,
+      "final": false,
+      "position": -2,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161
+          ],
+          2,
+          4,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63,
+              63
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 4,
+      "final": false,
+      "position": 2,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161
+          ],
+          2,
+          4,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63,
+              63
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 4,
+      "final": false,
+      "position": 5,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "error",
+            "IndexError",
+            "position 5 from error handler out of bounds"
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 4,
+      "final": true,
+      "position": -1,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            161,
+            65
+          ],
+          0,
+          1,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          [
+            [
+              161
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 4,
+      "final": true,
+      "position": -2,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161
+          ],
+          2,
+          4,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63,
+              63
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 4,
+      "final": true,
+      "position": 2,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161
+          ],
+          2,
+          4,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63,
+              63
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "euc_jisx0213",
+      "raw": [
+        174,
+        161
+      ],
+      "split": 4,
+      "final": true,
+      "position": 5,
+      "seen": [
+        [
+          "euc_jisx0213",
+          [
+            174,
+            161,
+            174,
+            161
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "error",
+            "IndexError",
+            "position 5 from error handler out of bounds"
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 0,
+      "final": false,
+      "position": -1,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 0,
+      "final": false,
+      "position": -2,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              34327
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 0,
+      "final": false,
+      "position": 2,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159,
+            65
+          ],
+          2,
+          4,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 0,
+      "final": false,
+      "position": 5,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 0,
+      "final": true,
+      "position": -1,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 0,
+      "final": true,
+      "position": -2,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              34327
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 0,
+      "final": true,
+      "position": 2,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159,
+            65
+          ],
+          2,
+          4,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 0,
+      "final": true,
+      "position": 5,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 1,
+      "final": false,
+      "position": -1,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [
+              135
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 1,
+      "final": false,
+      "position": -2,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [
+              135
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              34327
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 1,
+      "final": false,
+      "position": 2,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159,
+            65
+          ],
+          2,
+          4,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [
+              135
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 1,
+      "final": false,
+      "position": 5,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [
+              135
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 1,
+      "final": true,
+      "position": -1,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [
+              135
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 1,
+      "final": true,
+      "position": -2,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [
+              135
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              34327
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 1,
+      "final": true,
+      "position": 2,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159,
+            65
+          ],
+          2,
+          4,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [
+              135
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 1,
+      "final": true,
+      "position": 5,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [
+              135
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 2,
+      "final": false,
+      "position": -1,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          [
+            [
+              159
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              27742,
+              34327
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 2,
+      "final": false,
+      "position": -2,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63,
+              63
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 2,
+      "final": false,
+      "position": 2,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 2,
+      "final": false,
+      "position": 5,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "error",
+            "IndexError",
+            "position 5 from error handler out of bounds"
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 2,
+      "final": true,
+      "position": -1,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          [
+            [
+              159
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              27742,
+              34327
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 2,
+      "final": true,
+      "position": -2,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63,
+              63
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 2,
+      "final": true,
+      "position": 2,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 2,
+      "final": true,
+      "position": 5,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "error",
+            "IndexError",
+            "position 5 from error handler out of bounds"
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 3,
+      "final": false,
+      "position": -1,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          [
+            [
+              135
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 3,
+      "final": false,
+      "position": -2,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63,
+              27742
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              34327
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 3,
+      "final": false,
+      "position": 2,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          [
+            [
+              135
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 3,
+      "final": false,
+      "position": 5,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "error",
+            "IndexError",
+            "position 5 from error handler out of bounds"
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              34327
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 3,
+      "final": true,
+      "position": -1,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          [
+            [
+              135
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 3,
+      "final": true,
+      "position": -2,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63,
+              27742
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              34327
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 3,
+      "final": true,
+      "position": 2,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            65
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          [
+            [
+              135
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              63,
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 3,
+      "final": true,
+      "position": 5,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "error",
+            "IndexError",
+            "position 5 from error handler out of bounds"
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              34327
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 4,
+      "final": false,
+      "position": -1,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          [
+            [
+              159
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              34327
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 4,
+      "final": false,
+      "position": -2,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159
+          ],
+          2,
+          4,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63,
+              63
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 4,
+      "final": false,
+      "position": 2,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159
+          ],
+          2,
+          4,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63,
+              63
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 4,
+      "final": false,
+      "position": 5,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "error",
+            "IndexError",
+            "position 5 from error handler out of bounds"
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 4,
+      "final": true,
+      "position": -1,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63
+            ]
+          ],
+          [
+            [
+              159
+            ],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              34327
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 4,
+      "final": true,
+      "position": -2,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159
+          ],
+          2,
+          4,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63,
+              63
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 4,
+      "final": true,
+      "position": 2,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ],
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159
+          ],
+          2,
+          4,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "ok",
+            [
+              63,
+              63
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    },
+    {
+      "name": "shift_jisx0213",
+      "raw": [
+        135,
+        159
+      ],
+      "split": 4,
+      "final": true,
+      "position": 5,
+      "seen": [
+        [
+          "shift_jisx0213",
+          [
+            135,
+            159,
+            135,
+            159
+          ],
+          0,
+          2,
+          "illegal multibyte sequence"
+        ]
+      ],
+      "calls": [
+        [
+          [
+            "error",
+            "IndexError",
+            "position 5 from error handler out of bounds"
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            [
+              65
+            ]
+          ],
+          [
+            [],
+            "0"
+          ]
+        ],
+        [
+          [
+            "ok",
+            []
+          ],
+          [
+            [],
+            "0"
+          ]
+        ]
+      ]
+    }
+  ]
+}

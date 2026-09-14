@@ -29,12 +29,13 @@ export function representationObject<Value>(value: Value, mode: "str" | "repr" |
     if (exact) return value;
   }
   let method: (() => Value) | undefined;
+  let methodName = mode === "str" ? "str" : "repr";
   if (mode === "str") { method = context.lookupStr(value); meter.checkpoint(); }
-  if (method === undefined) { method = context.lookupRepr(value); meter.checkpoint(); }
+  if (method === undefined) { methodName = "repr"; method = context.lookupRepr(value); meter.checkpoint(); }
   const result = method === undefined ? context.defaultRepr(value) : method();
   meter.checkpoint();
   const storage = context.string(result); meter.checkpoint();
-  if (storage === undefined) throw new PythonRuntimeError("TypeError", `__${mode === "str" ? "str" : "repr"}__ returned non-string (type ${diagnosticTypeName(context.typeName(result), meter)})`);
+  if (storage === undefined) throw new PythonRuntimeError("TypeError", `__${methodName}__ returned non-string (type ${diagnosticTypeName(context.typeName(result), meter)})`);
   if (mode !== "ascii") return result;
   const escaped = storage.escapeAscii(meter);
   meter.checkpoint();

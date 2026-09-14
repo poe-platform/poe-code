@@ -1,0 +1,213 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O"
+  },
+  "limits": {
+    "maxSteps": 1000000,
+    "maxAllocatedBytes": 16000000,
+    "maxDepth": 100
+  },
+  "adapter": "Explicit synchronous PythonSession.output adapter: real file descriptor, partial-write loop, fsync; temporary files cleaned.",
+  "cases": [
+    {
+      "name": "codecs",
+      "cancelled": false,
+      "source": "\nimport codecs as module\nfor name in [\"CodecInfo\",\"lookup\",\"encode\",\"decode\",\"__name__\",\"__doc__\",\"BOM_UTF8\"]:\n    found = False\n    for key in module.__dict__:\n        if key == name:\n            assert key is name, (module.__name__, name)\n            found = True\n    assert found, name\nprint(module.__name__, 'interned')\n",
+      "sha256": "80b5318cef8105e1350fdaa1fa14cf9e4cada29a13d9f3ebf9c485092c6a664e",
+      "oracle": {
+        "status": 0,
+        "stdout": "codecs interned\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "output": "codecs interned\n",
+        "writes": 4
+      }
+    },
+    {
+      "name": "_codecs",
+      "cancelled": false,
+      "source": "\nimport _codecs as module\nfor name in [\"register\",\"unregister\",\"lookup\",\"encode\",\"decode\",\"register_error\",\"lookup_error\",\"__name__\",\"__doc__\",\"__package__\"]:\n    found = False\n    for key in module.__dict__:\n        if key == name:\n            assert key is name, (module.__name__, name)\n            found = True\n    assert found, name\nprint(module.__name__, 'interned')\n",
+      "sha256": "fb8c5cf33680adf1e74abe23a31374618558ec04691b60cd01da9f7b62df6213",
+      "oracle": {
+        "status": 0,
+        "stdout": "_codecs interned\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "output": "_codecs interned\n",
+        "writes": 4
+      }
+    },
+    {
+      "name": "encodings",
+      "cancelled": false,
+      "source": "\nimport encodings as module\nfor name in [\"search_function\",\"normalize_encoding\",\"CodecRegistryError\",\"__name__\",\"__path__\",\"aliases\"]:\n    found = False\n    for key in module.__dict__:\n        if key == name:\n            assert key is name, (module.__name__, name)\n            found = True\n    assert found, name\nprint(module.__name__, 'interned')\n",
+      "sha256": "4452fdb5b1eefef4118f25f8cc934bdf368e348cda8d28743d62d7ddaf3eb350",
+      "oracle": {
+        "status": 0,
+        "stdout": "encodings interned\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "output": "encodings interned\n",
+        "writes": 4
+      }
+    },
+    {
+      "name": "encodings.aliases",
+      "cancelled": false,
+      "source": "\nimport encodings.aliases as module\nfor name in [\"aliases\",\"__name__\"]:\n    found = False\n    for key in module.__dict__:\n        if key == name:\n            assert key is name, (module.__name__, name)\n            found = True\n    assert found, name\nprint(module.__name__, 'interned')\n",
+      "sha256": "2aec2115bbf4e7ff98cf9373912e543f3fe1aaf528c74e6ecb667de8ca6478fc",
+      "oracle": {
+        "status": 0,
+        "stdout": "encodings.aliases interned\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "output": "encodings.aliases interned\n",
+        "writes": 4
+      }
+    },
+    {
+      "name": "encodings.ascii",
+      "cancelled": false,
+      "source": "\nimport encodings.ascii as module\nfor name in [\"Codec\",\"IncrementalEncoder\",\"IncrementalDecoder\",\"StreamWriter\",\"StreamReader\",\"StreamConverter\",\"getregentry\"]:\n    found = False\n    for key in module.__dict__:\n        if key == name:\n            assert key is name, (module.__name__, name)\n            found = True\n    assert found, name\nprint(module.__name__, 'interned')\n",
+      "sha256": "28f90e22da0ac383bebf2356324abc85f2e45c7ae600d63db6a33567ba4e40bf",
+      "oracle": {
+        "status": 0,
+        "stdout": "encodings.ascii interned\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "output": "encodings.ascii interned\n",
+        "writes": 4
+      }
+    },
+    {
+      "name": "encodings.latin_1",
+      "cancelled": false,
+      "source": "\nimport encodings.latin_1 as module\nfor name in [\"Codec\",\"IncrementalEncoder\",\"IncrementalDecoder\",\"StreamWriter\",\"StreamReader\",\"StreamConverter\",\"getregentry\"]:\n    found = False\n    for key in module.__dict__:\n        if key == name:\n            assert key is name, (module.__name__, name)\n            found = True\n    assert found, name\nprint(module.__name__, 'interned')\n",
+      "sha256": "b70cd98981fc72aa8aa7ba82527a7cd56cbd8f4914f37fbe08faaf69aaa43f7f",
+      "oracle": {
+        "status": 0,
+        "stdout": "encodings.latin_1 interned\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "output": "encodings.latin_1 interned\n",
+        "writes": 4
+      }
+    },
+    {
+      "name": "encodings.utf_8",
+      "cancelled": false,
+      "source": "\nimport encodings.utf_8 as module\nfor name in [\"encode\",\"decode\",\"IncrementalEncoder\",\"IncrementalDecoder\",\"StreamWriter\",\"StreamReader\",\"getregentry\"]:\n    found = False\n    for key in module.__dict__:\n        if key == name:\n            assert key is name, (module.__name__, name)\n            found = True\n    assert found, name\nprint(module.__name__, 'interned')\n",
+      "sha256": "4b077057638962cc802ec5167f8422c85b6b1c788ae1def8f3247017ab6ba9f1",
+      "oracle": {
+        "status": 0,
+        "stdout": "encodings.utf_8 interned\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "output": "encodings.utf_8 interned\n",
+        "writes": 4
+      }
+    },
+    {
+      "name": "encodings.charmap",
+      "cancelled": false,
+      "source": "\nimport encodings.charmap as module\nfor name in [\"Codec\",\"IncrementalEncoder\",\"IncrementalDecoder\",\"StreamWriter\",\"StreamReader\",\"getregentry\"]:\n    found = False\n    for key in module.__dict__:\n        if key == name:\n            assert key is name, (module.__name__, name)\n            found = True\n    assert found, name\nprint(module.__name__, 'interned')\n",
+      "sha256": "a6e153cf9956fb372b1a5a933bd8e54a076d11b17074eb020cf4aab238b97264",
+      "oracle": {
+        "status": 0,
+        "stdout": "encodings.charmap interned\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "output": "encodings.charmap interned\n",
+        "writes": 4
+      }
+    },
+    {
+      "name": "core codec class namespace keys",
+      "cancelled": false,
+      "source": "\nimport codecs\nfor owner, names in (\n    (codecs.CodecInfo, ('__module__', '__new__', '__repr__', '_is_text_encoding')),\n    (codecs.IncrementalEncoder, ('__module__', '__init__', 'encode', 'reset', 'getstate', 'setstate')),\n    (codecs.IncrementalDecoder, ('__module__', '__init__', 'decode', 'reset', 'getstate', 'setstate')),\n    (codecs.BufferedIncrementalEncoder, ('__init__', 'encode', 'reset', 'getstate', 'setstate')),\n    (codecs.BufferedIncrementalDecoder, ('__init__', 'decode', 'reset', 'getstate', 'setstate')),\n    (codecs.StreamReader, ('__module__', '__init__', 'read', 'readline', 'readlines', 'reset', 'seek')),\n    (codecs.StreamWriter, ('__module__', '__init__', 'write', 'writelines', 'reset', 'seek')),\n):\n    for name in names:\n        found = False\n        for key in owner.__dict__:\n            if key == name:\n                assert key is name, (owner.__name__, name)\n                found = True\n        assert found, (owner.__name__, name)\nprint('class keys interned')\n",
+      "sha256": "8a0bbe33226397043e65e5f1da9a5fa3d93d17cd5ef84ae0d69c1999f5cacf36",
+      "oracle": {
+        "status": 0,
+        "stdout": "class keys interned\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "output": "class keys interned\n",
+        "writes": 2
+      }
+    },
+    {
+      "name": "guest dictionary keys retain identity across module assignments",
+      "cancelled": false,
+      "source": "\nimport codecs\nname = ''.join(['codec_namespace_', 'retained'])\nliteral = 'codec_namespace_retained'\nassert name is not literal\ncodecs.__dict__[name] = 'initial'\ncodecs.codec_namespace_retained = 'updated'\nfor key in codecs.__dict__:\n    if key == name:\n        assert key is name\nassert codecs.codec_namespace_retained == 'updated'\ndel codecs.codec_namespace_retained\nassert name not in codecs.__dict__\nprint('retained key')\n",
+      "sha256": "471548364e8976e8926b9d38aad693dd6b571fd294c256790a71792dc475fffa",
+      "oracle": {
+        "status": 0,
+        "stdout": "retained key\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "output": "retained key\n",
+        "writes": 2
+      }
+    },
+    {
+      "name": "shared namespace and registry search identity",
+      "cancelled": false,
+      "source": "\nimport codecs\nevents = []\nexpected_name = 'registry_namespace_search'\ndef registry_namespace_search(name):\n    assert name is expected_name\n    for key in tuple(globals()):\n        if key == name:\n            assert key is name\n    events.append(name)\n    print('search')\n    return (None, None, None, None)\ncodecs.register(registry_namespace_search)\ntry:\n    info = codecs.lookup('REGISTRY-NAMESPACE-SEARCH')\n    assert codecs.lookup('registry_namespace_search') is info\n    assert len(events) == 1\nexcept BaseException:\n    print('recovered')\n    raise\n",
+      "sha256": "d6f347f0b0035ef549802e3dc83c5b4b794e25392ca47fb189e015dba8c54a2f",
+      "oracle": {
+        "status": 0,
+        "stdout": "search\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "output": "search\n",
+        "writes": 2
+      }
+    },
+    {
+      "name": "shared namespace and registry search identity",
+      "cancelled": true,
+      "source": "\nimport codecs\nevents = []\nexpected_name = 'registry_namespace_search'\ndef registry_namespace_search(name):\n    assert name is expected_name\n    for key in tuple(globals()):\n        if key == name:\n            assert key is name\n    events.append(name)\n    print('search')\n    return (None, None, None, None)\ncodecs.register(registry_namespace_search)\ntry:\n    info = codecs.lookup('REGISTRY-NAMESPACE-SEARCH')\n    assert codecs.lookup('registry_namespace_search') is info\n    assert len(events) == 1\nexcept BaseException:\n    print('recovered')\n    raise\n",
+      "sha256": "d6f347f0b0035ef549802e3dc83c5b4b794e25392ca47fb189e015dba8c54a2f",
+      "oracle": {
+        "status": 0,
+        "stdout": "search\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "output": "search",
+        "writes": 1,
+        "subsequent": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      }
+    }
+  ]
+}

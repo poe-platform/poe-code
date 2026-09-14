@@ -1,0 +1,969 @@
+{
+  "adapter": "PythonSession with Node readSync(0)/writeSync(1), real subprocess stdin/stdout pipes",
+  "successful": 64,
+  "cancelled": 16,
+  "stdoutBytes": 8904,
+  "stdoutSha256": "c8764826941aafa4f44c416a49f42466c20ba060523305e5a7a2d1c151a24485",
+  "records": [
+    {
+      "name": "'input'.encode('flag-probe'): true",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "9438f4df6e3c5249c474d2bf44b2fbabd3aaa2e73ea64870f25a64f56fbe1ba3"
+    },
+    {
+      "name": "'input'.encode('flag-probe'): false",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 18,
+      "stdoutSha256": "30e48535b519dca58e4808514c8541fea370fb36cd95f4921448b6c2fa5daf11"
+    },
+    {
+      "name": "'input'.encode('flag-probe'): missing",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "0993d28430b12c0fc09f74a1873b555f9513a3370ba39aefe174bb3bf077a005"
+    },
+    {
+      "name": "'input'.encode('flag-probe'): descriptor_failure",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 18,
+      "stdoutSha256": "b08097fcc61e76f6e80ba6b02113d790571dde881fb75805159c6c88c41fe048"
+    },
+    {
+      "name": "'input'.encode('flag-probe'): truth_failure",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 18,
+      "stdoutSha256": "8697f73ab144fe4d10dffa842ae78e198edcdc9052a65c99024a6dfb273b7c13"
+    },
+    {
+      "name": "'input'.encode('flag-probe'): invalid_truth",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 18,
+      "stdoutSha256": "a86cf940a3d5771073523db2a4a32df929c340472458bf2200a088afa43beddc"
+    },
+    {
+      "name": "bytes('input', 'flag-probe'): true",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "9438f4df6e3c5249c474d2bf44b2fbabd3aaa2e73ea64870f25a64f56fbe1ba3"
+    },
+    {
+      "name": "bytes('input', 'flag-probe'): false",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 18,
+      "stdoutSha256": "30e48535b519dca58e4808514c8541fea370fb36cd95f4921448b6c2fa5daf11"
+    },
+    {
+      "name": "bytes('input', 'flag-probe'): missing",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "0993d28430b12c0fc09f74a1873b555f9513a3370ba39aefe174bb3bf077a005"
+    },
+    {
+      "name": "bytes('input', 'flag-probe'): descriptor_failure",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 18,
+      "stdoutSha256": "b08097fcc61e76f6e80ba6b02113d790571dde881fb75805159c6c88c41fe048"
+    },
+    {
+      "name": "bytes('input', 'flag-probe'): truth_failure",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 18,
+      "stdoutSha256": "8697f73ab144fe4d10dffa842ae78e198edcdc9052a65c99024a6dfb273b7c13"
+    },
+    {
+      "name": "bytes('input', 'flag-probe'): invalid_truth",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 18,
+      "stdoutSha256": "a86cf940a3d5771073523db2a4a32df929c340472458bf2200a088afa43beddc"
+    },
+    {
+      "name": "codecs.encode('input', 'flag-probe'): true",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "6b8bdc050a3ae9e7ede9d2ffdd2aaaaf6ba85e11baa15d774573ad55993b3190"
+    },
+    {
+      "name": "codecs.encode('input', 'flag-probe'): false",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "6b8bdc050a3ae9e7ede9d2ffdd2aaaaf6ba85e11baa15d774573ad55993b3190"
+    },
+    {
+      "name": "codecs.encode('input', 'flag-probe'): missing",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "6b8bdc050a3ae9e7ede9d2ffdd2aaaaf6ba85e11baa15d774573ad55993b3190"
+    },
+    {
+      "name": "codecs.encode('input', 'flag-probe'): descriptor_failure",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "6b8bdc050a3ae9e7ede9d2ffdd2aaaaf6ba85e11baa15d774573ad55993b3190"
+    },
+    {
+      "name": "codecs.encode('input', 'flag-probe'): truth_failure",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "6b8bdc050a3ae9e7ede9d2ffdd2aaaaf6ba85e11baa15d774573ad55993b3190"
+    },
+    {
+      "name": "codecs.encode('input', 'flag-probe'): invalid_truth",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "6b8bdc050a3ae9e7ede9d2ffdd2aaaaf6ba85e11baa15d774573ad55993b3190"
+    },
+    {
+      "name": "codecs.decode('input', 'flag-probe'): true",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "6b8bdc050a3ae9e7ede9d2ffdd2aaaaf6ba85e11baa15d774573ad55993b3190"
+    },
+    {
+      "name": "codecs.decode('input', 'flag-probe'): false",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "6b8bdc050a3ae9e7ede9d2ffdd2aaaaf6ba85e11baa15d774573ad55993b3190"
+    },
+    {
+      "name": "codecs.decode('input', 'flag-probe'): missing",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "6b8bdc050a3ae9e7ede9d2ffdd2aaaaf6ba85e11baa15d774573ad55993b3190"
+    },
+    {
+      "name": "codecs.decode('input', 'flag-probe'): descriptor_failure",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "6b8bdc050a3ae9e7ede9d2ffdd2aaaaf6ba85e11baa15d774573ad55993b3190"
+    },
+    {
+      "name": "codecs.decode('input', 'flag-probe'): truth_failure",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "6b8bdc050a3ae9e7ede9d2ffdd2aaaaf6ba85e11baa15d774573ad55993b3190"
+    },
+    {
+      "name": "codecs.decode('input', 'flag-probe'): invalid_truth",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "6b8bdc050a3ae9e7ede9d2ffdd2aaaaf6ba85e11baa15d774573ad55993b3190"
+    },
+    {
+      "name": "'outer'.encode('flag-probe'): descriptor service raises=false",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 10,
+      "stdoutSha256": "b94718ddca83befeb8af75f9cf315c76a2cf70d3581bdcf714da90246bfd37b6"
+    },
+    {
+      "name": "'outer'.encode('flag-probe'): descriptor service raises=true",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 12,
+      "stdoutSha256": "487ae7c730663bb572956ff24350fcc784b771bd3e8a7e5a99e990f2776c191e"
+    },
+    {
+      "name": "'outer'.encode('flag-probe'): truth service raises=false",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 10,
+      "stdoutSha256": "4b935c9a2691f0d3f31438644a1b1b3e01dacc45a6356defe968d724c3877d60"
+    },
+    {
+      "name": "'outer'.encode('flag-probe'): truth service raises=true",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 12,
+      "stdoutSha256": "7b27523167edb64a18560f726c308e44f3dd7cd1a17af6311d424315e56a228f"
+    },
+    {
+      "name": "bytes('outer', 'flag-probe'): descriptor service raises=false",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 10,
+      "stdoutSha256": "b94718ddca83befeb8af75f9cf315c76a2cf70d3581bdcf714da90246bfd37b6"
+    },
+    {
+      "name": "bytes('outer', 'flag-probe'): descriptor service raises=true",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 12,
+      "stdoutSha256": "487ae7c730663bb572956ff24350fcc784b771bd3e8a7e5a99e990f2776c191e"
+    },
+    {
+      "name": "bytes('outer', 'flag-probe'): truth service raises=false",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 10,
+      "stdoutSha256": "4b935c9a2691f0d3f31438644a1b1b3e01dacc45a6356defe968d724c3877d60"
+    },
+    {
+      "name": "bytes('outer', 'flag-probe'): truth service raises=true",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 12,
+      "stdoutSha256": "7b27523167edb64a18560f726c308e44f3dd7cd1a17af6311d424315e56a228f"
+    },
+    {
+      "name": "'outer'.encode('flag-probe'): descriptor service raises=false",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "'outer'.encode('flag-probe'): descriptor service raises=true",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "'outer'.encode('flag-probe'): truth service raises=false",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "'outer'.encode('flag-probe'): truth service raises=true",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bytes('outer', 'flag-probe'): descriptor service raises=false",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bytes('outer', 'flag-probe'): descriptor service raises=true",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bytes('outer', 'flag-probe'): truth service raises=false",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bytes('outer', 'flag-probe'): truth service raises=true",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "'input'.encode('flag-probe'): true",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "9438f4df6e3c5249c474d2bf44b2fbabd3aaa2e73ea64870f25a64f56fbe1ba3"
+    },
+    {
+      "name": "'input'.encode('flag-probe'): false",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 18,
+      "stdoutSha256": "30e48535b519dca58e4808514c8541fea370fb36cd95f4921448b6c2fa5daf11"
+    },
+    {
+      "name": "'input'.encode('flag-probe'): missing",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "0993d28430b12c0fc09f74a1873b555f9513a3370ba39aefe174bb3bf077a005"
+    },
+    {
+      "name": "'input'.encode('flag-probe'): descriptor_failure",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 18,
+      "stdoutSha256": "b08097fcc61e76f6e80ba6b02113d790571dde881fb75805159c6c88c41fe048"
+    },
+    {
+      "name": "'input'.encode('flag-probe'): truth_failure",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 18,
+      "stdoutSha256": "8697f73ab144fe4d10dffa842ae78e198edcdc9052a65c99024a6dfb273b7c13"
+    },
+    {
+      "name": "'input'.encode('flag-probe'): invalid_truth",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 18,
+      "stdoutSha256": "a86cf940a3d5771073523db2a4a32df929c340472458bf2200a088afa43beddc"
+    },
+    {
+      "name": "bytes('input', 'flag-probe'): true",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "9438f4df6e3c5249c474d2bf44b2fbabd3aaa2e73ea64870f25a64f56fbe1ba3"
+    },
+    {
+      "name": "bytes('input', 'flag-probe'): false",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 18,
+      "stdoutSha256": "30e48535b519dca58e4808514c8541fea370fb36cd95f4921448b6c2fa5daf11"
+    },
+    {
+      "name": "bytes('input', 'flag-probe'): missing",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "0993d28430b12c0fc09f74a1873b555f9513a3370ba39aefe174bb3bf077a005"
+    },
+    {
+      "name": "bytes('input', 'flag-probe'): descriptor_failure",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 18,
+      "stdoutSha256": "b08097fcc61e76f6e80ba6b02113d790571dde881fb75805159c6c88c41fe048"
+    },
+    {
+      "name": "bytes('input', 'flag-probe'): truth_failure",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 18,
+      "stdoutSha256": "8697f73ab144fe4d10dffa842ae78e198edcdc9052a65c99024a6dfb273b7c13"
+    },
+    {
+      "name": "bytes('input', 'flag-probe'): invalid_truth",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 18,
+      "stdoutSha256": "a86cf940a3d5771073523db2a4a32df929c340472458bf2200a088afa43beddc"
+    },
+    {
+      "name": "codecs.encode('input', 'flag-probe'): true",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "6b8bdc050a3ae9e7ede9d2ffdd2aaaaf6ba85e11baa15d774573ad55993b3190"
+    },
+    {
+      "name": "codecs.encode('input', 'flag-probe'): false",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "6b8bdc050a3ae9e7ede9d2ffdd2aaaaf6ba85e11baa15d774573ad55993b3190"
+    },
+    {
+      "name": "codecs.encode('input', 'flag-probe'): missing",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "6b8bdc050a3ae9e7ede9d2ffdd2aaaaf6ba85e11baa15d774573ad55993b3190"
+    },
+    {
+      "name": "codecs.encode('input', 'flag-probe'): descriptor_failure",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "6b8bdc050a3ae9e7ede9d2ffdd2aaaaf6ba85e11baa15d774573ad55993b3190"
+    },
+    {
+      "name": "codecs.encode('input', 'flag-probe'): truth_failure",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "6b8bdc050a3ae9e7ede9d2ffdd2aaaaf6ba85e11baa15d774573ad55993b3190"
+    },
+    {
+      "name": "codecs.encode('input', 'flag-probe'): invalid_truth",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "6b8bdc050a3ae9e7ede9d2ffdd2aaaaf6ba85e11baa15d774573ad55993b3190"
+    },
+    {
+      "name": "codecs.decode('input', 'flag-probe'): true",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "6b8bdc050a3ae9e7ede9d2ffdd2aaaaf6ba85e11baa15d774573ad55993b3190"
+    },
+    {
+      "name": "codecs.decode('input', 'flag-probe'): false",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "6b8bdc050a3ae9e7ede9d2ffdd2aaaaf6ba85e11baa15d774573ad55993b3190"
+    },
+    {
+      "name": "codecs.decode('input', 'flag-probe'): missing",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "6b8bdc050a3ae9e7ede9d2ffdd2aaaaf6ba85e11baa15d774573ad55993b3190"
+    },
+    {
+      "name": "codecs.decode('input', 'flag-probe'): descriptor_failure",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "6b8bdc050a3ae9e7ede9d2ffdd2aaaaf6ba85e11baa15d774573ad55993b3190"
+    },
+    {
+      "name": "codecs.decode('input', 'flag-probe'): truth_failure",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "6b8bdc050a3ae9e7ede9d2ffdd2aaaaf6ba85e11baa15d774573ad55993b3190"
+    },
+    {
+      "name": "codecs.decode('input', 'flag-probe'): invalid_truth",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "stdoutSha256": "6b8bdc050a3ae9e7ede9d2ffdd2aaaaf6ba85e11baa15d774573ad55993b3190"
+    },
+    {
+      "name": "'outer'.encode('flag-probe'): descriptor service raises=false",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 10,
+      "stdoutSha256": "b94718ddca83befeb8af75f9cf315c76a2cf70d3581bdcf714da90246bfd37b6"
+    },
+    {
+      "name": "'outer'.encode('flag-probe'): descriptor service raises=true",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 12,
+      "stdoutSha256": "487ae7c730663bb572956ff24350fcc784b771bd3e8a7e5a99e990f2776c191e"
+    },
+    {
+      "name": "'outer'.encode('flag-probe'): truth service raises=false",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 10,
+      "stdoutSha256": "4b935c9a2691f0d3f31438644a1b1b3e01dacc45a6356defe968d724c3877d60"
+    },
+    {
+      "name": "'outer'.encode('flag-probe'): truth service raises=true",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 12,
+      "stdoutSha256": "7b27523167edb64a18560f726c308e44f3dd7cd1a17af6311d424315e56a228f"
+    },
+    {
+      "name": "bytes('outer', 'flag-probe'): descriptor service raises=false",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 10,
+      "stdoutSha256": "b94718ddca83befeb8af75f9cf315c76a2cf70d3581bdcf714da90246bfd37b6"
+    },
+    {
+      "name": "bytes('outer', 'flag-probe'): descriptor service raises=true",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 12,
+      "stdoutSha256": "487ae7c730663bb572956ff24350fcc784b771bd3e8a7e5a99e990f2776c191e"
+    },
+    {
+      "name": "bytes('outer', 'flag-probe'): truth service raises=false",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 10,
+      "stdoutSha256": "4b935c9a2691f0d3f31438644a1b1b3e01dacc45a6356defe968d724c3877d60"
+    },
+    {
+      "name": "bytes('outer', 'flag-probe'): truth service raises=true",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 12,
+      "stdoutSha256": "7b27523167edb64a18560f726c308e44f3dd7cd1a17af6311d424315e56a228f"
+    },
+    {
+      "name": "'outer'.encode('flag-probe'): descriptor service raises=false",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "'outer'.encode('flag-probe'): descriptor service raises=true",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "'outer'.encode('flag-probe'): truth service raises=false",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "'outer'.encode('flag-probe'): truth service raises=true",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bytes('outer', 'flag-probe'): descriptor service raises=false",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bytes('outer', 'flag-probe'): descriptor service raises=true",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bytes('outer', 'flag-probe'): truth service raises=false",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "name": "bytes('outer', 'flag-probe'): truth service raises=true",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "stdoutSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

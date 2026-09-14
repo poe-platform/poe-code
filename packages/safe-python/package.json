@@ -8,7 +8,7 @@
   "exports": {
     ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" }
   },
-  "files": ["dist", "UNICODE-LICENSE.txt"],
+  "files": ["dist", "UNICODE-LICENSE.txt", "CPYTHON-LICENSE.txt"],
   "dependencies": { "@poe-code/safe-fs": "*" },
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc -p tsconfig.json",

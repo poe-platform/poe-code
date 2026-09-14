@@ -1,8 +1,9 @@
+import {unsupportedBuffer} from "./runtime-buffer-error.js";
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { ImmutableBytes } from "./immutable-bytes.js";
 import type { RuntimeBufferContext, RuntimeBufferLease } from "./runtime-buffer-context.js";
-import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
+import type { BuiltinFunctionValue, RuntimeValues } from "./runtime-values.js";
 
 /** Static byte operation: accessing it through an instance does not bind self. */
 export function createRuntimeBytesMaketransMethod(values: RuntimeValues, meter: ExecutionMeter, buffers?: RuntimeBufferContext): BuiltinFunctionValue {
@@ -18,11 +19,11 @@ export function createRuntimeBytesMaketransMethod(values: RuntimeValues, meter: 
       try {
         if (from.kind !== "bytes") {
           fromLease = buffers?.acquireSimple(from); meter.checkpoint();
-          if (fromLease === undefined) translationBytesArgument(from);
+          if (fromLease === undefined) unsupportedBuffer(from,meter,buffers);
         }
         if (to.kind !== "bytes") {
           toLease = buffers?.acquireSimple(to); meter.checkpoint();
-          if (toLease === undefined) translationBytesArgument(to);
+          if (toLease === undefined) unsupportedBuffer(to,meter,buffers);
         }
         const fromLength = from.kind === "bytes" ? from.value.length : fromLease!.byteLength;
         const toLength = to.kind === "bytes" ? to.value.length : toLease!.byteLength;
@@ -36,9 +37,4 @@ export function createRuntimeBytesMaketransMethod(values: RuntimeValues, meter: 
       }
     }
   });
-}
-
-function translationBytesArgument(value: RuntimeValue): never {
-  const type = value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind;
-  throw new PythonRuntimeError("TypeError", `a bytes-like object is required, not '${type}'`);
 }

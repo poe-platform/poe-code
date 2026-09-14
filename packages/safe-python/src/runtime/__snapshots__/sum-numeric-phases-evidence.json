@@ -1,0 +1,1429 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "machine": "arm64"
+  },
+  "fixture": "sum-numeric-phases-3.14.7.json",
+  "adapter": {
+    "kind": "explicit owned file descriptor output adapter",
+    "bytes": 9408,
+    "sha256": "7a28286837c4ee6ab175e7d7286f9bfe6b997871a6510e19aca9799a26aeb673",
+    "matchesWrites": true
+  },
+  "runtimeSource": {
+    "path": "src/runtime/sum-iterator.ts",
+    "sha256": "83664df284746fbb5e06dd4939e7d330ecb2fa840574ad25e9bec6c5104b846c"
+  },
+  "before": {
+    "passed": 73,
+    "failed": 14,
+    "pending": 0,
+    "total": 87,
+    "files": 1,
+    "failures": [
+      {
+        "file": "src/session-sum-numeric-phases.test.ts",
+        "name": "matches sum numeric phase dispatch: '0 with [1j, I(2), F(3), 1e16, 1.0, -1…'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-sum-numeric-phases.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      },
+      {
+        "file": "src/session-sum-numeric-phases.test.ts",
+        "name": "matches sum numeric phase dispatch: '0.0 with [1j, I(2), F(3), 1e16, 1.0, …'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-sum-numeric-phases.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      },
+      {
+        "file": "src/session-sum-numeric-phases.test.ts",
+        "name": "matches sum numeric phase dispatch: '0j with [1j, I(2), F(3), 1e16, 1.0, -…'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-sum-numeric-phases.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      },
+      {
+        "file": "src/session-sum-numeric-phases.test.ts",
+        "name": "matches sum numeric phase dispatch: '0 with [1e16, I(1), -1e16]'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-sum-numeric-phases.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      },
+      {
+        "file": "src/session-sum-numeric-phases.test.ts",
+        "name": "matches sum numeric phase dispatch: '0 with [1e16+1j, I(1), -1e16]'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-sum-numeric-phases.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      },
+      {
+        "file": "src/session-sum-numeric-phases.test.ts",
+        "name": "matches sum numeric phase dispatch: '0 with [1e16+1j, F(1), -1e16]'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-sum-numeric-phases.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      },
+      {
+        "file": "src/session-sum-numeric-phases.test.ts",
+        "name": "matches sum numeric phase dispatch: '0.0 with [1e16, I(1), -1e16]'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-sum-numeric-phases.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      },
+      {
+        "file": "src/session-sum-numeric-phases.test.ts",
+        "name": "matches sum numeric phase dispatch: '0.0 with [1e16+1j, I(1), -1e16]'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-sum-numeric-phases.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      },
+      {
+        "file": "src/session-sum-numeric-phases.test.ts",
+        "name": "matches sum numeric phase dispatch: '0.0 with [1e16+1j, F(1), -1e16]'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-sum-numeric-phases.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      },
+      {
+        "file": "src/session-sum-numeric-phases.test.ts",
+        "name": "matches sum numeric phase dispatch: '0j with [1e16, I(1), -1e16]'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-sum-numeric-phases.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      },
+      {
+        "file": "src/session-sum-numeric-phases.test.ts",
+        "name": "matches sum numeric phase dispatch: '0j with [1e16, F(1), -1e16]'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-sum-numeric-phases.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      },
+      {
+        "file": "src/session-sum-numeric-phases.test.ts",
+        "name": "matches sum numeric phase dispatch: '0j with [1e16, I(1), 0j, -1e16]'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-sum-numeric-phases.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      },
+      {
+        "file": "src/session-sum-numeric-phases.test.ts",
+        "name": "matches sum numeric phase dispatch: '0j with [1e16+1j, I(1), -1e16]'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-sum-numeric-phases.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      },
+      {
+        "file": "src/session-sum-numeric-phases.test.ts",
+        "name": "matches sum numeric phase dispatch: '0j with [1e16+1j, F(1), -1e16]'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-sum-numeric-phases.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      }
+    ]
+  },
+  "after": {
+    "passed": 197,
+    "failed": 0,
+    "pending": 0,
+    "total": 197,
+    "files": 6,
+    "failures": []
+  },
+  "workspaceBefore": {
+    "passed": 34174,
+    "failed": 59,
+    "pending": 0,
+    "total": 34233,
+    "files": 754,
+    "failures": [
+      {
+        "file": "src/session-bytes-iterator.test.ts",
+        "name": "matches bytes iterator oracle: 'builtin lookup failures retain guest …'",
+        "messages": [
+          "AssertionError: {\"status\":\"ok\",\"value\":{\"kind\":\"str\",\"primitive\":\"AssertionError([])\"}}: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-bytes-iterator.test.ts:169:110\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-bytes-keyword-subtypes.test.ts",
+        "name": "preserves bytes constructor keyword lookup: 'source mutation replace'",
+        "messages": [
+          "AssertionError: expected { status: 'terminated', …(2) } to deeply equal { status: 'ok' }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-bytes-keyword-subtypes.test.ts:7:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'byte escape types, argument precedenc…'",
+        "messages": [
+          "AssertionError: __import__ not found: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'readbuffer_encode native copying, sub…'",
+        "messages": [
+          "AssertionError: __import__ not found: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'Punycode public decoder factories ret…'",
+        "messages": [
+          "AssertionError: __import__ not found: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'charmap surrogateescape retains origi…'",
+        "messages": [
+          "AssertionError: __import__ not found: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'normalized search names retain identi…'",
+        "messages": [
+          "AssertionError: __import__ not found: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'callback failures preserve identity, …'",
+        "messages": [
+          "AssertionError: __import__ not found: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'generator error callbacks are rejecte…'",
+        "messages": [
+          "AssertionError: __import__ not found: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'handler result validation precedes in…'",
+        "messages": [
+          "AssertionError: __import__ not found: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'CodecInfo tuple layout, metadata, sub…'",
+        "messages": [
+          "AssertionError: __import__ not found: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'search normalization, cache identity,…'",
+        "messages": [
+          "AssertionError: __import__ not found: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'recursive handlers and exception.obje…'",
+        "messages": [
+          "AssertionError: __import__ not found: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'all standard handlers through publish…'",
+        "messages": [
+          "AssertionError: __import__ not found: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'standard handler rejection chains the…'",
+        "messages": [
+          "AssertionError: __import__ not found: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'custom codecs shared by encode/decode…'",
+        "messages": [
+          "AssertionError: __import__ not found: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'core fast paths survive codec shadowi…'",
+        "messages": [
+          "AssertionError: __import__ not found: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'decoder subtype identity and tuple ov…'",
+        "messages": [
+          "AssertionError: __import__ not found: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'incremental UTF-8 split input, state …'",
+        "messages": [
+          "AssertionError: __import__ not found: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'stream reader/writer adapters over a …'",
+        "messages": [
+          "AssertionError: __import__ not found: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'owned charmap module and undefined-ch…'",
+        "messages": [
+          "AssertionError: __import__ not found: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-codec-public-contracts.test.ts",
+        "name": "public codec contract: 'UTF-16/32 rejected replacements resto…'",
+        "messages": [
+          "AssertionError: __import__ not found: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-public-contracts.test.ts:14:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-core-codec-imports.test.ts",
+        "name": "imports the real codecs module through the public session",
+        "messages": [
+          "AssertionError: __import__ not found: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-imports.test.ts:15:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-core-codec-imports.test.ts",
+        "name": "imports the real _codecs module through the public session",
+        "messages": [
+          "AssertionError: __import__ not found: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-imports.test.ts:15:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-core-codec-imports.test.ts",
+        "name": "imports the real encodings module through the public session",
+        "messages": [
+          "AssertionError: __import__ not found: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-imports.test.ts:15:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-core-codec-imports.test.ts",
+        "name": "imports the real encodings.aliases module through the public session",
+        "messages": [
+          "AssertionError: __import__ not found: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-imports.test.ts:15:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-core-codec-imports.test.ts",
+        "name": "imports the real encodings.ascii module through the public session",
+        "messages": [
+          "AssertionError: __import__ not found: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-imports.test.ts:15:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-core-codec-imports.test.ts",
+        "name": "imports the real encodings.latin_1 module through the public session",
+        "messages": [
+          "AssertionError: __import__ not found: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-imports.test.ts:15:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-core-codec-imports.test.ts",
+        "name": "imports the real encodings.utf_8 module through the public session",
+        "messages": [
+          "AssertionError: __import__ not found: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-imports.test.ts:15:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-core-codec-imports.test.ts",
+        "name": "imports the real encodings.charmap module through the public session",
+        "messages": [
+          "AssertionError: __import__ not found: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-core-codec-imports.test.ts:15:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-dictionary-native-contracts.test.ts",
+        "name": "matches dictionary native contract: 'exact __reversed__()'",
+        "messages": [
+          "AssertionError: expected { status: 'terminated', …(2) } to deeply equal { status: 'ok' }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-dictionary-native-contracts.test.ts:7:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-dictionary-native-contracts.test.ts",
+        "name": "matches dictionary native contract: 'explicit __reversed__()'",
+        "messages": [
+          "AssertionError: expected { status: 'terminated', …(2) } to deeply equal { status: 'ok' }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-dictionary-native-contracts.test.ts:7:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-dictionary-native-contracts.test.ts",
+        "name": "matches dictionary native contract: 'subtype __reversed__()'",
+        "messages": [
+          "AssertionError: expected { status: 'terminated', …(2) } to deeply equal { status: 'ok' }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-dictionary-native-contracts.test.ts:7:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-dictionary-native-contracts.test.ts",
+        "name": "matches dictionary native contract: 'subtype-explicit __reversed__()'",
+        "messages": [
+          "AssertionError: expected { status: 'terminated', …(2) } to deeply equal { status: 'ok' }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-dictionary-native-contracts.test.ts:7:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-dictionary-native-contracts.test.ts",
+        "name": "matches dictionary native contract: 'metaclass __reversed__()'",
+        "messages": [
+          "AssertionError: expected { status: 'terminated', …(2) } to deeply equal { status: 'ok' }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-dictionary-native-contracts.test.ts:7:32\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-round-edge-cases.test.ts",
+        "name": "matches CPython rounding edge case 'round(number)' with 'events = []\\nclass Number:\\n    @prop…'",
+        "messages": [
+          "AssertionError: name 'property' is not defined: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-round-edge-cases.test.ts:12:105\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-round-edge-cases.test.ts",
+        "name": "matches CPython rounding edge case 'round(number, None)' with 'events = []\\nclass Number:\\n    @prop…'",
+        "messages": [
+          "AssertionError: name 'property' is not defined: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-round-edge-cases.test.ts:12:105\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-round-edge-cases.test.ts",
+        "name": "matches CPython rounding edge case 'round(number, 2)' with 'events = []\\nclass Number:\\n    @prop…'",
+        "messages": [
+          "AssertionError: name 'property' is not defined: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-round-edge-cases.test.ts:12:105\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "src/session-union-construction-descriptors.test.ts",
+        "name": "matches union construction descriptor behavior: 'cls.__or__(u, other)'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-union-construction-descriptors.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      },
+      {
+        "file": "src/session-union-construction-descriptors.test.ts",
+        "name": "matches union construction descriptor behavior: 'u.__or__(other)'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-union-construction-descriptors.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      },
+      {
+        "file": "src/session-union-construction-descriptors.test.ts",
+        "name": "matches union construction descriptor behavior: 'cls.__or__(u, 0)'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-union-construction-descriptors.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      },
+      {
+        "file": "src/session-union-construction-descriptors.test.ts",
+        "name": "matches union construction descriptor behavior: 'u.__or__(0)'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-union-construction-descriptors.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      },
+      {
+        "file": "src/session-union-construction-descriptors.test.ts",
+        "name": "matches union construction descriptor behavior: 'cls.__or__(u, list[int])'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-union-construction-descriptors.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      },
+      {
+        "file": "src/session-union-construction-descriptors.test.ts",
+        "name": "matches union construction descriptor behavior: 'u.__or__(list[int])'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-union-construction-descriptors.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      },
+      {
+        "file": "src/session-union-construction-descriptors.test.ts",
+        "name": "matches union construction descriptor behavior: 'cls.__ror__(u, other)'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-union-construction-descriptors.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      },
+      {
+        "file": "src/session-union-construction-descriptors.test.ts",
+        "name": "matches union construction descriptor behavior: 'u.__ror__(other)'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-union-construction-descriptors.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      },
+      {
+        "file": "src/session-union-construction-descriptors.test.ts",
+        "name": "matches union construction descriptor behavior: 'cls.__ror__(u, 0)'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-union-construction-descriptors.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      },
+      {
+        "file": "src/session-union-construction-descriptors.test.ts",
+        "name": "matches union construction descriptor behavior: 'u.__ror__(0)'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-union-construction-descriptors.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      },
+      {
+        "file": "src/session-union-construction-descriptors.test.ts",
+        "name": "matches union construction descriptor behavior: 'cls.__ror__(u, list[int])'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-union-construction-descriptors.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      },
+      {
+        "file": "src/session-union-construction-descriptors.test.ts",
+        "name": "matches union construction descriptor behavior: 'u.__ror__(list[int])'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-union-construction-descriptors.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      },
+      {
+        "file": "src/session-union-construction-descriptors.test.ts",
+        "name": "matches union construction descriptor behavior: 'type.__or__(int, list[int])'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-union-construction-descriptors.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      },
+      {
+        "file": "src/session-union-construction-descriptors.test.ts",
+        "name": "matches union construction descriptor behavior: 'int.__or__(list[int])'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-union-construction-descriptors.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      },
+      {
+        "file": "src/session-union-construction-descriptors.test.ts",
+        "name": "matches union construction descriptor behavior: 'type.__ror__(int, list[int])'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-union-construction-descriptors.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      },
+      {
+        "file": "src/session-union-construction-descriptors.test.ts",
+        "name": "matches union construction descriptor behavior: 'int.__ror__(list[int])'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-union-construction-descriptors.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      },
+      {
+        "file": "src/session-union-construction-descriptors.test.ts",
+        "name": "matches union construction descriptor behavior: 'u|other'",
+        "messages": [
+          "AssertionError: expected { status: 'ok', value: { …(2) } } to match object { status: 'ok', …(1) }\n(1 matching property omitted from actual)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1283:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-union-construction-descriptors.test.ts:8:40\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)"
+        ]
+      },
+      {
+        "file": "src/runtime/builtin-string-new.test.ts",
+        "name": "decodes before wrapping subtype storage without invoking initializers",
+        "messages": [
+          "AssertionError: expected \"vi.fn()\" to be called with arguments: [ { kind: 'bytes', …(1) }, …(4) ]\n\nReceived:\n\n  1st vi.fn() call:\n\n@@ -4,9 +4,9 @@\n      \"value\": ImmutableBytes {\n        \"length\": 1,\n      },\n    },\n    \"custom\",\n-   \"strict\",\n-   Anything,\n+   undefined,\n+   ExecutionBudget {},\n    undefined,\n  ]\n\n\nNumber of calls: 1\n\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1487:10)\n    at Proxy.<anonymous> (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/expect/dist/index.js:1156:15)\n    at Proxy.methodWrapper (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:1700:25)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/builtin-string-new.test.ts:57:69\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20"
+        ]
+      },
+      {
+        "file": "src/runtime/runtime-core-codec-functions.test.ts",
+        "name": "retains ascii encoding source identity, cached errors, index side effects and rejected replacement fields",
+        "messages": [
+          "Error: AssertionError: [\"assert error.__traceback__ is not None\"]\n    at Object.run (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts:41:351)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts:82:13\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+        ]
+      },
+      {
+        "file": "src/runtime/runtime-core-codec-functions.test.ts",
+        "name": "retains latin_1 encoding source identity, cached errors, index side effects and rejected replacement fields",
+        "messages": [
+          "Error: AssertionError: [\"assert error.__traceback__ is not None\"]\n    at Object.run (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts:41:351)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts:82:13\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+        ]
+      },
+      {
+        "file": "src/runtime/runtime-core-codec-functions.test.ts",
+        "name": "retains utf_8 encoding source identity, cached errors, index side effects and rejected replacement fields",
+        "messages": [
+          "Error: AssertionError: [\"assert error.__traceback__ is not None\"]\n    at Object.run (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts:41:351)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-core-codec-functions.test.ts:82:13\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)"
+        ]
+      }
+    ]
+  },
+  "rows": [
+    {
+      "name": "0 with [I(2)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'int', 1010, [('item', 'I'), ('int-radd', 'int'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'int', 1010, [('item', 'I'), ('int-radd', 'int'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0 with [F(2)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'int', 2020, [('item', 'F'), ('float-radd', 'int'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'int', 2020, [('item', 'F'), ('float-radd', 'int'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0 with [C(2)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'int', 3030, [('item', 'C'), ('complex-radd', 'int'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'int', 3030, [('item', 'C'), ('complex-radd', 'int'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0 with [1.0, I(2), 1e16, 1.0, -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'float', 4.0, [('item', 'float'), ('item', 'I'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'float', 4.0, [('item', 'float'), ('item', 'I'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0 with [1j, I(2), F(3), 1e16, 1.0, -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'complex', (6+1j), [('item', 'complex'), ('item', 'I'), ('item', 'F'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'complex', (6+1j), [('item', 'complex'), ('item', 'I'), ('item', 'F'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0 with [I(2**1024)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'int', 1010, [('item', 'I'), ('int-radd', 'int'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'int', 1010, [('item', 'I'), ('int-radd', 'int'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0 with [1.0, I(2**1024)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'float'), ('item', 'I')])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'float'), ('item', 'I')])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0 with [1j, I(2**1024)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'complex'), ('item', 'I')])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'complex'), ('item', 'I')])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0 with [True, False, I(-1)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'int', 1010, [('item', 'bool'), ('item', 'bool'), ('item', 'I'), ('int-radd', 'int'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'int', 1010, [('item', 'bool'), ('item', 'bool'), ('item', 'I'), ('int-radd', 'int'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "True with [I(2)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'int', 3, [('item', 'I'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'int', 3, [('item', 'I'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "True with [F(2)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'int', 2020, [('item', 'F'), ('float-radd', 'bool'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'int', 2020, [('item', 'F'), ('float-radd', 'bool'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "True with [C(2)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'int', 3030, [('item', 'C'), ('complex-radd', 'bool'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'int', 3030, [('item', 'C'), ('complex-radd', 'bool'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "True with [1.0, I(2), 1e16, 1.0, -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'float', 4.0, [('item', 'float'), ('item', 'I'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'float', 4.0, [('item', 'float'), ('item', 'I'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "True with [1j, I(2), F(3), 1e16, 1.0, -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'complex', (8+1j), [('item', 'complex'), ('item', 'I'), ('item', 'F'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'complex', (8+1j), [('item', 'complex'), ('item', 'I'), ('item', 'F'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "True with [I(2**1024)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'int', 179769313486231590772930519078902473361797697894230657273430081157732675805500963132708477322407536021120113879871393357658789768814416622492847430639474124377767893424865485276302219601246094119453082952085005768838150682342462881473913110540827237163350510684586298239947245938479716304835356329624224137217, [('item', 'I'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'int', 179769313486231590772930519078902473361797697894230657273430081157732675805500963132708477322407536021120113879871393357658789768814416622492847430639474124377767893424865485276302219601246094119453082952085005768838150682342462881473913110540827237163350510684586298239947245938479716304835356329624224137217, [('item', 'I'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "True with [1.0, I(2**1024)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'float'), ('item', 'I')])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'float'), ('item', 'I')])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "True with [1j, I(2**1024)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'complex'), ('item', 'I')])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'complex'), ('item', 'I')])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "True with [True, False, I(-1)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'int', 1010, [('item', 'bool'), ('item', 'bool'), ('item', 'I'), ('int-radd', 'int'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'int', 1010, [('item', 'bool'), ('item', 'bool'), ('item', 'I'), ('int-radd', 'int'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "2**70 with [I(2)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'int', 1010, [('item', 'I'), ('int-radd', 'int'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'int', 1010, [('item', 'I'), ('int-radd', 'int'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "2**70 with [F(2)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'int', 2020, [('item', 'F'), ('float-radd', 'int'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'int', 2020, [('item', 'F'), ('float-radd', 'int'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "2**70 with [C(2)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'int', 3030, [('item', 'C'), ('complex-radd', 'int'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'int', 3030, [('item', 'C'), ('complex-radd', 'int'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "2**70 with [1.0, I(2), 1e16, 1.0, -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'float', 1.1805916207174113e+21, [('item', 'float'), ('item', 'I'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'float', 1.1805916207174113e+21, [('item', 'float'), ('item', 'I'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "2**70 with [1j, I(2), F(3), 1e16, 1.0, -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'complex', (1.1805916207174113e+21+1j), [('item', 'complex'), ('item', 'I'), ('item', 'F'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'complex', (1.1805916207174113e+21+1j), [('item', 'complex'), ('item', 'I'), ('item', 'F'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "2**70 with [I(2**1024)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'int', 1010, [('item', 'I'), ('int-radd', 'int'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'int', 1010, [('item', 'I'), ('int-radd', 'int'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "2**70 with [1.0, I(2**1024)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'float'), ('item', 'I')])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'float'), ('item', 'I')])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "2**70 with [1j, I(2**1024)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'complex'), ('item', 'I')])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'complex'), ('item', 'I')])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "2**70 with [True, False, I(-1)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'int', 1010, [('item', 'bool'), ('item', 'bool'), ('item', 'I'), ('int-radd', 'int'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'int', 1010, [('item', 'bool'), ('item', 'bool'), ('item', 'I'), ('int-radd', 'int'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0.0 with [I(2)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'float', 2.0, [('item', 'I'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'float', 2.0, [('item', 'I'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0.0 with [F(2)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'int', 2020, [('item', 'F'), ('float-radd', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'int', 2020, [('item', 'F'), ('float-radd', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0.0 with [C(2)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'int', 3030, [('item', 'C'), ('complex-radd', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'int', 3030, [('item', 'C'), ('complex-radd', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0.0 with [1.0, I(2), 1e16, 1.0, -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'float', 4.0, [('item', 'float'), ('item', 'I'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'float', 4.0, [('item', 'float'), ('item', 'I'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0.0 with [1j, I(2), F(3), 1e16, 1.0, -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'complex', (6+1j), [('item', 'complex'), ('item', 'I'), ('item', 'F'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'complex', (6+1j), [('item', 'complex'), ('item', 'I'), ('item', 'F'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0.0 with [I(2**1024)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'I')])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'I')])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0.0 with [1.0, I(2**1024)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'float'), ('item', 'I')])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'float'), ('item', 'I')])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0.0 with [1j, I(2**1024)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'complex'), ('item', 'I')])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'complex'), ('item', 'I')])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0.0 with [True, False, I(-1)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'float', 0.0, [('item', 'bool'), ('item', 'bool'), ('item', 'I'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'float', 0.0, [('item', 'bool'), ('item', 'bool'), ('item', 'I'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0j with [I(2)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'complex', (2+0j), [('item', 'I'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'complex', (2+0j), [('item', 'I'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0j with [F(2)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'complex', (2+0j), [('item', 'F'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'complex', (2+0j), [('item', 'F'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0j with [C(2)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'int', 3030, [('item', 'C'), ('complex-radd', 'complex'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'int', 3030, [('item', 'C'), ('complex-radd', 'complex'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0j with [1.0, I(2), 1e16, 1.0, -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'complex', (4+0j), [('item', 'float'), ('item', 'I'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'complex', (4+0j), [('item', 'float'), ('item', 'I'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0j with [1j, I(2), F(3), 1e16, 1.0, -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'complex', (6+1j), [('item', 'complex'), ('item', 'I'), ('item', 'F'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'complex', (6+1j), [('item', 'complex'), ('item', 'I'), ('item', 'F'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0j with [I(2**1024)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'I')])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'I')])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0j with [1.0, I(2**1024)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'float'), ('item', 'I')])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'float'), ('item', 'I')])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0j with [1j, I(2**1024)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'complex'), ('item', 'I')])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'complex'), ('item', 'I')])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0j with [True, False, I(-1)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'complex', 0j, [('item', 'bool'), ('item', 'bool'), ('item', 'I'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'complex', 0j, [('item', 'bool'), ('item', 'bool'), ('item', 'I'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "I(0) with [I(2)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'int', 2, [('item', 'I'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'int', 2, [('item', 'I'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "I(0) with [F(2)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'int', 2020, [('item', 'F'), ('float-radd', 'I'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'int', 2020, [('item', 'F'), ('float-radd', 'I'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "I(0) with [C(2)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'int', 3030, [('item', 'C'), ('complex-radd', 'I'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'int', 3030, [('item', 'C'), ('complex-radd', 'I'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "I(0) with [1.0, I(2), 1e16, 1.0, -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'float', 4.0, [('item', 'float'), ('item', 'I'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'float', 4.0, [('item', 'float'), ('item', 'I'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "I(0) with [1j, I(2), F(3), 1e16, 1.0, -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'complex', (4+1j), [('item', 'complex'), ('item', 'I'), ('item', 'F'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'complex', (4+1j), [('item', 'complex'), ('item', 'I'), ('item', 'F'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "I(0) with [I(2**1024)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'int', 179769313486231590772930519078902473361797697894230657273430081157732675805500963132708477322407536021120113879871393357658789768814416622492847430639474124377767893424865485276302219601246094119453082952085005768838150682342462881473913110540827237163350510684586298239947245938479716304835356329624224137216, [('item', 'I'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'int', 179769313486231590772930519078902473361797697894230657273430081157732675805500963132708477322407536021120113879871393357658789768814416622492847430639474124377767893424865485276302219601246094119453082952085005768838150682342462881473913110540827237163350510684586298239947245938479716304835356329624224137216, [('item', 'I'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "I(0) with [1.0, I(2**1024)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'float'), ('item', 'I')])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'float'), ('item', 'I')])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "I(0) with [1j, I(2**1024)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'complex'), ('item', 'I')])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'complex'), ('item', 'I')])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "I(0) with [True, False, I(-1)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'int', 1010, [('item', 'bool'), ('item', 'bool'), ('item', 'I'), ('int-radd', 'int'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'int', 1010, [('item', 'bool'), ('item', 'bool'), ('item', 'I'), ('int-radd', 'int'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "F(0) with [I(2)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'float', 2.0, [('item', 'I'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'float', 2.0, [('item', 'I'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "F(0) with [F(2)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'float', 2.0, [('item', 'F'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'float', 2.0, [('item', 'F'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "F(0) with [C(2)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'int', 3030, [('item', 'C'), ('complex-radd', 'F'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'int', 3030, [('item', 'C'), ('complex-radd', 'F'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "F(0) with [1.0, I(2), 1e16, 1.0, -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'float', 4.0, [('item', 'float'), ('item', 'I'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'float', 4.0, [('item', 'float'), ('item', 'I'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "F(0) with [1j, I(2), F(3), 1e16, 1.0, -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'complex', (4+1j), [('item', 'complex'), ('item', 'I'), ('item', 'F'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'complex', (4+1j), [('item', 'complex'), ('item', 'I'), ('item', 'F'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "F(0) with [I(2**1024)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'I')])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'I')])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "F(0) with [1.0, I(2**1024)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'float'), ('item', 'I')])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'float'), ('item', 'I')])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "F(0) with [1j, I(2**1024)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'complex'), ('item', 'I')])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'complex'), ('item', 'I')])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "F(0) with [True, False, I(-1)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'float', 0.0, [('item', 'bool'), ('item', 'bool'), ('item', 'I'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'float', 0.0, [('item', 'bool'), ('item', 'bool'), ('item', 'I'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "C(0) with [I(2)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'complex', (2+0j), [('item', 'I'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'complex', (2+0j), [('item', 'I'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "C(0) with [F(2)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'complex', (2+0j), [('item', 'F'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'complex', (2+0j), [('item', 'F'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "C(0) with [C(2)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'complex', (2+0j), [('item', 'C'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'complex', (2+0j), [('item', 'C'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "C(0) with [1.0, I(2), 1e16, 1.0, -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'complex', (4+0j), [('item', 'float'), ('item', 'I'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'complex', (4+0j), [('item', 'float'), ('item', 'I'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "C(0) with [1j, I(2), F(3), 1e16, 1.0, -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'complex', (4+1j), [('item', 'complex'), ('item', 'I'), ('item', 'F'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'complex', (4+1j), [('item', 'complex'), ('item', 'I'), ('item', 'F'), ('item', 'float'), ('item', 'float'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "C(0) with [I(2**1024)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'I')])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'I')])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "C(0) with [1.0, I(2**1024)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'float'), ('item', 'I')])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'float'), ('item', 'I')])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "C(0) with [1j, I(2**1024)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'complex'), ('item', 'I')])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('exception', 'OverflowError', 'int too large to convert to float', ('int too large to convert to float',), [('item', 'complex'), ('item', 'I')])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "C(0) with [True, False, I(-1)]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'complex', 0j, [('item', 'bool'), ('item', 'bool'), ('item', 'I'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'complex', 0j, [('item', 'bool'), ('item', 'bool'), ('item', 'I'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0 with [1e16, I(1), -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'float', 1.0, [('item', 'float'), ('item', 'I'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'float', 1.0, [('item', 'float'), ('item', 'I'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0 with [1e16, F(1), -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'float', -9999999999997980.0, [('item', 'float'), ('item', 'F'), ('float-radd', 'float'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'float', -9999999999997980.0, [('item', 'float'), ('item', 'F'), ('float-radd', 'float'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0 with [1e16, I(1), 0j, -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'complex', 0j, [('item', 'float'), ('item', 'I'), ('item', 'complex'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'complex', 0j, [('item', 'float'), ('item', 'I'), ('item', 'complex'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0 with [1e16+1j, I(1), -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'complex', (1+1j), [('item', 'complex'), ('item', 'I'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'complex', (1+1j), [('item', 'complex'), ('item', 'I'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0 with [1e16+1j, F(1), -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'complex', (1+1j), [('item', 'complex'), ('item', 'F'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'complex', (1+1j), [('item', 'complex'), ('item', 'F'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0.0 with [1e16, I(1), -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'float', 1.0, [('item', 'float'), ('item', 'I'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'float', 1.0, [('item', 'float'), ('item', 'I'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0.0 with [1e16, F(1), -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'float', -9999999999997980.0, [('item', 'float'), ('item', 'F'), ('float-radd', 'float'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'float', -9999999999997980.0, [('item', 'float'), ('item', 'F'), ('float-radd', 'float'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0.0 with [1e16, I(1), 0j, -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'complex', 0j, [('item', 'float'), ('item', 'I'), ('item', 'complex'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'complex', 0j, [('item', 'float'), ('item', 'I'), ('item', 'complex'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0.0 with [1e16+1j, I(1), -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'complex', (1+1j), [('item', 'complex'), ('item', 'I'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'complex', (1+1j), [('item', 'complex'), ('item', 'I'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0.0 with [1e16+1j, F(1), -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'complex', (1+1j), [('item', 'complex'), ('item', 'F'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'complex', (1+1j), [('item', 'complex'), ('item', 'F'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0j with [1e16, I(1), -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'complex', (1+0j), [('item', 'float'), ('item', 'I'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'complex', (1+0j), [('item', 'float'), ('item', 'I'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0j with [1e16, F(1), -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'complex', (1+0j), [('item', 'float'), ('item', 'F'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'complex', (1+0j), [('item', 'float'), ('item', 'F'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0j with [1e16, I(1), 0j, -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'complex', (1+0j), [('item', 'float'), ('item', 'I'), ('item', 'complex'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'complex', (1+0j), [('item', 'float'), ('item', 'I'), ('item', 'complex'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0j with [1e16+1j, I(1), -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'complex', (1+1j), [('item', 'complex'), ('item', 'I'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'complex', (1+1j), [('item', 'complex'), ('item', 'I'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    },
+    {
+      "name": "0j with [1e16+1j, F(1), -1e16]",
+      "oracleStatus": 0,
+      "oracleStdout": "('ok', 'complex', (1+1j), [('item', 'complex'), ('item', 'F'), ('item', 'float'), 'end'])\n",
+      "oracleStderr": "",
+      "guestStatus": "ok",
+      "guestStdout": "('ok', 'complex', (1+1j), [('item', 'complex'), ('item', 'F'), ('item', 'float'), 'end'])\n",
+      "matches": true,
+      "fixtureMatches": true
+    }
+  ],
+  "completeBuiltinCompatibility": false
+}

@@ -1,0 +1,87 @@
+{
+  "reference": "CPython 3.14.7; Unicode 16.0.0; Darwin little-endian",
+  "adapters": "Real opened file descriptors: bytewise readSync, complete writeSync loops, fsyncSync; owned files removed in finally",
+  "rows": [
+    {
+      "name": "mbcs import failure and registry cache",
+      "source": "\nimport codecs\nimport encodings\nfor attempt in range(2):\n    try:\n        import encodings.mbcs\n    except ImportError as error:\n        assert type(error) is ImportError\n        assert error.args == (\"cannot import name 'mbcs_encode' from 'codecs' (\" + codecs.__file__ + \")\",)\n        assert error.name == 'codecs'\n        assert error.path == codecs.__file__\n        assert error.name_from == 'mbcs_encode'\n        assert error.__context__ is None and error.__cause__ is None\n    else:\n        assert False\n    assert not hasattr(encodings, 'mbcs')\n    try:\n        codecs.lookup('mbcs')\n    except LookupError as error:\n        assert type(error) is LookupError\n        assert error.args == ('unknown encoding: mbcs',)\n    else:\n        assert False\nassert encodings._cache['mbcs'] is None\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "exception",
+        "stdout": ""
+      },
+      "reads": 0,
+      "writes": 0,
+      "match": false
+    },
+    {
+      "name": "oem import failure and registry cache",
+      "source": "\nimport codecs\nimport encodings\nfor attempt in range(2):\n    try:\n        import encodings.oem\n    except ImportError as error:\n        assert type(error) is ImportError\n        assert error.args == (\"cannot import name 'oem_encode' from 'codecs' (\" + codecs.__file__ + \")\",)\n        assert error.name == 'codecs'\n        assert error.path == codecs.__file__\n        assert error.name_from == 'oem_encode'\n        assert error.__context__ is None and error.__cause__ is None\n    else:\n        assert False\n    assert not hasattr(encodings, 'oem')\n    try:\n        codecs.lookup('oem')\n    except LookupError as error:\n        assert type(error) is LookupError\n        assert error.args == ('unknown encoding: oem',)\n    else:\n        assert False\nassert encodings._cache['oem'] is None\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "exception",
+        "stdout": ""
+      },
+      "reads": 0,
+      "writes": 0,
+      "match": false
+    },
+    {
+      "name": "Windows code-page factory imports lazily and preserves argument precedence",
+      "source": "\nimport codecs\nimport encodings\nimport encodings._win_cp_codecs as module\nfrom encodings._win_cp_codecs import create_win32_code_page_codec as create\nassert encodings._win_cp_codecs is module\nassert module.codecs is codecs\nassert create is module.create_win32_code_page_codec\nassert create.__module__ == 'encodings._win_cp_codecs'\nassert create.__name__ == create.__qualname__ == 'create_win32_code_page_codec'\nassert create.__defaults__ is None and create.__kwdefaults__ is None\nassert module.__doc__ is None\nassert module.__package__ == 'encodings'\nfor cp in (0, 65001, None, object()):\n    try:\n        create(cp)\n    except ImportError as error:\n        assert type(error) is ImportError\n        assert error.args == (\"cannot import name 'code_page_encode' from 'codecs' (\" + codecs.__file__ + \")\",)\n        assert error.name == 'codecs' and error.path == codecs.__file__\n        assert error.name_from == 'code_page_encode'\n    else:\n        assert False\ntry:\n    create()\nexcept TypeError as error:\n    assert error.args == (\"create_win32_code_page_codec() missing 1 required positional argument: 'cp'\",)\nelse:\n    assert False\nimport encodings._win_cp_codecs as again\nassert again is module\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "exception",
+        "stdout": ""
+      },
+      "reads": 0,
+      "writes": 0,
+      "match": false
+    },
+    {
+      "name": "platform module import preserves a serviced guest failure",
+      "source": "\nimport codecs\nfailure = ValueError('attribute service')\ndef missing(name):\n    assert name == '__path__'\n    assert input() == 'service'\n    raise failure\ncodecs.__getattr__ = missing\ntry:\n    import encodings.mbcs\nexcept ValueError as error:\n    assert error is failure\nelse:\n    assert False\nprint('verified')\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "verified\n"
+      },
+      "reads": 1,
+      "writes": 2,
+      "match": true
+    },
+    {
+      "name": "import error filename formatting uses the supplied input service",
+      "source": "\nimport codecs\nclass Path(str):\n    def __str__(self):\n        return input()\nmodule = type(codecs)('probe')\npath = Path('/guest/probe.py')\nmodule.__file__ = path\n__builtins__['__import__'] = lambda *args: module\ntry:\n    from probe import absent\nexcept ImportError as error:\n    assert error.args == (\"cannot import name 'absent' from 'probe' (service)\",)\n    assert error.path is path\nelse:\n    assert False\nprint('verified')\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "verified\n"
+      },
+      "reads": 1,
+      "writes": 2,
+      "match": true
+    }
+  ],
+  "oracleExecution": "Unchanged source compiled/executed externally in a fresh namespace with a copied builtins dictionary, matching PythonSession builtins storage; no source rewriting."
+}

@@ -8,17 +8,19 @@ describe("Unicode name data generation", () => {
       "0000;NULL;control # alias\n0041;A LETTER;abbreviation\n"
     )).toEqual({
       names: "A LETTER=41\nLATIN CAPITAL LETTER A=41\nLATIN CAPITAL LETTER B=42\nNULL=0\n",
+      canonical: [0x41,"A LETTER=41\n".length,0x42,"A LETTER=41\nLATIN CAPITAL LETTER A=41\n".length],
       ranges: []
     });
   });
 
-  it("retains algorithmic names as ranges and follows Python's Tangut omission", () => {
+  it("retains algorithmic names including pinned Python's Tangut ranges", () => {
     expect(compileUnicodeNames(
       "3400..4DBF ; CJK UNIFIED IDEOGRAPH-*\n18CFF ; KHITAN SMALL SCRIPT CHARACTER-*\n17000..187F7 ; TANGUT IDEOGRAPH-*\n",
       ""
     )).toEqual({
       names: "",
-      ranges: [["CJK UNIFIED IDEOGRAPH-", 0x3400, 0x4dbf], ["KHITAN SMALL SCRIPT CHARACTER-", 0x18cff, 0x18cff]]
+      canonical: [],
+      ranges: [["CJK UNIFIED IDEOGRAPH-", 0x3400, 0x4dbf], ["KHITAN SMALL SCRIPT CHARACTER-", 0x18cff, 0x18cff], ["TANGUT IDEOGRAPH-", 0x17000, 0x187f7]]
     });
   });
 

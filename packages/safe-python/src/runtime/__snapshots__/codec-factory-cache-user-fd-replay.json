@@ -1,0 +1,352 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "results": [
+    {
+      "name": "encoder factory descriptor invalidates cache: return",
+      "mode": "normal",
+      "passed": true,
+      "reads": 1,
+      "writes": 10,
+      "stdout": "original True\n[('search', 'factory_cache'), 'descriptor', ('original', ('first',)), ('next', 'factory_cache'), ('replacement', ('second',))]\nLookupError (\"no codec search functions registered: can't find encoding\",)\n",
+      "result": {
+        "status": "ok"
+      }
+    },
+    {
+      "name": "encoder factory descriptor invalidates cache: return",
+      "mode": "cancel-return",
+      "passed": true,
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retryExec": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retryEval": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "name": "encoder factory descriptor invalidates cache: return",
+      "mode": "cancel-throw",
+      "passed": true,
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retryExec": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retryEval": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "name": "encoder factory descriptor invalidates cache: raise",
+      "mode": "normal",
+      "passed": true,
+      "reads": 1,
+      "writes": 10,
+      "stdout": "failure True\n[('search', 'factory_cache'), 'descriptor', ('next', 'factory_cache'), ('replacement', ('second',))]\nLookupError (\"no codec search functions registered: can't find encoding\",)\n",
+      "result": {
+        "status": "ok"
+      }
+    },
+    {
+      "name": "encoder factory descriptor invalidates cache: raise",
+      "mode": "cancel-return",
+      "passed": true,
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retryExec": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retryEval": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "name": "encoder factory descriptor invalidates cache: raise",
+      "mode": "cancel-throw",
+      "passed": true,
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retryExec": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retryEval": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "name": "encoder factory descriptor invalidates cache: nested",
+      "mode": "normal",
+      "passed": true,
+      "reads": 1,
+      "writes": 10,
+      "stdout": "original True\n[('search', 'factory_cache'), 'descriptor', ('next', 'factory_cache'), ('original', ('first',)), ('replacement', ('second',))]\nLookupError (\"no codec search functions registered: can't find encoding\",)\n",
+      "result": {
+        "status": "ok"
+      }
+    },
+    {
+      "name": "encoder factory descriptor invalidates cache: nested",
+      "mode": "cancel-return",
+      "passed": true,
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retryExec": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retryEval": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "name": "encoder factory descriptor invalidates cache: nested",
+      "mode": "cancel-throw",
+      "passed": true,
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retryExec": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retryEval": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "name": "decoder factory descriptor invalidates cache: return",
+      "mode": "normal",
+      "passed": true,
+      "reads": 1,
+      "writes": 10,
+      "stdout": "original True\n[('search', 'factory_cache'), 'descriptor', ('original', ('first',)), ('next', 'factory_cache'), ('replacement', ('second',))]\nLookupError (\"no codec search functions registered: can't find encoding\",)\n",
+      "result": {
+        "status": "ok"
+      }
+    },
+    {
+      "name": "decoder factory descriptor invalidates cache: return",
+      "mode": "cancel-return",
+      "passed": true,
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retryExec": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retryEval": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "name": "decoder factory descriptor invalidates cache: return",
+      "mode": "cancel-throw",
+      "passed": true,
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retryExec": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retryEval": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "name": "decoder factory descriptor invalidates cache: raise",
+      "mode": "normal",
+      "passed": true,
+      "reads": 1,
+      "writes": 10,
+      "stdout": "failure True\n[('search', 'factory_cache'), 'descriptor', ('next', 'factory_cache'), ('replacement', ('second',))]\nLookupError (\"no codec search functions registered: can't find encoding\",)\n",
+      "result": {
+        "status": "ok"
+      }
+    },
+    {
+      "name": "decoder factory descriptor invalidates cache: raise",
+      "mode": "cancel-return",
+      "passed": true,
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retryExec": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retryEval": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "name": "decoder factory descriptor invalidates cache: raise",
+      "mode": "cancel-throw",
+      "passed": true,
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retryExec": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retryEval": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "name": "decoder factory descriptor invalidates cache: nested",
+      "mode": "normal",
+      "passed": true,
+      "reads": 1,
+      "writes": 10,
+      "stdout": "original True\n[('search', 'factory_cache'), 'descriptor', ('next', 'factory_cache'), ('original', ('first',)), ('replacement', ('second',))]\nLookupError (\"no codec search functions registered: can't find encoding\",)\n",
+      "result": {
+        "status": "ok"
+      }
+    },
+    {
+      "name": "decoder factory descriptor invalidates cache: nested",
+      "mode": "cancel-return",
+      "passed": true,
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retryExec": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retryEval": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "name": "decoder factory descriptor invalidates cache: nested",
+      "mode": "cancel-throw",
+      "passed": true,
+      "reads": 1,
+      "writes": 0,
+      "stdout": "",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retryExec": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retryEval": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    }
+  ]
+}

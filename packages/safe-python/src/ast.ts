@@ -11,6 +11,17 @@ export type Parameter = SourceSpan & {
   readonly name: string;
   readonly kind: "positional-only" | "positional-or-keyword" | "keyword-only" | "var-positional" | "var-keyword";
   readonly default: Expression | null;
+  readonly annotation?: CollectionItem;
+};
+
+
+/** Type syntax is retained for deferred compilation in an annotation scope. */
+export type TypeParameter = SourceSpan & {
+  readonly spelling: string;
+  readonly name: string;
+  readonly kind: "type-var" | "type-var-tuple" | "param-spec";
+  readonly bound: Expression | null;
+  readonly default: CollectionItem | null;
 };
 
 export type ComprehensionClause = SourceSpan & {

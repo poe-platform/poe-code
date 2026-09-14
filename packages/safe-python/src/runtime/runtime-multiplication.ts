@@ -1,3 +1,5 @@
+import {runtimeBytesPayload} from "./runtime-bytes-payload.js";
+import {runtimeBytesRepeat} from "./runtime-bytes-arithmetic.js";
 import { dispatchBinaryOperation } from "./binary-dispatch.js";
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import { PythonRuntimeError } from "./error.js";
@@ -34,11 +36,12 @@ export function runtimeMultiplication(left: RuntimeValue, right: RuntimeValue, v
   const nativeLeft = augmented || context.sequenceFallbacks?.left !== false ? runtimeListPayload(left) : undefined;
   const tupleLeft = context.sequenceFallbacks?.left === false ? undefined : runtimeTuplePayload(left);
   const stringLeft=context.sequenceFallbacks?.left===false?undefined:runtimeStringPayload(left);
-  let source = nativeLeft ?? tupleLeft ?? stringLeft ?? left, sourceOwner = left, multiplier = right;
+  const bytesLeft=context.sequenceFallbacks?.left===false?undefined:runtimeBytesPayload(left);
+  let source = nativeLeft ?? tupleLeft ?? stringLeft ?? bytesLeft ?? left, sourceOwner = left, multiplier = right;
   if (source.kind !== "list" && source.kind !== "tuple" && source.kind !== "str" && source.kind !== "bytes") {
     const blocked = augmented && (context.leftHasSequenceTable ?? (left.kind === "range" || left.kind === "dict" || left.kind === "mappingproxy" || left.kind === "set" || left.kind === "frozenset" || left.kind === "dict_keys" || left.kind === "dict_items" || left.kind === "dict_values"));
     meter.checkpoint(0);
-    if (!blocked) { source = context.sequenceFallbacks?.right === false ? right : runtimeListPayload(right) ?? runtimeTuplePayload(right) ?? runtimeStringPayload(right) ?? right; sourceOwner = right; multiplier = left; }
+    if (!blocked) { source = context.sequenceFallbacks?.right === false ? right : runtimeListPayload(right) ?? runtimeTuplePayload(right) ?? runtimeStringPayload(right) ?? runtimeBytesPayload(right) ?? right; sourceOwner = right; multiplier = left; }
   }
   if (source.kind === "list" || source.kind === "tuple" || source.kind === "str" || source.kind === "bytes") {
     let count = multiplier.kind === "int" ? multiplier.value : multiplier.kind === "bool" ? multiplier.value ? 1n : 0n : undefined;
@@ -63,6 +66,7 @@ export function runtimeMultiplication(left: RuntimeValue, right: RuntimeValue, v
     }
     if (source.kind === "tuple") return runtimeTupleRepeat(sourceOwner, count, values, meter);
     if(source.kind==="str")return runtimeStringRepeat(sourceOwner,count,values,meter);
+    if(source.kind==="bytes")return runtimeBytesRepeat(sourceOwner,count,values,meter);
     return runtimeBinary("*", source, values.integer(count), values, meter);
   }
   if (context.numeric === undefined) {

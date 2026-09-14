@@ -7,6 +7,9 @@ import type { ExecutionMeter } from "./execution-budget.js";
  */
 export interface ExpressionCall<Value> {
   positional(value: Value): void;
+  /** Native dispatch can retain argument-container provenance while forwarding
+   * an already expanded array. This does not run a guest iteration protocol. */
+  positionalArray?(values:readonly Value[]):void;
   starred(value: Value, loneStar?: boolean): void;
   keywords(entries: readonly (readonly [string, Value])[]): void;
   mapping(value: Value): void;

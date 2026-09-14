@@ -36,7 +36,7 @@ export function readRuntimeIteratorMethod(receiver: RuntimeValue, name: string, 
       meter.checkpoint();
       if (step.done) {
         if (step.exception !== undefined) throw step.exception.value;
-        throw new PythonRuntimeError("StopIteration", "");
+        throw new PythonRuntimeError("StopIteration");
       }
       return step.value;
     }

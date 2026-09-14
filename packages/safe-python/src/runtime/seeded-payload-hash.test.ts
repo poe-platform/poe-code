@@ -39,7 +39,25 @@ describe("seeded immutable payload hashes", () => {
     const { meter, hash } = fixture(), value = ImmutableBytes.copyOf(new Uint8Array(1000), meter);
     const before = meter.usage.allocatedBytes;
     hash.bytes(value, meter);
-    expect(meter.usage.allocatedBytes - before).toBe(32);
+    expect(meter.usage.allocatedBytes - before).toBe(128);
+  });
+  it.each(["string", "bytes"] as const)("reuses the %s payload hash without traversing or allocating again", kind => {
+    const {meter, hash} = fixture();
+    const value = kind === "string" ? new CodePointString(new Uint32Array(1000).fill(97)) : ImmutableBytes.copyOf(new Uint8Array(1000).fill(97), meter);
+    const compute = (policy: SeededPayloadHash, budget: ExecutionBudget) => value instanceof CodePointString ? policy.string(value, budget) : policy.bytes(value, budget);
+    const expected = compute(hash, meter);
+    expect(compute(hash, new ExecutionBudget({maxSteps: 2, maxAllocatedBytes: 0}))).toBe(expected);
+    const other = new SeededPayloadHash(1n, 2n);
+    expect(compute(other, meter)).not.toBe(expected);
+    expect(compute(other, new ExecutionBudget({maxSteps: 2, maxAllocatedBytes: 0}))).not.toBe(expected);
+    const controller = new AbortController();
+    controller.abort();
+    expect(() => compute(hash, new ExecutionBudget({maxSteps: 2, maxAllocatedBytes: 0, signal: controller.signal}))).toThrow(ExecutionLimitError);
+  });
+  it("does not publish a cached payload hash after its allocation fails", () => {
+    const {hash} = fixture(), value = new CodePointString(Uint32Array.of(97));
+    expect(() => hash.string(value, new ExecutionBudget({maxSteps: 100, maxAllocatedBytes: 32}))).toThrow(ExecutionLimitError);
+    expect(() => hash.string(value, new ExecutionBudget({maxSteps: 2, maxAllocatedBytes: 0}))).toThrow(ExecutionLimitError);
   });
   it("honors limits for empty inputs and during payload traversal", () => {
     const { hash, meter } = fixture(), empty = ImmutableBytes.copyOf(new Uint8Array(), meter);

@@ -26,22 +26,77 @@ export type StringCaseTransformation = "upper" | "casefold" | "lower" | "title" 
  */
 export class CodePointString implements Iterable<number> {
   readonly #points: Uint32Array;
+  #compactWidth: 1 | 2 | 4 | undefined;
+  #asciiStorage: boolean | undefined;
+  readonly #minimumMaximum: number;
   readonly length: number;
 
-  constructor(points: Uint32Array, meter?: ExecutionMeter, ownership?: typeof ownedPoints) {
+  /** Copy trusted host text directly into owned storage. UTF-16 pairs are
+   * decoded just as by the host string iterator; lone surrogates remain points.
+   * Guest code-point arrays still use the copying constructor so adjacent
+   * surrogate points in guest strings are never combined by this path. */
+  static fromString(value: string, meter: ExecutionMeter): CodePointString {
+    meter.checkpoint(1, value.length * Uint32Array.BYTES_PER_ELEMENT);
+    const points = new Uint32Array(value.length);
+    let length = 0, maximum = 0;
+    for (const character of value) {
+      meter.checkpoint();
+      const point = character.codePointAt(0)!;
+      points[length++] = point;
+      if (point > maximum) maximum = point;
+    }
+    const result = new CodePointString(points.subarray(0, length), meter, ownedPoints);
+    result.#compactWidth = maximum <= 255 ? 1 : maximum <= 65535 ? 2 : 4;
+    result.#asciiStorage = maximum < 128;
+    return result;
+  }
+
+  constructor(points: Uint32Array, meter?: ExecutionMeter, ownership?: typeof ownedPoints, minimumMaximum = 127) {
     const adopt = ownership === ownedPoints;
     meter?.checkpoint(1, adopt ? 0 : points.byteLength);
     this.#points = adopt ? points : new Uint32Array(points.length);
+    this.#minimumMaximum = points.length === 0 ? 127 : minimumMaximum;
+    if (this.#minimumMaximum > 127) this.#asciiStorage = false;
     if (!adopt) {
+      let maximum = 0;
       for (let index = 0; index < this.#points.length; index++) {
         meter?.checkpoint();
         const point = points[index]!;
         if (point > 0x10ffff) throw new PythonRuntimeError("ValueError", "string code point outside Unicode range");
         this.#points[index] = point;
+        if (point > maximum) maximum = point;
       }
+      maximum = Math.max(maximum, this.#minimumMaximum);
+      this.#compactWidth = maximum <= 255 ? 1 : maximum <= 65535 ? 2 : 4;
+      this.#asciiStorage = maximum < 128;
     }
     this.length = this.#points.length;
     Object.freeze(this);
+  }
+
+  /** Unicode writers retain their allocation kind even if recovery emits only
+   * smaller code points. Empty and one-byte singleton results are canonical. */
+  static fromUnicodeWriter(points: Uint32Array, minimumMaximum: number, meter?: ExecutionMeter): CodePointString {
+    if (points.length === 1 && minimumMaximum <= 255 && points[0] <= 255) minimumMaximum = 127;
+    return new CodePointString(points, meter, undefined, minimumMaximum);
+  }
+
+  /** PyUnicode_IS_ASCII is an allocation flag, not a scan of recovered text. */
+  isAsciiStorage(meter?: ExecutionMeter): boolean {
+    meter?.checkpoint();
+    if (this.#asciiStorage !== undefined) return this.#asciiStorage;
+    let ascii = true;
+    for (const point of this) {
+      meter?.checkpoint();
+      if (point >= 128) { ascii = false; break; }
+    }
+    this.#asciiStorage = ascii;
+    return ascii;
+  }
+
+  storageMaximum(meter?: ExecutionMeter): number {
+    const width = this.compactWidth(meter);
+    return width === 4 ? 0x10ffff : width === 2 ? 65535 : this.isAsciiStorage(meter) ? 127 : 255;
   }
 
   /** Hexadecimal bytes need ASCII output only, built directly into owned points. */
@@ -68,6 +123,20 @@ export class CodePointString implements Iterable<number> {
 
   *[Symbol.iterator](): IterableIterator<number> {
     for (let index = 0; index < this.length; index++) yield this.#points[index]!;
+  }
+
+  /** Pinned compact Unicode width, retained during copying/validation. Owned
+   * generated buffers determine it lazily; never publish an interrupted scan. */
+  compactWidth(meter?: ExecutionMeter): 1 | 2 | 4 {
+    meter?.checkpoint();
+    if (this.#compactWidth !== undefined) return this.#compactWidth;
+    let maximum = this.#minimumMaximum;
+    for (const point of this.#points) {
+      meter?.checkpoint();
+      if (point > maximum) maximum = point;
+    }
+    this.#compactWidth = maximum <= 255 ? 1 : maximum <= 65535 ? 2 : 4;
+    return this.#compactWidth;
   }
 
   codePointAt(index: bigint, meter?: ExecutionMeter): number {
@@ -107,7 +176,7 @@ export class CodePointString implements Iterable<number> {
     meter.checkpoint(0, length * Uint32Array.BYTES_PER_ELEMENT);
     const points = new Uint32Array(length);
     for (let i = 0; i < length; i++) { meter.checkpoint(); points[i] = this.#points[i % this.length]; }
-    return new CodePointString(points, meter, ownedPoints);
+    return new CodePointString(points, meter, ownedPoints, this.#minimumMaximum);
   }
 
   concat(other: CodePointString, meter: ExecutionMeter): CodePointString {
@@ -118,7 +187,7 @@ export class CodePointString implements Iterable<number> {
     const points = new Uint32Array(this.length + other.length);
     for (let i = 0; i < this.length; i++) { meter.checkpoint(); points[i] = this.#points[i]; }
     for (let i = 0; i < other.length; i++) { meter.checkpoint(); points[this.length + i] = other.#points[i]; }
-    return new CodePointString(points, meter, ownedPoints);
+    return new CodePointString(points, meter, ownedPoints, Math.max(this.#minimumMaximum, other.#minimumMaximum));
   }
 
   /** Precompute total size and fill one owned output buffer, avoiding repeated
@@ -126,10 +195,11 @@ export class CodePointString implements Iterable<number> {
   join(parts: readonly CodePointString[], meter: ExecutionMeter): CodePointString {
     meter.checkpoint();
     if (parts.length === 1) return parts[0];
-    let length = 0;
+    let length = 0, minimumMaximum = this.#minimumMaximum;
     for (let i = 0; i < parts.length; i++) {
       meter.checkpoint();
       length += parts[i].length + (i === 0 ? 0 : this.length);
+      minimumMaximum = Math.max(minimumMaximum, parts[i].#minimumMaximum);
       if (!Number.isSafeInteger(length) || length > 0xffffffff) exhaustAllocation(meter);
     }
     meter.checkpoint(0, length * Uint32Array.BYTES_PER_ELEMENT);
@@ -140,7 +210,7 @@ export class CodePointString implements Iterable<number> {
       if (i !== 0) for (const point of this.#points) { meter.checkpoint(); points[offset++] = point; }
       for (const point of parts[i].#points) { meter.checkpoint(); points[offset++] = point; }
     }
-    return new CodePointString(points, meter, ownedPoints);
+    return new CodePointString(points, meter, ownedPoints, minimumMaximum);
   }
 
   /** Adopt the shared renderer's fresh, charged buffer without a second copy. */
@@ -342,7 +412,7 @@ export class CodePointString implements Iterable<number> {
     for (let index = 0; index < left; index++) { meter.checkpoint(); points[offset++] = fill; }
     for (let index = sign; index < this.length; index++) { meter.checkpoint(); points[offset++] = this.#points[index]; }
     while (offset < length) { meter.checkpoint(); points[offset++] = fill; }
-    return new CodePointString(points, meter, ownedPoints);
+    return new CodePointString(points, meter, ownedPoints, this.#minimumMaximum);
   }
 
   /** Count selected matches, then fill one exact-size owned output buffer.
@@ -350,6 +420,10 @@ export class CodePointString implements Iterable<number> {
   replace(old: CodePointString, replacement: CodePointString, count: bigint, meter: ExecutionMeter): CodePointString {
     meter.checkpoint();
     if (count === 0n || old.length > this.length || (old.length === 0 && replacement.length === 0)) return this;
+    const maximum = this.storageMaximum(meter), oldMaximum = old.storageMaximum(meter);
+    if (maximum < oldMaximum) return this;
+    const replacementMaximum = replacement.storageMaximum(meter);
+    const mayShrink = replacementMaximum < oldMaximum && maximum === oldMaximum;
     const limit = count < 0n || count > BigInt(this.length) + 1n ? this.length + 1 : Number(count);
     let matches = 0;
     if (old.length === 0) matches = Math.min(limit, this.length + 1);
@@ -378,7 +452,7 @@ export class CodePointString implements Iterable<number> {
       }
       while (source < this.length) { meter.checkpoint(); points[offset++] = this.#points[source++]; }
     }
-    return new CodePointString(points, meter, ownedPoints);
+    return new CodePointString(points, meter, ownedPoints, mayShrink ? 127 : Math.max(maximum, replacementMaximum));
   }
 
   /** Emits pieces in scan order (rightmost first for reverse splitting).
@@ -388,6 +462,10 @@ export class CodePointString implements Iterable<number> {
     let remaining = maxsplit < 0n ? BigInt(this.length) + 1n : maxsplit;
     if (separator !== null) {
       if (separator.length === 0) throw new PythonRuntimeError("ValueError", "empty separator");
+      if ((this.#compactWidth ?? this.compactWidth(meter)) < (separator.#compactWidth ?? separator.compactWidth(meter))) {
+        yield this;
+        return;
+      }
       let boundary = reverse ? this.length : 0;
       if (remaining !== 0n) for (const index of substringMatches(this.#points, separator.#points, reverse, meter)) {
         yield this.slice(BigInt(reverse ? index + separator.length : boundary), BigInt(reverse ? boundary : index), null, meter);
@@ -423,6 +501,10 @@ export class CodePointString implements Iterable<number> {
 
   search(needle: CodePointString, mode: SearchMode, start = 0n, stop: bigint | null = null, meter?: ExecutionMeter): number {
     meter?.checkpoint();
+    // CPython's find/count/contains and partition reject a wider needle before
+    // scanning. Native codec recovery can retain that width even for ASCII
+    // contents. Boundary matching deliberately has no such rejection.
+    if ((this.#compactWidth ?? this.compactWidth(meter)) < (needle.#compactWidth ?? needle.compactWidth(meter))) return mode === "count" ? 0 : -1;
     const length = BigInt(this.length);
     if (start < 0n) start += length;
     if (start < 0n) start = 0n;
@@ -458,8 +540,25 @@ export class CodePointString implements Iterable<number> {
     return true;
   }
 
+  /** Native Unicode equality rejects different lengths and storage kinds
+   * before comparing data; ordering still compares the code points. */
+  equals(other: CodePointString, meter: ExecutionMeter): boolean {
+    meter.checkpoint();
+    if (this === other) return true;
+    if (this.length !== other.length) return false;
+    const width = this.#compactWidth ?? this.compactWidth(meter);
+    const otherWidth = other.#compactWidth ?? other.compactWidth(meter);
+    if (width !== otherWidth) return false;
+    for (let index = 0; index < this.length; index++) {
+      meter.checkpoint();
+      if (this.#points[index] !== other.#points[index]) return false;
+    }
+    return true;
+  }
+
   compare(other: CodePointString, meter?: ExecutionMeter): -1 | 0 | 1 {
     meter?.checkpoint();
+    if (this === other) return 0;
     const common = Math.min(this.length, other.length);
     for (let index = 0; index < common; index++) {
       meter?.checkpoint();

@@ -7,7 +7,7 @@ import {OrderedKeyMap} from "./ordered-key-map.js";
 function fixture(){const meter=new ExecutionBudget({maxSteps:100000,maxAllocatedBytes:1000000}),v=new RuntimeValues(meter),keywords=v.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>({hash:()=>1n,equal:(a,b)=>a===b},meter)),codec=vi.fn(()=>v.bytes(new Uint8Array([1]))),method=createRuntimeStringEncodeMethod(v.string("text"),v,meter,codec);return {meter,v,keywords,codec,method};}
 it("binds defaults and codec names without losing source storage",()=>{
   const {meter,v,keywords,codec,method}=fixture();method.value.invoke([],keywords,meter);
-  expect(codec.mock.calls[0]?.slice(1,3)).toEqual(["utf-8","strict"]);
+  expect(codec.mock.calls[0]?.slice(1,3)).toEqual(["utf-8",undefined]);
   keywords.items.set(v.string("errors"),v.string("ignore"));method.value.invoke([v.string("UTF8")],keywords,meter);
   expect(codec.mock.calls[1]?.slice(1,3)).toEqual(["UTF8","ignore"]);
 });

@@ -3,7 +3,10 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { iterateRuntimeDictionaryView } from "./runtime-dictionary-view.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import { runtimeMembership } from "./runtime-membership.js";
-import { isRuntimeSet, type BuiltinInvocationContext, type DictionaryValue, type DictionaryViewValue, type FrozenSetValue, type RuntimeValue, type RuntimeValues, type SetValue } from "./runtime-values.js";
+import { runtimeSetPayload } from "./runtime-set-payload.js";
+import { runtimeLength } from "./runtime-length.js";
+import { createRuntimeContainmentPolicy } from "./runtime-containment-context.js";
+import type { BuiltinInvocationContext, DictionaryValue, DictionaryViewValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 /** Exact view read attributes, using host names supplied by the dispatcher.
  * Only fixed ASCII names match; no host payload fields are discovered. Missing
@@ -34,17 +37,18 @@ export function callRuntimeDictionaryViewMethod(view: DictionaryViewValue, name:
   if (positional.length !== 1) throw new PythonRuntimeError("TypeError", `${view.kind}.isdisjoint() takes exactly one argument (${positional.length} given)`);
   const other = positional[0];
   if (other === view) return values.boolean(view.value.items.size === 0);
-  let source: RuntimeValue = other, target: DictionaryViewValue | SetValue | FrozenSetValue = view;
-  if ((other.kind === "dict_keys" || other.kind === "dict_items" || isRuntimeSet(other)) && view.value.items.size < (isRuntimeSet(other) ? other : other.value).items.size) {
+  let source: RuntimeValue = other, target: RuntimeValue = view;
+  if ((other.kind === "dict_keys" || other.kind === "dict_items" || runtimeSetPayload(other) !== undefined) && view.value.items.size < runtimeLength(other, meter, undefined, invocation)) {
     source = view; target = other;
   }
   const iterator = runtimeIterate(source, values, meter, invocation?.iteration);
+  const containment = invocation === undefined ? undefined : createRuntimeContainmentPolicy(values, meter, invocation)(target);
   while (true) {
     meter.checkpoint();
     const item = iterator.next();
     meter.checkpoint();
     if (item.done) return values.true;
-    const found = runtimeMembership("in", item.value, target, values, meter, undefined, invocation);
+    const found = runtimeMembership("in", item.value, target, values, meter, containment, invocation);
     meter.checkpoint();
     if (found.value) return values.false;
   }

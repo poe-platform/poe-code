@@ -3,6 +3,7 @@ import { OrderedMapIterator } from "./ordered-map-iterator.js";
 import { OrderedMapReverseIterator } from "./ordered-map-reverse-iterator.js";
 import { PythonRuntimeError } from "./error.js";
 import { DictionaryEntrySlots } from "./dictionary-entry-slots.js";
+import { DictionaryStorageIterator } from "./dictionary-storage-iterator.js";
 
 export interface DictionaryStorageOptions<Key> {
   /** Pure trusted type inspection; must not run guest code or mutate storage. */
@@ -58,10 +59,10 @@ export class OrderedKeyMap<Key, Value> {
    * Copy/update currently retain their existing construction policies, not all
    * CPython bulk-layout optimizations. Set storage opts out of this extra index.
    */
-  nextDictionaryEntry(position: number): Readonly<{ position: number; key: Key; value: Value }> | undefined {
+  nextDictionaryEntry(position: number, reverse = false): Readonly<{ position: number; key: Key; value: Value }> | undefined {
     this.meter.checkpoint();
     if (!this.#dictionaryEntries) throw new Error("dictionary positional storage is not enabled");
-    const next = this.#dictionaryEntries.next(position);
+    const next = reverse ? this.#dictionaryEntries.previous(position) : this.#dictionaryEntries.next(position);
     if (next === undefined) return undefined;
     this.meter.checkpoint(0, 40);
     return Object.freeze({ position: next.position, key: next.entry.key, value: next.entry.value });
@@ -91,9 +92,9 @@ export class OrderedKeyMap<Key, Value> {
     return hash;
   }
 
-  lookup(key: Key): Readonly<{ value: Value }> | undefined {
+  lookup(key: Key, knownHash?: bigint): Readonly<{ value: Value }> | undefined {
     this.meter.checkpoint();
-    const hash = this.operations.hash(key);
+    const hash = knownHash === undefined ? this.operations.hash(key) : knownHash;
     const entry = this.#find(key, hash);
     if (entry === undefined) return undefined;
     this.meter.checkpoint(0, 16);
@@ -275,21 +276,71 @@ export class OrderedKeyMap<Key, Value> {
     this.meter.checkpoint();
     this.#assertWritable();
     if (source === this && !rejectDuplicate && replacement === undefined) return;
+    // An empty destination can copy a dense combined dictionary table without
+    // comparing its already-distinct keys. In particular, call ** expansion
+    // must not repeat equality callbacks between colliding keyword subtypes.
+    if (this.#entries.size === 0 && this.#dictionaryEntries !== undefined && source.#dictionaryEntries?.mergeCloneable && this.operations === source.operations && replacement === undefined) {
+      this.#dictionaryEntries.clear();
+      for (const entry of source.#entries) {
+        this.meter.checkpoint();
+        this.#insert(entry.key, entry.hash, entry.value);
+      }
+      return;
+    }
     const size = source.#entries.size;
+    const checkDuplicate = this.#entries.size === 0 ? undefined : rejectDuplicate;
     for (const entry of source.#entries) {
       this.meter.checkpoint();
       const { key } = entry;
       const value = replacement === undefined ? entry.value : replacement.value;
       const hash = this.operations === source.operations ? entry.hash : this.operations.hash(key);
+      // Call ** merges into a nonempty dictionary check containment first,
+      // then perform the insertion lookup independently. Equality can change
+      // its answer or mutate either mapping between these two operations.
+      if (checkDuplicate && this.#find(key, hash) !== undefined) checkDuplicate(key);
       const existing = this.#find(key, hash);
       if (existing === undefined) this.#insert(key, hash, value);
       else {
-        if (rejectDuplicate) rejectDuplicate(key);
         this.#assertWritable();
         existing.value = value;
       }
       this.meter.checkpoint();
       if (source.#entries.size !== size) throw new PythonRuntimeError("RuntimeError", "dict mutated during update");
+    }
+  }
+
+  /** Native fromkeys insertion retains cached hashes and scans a dictionary by
+   * entry position. Equality callbacks may clear, refill or compact the source;
+   * the next step resumes at the saved numeric position in its current table.
+   * Capture the incoming key before callbacks, including when source is this.
+   * Storage without dictionary slots uses its native entry traversal instead.
+   */
+  assignKeys(source: OrderedKeyMap<Key, Value>, value: Value): void {
+    this.meter.checkpoint();
+    this.#assertWritable();
+    this.#dictionaryEntries?.prepareFromKeys(source.#entries.size, source.#dictionaryEntries);
+    const entries = source.#dictionaryEntries ? undefined : source.#entries.values();
+    let position = 0;
+    while (true) {
+      this.meter.checkpoint();
+      let entry: Entry<Key, Value>;
+      if (source.#dictionaryEntries) {
+        const next = source.#dictionaryEntries.next(position);
+        if (next === undefined) return;
+        entry = next.entry;
+        position = next.position;
+      } else {
+        const next = entries!.next();
+        if (next.done) return;
+        entry = next.value;
+      }
+      const { key } = entry;
+      const hash = this.operations === source.operations ? entry.hash : this.operations.hash(key);
+      const existing = this.#find(key, hash);
+      this.#assertWritable();
+      if (existing === undefined) this.#insert(key, hash, value);
+      else existing.value = value;
+      this.meter.checkpoint();
     }
   }
 
@@ -339,8 +390,19 @@ export class OrderedKeyMap<Key, Value> {
   }
 
   /** Capture iteration state now, not lazily on the first next call. */
-  iterate<Result>(project: (key: Key, value: Value) => Result, kind: "dictionary" | "set" = "dictionary"): OrderedMapIterator<Key, Value, Result> {
+  iterate<Result>(project: (key: Key, value: Value) => Result, kind: "dictionary" | "set" = "dictionary"): OrderedMapIterator<Key, Value, Result> | DictionaryStorageIterator<Key, Value, Result> {
+    if (kind === "dictionary" && this.#dictionaryEntries) return new DictionaryStorageIterator(this, 0, false, project, this.meter);
     return new OrderedMapIterator(this.#entries, project, this.meter, kind);
+  }
+
+  /** Equality may reject distinct cached frozenset hashes before invoking any
+   * element comparisons. Never compute a hash here: hashing only one operand,
+   * or comparing subsets, must preserve the normal guest callback sequence. */
+  hasEqualKeys(other: OrderedKeyMap<Key, Value>): boolean {
+    this.meter.checkpoint();
+    if (this.#entries.size !== other.#entries.size) return false;
+    if (this.operations === other.operations && this.#keySetHash !== undefined && other.#keySetHash !== undefined && this.#keySetHash !== other.#keySetHash) return false;
+    return this.isKeySubsetOf(other);
   }
 
   /** Key-only containment for set comparisons, preserving cached hashes within
@@ -532,7 +594,8 @@ export class OrderedKeyMap<Key, Value> {
     source.#last = undefined;
   }
 
-  reversed<Result>(project: (key: Key, value: Value) => Result): OrderedMapReverseIterator<Key, Value, Result> {
+  reversed<Result>(project: (key: Key, value: Value) => Result): OrderedMapReverseIterator<Key, Value, Result> | DictionaryStorageIterator<Key, Value, Result> {
+    if (this.#dictionaryEntries) return new DictionaryStorageIterator(this, this.#dictionaryEntries.lastPosition, true, project, this.meter);
     return new OrderedMapReverseIterator(this.#entries, this.#last, project, this.meter);
   }
 

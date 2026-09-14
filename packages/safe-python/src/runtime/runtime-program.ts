@@ -1,6 +1,9 @@
+import {createRuntimeNativeBuffers} from "./runtime-native-buffers.js";
 import { ExecutionLimitError, type ExecutionMeter } from "./execution-budget.js";
+import { runtimeQualifiedTypeName } from "./runtime-qualified-type-name.js";
 import type { Expression } from "../ast.js";
 import { PythonRuntimeError } from "./error.js";
+import {executeRuntimeImportStatement} from "./runtime-import-statement.js";
 import { createExpressionContinuation, evaluateExpression, UnsupportedExpressionError } from "./expression-evaluation.js";
 import type { FormatContext } from "./format-protocol.js";
 import { createRuntimeFormatContext } from "./runtime-format.js";
@@ -54,6 +57,7 @@ import { callRuntimeType } from "./runtime-type-call.js";
 import { finalizeRuntimeType } from "./runtime-type-finalization.js";
 import { representationObject } from "./representation-protocol.js";
 import { callRuntimeMethodDescriptor } from "./runtime-method-descriptor.js";
+import { RuntimeHashError } from "./runtime-hash-error.js";
 import { runtimeInstanceAttribute, runtimeMutateInstanceAttribute } from "./runtime-instance-attributes.js";
 import { runtimeTypeAttribute, runtimeMutateTypeAttribute } from "./runtime-type-attributes.js";
 import { runtimeMutateFunctionAttribute } from "./runtime-function-mutation.js";
@@ -82,8 +86,8 @@ export type RuntimeFrame = ModuleFrame<RuntimeValue> | LexicalFrame<RuntimeValue
  * and instantiation lifecycle; other non-function calls use the supplied policy.
  */
 export interface RuntimeProgramHooks extends Pick<RuntimeCallContext, "callable" | "name" | "keywordName">,
-  Pick<FunctionCreationContext<RuntimeValue>, "resolveBuiltins">,
   Pick<FunctionInvocationContext<RuntimeValue>, "suspended"> {
+  resolveBuiltins?(value: RuntimeValue, invocation: BuiltinInvocationContext): FunctionCreationContext<RuntimeValue>["builtins"];
   /** Share the execution's canonical code publisher with frame reflection. */
   code?(code:CompiledFunction<RuntimeValue>):RuntimeValue;
   /** Recover compiler-owned callable adapters without rebuilding code identities. */
@@ -95,6 +99,7 @@ export interface RuntimeProgramHooks extends Pick<RuntimeCallContext, "callable"
 }
 
 export interface RuntimeExecutionContext {
+  readonly codecs?:BuiltinInvocationContext["codecs"];
   /** Canonical registry object type; custom mapping patterns expose fresh
    * plain-object sentinels without looking up a shadowable guest builtin. */
   readonly objectType?:TypeValue;
@@ -148,7 +153,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       get invocation(): BuiltinInvocationContext { return builtinCalls; }
     });
     const callability = { callable(value: RuntimeValue) {
-      if (hasRuntimeInstanceAttributes(value) && specialMethods !== undefined) return builtinCalls.hasSpecial!(value, "__call__");
+      if ((hasRuntimeInstanceAttributes(value) || value.kind === "type") && specialMethods !== undefined) return builtinCalls.hasSpecial!(value, "__call__");
       return hooks.callable(value);
     } };
     const beginCall = (callee: RuntimeValue) => beginRuntimeCall(callee, {
@@ -195,6 +200,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         const fn = value;
         if (fn.kind !== "function") return hooks.invoke(fn, positional, keywords, frame);
         const invocation: RuntimeFunctionContext = {
+          get formatting() { return getFormatting(); },
           moduleBody(program){return executeRuntimeProgram(program,{...context,globals:fn.value.globals,builtins:fn.value.builtins,locals:undefined},meter)??values.none;},
           values, keys, calls, body: child => body(child, fn.value, fn.value.code.definitions ?? functions, fn.value.code.classDefinitions ?? classFunctions, fn.value.code.literals ?? null, fn.value.code.comprehensions ?? comprehensions,undefined,fn.value.code.generatorExpressions??generatorExpressions),
           classBody(code) {
@@ -243,7 +249,17 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     meter.checkpoint(0,8);
     if(context.exceptions!==undefined)meter.checkpoint(0,64);
     const builtinCalls: BuiltinInvocationContext = {
+      codecs:context.codecs,
+      lookupBuiltin(name){
+        const found=lookupNamespace(namespaces.builtins,name);meter.checkpoint();
+        if(found===undefined)throw new PythonRuntimeError("AttributeError",name);
+        return found.value;
+      },
+      functionFrame:frame instanceof LexicalFrame?frame:undefined,
       prepareException:context.exceptions?.prepare.bind(context.exceptions),
+      sourceException:context.exceptions===undefined?undefined:(error,filename)=>context.exceptions!.sourceFailure(error,filename,builtinCalls),
+      rewriteDecodeError:context.exceptions?.rewriteDecodeError.bind(context.exceptions),
+      chainException:context.exceptions?.chain.bind(context.exceptions),
       objectType:context.objectType,
       causeException:context.exceptions?.caused.bind(context.exceptions),
       wrapAnext:context.exceptions?.wrapAnext.bind(context.exceptions),
@@ -253,22 +269,28 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       nativeHash: keys.nativeHash?.bind(keys),
       get formatting() { return getFormatting(); },
       bytes: expressionHooks.bytes,
-      buffers: expressionHooks.buffers,
+      buffers: createRuntimeNativeBuffers(meter,expressionHooks.buffers),
       hasSpecial(value, name) {
         if (specialMethods === undefined) return false;
         const type = runtimeActualType(value, specialMethods, meter); meter.checkpoint();
-        return lookupMroAttribute(type.value.mro, values.string(name), (owner, key) => owner.namespace.items.lookup(key), meter) !== undefined;
+        const key = values.internString(name), slot = type.value.nativeSlots.methods.get(key);
+        if (slot !== undefined) return name === "__hash__" || slot.kind !== "absent";
+        return lookupMroAttribute(type.value.mro, key, (owner, key) => owner.namespace.items.lookup(key), meter) !== undefined;
       },
       warn: expressionHooks.warn.bind(expressionHooks),
       lookupSpecial(value, name) {
         if (specialMethods === undefined) return undefined;
         const type = runtimeActualType(value, specialMethods, meter); meter.checkpoint();
-        return lookupRuntimeSpecialMethod(value, type, values.string(name), specialMethods, values, meter);
+        return lookupRuntimeSpecialMethod(value, type, values.internString(name), specialMethods, values, meter);
       },
       typeName: specialMethods === undefined ? undefined : value => {
+        // Cursor diagnostics read native identity metadata; they do not need
+        // to materialize a type object or invoke guest attribute access.
+        if (value.kind === "iterator" && value.typeName !== undefined) return value.typeName;
         const type = runtimeActualType(value, specialMethods, meter); meter.checkpoint(); return type.value.diagnosticName;
       },
       actualType: specialMethods === undefined ? undefined : value => runtimeActualType(value, specialMethods, meter),
+      hashErrorTypeName: specialMethods === undefined ? undefined : value => runtimeQualifiedTypeName(runtimeActualType(value, specialMethods, meter), values, meter),
       nativeListRepr(value) {
         meter.checkpoint();
         const payload = runtimeListPayload(value);
@@ -311,37 +333,51 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         }
       }),
       assignClassDefault: (object, type) => statementHooks.setAttribute(object, "__class__", type),
-      typeAttributeDefault: specialMethods === undefined ? undefined : (type, name) => runtimeTypeAttribute(type, name, values, meter, specialMethods),
+      typeAttributeDefault: specialMethods === undefined ? undefined : (type, name, lookupKey) => runtimeTypeAttribute(type, name, values, meter, specialMethods, undefined, lookupKey),
       mutateTypeAttributeDefault: specialMethods === undefined ? undefined : (type, name, change) => runtimeMutateTypeAttribute(type, name, change, values, meter, specialMethods),
-      objectAttributeDefault: specialMethods === undefined ? undefined : (object, name) => runtimeObjectAttribute(object, name, values, meter, specialMethods, (object, name) => expressions.attribute(object, name)),
-      mutateObjectAttributeDefault: specialMethods === undefined ? undefined : (object, name, change) => runtimeMutateObjectAttribute(object, name, change, values, meter, specialMethods, (object, name, change) => {
+      objectAttributeDefault: specialMethods === undefined ? undefined : (object, name, lookupKey) => runtimeObjectAttribute(object, name, values, meter, specialMethods, (object, name) => expressions.attribute(object, name), lookupKey),
+      mutateObjectAttributeDefault: specialMethods === undefined ? undefined : (object, name, change, lookupKey) => runtimeMutateObjectAttribute(object, name, change, values, meter, specialMethods, (object, name, change) => {
         if (change.kind === "set") statementHooks.setAttribute(object, name, change.value);
         else statementHooks.deleteAttribute(object, name);
-      }),
+      }, lookupKey),
       callTypeDefault: specialMethods === undefined ? undefined : (type, positional, keywords) => {
         const leave = calls.enter(frame);
         try { return callRuntimeType(type, positional, keywords, specialMethods, values, meter, beginCall, expressionHooks.attribute?.bind(expressionHooks), "default"); }
         finally { leave(); }
       },
-      setAttribute(object, name, value) {
+      setAttribute(object, name, value, lookupKey) {
         if(object.kind==="cell"&&name==="cell_contents"){mutateRuntimeCell(object,{kind:"set",value},meter);return;}
         if (object.kind === "function" && runtimeMutateFunctionAttribute(object, name, { kind: "set", value }, values, meter,keys,expressionHooks.warn?.bind(expressionHooks),hooks.functionCode?.bind(hooks))) return;
-        if (hasRuntimeInstanceAttributes(object) && specialMethods !== undefined) runtimeMutateInstanceAttribute(object, name, { kind: "set", value }, values, meter, specialMethods, builtinCalls);
-        else if (object.kind === "type" && specialMethods !== undefined) runtimeMutateTypeAttribute(object, name, { kind: "set", value }, values, meter, specialMethods, builtinCalls);
+        if (hasRuntimeInstanceAttributes(object) && specialMethods !== undefined) runtimeMutateInstanceAttribute(object, name, { kind: "set", value }, values, meter, specialMethods, builtinCalls, lookupKey);
+        else if (object.kind === "type" && specialMethods !== undefined) runtimeMutateTypeAttribute(object, name, { kind: "set", value }, values, meter, specialMethods, builtinCalls, lookupKey);
         else if (specialMethods !== undefined) runtimeMutateObjectAttribute(object, name, { kind: "set", value }, values, meter, specialMethods, (object, name, change) => {
           if (change.kind === "set") statementHooks.setAttribute(object, name, change.value);
         });
         else statementHooks.setAttribute(object, name, value);
       },
-      deleteAttribute(object, name) {
+      deleteAttribute(object, name, lookupKey) {
         if(object.kind==="cell"&&name==="cell_contents"){mutateRuntimeCell(object,{kind:"delete"},meter);return;}
         if (object.kind === "function" && runtimeMutateFunctionAttribute(object, name, { kind: "delete" }, values, meter)) return;
-        if (hasRuntimeInstanceAttributes(object) && specialMethods !== undefined) runtimeMutateInstanceAttribute(object, name, { kind: "delete" }, values, meter, specialMethods, builtinCalls);
-        else if (object.kind === "type" && specialMethods !== undefined) runtimeMutateTypeAttribute(object, name, { kind: "delete" }, values, meter, specialMethods, builtinCalls);
+        if (hasRuntimeInstanceAttributes(object) && specialMethods !== undefined) runtimeMutateInstanceAttribute(object, name, { kind: "delete" }, values, meter, specialMethods, builtinCalls, lookupKey);
+        else if (object.kind === "type" && specialMethods !== undefined) runtimeMutateTypeAttribute(object, name, { kind: "delete" }, values, meter, specialMethods, builtinCalls, lookupKey);
         else if (specialMethods !== undefined) runtimeMutateObjectAttribute(object, name, { kind: "delete" }, values, meter, specialMethods, (object, name) => statementHooks.deleteAttribute(object, name));
         else statementHooks.deleteAttribute(object, name);
       },
-      attribute: (object, name) => expressions.attribute(object, name),
+      attributeKey(value) {
+        meter.checkpoint(1, 64);
+        return { value, hash() {
+          try { return keys.hash(value); }
+          catch (error) { meter.checkpoint(); throw error instanceof RuntimeHashError ? error.original : error; }
+          finally { meter.checkpoint(); }
+        } };
+      },
+      attribute(object, name, lookupKey) {
+        if (lookupKey !== undefined && specialMethods !== undefined) {
+          if (hasRuntimeInstanceAttributes(object)) return runtimeInstanceAttribute(object, name, values, meter, specialMethods, builtinCalls, lookupKey);
+          if (object.kind === "type") return runtimeTypeAttribute(object, name, values, meter, specialMethods, builtinCalls, lookupKey);
+        }
+        return expressions.attribute(object, name);
+      },
       get power() { return power; },
       numeric: expressionHooks.numeric?.bind(expressionHooks) ?? (specialMethods === undefined ? undefined : (operator, left, right) => createRuntimeNumericContext(operator, left, right, values, meter, specialMethods, builtinCalls)),
       isCallable: value => runtimeCallable(value, meter, callability),
@@ -363,6 +399,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       },
       isException: context.exceptions?.matches.bind(context.exceptions),
       exceptionArguments: context.exceptions?.arguments.bind(context.exceptions),
+      describeException: context.exceptions===undefined?undefined:(error,name)=>context.exceptions!.describe(error,name,getFormatting()),
       addExceptionNote: context.exceptions===undefined?undefined:(error,build)=>context.exceptions!.addNote(error,build,builtinCalls),
       isStopIteration(error) {
         if (error instanceof ExecutionLimitError) return false;
@@ -400,7 +437,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
     const definitionBindings: RuntimeFunctionDefinitionBindings = {
       globals: namespaces.globals, builtins: namespaces.builtins,
       capture: bindings instanceof LexicalFrame || bindings instanceof ClassFrame ? bindings.capture.bind(bindings) : undefined,
-      resolveBuiltins: hooks.resolveBuiltins?.bind(hooks),
+      resolveBuiltins: hooks.resolveBuiltins === undefined ? undefined : value => hooks.resolveBuiltins!(value, builtinCalls),
       evaluate: expression => evaluateExpression(expression, expressions, meter),
       beginCall, store: bindings.store.bind(bindings)
     };
@@ -470,7 +507,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
       percent: expressionHooks.percent ?? builtinCalls,
       bytes: expressionHooks.bytes,
       translation: expressionHooks.translation,
-      buffers: expressionHooks.buffers,
+      buffers: createRuntimeNativeBuffers(meter,expressionHooks.buffers),
       get integerIndex() { return getIntegerIndex(); },
       constants: literals?.folded,
       literal: literals === null ? undefined : node => {
@@ -601,6 +638,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         if (statement.kind === "function") executeFunctionDefinition(statement, definitions, meter);
         else if (statement.kind === "class") executeClassDefinition(statement, classDefinitions, meter);
         else if (statement.kind === "raise" && context.exceptions) context.exceptions.raise(statement,expression=>evaluateExpression(expression,expressions,meter),builtinCalls);
+        else if (statement.kind === "import" || statement.kind === "import-from") executeRuntimeImportStatement(statement,bindings,values,builtinCalls,meter);
         else statementHooks.executeUnhandled(statement);
       },
       *executeUnhandledContinuation(statement) {
@@ -609,6 +647,7 @@ export function createRuntimeFrameBody(program: CompiledProgram<RuntimeValue>, c
         if (statement.kind === "function") yield* createFunctionDefinitionContinuation(statement, { ...definitions, evaluate }, meter);
         else if (statement.kind === "class") yield* createClassDefinitionContinuation(statement, { ...classDefinitions, evaluate }, meter);
         else if (statement.kind === "raise" && context.exceptions) yield* context.exceptions.raiseContinuation(statement, evaluate, builtinCalls);
+        else if (statement.kind === "import" || statement.kind === "import-from") executeRuntimeImportStatement(statement,bindings,values,builtinCalls,meter);
         else if (statementHooks.executeUnhandledContinuation) yield* statementHooks.executeUnhandledContinuation(statement);
         else statementHooks.executeUnhandled(statement);
       }

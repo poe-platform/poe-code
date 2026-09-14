@@ -1,0 +1,414 @@
+{
+  "cases": [
+    {
+      "name": "getattr(x, name) / None",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('TypeError', \"attribute name must be string, not 'NoneType'\"), [])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'NoneType'\"), [])",
+      "match": true
+    },
+    {
+      "name": "getattr(x, name) / 1",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('TypeError', \"attribute name must be string, not 'int'\"), [])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'int'\"), [])",
+      "match": true
+    },
+    {
+      "name": "getattr(x, name) / 1.5",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('TypeError', \"attribute name must be string, not 'float'\"), [])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'float'\"), [])",
+      "match": true
+    },
+    {
+      "name": "getattr(x, name) / b\"x\"",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('TypeError', \"attribute name must be string, not 'bytes'\"), [])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'bytes'\"), [])",
+      "match": true
+    },
+    {
+      "name": "getattr(x, name) / []",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('TypeError', \"attribute name must be string, not 'list'\"), [])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'list'\"), [])",
+      "match": true
+    },
+    {
+      "name": "getattr(x, name) / \"missing\"",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('AttributeError', \"'C' object has no attribute 'missing'\"), [])",
+      "actual": "(('AttributeError', \"'C' object has no attribute 'missing'\"), [])",
+      "match": true
+    },
+    {
+      "name": "getattr(x, name) / \"\"",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('AttributeError', \"'C' object has no attribute ''\"), [])",
+      "actual": "(('AttributeError', \"'C' object has no attribute ''\"), [])",
+      "match": true
+    },
+    {
+      "name": "getattr(x, name) / \"a\\x00b\"",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('AttributeError', \"'C' object has no attribute 'a\\x00b'\"), [])",
+      "actual": "(('AttributeError', \"'C' object has no attribute 'a\\x00b'\"), [])",
+      "match": true
+    },
+    {
+      "name": "getattr(x, name) / S(\"missing\")",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('AttributeError', \"'C' object has no attribute 'missing'\"), ['hash', 'hash'])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'instance'\"), [])",
+      "match": false
+    },
+    {
+      "name": "getattr(x, name, 42) / None",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('TypeError', \"attribute name must be string, not 'NoneType'\"), [])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'NoneType'\"), [])",
+      "match": true
+    },
+    {
+      "name": "getattr(x, name, 42) / 1",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('TypeError', \"attribute name must be string, not 'int'\"), [])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'int'\"), [])",
+      "match": true
+    },
+    {
+      "name": "getattr(x, name, 42) / 1.5",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('TypeError', \"attribute name must be string, not 'float'\"), [])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'float'\"), [])",
+      "match": true
+    },
+    {
+      "name": "getattr(x, name, 42) / b\"x\"",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('TypeError', \"attribute name must be string, not 'bytes'\"), [])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'bytes'\"), [])",
+      "match": true
+    },
+    {
+      "name": "getattr(x, name, 42) / []",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('TypeError', \"attribute name must be string, not 'list'\"), [])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'list'\"), [])",
+      "match": true
+    },
+    {
+      "name": "getattr(x, name, 42) / \"missing\"",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('ok', 42), [])",
+      "actual": "(('ok', 42), [])",
+      "match": true
+    },
+    {
+      "name": "getattr(x, name, 42) / \"\"",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('ok', 42), [])",
+      "actual": "(('ok', 42), [])",
+      "match": true
+    },
+    {
+      "name": "getattr(x, name, 42) / \"a\\x00b\"",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('ok', 42), [])",
+      "actual": "(('ok', 42), [])",
+      "match": true
+    },
+    {
+      "name": "getattr(x, name, 42) / S(\"missing\")",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('ok', 42), ['hash', 'hash'])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'instance'\"), [])",
+      "match": false
+    },
+    {
+      "name": "hasattr(x, name) / None",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('TypeError', \"attribute name must be string, not 'NoneType'\"), [])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'NoneType'\"), [])",
+      "match": true
+    },
+    {
+      "name": "hasattr(x, name) / 1",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('TypeError', \"attribute name must be string, not 'int'\"), [])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'int'\"), [])",
+      "match": true
+    },
+    {
+      "name": "hasattr(x, name) / 1.5",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('TypeError', \"attribute name must be string, not 'float'\"), [])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'float'\"), [])",
+      "match": true
+    },
+    {
+      "name": "hasattr(x, name) / b\"x\"",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('TypeError', \"attribute name must be string, not 'bytes'\"), [])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'bytes'\"), [])",
+      "match": true
+    },
+    {
+      "name": "hasattr(x, name) / []",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('TypeError', \"attribute name must be string, not 'list'\"), [])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'list'\"), [])",
+      "match": true
+    },
+    {
+      "name": "hasattr(x, name) / \"missing\"",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('ok', False), [])",
+      "actual": "(('ok', False), [])",
+      "match": true
+    },
+    {
+      "name": "hasattr(x, name) / \"\"",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('ok', False), [])",
+      "actual": "(('ok', False), [])",
+      "match": true
+    },
+    {
+      "name": "hasattr(x, name) / \"a\\x00b\"",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('ok', False), [])",
+      "actual": "(('ok', False), [])",
+      "match": true
+    },
+    {
+      "name": "hasattr(x, name) / S(\"missing\")",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('ok', False), ['hash', 'hash'])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'instance'\"), [])",
+      "match": false
+    },
+    {
+      "name": "setattr(x, name, 42) / None",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('TypeError', \"attribute name must be string, not 'NoneType'\"), [])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'NoneType'\"), [])",
+      "match": true
+    },
+    {
+      "name": "setattr(x, name, 42) / 1",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('TypeError', \"attribute name must be string, not 'int'\"), [])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'int'\"), [])",
+      "match": true
+    },
+    {
+      "name": "setattr(x, name, 42) / 1.5",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('TypeError', \"attribute name must be string, not 'float'\"), [])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'float'\"), [])",
+      "match": true
+    },
+    {
+      "name": "setattr(x, name, 42) / b\"x\"",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('TypeError', \"attribute name must be string, not 'bytes'\"), [])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'bytes'\"), [])",
+      "match": true
+    },
+    {
+      "name": "setattr(x, name, 42) / []",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('TypeError', \"attribute name must be string, not 'list'\"), [])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'list'\"), [])",
+      "match": true
+    },
+    {
+      "name": "setattr(x, name, 42) / \"missing\"",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('ok', None), [])",
+      "actual": "(('ok', None), [])",
+      "match": true
+    },
+    {
+      "name": "setattr(x, name, 42) / \"\"",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('ok', None), [])",
+      "actual": "(('ok', None), [])",
+      "match": true
+    },
+    {
+      "name": "setattr(x, name, 42) / \"a\\x00b\"",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('ok', None), [])",
+      "actual": "(('ok', None), [])",
+      "match": true
+    },
+    {
+      "name": "setattr(x, name, 42) / S(\"missing\")",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('ok', None), ['hash', 'hash'])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'instance'\"), [])",
+      "match": false
+    },
+    {
+      "name": "delattr(x, name) / None",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('TypeError', \"attribute name must be string, not 'NoneType'\"), [])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'NoneType'\"), [])",
+      "match": true
+    },
+    {
+      "name": "delattr(x, name) / 1",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('TypeError', \"attribute name must be string, not 'int'\"), [])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'int'\"), [])",
+      "match": true
+    },
+    {
+      "name": "delattr(x, name) / 1.5",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('TypeError', \"attribute name must be string, not 'float'\"), [])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'float'\"), [])",
+      "match": true
+    },
+    {
+      "name": "delattr(x, name) / b\"x\"",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('TypeError', \"attribute name must be string, not 'bytes'\"), [])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'bytes'\"), [])",
+      "match": true
+    },
+    {
+      "name": "delattr(x, name) / []",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('TypeError', \"attribute name must be string, not 'list'\"), [])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'list'\"), [])",
+      "match": true
+    },
+    {
+      "name": "delattr(x, name) / \"missing\"",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('AttributeError', \"'C' object has no attribute 'missing'\"), [])",
+      "actual": "(('AttributeError', \"'C' object has no attribute 'missing'\"), [])",
+      "match": true
+    },
+    {
+      "name": "delattr(x, name) / \"\"",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('AttributeError', \"'C' object has no attribute ''\"), [])",
+      "actual": "(('AttributeError', \"'C' object has no attribute ''\"), [])",
+      "match": true
+    },
+    {
+      "name": "delattr(x, name) / \"a\\x00b\"",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('AttributeError', \"'C' object has no attribute 'a\\x00b'\"), [])",
+      "actual": "(('AttributeError', \"'C' object has no attribute 'a\\x00b'\"), [])",
+      "match": true
+    },
+    {
+      "name": "delattr(x, name) / S(\"missing\")",
+      "execution": {
+        "status": "ok"
+      },
+      "expected": "(('AttributeError', \"'C' object has no attribute 'missing'\"), ['hash', 'hash'])",
+      "actual": "(('TypeError', \"attribute name must be string, not 'instance'\"), [])",
+      "match": false
+    }
+  ],
+  "adapter": {
+    "kind": "explicit writeSync/fsyncSync file descriptor",
+    "bytes": 2543,
+    "sha256": "1656477d0addb33155df6e4df45fbaccc3ea7f1a9828f32953931c4e65994a46"
+  }
+}

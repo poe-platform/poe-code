@@ -1,0 +1,99 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "unicode": "16.0.0"
+  },
+  "adapter": "Real explicit PythonSession output.write/flush adapter owning a file descriptor, using writeSync/fsyncSync and closing it after replay. CPython used only as an external oracle.",
+  "runtimeHashes": {
+    "runtime-membership.ts": "bfa538cdbe3aff7f2f58eef139a2fb19adce6e62082343b1ff9145180d6b9790",
+    "runtime-string-slots.ts": "6dbb98921861e1b1c48aade885a78d587e4e93a46e17f2d9146df24b943d8682",
+    "runtime-builtins.ts": "27199b0475f553fd30cd09c53197d1e26ac8e671d494804665727336986401d5",
+    "runtime-type-registry.ts": "0d882c635cd32fa15b340da695dd0a6a8e058951fb6809774baee62027b586c6"
+  },
+  "sourceSha256": "62b31cf189d6b223fe73f73c683484cdc0b236038b79bddb27b1465728e85354",
+  "outputBytes": 144,
+  "outputSha256": "75c8ca928de1c2fc5bd1f965a94f4a7c5b4ef9560bafcc642febb6f366c4efa6",
+  "rows": [
+    {
+      "name": "needle in text",
+      "source": "\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __iter__(self):\n        raise AssertionError('iter override')\n    def __eq__(self, other):\n        raise AssertionError('eq override')\nfor text in ('a🐍b', Text('a🐍b')):\n    for source, expected in [('', True), ('a', True), ('🐍', True), ('a🐍', True), ('b🐍', False), ('abcd', False), ('\\ud800', False)]:\n        needle = Text(source)\n        assert (needle in text) is expected\nprint(\"assertions passed\", flush=True)\n",
+      "status": "ok",
+      "guest": "assertions passed\n",
+      "oracle": "assertions passed\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true
+    },
+    {
+      "name": "not (needle not in text)",
+      "source": "\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __iter__(self):\n        raise AssertionError('iter override')\n    def __eq__(self, other):\n        raise AssertionError('eq override')\nfor text in ('a🐍b', Text('a🐍b')):\n    for source, expected in [('', True), ('a', True), ('🐍', True), ('a🐍', True), ('b🐍', False), ('abcd', False), ('\\ud800', False)]:\n        needle = Text(source)\n        assert (not (needle not in text)) is expected\nprint(\"assertions passed\", flush=True)\n",
+      "status": "ok",
+      "guest": "assertions passed\n",
+      "oracle": "assertions passed\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true
+    },
+    {
+      "name": "str.__contains__(text, needle)",
+      "source": "\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('str override')\n    def __len__(self):\n        raise AssertionError('len override')\n    def __iter__(self):\n        raise AssertionError('iter override')\n    def __eq__(self, other):\n        raise AssertionError('eq override')\nfor text in ('a🐍b', Text('a🐍b')):\n    for source, expected in [('', True), ('a', True), ('🐍', True), ('a🐍', True), ('b🐍', False), ('abcd', False), ('\\ud800', False)]:\n        needle = Text(source)\n        assert (str.__contains__(text, needle)) is expected\nprint(\"assertions passed\", flush=True)\n",
+      "status": "ok",
+      "guest": "assertions passed\n",
+      "oracle": "assertions passed\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true
+    },
+    {
+      "name": "needle in 'abc'",
+      "source": "\nclass Needle:\n    def __str__(self):\n        raise AssertionError('str override')\nfor needle, name in [(Needle(), 'Needle'), (None, 'NoneType'), (NotImplemented, 'NotImplementedType'), ([], 'list'), (b'a', 'bytes'), (str, 'type')]:\n    try:\n        needle in 'abc'\n    except TypeError as error:\n        assert str(error) == \"'in <string>' requires string as left operand, not \" + name, str(error)\n    else:\n        assert False\nprint(\"assertions passed\", flush=True)\n",
+      "status": "ok",
+      "guest": "assertions passed\n",
+      "oracle": "assertions passed\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true
+    },
+    {
+      "name": "str.__contains__('abc', needle)",
+      "source": "\nclass Needle:\n    def __str__(self):\n        raise AssertionError('str override')\nfor needle, name in [(Needle(), 'Needle'), (None, 'NoneType'), (NotImplemented, 'NotImplementedType'), ([], 'list'), (b'a', 'bytes'), (str, 'type')]:\n    try:\n        str.__contains__('abc', needle)\n    except TypeError as error:\n        assert str(error) == \"'in <string>' requires string as left operand, not \" + name, str(error)\n    else:\n        assert False\nprint(\"assertions passed\", flush=True)\n",
+      "status": "ok",
+      "guest": "assertions passed\n",
+      "oracle": "assertions passed\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true
+    },
+    {
+      "name": "explicit descriptor versus override",
+      "source": "\nevents = []\nclass Text(str):\n    def __contains__(self, other):\n        events.append(other)\n        return False\ntext = Text('abc')\nneedle = Text('a')\nassert (needle in text) is False\nassert str.__contains__(text, needle) is True\nassert len(events) == 1\nassert events[0] is needle\nprint(\"assertions passed\", flush=True)\n",
+      "status": "ok",
+      "guest": "assertions passed\n",
+      "oracle": "assertions passed\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true
+    },
+    {
+      "name": "long diagnostic needle in ''",
+      "source": "\nfor name, expected in [('N' * 110, 'N' * 100), ('🐍' * 30, '🐍' * 25), ('é' * 51, 'é' * 50), ('a' * 99 + 'é', 'a' * 99)]:\n    needle = type(name, (), {})()\n    try:\n        needle in ''\n    except TypeError as error:\n        assert str(error) == \"'in <string>' requires string as left operand, not \" + expected\n    else:\n        assert False\nprint(\"assertions passed\", flush=True)\n",
+      "status": "ok",
+      "guest": "assertions passed\n",
+      "oracle": "assertions passed\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true
+    },
+    {
+      "name": "long diagnostic str.__contains__('', needle)",
+      "source": "\nfor name, expected in [('N' * 110, 'N' * 100), ('🐍' * 30, '🐍' * 25), ('é' * 51, 'é' * 50), ('a' * 99 + 'é', 'a' * 99)]:\n    needle = type(name, (), {})()\n    try:\n        str.__contains__('', needle)\n    except TypeError as error:\n        assert str(error) == \"'in <string>' requires string as left operand, not \" + expected\n    else:\n        assert False\nprint(\"assertions passed\", flush=True)\n",
+      "status": "ok",
+      "guest": "assertions passed\n",
+      "oracle": "assertions passed\n",
+      "stderr": "",
+      "oracleExit": 0,
+      "match": true
+    }
+  ]
+}

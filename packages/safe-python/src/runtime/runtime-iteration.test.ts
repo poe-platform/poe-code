@@ -72,10 +72,18 @@ describe("concrete runtime iteration", () => {
   it("honors construction and range value allocation limits", () => {
     const { values: v } = fixture(), range = v.range(createRange(0n, 10n));
     expect(() => runtimeIterate(range, v, new ExecutionBudget({ maxSteps: 0, maxAllocatedBytes: 10000 }))).toThrow(ExecutionLimitError);
-    // Includes the range adapter's bound length-hint callback, but not a pull.
-    const meter = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 344 }), values = new RuntimeValues(meter);
+    const budget = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 10000 });
+    let refuseAllocation = false;
+    const meter = { checkpoint(steps = 1, bytes = 0) {
+      if (refuseAllocation && bytes > 0) throw new ExecutionLimitError("allocation");
+      budget.checkpoint(steps, bytes);
+    } }, values = new RuntimeValues(meter);
     const iterator = runtimeIterate(range, values, meter);
+    refuseAllocation = true;
     expect(() => iterator.next()).toThrow(ExecutionLimitError);
+    refuseAllocation = false;
+    expect(iterator.lengthHint!()).toBe(10n);
+    expect(iterator.next()).toEqual({ done: false, value: values.integer(0) });
   });
   it("connects parsed starred lists and tuples to runtime iteration", () => {
     const { meter, values: v } = fixture();

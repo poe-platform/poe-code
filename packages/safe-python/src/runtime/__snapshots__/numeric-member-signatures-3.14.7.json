@@ -1,0 +1,164 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "unicode": "16.0.0"
+  },
+  "cases": [
+    {
+      "name": "int.conjugate",
+      "source": "descriptor = int.__dict__['conjugate']\nbound = (7).conjugate\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound())\n",
+      "expected": "('method_descriptor', '($self, /)', '($self, /)', 7)"
+    },
+    {
+      "name": "int.bit_length",
+      "source": "descriptor = int.__dict__['bit_length']\nbound = (7).bit_length\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound())\n",
+      "expected": "('method_descriptor', '($self, /)', '($self, /)', 3)"
+    },
+    {
+      "name": "int.bit_count",
+      "source": "descriptor = int.__dict__['bit_count']\nbound = (7).bit_count\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound())\n",
+      "expected": "('method_descriptor', '($self, /)', '($self, /)', 3)"
+    },
+    {
+      "name": "int.to_bytes",
+      "source": "descriptor = int.__dict__['to_bytes']\nbound = (7).to_bytes\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound())\n",
+      "expected": "('method_descriptor', \"($self, /, length=1, byteorder='big', *, signed=False)\", \"($self, /, length=1, byteorder='big', *, signed=False)\", b'\\x07')"
+    },
+    {
+      "name": "int.from_bytes",
+      "source": "descriptor = int.__dict__['from_bytes']\nbound = (7).from_bytes\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound(b'\\x07'))\n",
+      "expected": "('classmethod_descriptor', \"($type, /, bytes, byteorder='big', *, signed=False)\", \"($type, /, bytes, byteorder='big', *, signed=False)\", 7)"
+    },
+    {
+      "name": "int.as_integer_ratio",
+      "source": "descriptor = int.__dict__['as_integer_ratio']\nbound = (7).as_integer_ratio\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound())\n",
+      "expected": "('method_descriptor', '($self, /)', '($self, /)', (7, 1))"
+    },
+    {
+      "name": "int.__trunc__",
+      "source": "descriptor = int.__dict__['__trunc__']\nbound = (7).__trunc__\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound())\n",
+      "expected": "('method_descriptor', '($self, /)', '($self, /)', 7)"
+    },
+    {
+      "name": "int.__floor__",
+      "source": "descriptor = int.__dict__['__floor__']\nbound = (7).__floor__\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound())\n",
+      "expected": "('method_descriptor', '($self, /)', '($self, /)', 7)"
+    },
+    {
+      "name": "int.__ceil__",
+      "source": "descriptor = int.__dict__['__ceil__']\nbound = (7).__ceil__\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound())\n",
+      "expected": "('method_descriptor', '($self, /)', '($self, /)', 7)"
+    },
+    {
+      "name": "int.__round__",
+      "source": "descriptor = int.__dict__['__round__']\nbound = (7).__round__\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound())\n",
+      "expected": "('method_descriptor', '($self, ndigits=None, /)', '($self, ndigits=None, /)', 7)"
+    },
+    {
+      "name": "int.__getnewargs__",
+      "source": "descriptor = int.__dict__['__getnewargs__']\nbound = (7).__getnewargs__\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound())\n",
+      "expected": "('method_descriptor', '($self, /)', '($self, /)', (7,))"
+    },
+    {
+      "name": "int.__format__",
+      "source": "descriptor = int.__dict__['__format__']\nbound = (7).__format__\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound(''))\n",
+      "expected": "('method_descriptor', '($self, format_spec, /)', '($self, format_spec, /)', '7')"
+    },
+    {
+      "name": "int.is_integer",
+      "source": "descriptor = int.__dict__['is_integer']\nbound = (7).is_integer\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound())\n",
+      "expected": "('method_descriptor', '($self, /)', '($self, /)', True)"
+    },
+    {
+      "name": "float.from_number",
+      "source": "descriptor = float.__dict__['from_number']\nbound = (1.5).from_number\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound(2))\n",
+      "expected": "('classmethod_descriptor', '($type, number, /)', '($type, number, /)', 2.0)"
+    },
+    {
+      "name": "float.conjugate",
+      "source": "descriptor = float.__dict__['conjugate']\nbound = (1.5).conjugate\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound())\n",
+      "expected": "('method_descriptor', '($self, /)', '($self, /)', 1.5)"
+    },
+    {
+      "name": "float.__trunc__",
+      "source": "descriptor = float.__dict__['__trunc__']\nbound = (1.5).__trunc__\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound())\n",
+      "expected": "('method_descriptor', '($self, /)', '($self, /)', 1)"
+    },
+    {
+      "name": "float.__floor__",
+      "source": "descriptor = float.__dict__['__floor__']\nbound = (1.5).__floor__\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound())\n",
+      "expected": "('method_descriptor', '($self, /)', '($self, /)', 1)"
+    },
+    {
+      "name": "float.__ceil__",
+      "source": "descriptor = float.__dict__['__ceil__']\nbound = (1.5).__ceil__\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound())\n",
+      "expected": "('method_descriptor', '($self, /)', '($self, /)', 2)"
+    },
+    {
+      "name": "float.__round__",
+      "source": "descriptor = float.__dict__['__round__']\nbound = (1.5).__round__\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound())\n",
+      "expected": "('method_descriptor', '($self, ndigits=None, /)', '($self, ndigits=None, /)', 2)"
+    },
+    {
+      "name": "float.as_integer_ratio",
+      "source": "descriptor = float.__dict__['as_integer_ratio']\nbound = (1.5).as_integer_ratio\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound())\n",
+      "expected": "('method_descriptor', '($self, /)', '($self, /)', (3, 2))"
+    },
+    {
+      "name": "float.fromhex",
+      "source": "descriptor = float.__dict__['fromhex']\nbound = (1.5).fromhex\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound('0x1.8p+0'))\n",
+      "expected": "('classmethod_descriptor', '($type, string, /)', '($type, string, /)', 1.5)"
+    },
+    {
+      "name": "float.hex",
+      "source": "descriptor = float.__dict__['hex']\nbound = (1.5).hex\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound())\n",
+      "expected": "('method_descriptor', '($self, /)', '($self, /)', '0x1.8000000000000p+0')"
+    },
+    {
+      "name": "float.is_integer",
+      "source": "descriptor = float.__dict__['is_integer']\nbound = (1.5).is_integer\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound())\n",
+      "expected": "('method_descriptor', '($self, /)', '($self, /)', False)"
+    },
+    {
+      "name": "float.__getnewargs__",
+      "source": "descriptor = float.__dict__['__getnewargs__']\nbound = (1.5).__getnewargs__\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound())\n",
+      "expected": "('method_descriptor', '($self, /)', '($self, /)', (1.5,))"
+    },
+    {
+      "name": "float.__getformat__",
+      "source": "descriptor = float.__dict__['__getformat__']\nbound = (1.5).__getformat__\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound('double'))\n",
+      "expected": "('classmethod_descriptor', '($type, typestr, /)', '($type, typestr, /)', 'IEEE, little-endian')"
+    },
+    {
+      "name": "float.__format__",
+      "source": "descriptor = float.__dict__['__format__']\nbound = (1.5).__format__\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound(''))\n",
+      "expected": "('method_descriptor', '($self, format_spec, /)', '($self, format_spec, /)', '1.5')"
+    },
+    {
+      "name": "complex.from_number",
+      "source": "descriptor = complex.__dict__['from_number']\nbound = ((1+2j)).from_number\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound(2))\n",
+      "expected": "('classmethod_descriptor', '($type, number, /)', '($type, number, /)', (2+0j))"
+    },
+    {
+      "name": "complex.conjugate",
+      "source": "descriptor = complex.__dict__['conjugate']\nbound = ((1+2j)).conjugate\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound())\n",
+      "expected": "('method_descriptor', '($self, /)', '($self, /)', (1-2j))"
+    },
+    {
+      "name": "complex.__complex__",
+      "source": "descriptor = complex.__dict__['__complex__']\nbound = ((1+2j)).__complex__\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound())\n",
+      "expected": "('method_descriptor', '($self, /)', '($self, /)', (1+2j))"
+    },
+    {
+      "name": "complex.__getnewargs__",
+      "source": "descriptor = complex.__dict__['__getnewargs__']\nbound = ((1+2j)).__getnewargs__\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound())\n",
+      "expected": "('method_descriptor', '($self, /)', '($self, /)', (1.0, 2.0))"
+    },
+    {
+      "name": "complex.__format__",
+      "source": "descriptor = complex.__dict__['__format__']\nbound = ((1+2j)).__format__\nactual = (type(descriptor).__name__, descriptor.__text_signature__, bound.__text_signature__, bound(''))\n",
+      "expected": "('method_descriptor', '($self, format_spec, /)', '($self, format_spec, /)', '(1+2j)')"
+    }
+  ]
+}

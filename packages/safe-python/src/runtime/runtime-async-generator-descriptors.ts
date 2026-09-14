@@ -36,10 +36,11 @@ export function installRuntimeAsyncGeneratorDescriptors(owner:TypeValue,values:R
     }
     for(const name of ["ag_running","ag_await"] as const) {
       meter.checkpoint(0,96);
-      owner.value.namespace.items.set(values.string(name),values.getsetDescriptor({owner,name,accepts,get(receiver){
+      const descriptor={owner,name,accepts,get(receiver:RuntimeValue){
         if(receiver.kind!=="instance"||receiver.native?.kind!=="async_generator")throw Error("async generator requires native storage");
         return name==="ag_running"?values.boolean(receiver.native.activity.running):receiver.native.execution.yieldFrom;
-      }}));
+      }};
+      owner.value.namespace.items.set(values.string(name),name==="ag_running"?values.memberDescriptor(descriptor):values.getsetDescriptor(descriptor));
     }
     return;
   }

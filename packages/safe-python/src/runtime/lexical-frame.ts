@@ -4,6 +4,7 @@ import type { ResolvedBinding, ResolvedScope } from "../symbol-resolution.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { lookupNamespace,storeNamespace,type MutableNameNamespace, type NameNamespace } from "./namespace-lookup.js";
 import { PythonRuntimeError } from "./error.js";
+import { PythonNameError } from "./name-error.js";
 import {compileCodeLocalLayout,type CodeLocalLayout} from "./code-local-layout.js";
 import {FrameLocals} from "./frame-locals.js";
 import type {CompiledFunction} from "./function-compilation.js";
@@ -114,7 +115,7 @@ export class LexicalFrame<Value> extends ExecutionFrame {
     const inline=node.kind==="dictionary-comprehension"||node.kind==="comprehension"&&node.collection!=="generator";
     if (kind === "local"||kind==="free"&&inline&&cell?.owner.kind!=="class"&&cell?.codeScope===this.codeScope)
       throw new PythonRuntimeError("UnboundLocalError", `cannot access local variable '${name}' where it is not associated with a value`);
-    throw new PythonRuntimeError("NameError", kind === "free"
+    throw new PythonNameError(name, kind === "free"
       ? `cannot access free variable '${name}' where it is not associated with a value in enclosing scope`
       : `name '${name}' is not defined`);
   }

@@ -2,11 +2,11 @@ import { describe, expect, it } from "vitest";
 import { parseModule } from "./module.js";
 import { statementExpressions } from "./statement-expressions.js";
 
-describe("ignored type aliases", () => {
-  it("parses normalized aliases with generic parameters and discards their values", () => {
+describe("type aliases", () => {
+  it("parses normalized aliases with generic parameters and retains their values", () => {
     const module = parseModule("type K[T: Bound = Default, *Ts = *tuple[A,B], **P = Params] = Callable[P, T]");
     expect(module).toMatchObject({ body: [{ kind: "type-alias", name: { name: "K", spelling: "K" } }] });
-    expect(module.body[0]).not.toHaveProperty("value");
+    expect(module.body[0]).toMatchObject({ value: { kind: "subscript", object: { name: "Callable" } } });
     expect([...statementExpressions(module.body[0])]).toEqual([]);
   });
 
@@ -22,8 +22,8 @@ describe("ignored type aliases", () => {
         { kind: "expression-statement" }, { kind: "expression-statement" }, { kind: "type-alias", name: { name: "type" } }] });
   });
 
-  it("parses ignored expressions without applying executable-scope validation", () => {
-    expect(() => parseModule("type A = [(x:=1) for x in xs]")).not.toThrow();
+  it("validates alias expression scopes without evaluating missing names", () => {
+    expect(() => parseModule("type A = [(x:=1) for x in xs]")).toThrow("assignment expression cannot rebind comprehension iteration variable 'x'");
     expect(() => parseModule("type A[T = missing()] = other_missing()")).not.toThrow();
     expect(() => parseModule("type A = list[int]; [(x:=1) for x in xs]")).toThrow(SyntaxError);
   });

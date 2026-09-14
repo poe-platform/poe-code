@@ -1,0 +1,21 @@
+{
+  "adapter": "node:fs writeSync(1) through actual subprocess stdout pipe",
+  "seeds": [
+    [
+      1,
+      2
+    ],
+    [
+      17,
+      23
+    ]
+  ],
+  "programs": 384,
+  "cases": 38400,
+  "status": 0,
+  "stderr": "",
+  "stdoutBytes": 9984,
+  "stdoutSha256": "b70fe1d8a39d37130e10ff72f5afa29bc5b7d5aaeaae9bf2632d29191f08c3f5",
+  "exactStdoutMatch": true,
+  "runner": "\nimport {writeSync} from 'node:fs';\nimport {PythonSession} from './packages/safe-python/src/index.ts';\nimport {codecBoundaryAuditPrograms} from './packages/safe-python/src/codec-boundary-audit-cases.ts';\nfor (const hashSeed of [[1n,2n],[17n,23n]]) {\n  for (const {name, source} of codecBoundaryAuditPrograms) {\n    const session = new PythonSession({hashSeed,\n      limits:{maxSteps:2000000,maxAllocatedBytes:32000000,maxDepth:100},\n      output:{write(text){writeSync(1,text);},flush(){}}});\n    const result = session.exec(source);\n    if(result.status !== 'ok') throw new Error(name + ': ' + result.status);\n  }\n}\n"
+}

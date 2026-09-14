@@ -1,0 +1,2806 @@
+{
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "unicode": "16.0.0",
+  "rows": [
+    {
+      "source": "bytes()",
+      "expected": "('bytes', \"b''\")"
+    },
+    {
+      "source": "bytes(source='y')",
+      "expected": "('TypeError', 'string argument without an encoding')"
+    },
+    {
+      "source": "bytes(encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes(encoding='ascii')",
+      "expected": "('TypeError', 'encoding without a string argument')"
+    },
+    {
+      "source": "bytes(encoding='\\ud800')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes(errors=None)",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes(errors='strict')",
+      "expected": "('TypeError', 'errors without a string argument')"
+    },
+    {
+      "source": "bytes(errors='\\ud800')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes(surce=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(other=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes(source='y', encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes(source='y', encoding='ascii')",
+      "expected": "('bytes', \"b'y'\")"
+    },
+    {
+      "source": "bytes(source='y', encoding='\\ud800')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes(source='y', errors=None)",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes(source='y', errors='strict')",
+      "expected": "('TypeError', 'string argument without an encoding')"
+    },
+    {
+      "source": "bytes(source='y', errors='\\ud800')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes(source='y', surce=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(source='y', other=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes(encoding=None, source='y')",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes(encoding=None, errors=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes(encoding=None, errors='strict')",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes(encoding=None, errors='\\ud800')",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes(encoding=None, surce=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(encoding=None, other=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes(encoding='ascii', source='y')",
+      "expected": "('bytes', \"b'y'\")"
+    },
+    {
+      "source": "bytes(encoding='ascii', errors=None)",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes(encoding='ascii', errors='strict')",
+      "expected": "('TypeError', 'encoding without a string argument')"
+    },
+    {
+      "source": "bytes(encoding='ascii', errors='\\ud800')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes(encoding='ascii', surce=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(encoding='ascii', other=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes(encoding='\\ud800', source='y')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes(encoding='\\ud800', errors=None)",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes(encoding='\\ud800', errors='strict')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes(encoding='\\ud800', errors='\\ud800')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes(encoding='\\ud800', surce=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(encoding='\\ud800', other=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes(errors=None, source='y')",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes(errors=None, encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes(errors=None, encoding='ascii')",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes(errors=None, encoding='\\ud800')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes(errors=None, surce=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(errors=None, other=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes(errors='strict', source='y')",
+      "expected": "('TypeError', 'string argument without an encoding')"
+    },
+    {
+      "source": "bytes(errors='strict', encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes(errors='strict', encoding='ascii')",
+      "expected": "('TypeError', 'encoding without a string argument')"
+    },
+    {
+      "source": "bytes(errors='strict', encoding='\\ud800')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes(errors='strict', surce=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(errors='strict', other=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes(errors='\\ud800', source='y')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes(errors='\\ud800', encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes(errors='\\ud800', encoding='ascii')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes(errors='\\ud800', encoding='\\ud800')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes(errors='\\ud800', surce=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(errors='\\ud800', other=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes(surce=0, source='y')",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(surce=0, encoding=None)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(surce=0, encoding='ascii')",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(surce=0, encoding='\\ud800')",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(surce=0, errors=None)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(surce=0, errors='strict')",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(surce=0, errors='\\ud800')",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(surce=0, other=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(other=0, source='y')",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes(other=0, encoding=None)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes(other=0, encoding='ascii')",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes(other=0, encoding='\\ud800')",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes(other=0, errors=None)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes(other=0, errors='strict')",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes(other=0, errors='\\ud800')",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes(other=0, surce=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes('x')",
+      "expected": "('TypeError', 'string argument without an encoding')"
+    },
+    {
+      "source": "bytes('x', source='y')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes('x', encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes('x', encoding='ascii')",
+      "expected": "('bytes', \"b'x'\")"
+    },
+    {
+      "source": "bytes('x', encoding='\\ud800')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes('x', errors=None)",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes('x', errors='strict')",
+      "expected": "('TypeError', 'string argument without an encoding')"
+    },
+    {
+      "source": "bytes('x', errors='\\ud800')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes('x', surce=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes('x', other=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes('x', source='y', encoding=None)",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes('x', source='y', encoding='ascii')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes('x', source='y', encoding='\\ud800')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes('x', source='y', errors=None)",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes('x', source='y', errors='strict')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes('x', source='y', errors='\\ud800')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes('x', source='y', surce=0)",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes('x', source='y', other=0)",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes('x', encoding=None, source='y')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes('x', encoding=None, errors=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes('x', encoding=None, errors='strict')",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes('x', encoding=None, errors='\\ud800')",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes('x', encoding=None, surce=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes('x', encoding=None, other=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes('x', encoding='ascii', source='y')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes('x', encoding='ascii', errors=None)",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes('x', encoding='ascii', errors='strict')",
+      "expected": "('bytes', \"b'x'\")"
+    },
+    {
+      "source": "bytes('x', encoding='ascii', errors='\\ud800')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes('x', encoding='ascii', surce=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes('x', encoding='ascii', other=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes('x', encoding='\\ud800', source='y')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes('x', encoding='\\ud800', errors=None)",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes('x', encoding='\\ud800', errors='strict')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes('x', encoding='\\ud800', errors='\\ud800')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes('x', encoding='\\ud800', surce=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes('x', encoding='\\ud800', other=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes('x', errors=None, source='y')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes('x', errors=None, encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes('x', errors=None, encoding='ascii')",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes('x', errors=None, encoding='\\ud800')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes('x', errors=None, surce=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes('x', errors=None, other=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes('x', errors='strict', source='y')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes('x', errors='strict', encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes('x', errors='strict', encoding='ascii')",
+      "expected": "('bytes', \"b'x'\")"
+    },
+    {
+      "source": "bytes('x', errors='strict', encoding='\\ud800')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes('x', errors='strict', surce=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes('x', errors='strict', other=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes('x', errors='\\ud800', source='y')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes('x', errors='\\ud800', encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes('x', errors='\\ud800', encoding='ascii')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes('x', errors='\\ud800', encoding='\\ud800')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes('x', errors='\\ud800', surce=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes('x', errors='\\ud800', other=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes('x', surce=0, source='y')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes('x', surce=0, encoding=None)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes('x', surce=0, encoding='ascii')",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes('x', surce=0, encoding='\\ud800')",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes('x', surce=0, errors=None)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes('x', surce=0, errors='strict')",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes('x', surce=0, errors='\\ud800')",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes('x', surce=0, other=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes('x', other=0, source='y')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes('x', other=0, encoding=None)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes('x', other=0, encoding='ascii')",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes('x', other=0, encoding='\\ud800')",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes('x', other=0, errors=None)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes('x', other=0, errors='strict')",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes('x', other=0, errors='\\ud800')",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes('x', other=0, surce=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes('x', None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes('x', None, source='y')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes('x', None, encoding=None)",
+      "expected": "('TypeError', \"argument for bytes() given by name ('encoding') and position (2)\")"
+    },
+    {
+      "source": "bytes('x', None, encoding='ascii')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('encoding') and position (2)\")"
+    },
+    {
+      "source": "bytes('x', None, encoding='\\ud800')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('encoding') and position (2)\")"
+    },
+    {
+      "source": "bytes('x', None, errors=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes('x', None, errors='strict')",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes('x', None, errors='\\ud800')",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes('x', None, surce=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes('x', None, other=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes('x', None, source='y', encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, source='y', encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, source='y', encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, source='y', errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, source='y', errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, source='y', errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, source='y', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, source='y', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, encoding=None, source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, encoding=None, errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, encoding=None, errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, encoding=None, errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, encoding=None, surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, encoding=None, other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, encoding='ascii', source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, encoding='ascii', errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, encoding='ascii', errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, encoding='ascii', errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, encoding='ascii', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, encoding='ascii', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, encoding='\\ud800', source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, encoding='\\ud800', errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, encoding='\\ud800', errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, encoding='\\ud800', errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, encoding='\\ud800', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, encoding='\\ud800', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, errors=None, source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, errors=None, encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, errors=None, encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, errors=None, encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, errors=None, surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, errors=None, other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, errors='strict', source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, errors='strict', encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, errors='strict', encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, errors='strict', encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, errors='strict', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, errors='strict', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, errors='\\ud800', source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, errors='\\ud800', encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, errors='\\ud800', encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, errors='\\ud800', encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, errors='\\ud800', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, errors='\\ud800', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, surce=0, source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, surce=0, encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, surce=0, encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, surce=0, encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, surce=0, errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, surce=0, errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, surce=0, errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, surce=0, other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, other=0, source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, other=0, encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, other=0, encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, other=0, encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, other=0, errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, other=0, errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, other=0, errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', None, other=0, surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not int\")"
+    },
+    {
+      "source": "bytes('x', 1, source='y')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes('x', 1, encoding=None)",
+      "expected": "('TypeError', \"argument for bytes() given by name ('encoding') and position (2)\")"
+    },
+    {
+      "source": "bytes('x', 1, encoding='ascii')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('encoding') and position (2)\")"
+    },
+    {
+      "source": "bytes('x', 1, encoding='\\ud800')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('encoding') and position (2)\")"
+    },
+    {
+      "source": "bytes('x', 1, errors=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not int\")"
+    },
+    {
+      "source": "bytes('x', 1, errors='strict')",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not int\")"
+    },
+    {
+      "source": "bytes('x', 1, errors='\\ud800')",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not int\")"
+    },
+    {
+      "source": "bytes('x', 1, surce=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes('x', 1, other=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes('x', 1, source='y', encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, source='y', encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, source='y', encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, source='y', errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, source='y', errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, source='y', errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, source='y', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, source='y', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, encoding=None, source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, encoding=None, errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, encoding=None, errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, encoding=None, errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, encoding=None, surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, encoding=None, other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, encoding='ascii', source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, encoding='ascii', errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, encoding='ascii', errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, encoding='ascii', errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, encoding='ascii', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, encoding='ascii', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, encoding='\\ud800', source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, encoding='\\ud800', errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, encoding='\\ud800', errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, encoding='\\ud800', errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, encoding='\\ud800', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, encoding='\\ud800', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, errors=None, source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, errors=None, encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, errors=None, encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, errors=None, encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, errors=None, surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, errors=None, other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, errors='strict', source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, errors='strict', encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, errors='strict', encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, errors='strict', encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, errors='strict', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, errors='strict', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, errors='\\ud800', source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, errors='\\ud800', encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, errors='\\ud800', encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, errors='\\ud800', encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, errors='\\ud800', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, errors='\\ud800', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, surce=0, source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, surce=0, encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, surce=0, encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, surce=0, encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, surce=0, errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, surce=0, errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, surce=0, errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, surce=0, other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, other=0, source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, other=0, encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, other=0, encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, other=0, encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, other=0, errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, other=0, errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, other=0, errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 1, other=0, surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii')",
+      "expected": "('bytes', \"b'x'\")"
+    },
+    {
+      "source": "bytes('x', 'ascii', source='y')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes('x', 'ascii', encoding=None)",
+      "expected": "('TypeError', \"argument for bytes() given by name ('encoding') and position (2)\")"
+    },
+    {
+      "source": "bytes('x', 'ascii', encoding='ascii')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('encoding') and position (2)\")"
+    },
+    {
+      "source": "bytes('x', 'ascii', encoding='\\ud800')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('encoding') and position (2)\")"
+    },
+    {
+      "source": "bytes('x', 'ascii', errors=None)",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes('x', 'ascii', errors='strict')",
+      "expected": "('bytes', \"b'x'\")"
+    },
+    {
+      "source": "bytes('x', 'ascii', errors='\\ud800')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes('x', 'ascii', surce=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes('x', 'ascii', other=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes('x', 'ascii', source='y', encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', source='y', encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', source='y', encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', source='y', errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', source='y', errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', source='y', errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', source='y', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', source='y', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', encoding=None, source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', encoding=None, errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', encoding=None, errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', encoding=None, errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', encoding=None, surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', encoding=None, other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', encoding='ascii', source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', encoding='ascii', errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', encoding='ascii', errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', encoding='ascii', errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', encoding='ascii', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', encoding='ascii', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', encoding='\\ud800', source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', encoding='\\ud800', errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', encoding='\\ud800', errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', encoding='\\ud800', errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', encoding='\\ud800', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', encoding='\\ud800', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', errors=None, source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', errors=None, encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', errors=None, encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', errors=None, encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', errors=None, surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', errors=None, other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', errors='strict', source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', errors='strict', encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', errors='strict', encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', errors='strict', encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', errors='strict', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', errors='strict', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', errors='\\ud800', source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', errors='\\ud800', encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', errors='\\ud800', encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', errors='\\ud800', encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', errors='\\ud800', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', errors='\\ud800', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', surce=0, source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', surce=0, encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', surce=0, encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', surce=0, encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', surce=0, errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', surce=0, errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', surce=0, errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', surce=0, other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', other=0, source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', other=0, encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', other=0, encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', other=0, encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', other=0, errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', other=0, errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', other=0, errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', other=0, surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None)",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, source='y', encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, source='y', encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, source='y', encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, source='y', errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, source='y', errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, source='y', errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, source='y', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, source='y', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, encoding=None, source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, encoding=None, errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, encoding=None, errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, encoding=None, errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, encoding=None, surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, encoding=None, other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, encoding='ascii', source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, encoding='ascii', errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, encoding='ascii', errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, encoding='ascii', errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, encoding='ascii', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, encoding='ascii', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, encoding='\\ud800', source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, encoding='\\ud800', errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, encoding='\\ud800', errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, encoding='\\ud800', errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, encoding='\\ud800', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, encoding='\\ud800', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, errors=None, source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, errors=None, encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, errors=None, encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, errors=None, encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, errors=None, surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, errors=None, other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, errors='strict', source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, errors='strict', encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, errors='strict', encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, errors='strict', encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, errors='strict', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, errors='strict', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, errors='\\ud800', source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, errors='\\ud800', encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, errors='\\ud800', encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, errors='\\ud800', encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, errors='\\ud800', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, errors='\\ud800', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, surce=0, source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, surce=0, encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, surce=0, encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, surce=0, encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, surce=0, errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, surce=0, errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, surce=0, errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, surce=0, other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, other=0, source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, other=0, encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, other=0, encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, other=0, encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, other=0, errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, other=0, errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, other=0, errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', None, other=0, surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict')",
+      "expected": "('bytes', \"b'x'\")"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', source='y', encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', source='y', encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', source='y', encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', source='y', errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', source='y', errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', source='y', errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', source='y', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', source='y', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', encoding=None, source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', encoding=None, errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', encoding=None, errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', encoding=None, errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', encoding=None, surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', encoding=None, other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', encoding='ascii', source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', encoding='ascii', errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', encoding='ascii', errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', encoding='ascii', errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', encoding='ascii', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', encoding='ascii', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', encoding='\\ud800', source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', encoding='\\ud800', errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', encoding='\\ud800', errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', encoding='\\ud800', errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', encoding='\\ud800', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', encoding='\\ud800', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', errors=None, source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', errors=None, encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', errors=None, encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', errors=None, encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', errors=None, surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', errors=None, other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', errors='strict', source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', errors='strict', encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', errors='strict', encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', errors='strict', encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', errors='strict', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', errors='strict', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', errors='\\ud800', source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', errors='\\ud800', encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', errors='\\ud800', encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', errors='\\ud800', encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', errors='\\ud800', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', errors='\\ud800', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', surce=0, source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', surce=0, encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', surce=0, encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', surce=0, encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', surce=0, errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', surce=0, errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', surce=0, errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', surce=0, other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', other=0, source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', other=0, encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', other=0, encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', other=0, encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', other=0, errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', other=0, errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', other=0, errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', 'ascii', 'strict', other=0, surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (5 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes('x', '\\ud800', source='y')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes('x', '\\ud800', encoding=None)",
+      "expected": "('TypeError', \"argument for bytes() given by name ('encoding') and position (2)\")"
+    },
+    {
+      "source": "bytes('x', '\\ud800', encoding='ascii')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('encoding') and position (2)\")"
+    },
+    {
+      "source": "bytes('x', '\\ud800', encoding='\\ud800')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('encoding') and position (2)\")"
+    },
+    {
+      "source": "bytes('x', '\\ud800', errors=None)",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes('x', '\\ud800', errors='strict')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes('x', '\\ud800', errors='\\ud800')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes('x', '\\ud800', surce=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes('x', '\\ud800', other=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes('x', '\\ud800', source='y', encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', source='y', encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', source='y', encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', source='y', errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', source='y', errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', source='y', errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', source='y', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', source='y', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', encoding=None, source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', encoding=None, errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', encoding=None, errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', encoding=None, errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', encoding=None, surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', encoding=None, other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', encoding='ascii', source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', encoding='ascii', errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', encoding='ascii', errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', encoding='ascii', errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', encoding='ascii', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', encoding='ascii', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', encoding='\\ud800', source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', encoding='\\ud800', errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', encoding='\\ud800', errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', encoding='\\ud800', errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', encoding='\\ud800', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', encoding='\\ud800', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', errors=None, source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', errors=None, encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', errors=None, encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', errors=None, encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', errors=None, surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', errors=None, other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', errors='strict', source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', errors='strict', encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', errors='strict', encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', errors='strict', encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', errors='strict', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', errors='strict', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', errors='\\ud800', source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', errors='\\ud800', encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', errors='\\ud800', encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', errors='\\ud800', encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', errors='\\ud800', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', errors='\\ud800', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', surce=0, source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', surce=0, encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', surce=0, encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', surce=0, encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', surce=0, errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', surce=0, errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', surce=0, errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', surce=0, other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', other=0, source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', other=0, encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', other=0, encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', other=0, encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', other=0, errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', other=0, errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', other=0, errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', '\\ud800', other=0, surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0')",
+      "expected": "('ValueError', 'embedded null character')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', source='y')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes('x', 'a\\0', encoding=None)",
+      "expected": "('TypeError', \"argument for bytes() given by name ('encoding') and position (2)\")"
+    },
+    {
+      "source": "bytes('x', 'a\\0', encoding='ascii')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('encoding') and position (2)\")"
+    },
+    {
+      "source": "bytes('x', 'a\\0', encoding='\\ud800')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('encoding') and position (2)\")"
+    },
+    {
+      "source": "bytes('x', 'a\\0', errors=None)",
+      "expected": "('ValueError', 'embedded null character')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', errors='strict')",
+      "expected": "('ValueError', 'embedded null character')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', errors='\\ud800')",
+      "expected": "('ValueError', 'embedded null character')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', surce=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes('x', 'a\\0', other=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes('x', 'a\\0', source='y', encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', source='y', encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', source='y', encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', source='y', errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', source='y', errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', source='y', errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', source='y', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', source='y', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', encoding=None, source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', encoding=None, errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', encoding=None, errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', encoding=None, errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', encoding=None, surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', encoding=None, other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', encoding='ascii', source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', encoding='ascii', errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', encoding='ascii', errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', encoding='ascii', errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', encoding='ascii', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', encoding='ascii', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', encoding='\\ud800', source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', encoding='\\ud800', errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', encoding='\\ud800', errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', encoding='\\ud800', errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', encoding='\\ud800', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', encoding='\\ud800', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', errors=None, source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', errors=None, encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', errors=None, encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', errors=None, encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', errors=None, surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', errors=None, other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', errors='strict', source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', errors='strict', encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', errors='strict', encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', errors='strict', encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', errors='strict', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', errors='strict', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', errors='\\ud800', source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', errors='\\ud800', encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', errors='\\ud800', encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', errors='\\ud800', encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', errors='\\ud800', surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', errors='\\ud800', other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', surce=0, source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', surce=0, encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', surce=0, encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', surce=0, encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', surce=0, errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', surce=0, errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', surce=0, errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', surce=0, other=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', other=0, source='y')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', other=0, encoding=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', other=0, encoding='ascii')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', other=0, encoding='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', other=0, errors=None)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', other=0, errors='strict')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', other=0, errors='\\ud800')",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes('x', 'a\\0', other=0, surce=0)",
+      "expected": "('TypeError', 'bytes() takes at most 3 arguments (4 given)')"
+    },
+    {
+      "source": "bytes(None)",
+      "expected": "('TypeError', \"cannot convert 'NoneType' object to bytes\")"
+    },
+    {
+      "source": "bytes(None, source='y')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes(None, encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes(None, encoding='ascii')",
+      "expected": "('TypeError', 'encoding without a string argument')"
+    },
+    {
+      "source": "bytes(None, encoding='\\ud800')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes(None, errors=None)",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes(None, errors='strict')",
+      "expected": "('TypeError', 'errors without a string argument')"
+    },
+    {
+      "source": "bytes(None, errors='\\ud800')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes(None, surce=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(None, other=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes(None, source='y', encoding=None)",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes(None, source='y', encoding='ascii')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes(None, source='y', encoding='\\ud800')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes(None, source='y', errors=None)",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes(None, source='y', errors='strict')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes(None, source='y', errors='\\ud800')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes(None, source='y', surce=0)",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes(None, source='y', other=0)",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes(None, encoding=None, source='y')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes(None, encoding=None, errors=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes(None, encoding=None, errors='strict')",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes(None, encoding=None, errors='\\ud800')",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes(None, encoding=None, surce=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(None, encoding=None, other=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes(None, encoding='ascii', source='y')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes(None, encoding='ascii', errors=None)",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes(None, encoding='ascii', errors='strict')",
+      "expected": "('TypeError', 'encoding without a string argument')"
+    },
+    {
+      "source": "bytes(None, encoding='ascii', errors='\\ud800')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes(None, encoding='ascii', surce=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(None, encoding='ascii', other=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes(None, encoding='\\ud800', source='y')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes(None, encoding='\\ud800', errors=None)",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes(None, encoding='\\ud800', errors='strict')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes(None, encoding='\\ud800', errors='\\ud800')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes(None, encoding='\\ud800', surce=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(None, encoding='\\ud800', other=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes(None, errors=None, source='y')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes(None, errors=None, encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes(None, errors=None, encoding='ascii')",
+      "expected": "('TypeError', \"bytes() argument 'errors' must be str, not None\")"
+    },
+    {
+      "source": "bytes(None, errors=None, encoding='\\ud800')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes(None, errors=None, surce=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(None, errors=None, other=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes(None, errors='strict', source='y')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes(None, errors='strict', encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes(None, errors='strict', encoding='ascii')",
+      "expected": "('TypeError', 'encoding without a string argument')"
+    },
+    {
+      "source": "bytes(None, errors='strict', encoding='\\ud800')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes(None, errors='strict', surce=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(None, errors='strict', other=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes(None, errors='\\ud800', source='y')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes(None, errors='\\ud800', encoding=None)",
+      "expected": "('TypeError', \"bytes() argument 'encoding' must be str, not None\")"
+    },
+    {
+      "source": "bytes(None, errors='\\ud800', encoding='ascii')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes(None, errors='\\ud800', encoding='\\ud800')",
+      "expected": "('UnicodeEncodeError', \"'utf-8' codec can't encode character '\\\\ud800' in position 0: surrogates not allowed\")"
+    },
+    {
+      "source": "bytes(None, errors='\\ud800', surce=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(None, errors='\\ud800', other=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes(None, surce=0, source='y')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes(None, surce=0, encoding=None)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(None, surce=0, encoding='ascii')",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(None, surce=0, encoding='\\ud800')",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(None, surce=0, errors=None)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(None, surce=0, errors='strict')",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(None, surce=0, errors='\\ud800')",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(None, surce=0, other=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'surce'. Did you mean 'source'?\")"
+    },
+    {
+      "source": "bytes(None, other=0, source='y')",
+      "expected": "('TypeError', \"argument for bytes() given by name ('source') and position (1)\")"
+    },
+    {
+      "source": "bytes(None, other=0, encoding=None)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes(None, other=0, encoding='ascii')",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes(None, other=0, encoding='\\ud800')",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes(None, other=0, errors=None)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes(None, other=0, errors='strict')",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes(None, other=0, errors='\\ud800')",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    },
+    {
+      "source": "bytes(None, other=0, surce=0)",
+      "expected": "('TypeError', \"bytes() got an unexpected keyword argument 'other'\")"
+    }
+  ]
+}

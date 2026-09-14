@@ -3,6 +3,8 @@ import { ImmutableBytes } from "./immutable-bytes.js";
 import type { PercentFormatBindingContext } from "./percent-format-bind.js";
 import { runtimeIndex } from "./runtime-index.js";
 import { runtimeTuplePayload } from "./runtime-tuple-payload.js";
+import { runtimeStringPayload } from "./runtime-string-payload.js";
+import { runtimeBytesPayload } from "./runtime-bytes-payload.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 export interface RuntimePercentBindingHooks {
@@ -31,7 +33,8 @@ export function createRuntimePercentBindingContext(values: RuntimeValues, meter:
     },
     isMapping(value, source) {
       meter.checkpoint();
-      if(runtimeTuplePayload(value)!==undefined)return false;
+      if(runtimeTuplePayload(value)!==undefined||runtimeStringPayload(value)!==undefined)return false;
+      if(source instanceof ImmutableBytes&&runtimeBytesPayload(value)!==undefined)return false;
       switch (value.kind) {
         case "tuple": case "str": return false;
         case "bytes": return !(source instanceof ImmutableBytes);

@@ -3,6 +3,7 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeDictionaryAccess } from "./runtime-dictionary-access.js";
 import { isRuntimeSet, type BuiltinInvocationContext, type DictionaryViewValue, type FrozenSetValue, type RuntimeValue, type SetValue } from "./runtime-values.js";
 import { runtimeSetAccess } from "./runtime-set.js";
+import { runtimeTuplePayload } from "./runtime-tuple-payload.js";
 
 /** Capture the cursor now, but construct item tuples and read values on next(). */
 export function iterateRuntimeDictionaryView(view: DictionaryViewValue, values: ConstantValues, meter: ExecutionMeter, reverse = false): Iterator<RuntimeValue> {
@@ -21,10 +22,11 @@ export function* containsRuntimeDictionaryView(view: DictionaryViewValue, needle
   meter.checkpoint(1, 64);
   if (view.kind === "dict_keys") return runtimeDictionaryAccess(view.value, needle, "contains", meter);
   if (view.kind === "dict_items") {
-    if (needle.kind !== "tuple" || needle.items.length !== 2) return false;
-    const found = runtimeDictionaryAccess(view.value, needle.items[0], "lookup", meter);
+    const pair = runtimeTuplePayload(needle);
+    if (pair === undefined || pair.items.length !== 2) return false;
+    const found = runtimeDictionaryAccess(view.value, pair.items[0], "lookup", meter);
     if (found === undefined) return false;
-    const item = needle.items[1];
+    const item = pair.items[1];
     if (found.value === item) return true;
     meter.checkpoint(0, 32);
     return yield [found.value, item];

@@ -1,8 +1,10 @@
 import { unicodeNamedCharacters, unicodeNameRanges } from "./unicode-names-data.js";
 import type {SourceMeter} from "./source.js";
+import {ExecutionLimitError} from "./runtime/execution-budget.js";
 
 /** Unicode 16 character names and aliases, excluding multi-character named sequences. */
 export function lookupUnicodeName(name: string,meter?:SourceMeter): string | undefined {
+  let fatal=false;
   try {
   meter?.checkpoint();
   // Python's name lookup folds ASCII case, not Unicode lookalikes or whitespace.
@@ -43,5 +45,6 @@ export function lookupUnicodeName(name: string,meter?:SourceMeter): string | und
     else high = start;
   }
   return undefined;
-  } finally {meter?.checkpoint();}
+  } catch(error) {fatal=error instanceof ExecutionLimitError;throw error;}
+  finally {if(!fatal)meter?.checkpoint();}
 }

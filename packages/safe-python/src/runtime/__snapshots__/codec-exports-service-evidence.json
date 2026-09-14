@@ -1,0 +1,56 @@
+{
+  "reference": [
+    "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "16.0.0",
+    "darwin",
+    "little",
+    "arm64"
+  ],
+  "adapter": "Explicit synchronous file descriptors: readSync, partial-write-aware writeSync, fsyncSync. Descriptors closed and temporary files removed.",
+  "rows": [
+    {
+      "name": "codecs explicit export inventory and star-import identity",
+      "source": "assert input() == 'exports'\n\nimport codecs\nexpected = ['register', 'lookup', 'open', 'EncodedFile', 'BOM', 'BOM_BE', 'BOM_LE', 'BOM32_BE', 'BOM32_LE', 'BOM64_BE', 'BOM64_LE', 'BOM_UTF8', 'BOM_UTF16', 'BOM_UTF16_LE', 'BOM_UTF16_BE', 'BOM_UTF32', 'BOM_UTF32_LE', 'BOM_UTF32_BE', 'CodecInfo', 'Codec', 'IncrementalEncoder', 'IncrementalDecoder', 'StreamReader', 'StreamWriter', 'StreamReaderWriter', 'StreamRecoder', 'getencoder', 'getdecoder', 'getincrementalencoder', 'getincrementaldecoder', 'getreader', 'getwriter', 'encode', 'decode', 'iterencode', 'iterdecode', 'strict_errors', 'ignore_errors', 'replace_errors', 'xmlcharrefreplace_errors', 'backslashreplace_errors', 'namereplace_errors', 'register_error', 'lookup_error']\nassert type(codecs.__all__) is list\nassert codecs.__all__ == expected\nnamespace = {}\nexec('from codecs import *', namespace)\nassert [key for key in namespace if key != '__builtins__'] == expected\nfor key in expected:\n    assert namespace[key] is getattr(codecs, key)\nassert 'unregister' not in namespace\nassert 'BufferedIncrementalDecoder' not in namespace\nassert 'ascii_encode' not in namespace\nassert 'surrogatepass_errors' not in namespace\n\nprint('verified')\n",
+      "sha256": "3bc49e1e465daf37ae6849340b92f0e0309784791efb7124c88a0d2e34a1b6ba",
+      "status": "ok",
+      "reads": 1,
+      "stdout": "verified\n",
+      "oracleStatus": 0,
+      "oracleStdout": "verified\n",
+      "oracleStderr": ""
+    },
+    {
+      "name": "codecs export list mutation controls subsequent imports",
+      "source": "assert input() == 'exports'\n\nimport codecs\nexports = codecs.__all__\ntry:\n    codecs.__all__ = ['BufferedIncrementalDecoder', 'unregister']\n    namespace = {}\n    exec('from codecs import *', namespace)\n    assert [key for key in namespace if key != '__builtins__'] == codecs.__all__\n    assert namespace['BufferedIncrementalDecoder'] is codecs.BufferedIncrementalDecoder\n    assert namespace['unregister'] is codecs.unregister\n    codecs.__all__.append('missing_export')\n    namespace = {}\n    try:\n        exec('from codecs import *', namespace)\n    except AttributeError as error:\n        assert error.args == (\"module 'codecs' has no attribute 'missing_export'\",)\n    else:\n        assert False\n    assert namespace['unregister'] is codecs.unregister\nfinally:\n    codecs.__all__ = exports\n\nprint('verified')\n",
+      "sha256": "98fbc6d8f4753045e25a64d461279a48200966db43471a8f8c1bf3b228353838",
+      "status": "ok",
+      "reads": 1,
+      "stdout": "verified\n",
+      "oracleStatus": 0,
+      "oracleStdout": "verified\n",
+      "oracleStderr": ""
+    },
+    {
+      "name": "codecs.open declaration and argument binding",
+      "source": "assert input() == 'exports'\n\nimport codecs\nfunction = codecs.open\nassert function.__name__ == function.__qualname__ == 'open'\nassert function.__module__ == 'codecs'\nassert function.__defaults__ == ('r', None, 'strict', -1)\nassert function.__kwdefaults__ is None\nassert function.__annotations__ == {}\nassert function.__code__.co_filename == '<frozen codecs>'\nassert function.__code__.co_firstlineno == 886\nassert function.__code__.co_argcount == 5\nassert function.__code__.co_varnames == ('filename', 'mode', 'encoding', 'errors', 'buffering', 'warnings', 'file', 'info', 'srw')\nfor args, kwargs, message in [\n    ((), {}, \"open() missing 1 required positional argument: 'filename'\"),\n    (('a', 'r', None, 'strict', -1, None), {}, 'open() takes from 1 to 5 positional arguments but 6 were given'),\n    (('a',), {'filename': 'b'}, \"open() got multiple values for argument 'filename'\"),\n    (('a',), {'unknown': True}, \"open() got an unexpected keyword argument 'unknown'\"),\n]:\n    try:\n        function(*args, **kwargs)\n    except TypeError as error:\n        assert error.args == (message,)\n    else:\n        assert False\n\nprint('verified')\n",
+      "sha256": "8ae811adf041612e5c13ffccf24bf5967a902edc0763e1633d6b559901d00c24",
+      "status": "ok",
+      "reads": 1,
+      "stdout": "verified\n",
+      "oracleStatus": 0,
+      "oracleStdout": "verified\n",
+      "oracleStderr": ""
+    },
+    {
+      "name": "codecs.open exact documentation",
+      "source": "assert input() == 'exports'\nimport codecs\nassert codecs.open.__doc__ == \"Open an encoded file using the given mode and return\\na wrapped version providing transparent encoding/decoding.\\n\\nNote: The wrapped version will only accept the object format\\ndefined by the codecs, i.e. Unicode objects for most builtin\\ncodecs. Output is also codec dependent and will usually be\\nUnicode as well.\\n\\nIf encoding is not None, then the\\nunderlying encoded files are always opened in binary mode.\\nThe default file mode is 'r', meaning to open the file in read mode.\\n\\nencoding specifies the encoding which is to be used for the\\nfile.\\n\\nerrors may be given to define the error handling. It defaults\\nto 'strict' which causes ValueErrors to be raised in case an\\nencoding error occurs.\\n\\nbuffering has the same meaning as for the builtin open() API.\\nIt defaults to -1 which means that the default buffer size will\\nbe used.\\n\\nThe returned wrapped file object provides an extra attribute\\n.encoding which allows querying the used encoding. This\\nattribute is only available if an encoding was specified as\\nparameter.\\n\"\n\nprint('verified')\n",
+      "sha256": "04001b9402b14e5bb08cacd85a682162e46c752a2fc2f6587681e8e9e21e0620",
+      "status": "ok",
+      "reads": 1,
+      "stdout": "verified\n",
+      "oracleStatus": 0,
+      "oracleStdout": "verified\n",
+      "oracleStderr": ""
+    }
+  ]
+}

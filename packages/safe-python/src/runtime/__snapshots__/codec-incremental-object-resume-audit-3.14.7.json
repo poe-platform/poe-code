@@ -1,0 +1,298 @@
+{
+  "oracle": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "cases": [
+    {
+      "name": "utf-8; final=false; resume=start",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-8')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -2\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([66,226])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([226]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([65]), False)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "c95d60908d607212e8ffffad882823d959714f814351958abb19ffa321b8c33c",
+      "stdout": "prefix '' (b'\\xe2', 0)\ndecoded 'RB'\nevents [('error', 'utf-8', b'\\xe2A', 0, 1, 'invalid continuation byte', (b'\\xe2', 0)), ('index', (b'\\xe2', 0))]\nstate (b'A', 0)\nflush 'A' (b'', 0)\nreset (b'', 0)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-8; final=false; resume=end",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-8')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -1\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([66,226])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([226]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([65]), False)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "2fae8b613a65f15b7240d39023120fbf2e60a302828e448a029fe54df5493fe4",
+      "stdout": "prefix '' (b'\\xe2', 0)\ndecoded 'R'\nevents [('error', 'utf-8', b'\\xe2A', 0, 1, 'invalid continuation byte', (b'\\xe2', 0)), ('index', (b'\\xe2', 0))]\nstate (b'A', 0)\nflush 'A' (b'', 0)\nreset (b'', 0)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-8; final=false; resume=outside",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-8')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -3\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([66,226])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([226]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([65]), False)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "0ecb65891dfb340d7633d8e1e1035b3ed4b3b242bfd08349129e19a2eda8c652",
+      "stdout": "prefix '' (b'\\xe2', 0)\nfailure IndexError ('position -1 from error handler out of bounds',)\nevents [('error', 'utf-8', b'\\xe2A', 0, 1, 'invalid continuation byte', (b'\\xe2', 0)), ('index', (b'\\xe2', 0))]\nstate (b'\\xe2', 0)\nflush '�' (b'', 0)\nreset (b'', 0)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-8; final=true; resume=start",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-8')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -2\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([66,226])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([226]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([65]), True)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "068b5578906cec1e1649abecfd3074cf9f0f298850bd84e09ffa96401727ac90",
+      "stdout": "prefix '' (b'\\xe2', 0)\ndecoded 'RBZ'\nevents [('error', 'utf-8', b'\\xe2A', 0, 1, 'invalid continuation byte', (b'\\xe2', 0)), ('index', (b'\\xe2', 0)), ('error', 'utf-8', b'B\\xe2', 1, 2, 'unexpected end of data', (b'\\xe2', 0))]\nstate (b'', 0)\nflush '' (b'', 0)\nreset (b'', 0)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-8; final=true; resume=end",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-8')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -1\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([66,226])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([226]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([65]), True)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "d678d440cac029bb43e00a705ce4ba96193bedc32e76ee294aa2693f6d8deb3c",
+      "stdout": "prefix '' (b'\\xe2', 0)\ndecoded 'RZ'\nevents [('error', 'utf-8', b'\\xe2A', 0, 1, 'invalid continuation byte', (b'\\xe2', 0)), ('index', (b'\\xe2', 0)), ('error', 'utf-8', b'B\\xe2', 1, 2, 'unexpected end of data', (b'\\xe2', 0))]\nstate (b'', 0)\nflush '' (b'', 0)\nreset (b'', 0)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-8; final=true; resume=outside",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-8')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -3\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([66,226])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([226]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([65]), True)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "0224e2a5848dc96edfadb75535a141912bcde2bdca16a73a5c07377e54f0c683",
+      "stdout": "prefix '' (b'\\xe2', 0)\nfailure IndexError ('position -1 from error handler out of bounds',)\nevents [('error', 'utf-8', b'\\xe2A', 0, 1, 'invalid continuation byte', (b'\\xe2', 0)), ('index', (b'\\xe2', 0))]\nstate (b'\\xe2', 0)\nflush '�' (b'', 0)\nreset (b'', 0)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-8-sig; final=false; resume=start",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-8-sig')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -2\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([66,226])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([226]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([65]), False)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "de0f756399898f2403257170c4e82fd30cd03c4e032f8138b5281309fabce668",
+      "stdout": "prefix '' (b'\\xe2', 0)\ndecoded 'RB'\nevents [('error', 'utf-8', b'\\xe2A', 0, 1, 'invalid continuation byte', (b'\\xe2', 0)), ('index', (b'\\xe2', 0))]\nstate (b'A', 0)\nflush 'A' (b'', 0)\nreset (b'', 1)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-8-sig; final=false; resume=end",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-8-sig')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -1\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([66,226])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([226]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([65]), False)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "2f50edede527e0cc240b470c27931bb91fe474ee5bdf7f2fc669e60b2a9c51c8",
+      "stdout": "prefix '' (b'\\xe2', 0)\ndecoded 'R'\nevents [('error', 'utf-8', b'\\xe2A', 0, 1, 'invalid continuation byte', (b'\\xe2', 0)), ('index', (b'\\xe2', 0))]\nstate (b'A', 0)\nflush 'A' (b'', 0)\nreset (b'', 1)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-8-sig; final=false; resume=outside",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-8-sig')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -3\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([66,226])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([226]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([65]), False)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "277617e0ee2bc890a70868916c72b6a8e962d9d0e9adf21e34eeb9ca693c1a3a",
+      "stdout": "prefix '' (b'\\xe2', 0)\nfailure IndexError ('position -1 from error handler out of bounds',)\nevents [('error', 'utf-8', b'\\xe2A', 0, 1, 'invalid continuation byte', (b'\\xe2', 0)), ('index', (b'\\xe2', 0))]\nstate (b'\\xe2', 0)\nflush '�' (b'', 0)\nreset (b'', 1)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-8-sig; final=true; resume=start",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-8-sig')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -2\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([66,226])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([226]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([65]), True)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "75dc2b90c693f827087a0559d3b789179b209c85804ccb48f2543d1528a554b9",
+      "stdout": "prefix '' (b'\\xe2', 0)\ndecoded 'RBZ'\nevents [('error', 'utf-8', b'\\xe2A', 0, 1, 'invalid continuation byte', (b'\\xe2', 0)), ('index', (b'\\xe2', 0)), ('error', 'utf-8', b'B\\xe2', 1, 2, 'unexpected end of data', (b'\\xe2', 0))]\nstate (b'', 0)\nflush '' (b'', 0)\nreset (b'', 1)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-8-sig; final=true; resume=end",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-8-sig')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -1\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([66,226])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([226]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([65]), True)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "174bd3f9161f85304f3663ff4e16d1cdd89da081c9cceb70b830abe9a9e23b09",
+      "stdout": "prefix '' (b'\\xe2', 0)\ndecoded 'RZ'\nevents [('error', 'utf-8', b'\\xe2A', 0, 1, 'invalid continuation byte', (b'\\xe2', 0)), ('index', (b'\\xe2', 0)), ('error', 'utf-8', b'B\\xe2', 1, 2, 'unexpected end of data', (b'\\xe2', 0))]\nstate (b'', 0)\nflush '' (b'', 0)\nreset (b'', 1)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-8-sig; final=true; resume=outside",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-8-sig')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -3\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([66,226])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([226]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([65]), True)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "1f354a619670d5f9798da3e550b7f6b333b6c7008cb0cc1acfeec4ba02deab55",
+      "stdout": "prefix '' (b'\\xe2', 0)\nfailure IndexError ('position -1 from error handler out of bounds',)\nevents [('error', 'utf-8', b'\\xe2A', 0, 1, 'invalid continuation byte', (b'\\xe2', 0)), ('index', (b'\\xe2', 0))]\nstate (b'\\xe2', 0)\nflush '�' (b'', 0)\nreset (b'', 1)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-16-le; final=false; resume=start",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-16-le')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -3\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([66,0,67])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([0]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([220]), False)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "00693929043c51e66af1c17a9bdc740f2f8e17f527b7d59e1ee946996c8d5e8d",
+      "stdout": "prefix '' (b'\\x00', 0)\ndecoded 'RB'\nevents [('error', 'utf-16-le', b'\\x00\\xdc', 0, 2, 'illegal encoding', (b'\\x00', 0)), ('index', (b'\\x00', 0))]\nstate (b'', 0)\nflush '' (b'', 0)\nreset (b'', 0)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-16-le; final=false; resume=end",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-16-le')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -1\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([66,0,67])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([0]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([220]), False)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "d98c4d09bcffd06cd7eb4fe244d50f1748debf9950ce7bc92e82a283359230d7",
+      "stdout": "prefix '' (b'\\x00', 0)\ndecoded 'R'\nevents [('error', 'utf-16-le', b'\\x00\\xdc', 0, 2, 'illegal encoding', (b'\\x00', 0)), ('index', (b'\\x00', 0))]\nstate (b'', 0)\nflush '' (b'', 0)\nreset (b'', 0)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-16-le; final=false; resume=outside",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-16-le')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -4\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([66,0,67])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([0]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([220]), False)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "82c002ff6abd0f4a4175747919742b9e65124b17a573d39a75ebec3212936e57",
+      "stdout": "prefix '' (b'\\x00', 0)\nfailure IndexError ('position -1 from error handler out of bounds',)\nevents [('error', 'utf-16-le', b'\\x00\\xdc', 0, 2, 'illegal encoding', (b'\\x00', 0)), ('index', (b'\\x00', 0))]\nstate (b'\\x00', 0)\nflush '�' (b'', 0)\nreset (b'', 0)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-16-le; final=true; resume=start",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-16-le')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -3\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([66,0,67])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([0]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([220]), True)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "2a1c0e56ad82d0ab30ccb96cb90a10e3e22bb1e2e039c7d1c0ed3a33d30d955c",
+      "stdout": "prefix '' (b'\\x00', 0)\ndecoded 'RBZ'\nevents [('error', 'utf-16-le', b'\\x00\\xdc', 0, 2, 'illegal encoding', (b'\\x00', 0)), ('index', (b'\\x00', 0)), ('error', 'utf-16-le', b'B\\x00C', 2, 3, 'truncated data', (b'\\x00', 0))]\nstate (b'', 0)\nflush '' (b'', 0)\nreset (b'', 0)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-16-le; final=true; resume=end",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-16-le')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -1\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([66,0,67])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([0]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([220]), True)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "1c6c310d369504008f710cf6ed4ffd6856dabab611e6421c852759246042027f",
+      "stdout": "prefix '' (b'\\x00', 0)\ndecoded 'RZ'\nevents [('error', 'utf-16-le', b'\\x00\\xdc', 0, 2, 'illegal encoding', (b'\\x00', 0)), ('index', (b'\\x00', 0)), ('error', 'utf-16-le', b'B\\x00C', 2, 3, 'truncated data', (b'\\x00', 0))]\nstate (b'', 0)\nflush '' (b'', 0)\nreset (b'', 0)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-16-le; final=true; resume=outside",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-16-le')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -4\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([66,0,67])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([0]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([220]), True)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "9180f68fc86dce0b88b64acc1f4d58559334b5a9757c52ea764d64594318cd09",
+      "stdout": "prefix '' (b'\\x00', 0)\nfailure IndexError ('position -1 from error handler out of bounds',)\nevents [('error', 'utf-16-le', b'\\x00\\xdc', 0, 2, 'illegal encoding', (b'\\x00', 0)), ('index', (b'\\x00', 0))]\nstate (b'\\x00', 0)\nflush '�' (b'', 0)\nreset (b'', 0)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-16-be; final=false; resume=start",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-16-be')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -3\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([0,66,67])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([220]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([0]), False)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "341f5f66eae55df747ad77828f4eb63fbfaf25d36ce76cc71bd2678e5b4b942a",
+      "stdout": "prefix '' (b'\\xdc', 0)\ndecoded 'RB'\nevents [('error', 'utf-16-be', b'\\xdc\\x00', 0, 2, 'illegal encoding', (b'\\xdc', 0)), ('index', (b'\\xdc', 0))]\nstate (b'', 0)\nflush '' (b'', 0)\nreset (b'', 0)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-16-be; final=false; resume=end",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-16-be')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -1\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([0,66,67])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([220]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([0]), False)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "4e95ee2f34f74fa9ec9d7f8532ebfac1845a15d98ba36ea418ccfa014e959e20",
+      "stdout": "prefix '' (b'\\xdc', 0)\ndecoded 'R'\nevents [('error', 'utf-16-be', b'\\xdc\\x00', 0, 2, 'illegal encoding', (b'\\xdc', 0)), ('index', (b'\\xdc', 0))]\nstate (b'', 0)\nflush '' (b'', 0)\nreset (b'', 0)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-16-be; final=false; resume=outside",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-16-be')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -4\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([0,66,67])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([220]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([0]), False)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "b837cf22ee0b1d39986c102db5b396329352ebf8d32b50d0032ef909084f8596",
+      "stdout": "prefix '' (b'\\xdc', 0)\nfailure IndexError ('position -1 from error handler out of bounds',)\nevents [('error', 'utf-16-be', b'\\xdc\\x00', 0, 2, 'illegal encoding', (b'\\xdc', 0)), ('index', (b'\\xdc', 0))]\nstate (b'\\xdc', 0)\nflush '�' (b'', 0)\nreset (b'', 0)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-16-be; final=true; resume=start",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-16-be')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -3\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([0,66,67])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([220]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([0]), True)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "fe29e90dd602bc2749b526a2a60b7047ff98663d984ad6e3eba099b3244632d1",
+      "stdout": "prefix '' (b'\\xdc', 0)\ndecoded 'RBZ'\nevents [('error', 'utf-16-be', b'\\xdc\\x00', 0, 2, 'illegal encoding', (b'\\xdc', 0)), ('index', (b'\\xdc', 0)), ('error', 'utf-16-be', b'\\x00BC', 2, 3, 'truncated data', (b'\\xdc', 0))]\nstate (b'', 0)\nflush '' (b'', 0)\nreset (b'', 0)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-16-be; final=true; resume=end",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-16-be')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -1\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([0,66,67])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([220]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([0]), True)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "e2cc25369759e576304de6547c5f935e2b8392c8214ea70448909eb94d1fdca4",
+      "stdout": "prefix '' (b'\\xdc', 0)\ndecoded 'RZ'\nevents [('error', 'utf-16-be', b'\\xdc\\x00', 0, 2, 'illegal encoding', (b'\\xdc', 0)), ('index', (b'\\xdc', 0)), ('error', 'utf-16-be', b'\\x00BC', 2, 3, 'truncated data', (b'\\xdc', 0))]\nstate (b'', 0)\nflush '' (b'', 0)\nreset (b'', 0)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-16-be; final=true; resume=outside",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-16-be')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -4\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([0,66,67])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([220]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([0]), True)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "cf0e0bfd1596146faffac4d3b84d202e385203c2434f9a9a2e7892f4baae42fb",
+      "stdout": "prefix '' (b'\\xdc', 0)\nfailure IndexError ('position -1 from error handler out of bounds',)\nevents [('error', 'utf-16-be', b'\\xdc\\x00', 0, 2, 'illegal encoding', (b'\\xdc', 0)), ('index', (b'\\xdc', 0))]\nstate (b'\\xdc', 0)\nflush '�' (b'', 0)\nreset (b'', 0)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-32-le; final=false; resume=start",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-32-le')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -5\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([66,0,0,0,67])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([0]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([0,17,0]), False)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "aeb02ca178bec2662a3698c3c8750275051d8486c8ec46f7b6c28fd5c03dff23",
+      "stdout": "prefix '' (b'\\x00', 0)\ndecoded 'RB'\nevents [('error', 'utf-32-le', b'\\x00\\x00\\x11\\x00', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('index', (b'\\x00', 0))]\nstate (b'', 0)\nflush '' (b'', 0)\nreset (b'', 0)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-32-le; final=false; resume=end",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-32-le')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -1\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([66,0,0,0,67])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([0]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([0,17,0]), False)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "f76af917741149413044aed170a6f04e11d1a266855a6cce9c0e6dd4a4950def",
+      "stdout": "prefix '' (b'\\x00', 0)\ndecoded 'R'\nevents [('error', 'utf-32-le', b'\\x00\\x00\\x11\\x00', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('index', (b'\\x00', 0))]\nstate (b'', 0)\nflush '' (b'', 0)\nreset (b'', 0)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-32-le; final=false; resume=outside",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-32-le')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -6\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([66,0,0,0,67])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([0]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([0,17,0]), False)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "c4bcf8ce86693fbe6657abec5fc942dd48b7f4143b5dd33c5d5a041d16055d5b",
+      "stdout": "prefix '' (b'\\x00', 0)\nfailure IndexError ('position -1 from error handler out of bounds',)\nevents [('error', 'utf-32-le', b'\\x00\\x00\\x11\\x00', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('index', (b'\\x00', 0))]\nstate (b'\\x00', 0)\nflush '�' (b'', 0)\nreset (b'', 0)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-32-le; final=true; resume=start",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-32-le')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -5\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([66,0,0,0,67])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([0]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([0,17,0]), True)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "05967a3151fd3045a394f39e13f17fe32ebd371ada76b19eddbdb81b48b4cea6",
+      "stdout": "prefix '' (b'\\x00', 0)\ndecoded 'RBZ'\nevents [('error', 'utf-32-le', b'\\x00\\x00\\x11\\x00', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('index', (b'\\x00', 0)), ('error', 'utf-32-le', b'B\\x00\\x00\\x00C', 4, 5, 'truncated data', (b'\\x00', 0))]\nstate (b'', 0)\nflush '' (b'', 0)\nreset (b'', 0)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-32-le; final=true; resume=end",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-32-le')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -1\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([66,0,0,0,67])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([0]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([0,17,0]), True)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "b3cba4d2cfa918c4b2324dbc89d05903a4ad611a007bf2f0a5d63ff80c367b5d",
+      "stdout": "prefix '' (b'\\x00', 0)\ndecoded 'RZ'\nevents [('error', 'utf-32-le', b'\\x00\\x00\\x11\\x00', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('index', (b'\\x00', 0)), ('error', 'utf-32-le', b'B\\x00\\x00\\x00C', 4, 5, 'truncated data', (b'\\x00', 0))]\nstate (b'', 0)\nflush '' (b'', 0)\nreset (b'', 0)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-32-le; final=true; resume=outside",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-32-le')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -6\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([66,0,0,0,67])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([0]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([0,17,0]), True)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "63a894194f4b03a000951a7375e124ff9d58920ee983d3dbd017bad191e73e13",
+      "stdout": "prefix '' (b'\\x00', 0)\nfailure IndexError ('position -1 from error handler out of bounds',)\nevents [('error', 'utf-32-le', b'\\x00\\x00\\x11\\x00', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('index', (b'\\x00', 0))]\nstate (b'\\x00', 0)\nflush '�' (b'', 0)\nreset (b'', 0)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-32-be; final=false; resume=start",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-32-be')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -5\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([0,0,0,66,67])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([0]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([17,0,0]), False)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "ac6df9be3389622cd8676d91831ed1e71b8dd9914108411bb2d3535183589333",
+      "stdout": "prefix '' (b'\\x00', 0)\ndecoded 'RB'\nevents [('error', 'utf-32-be', b'\\x00\\x11\\x00\\x00', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('index', (b'\\x00', 0))]\nstate (b'', 0)\nflush '' (b'', 0)\nreset (b'', 0)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-32-be; final=false; resume=end",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-32-be')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -1\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([0,0,0,66,67])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([0]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([17,0,0]), False)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "c99cc3e7ca28f51a6452660f64843420ff49c5a36846b3eabd779a85abca00f4",
+      "stdout": "prefix '' (b'\\x00', 0)\ndecoded 'R'\nevents [('error', 'utf-32-be', b'\\x00\\x11\\x00\\x00', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('index', (b'\\x00', 0))]\nstate (b'', 0)\nflush '' (b'', 0)\nreset (b'', 0)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-32-be; final=false; resume=outside",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-32-be')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -6\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([0,0,0,66,67])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([0]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([17,0,0]), False)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "53b55f1d76d23d0bfc2a5076b43bf0e4297e834d834a901841fe4fe325537630",
+      "stdout": "prefix '' (b'\\x00', 0)\nfailure IndexError ('position -1 from error handler out of bounds',)\nevents [('error', 'utf-32-be', b'\\x00\\x11\\x00\\x00', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('index', (b'\\x00', 0))]\nstate (b'\\x00', 0)\nflush '�' (b'', 0)\nreset (b'', 0)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-32-be; final=true; resume=start",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-32-be')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -5\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([0,0,0,66,67])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([0]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([17,0,0]), True)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "8591e16e9febbf4f5d233078a9a1d8da1ab854f775c25836e0bc75ff2f76bdbb",
+      "stdout": "prefix '' (b'\\x00', 0)\ndecoded 'RBZ'\nevents [('error', 'utf-32-be', b'\\x00\\x11\\x00\\x00', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('index', (b'\\x00', 0)), ('error', 'utf-32-be', b'\\x00\\x00\\x00BC', 4, 5, 'truncated data', (b'\\x00', 0))]\nstate (b'', 0)\nflush '' (b'', 0)\nreset (b'', 0)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-32-be; final=true; resume=end",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-32-be')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -1\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([0,0,0,66,67])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([0]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([17,0,0]), True)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "c513946fb56bf8b4d3d07522eee4e68807bdb1278a2fb5fe93e7c8ebe90fb672",
+      "stdout": "prefix '' (b'\\x00', 0)\ndecoded 'RZ'\nevents [('error', 'utf-32-be', b'\\x00\\x11\\x00\\x00', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('index', (b'\\x00', 0)), ('error', 'utf-32-be', b'\\x00\\x00\\x00BC', 4, 5, 'truncated data', (b'\\x00', 0))]\nstate (b'', 0)\nflush '' (b'', 0)\nreset (b'', 0)\n",
+      "status": 0,
+      "stderr": ""
+    },
+    {
+      "name": "utf-32-be; final=true; resume=outside",
+      "source": "import codecs\nevents = []\ndecoder = codecs.getincrementaldecoder('utf-32-be')('object-resume-audit')\nclass Position:\n    def __index__(self):\n        events.append(('index', decoder.getstate()))\n        return -6\ndef recover(error):\n    events.append(('error', error.encoding, error.object, error.start, error.end, error.reason, decoder.getstate()))\n    if len(events) > 2:\n        return ('Z', len(error.object))\n    error.object = bytes([0,0,0,66,67])\n    return ('R', Position())\ncodecs.register_error('object-resume-audit', recover)\nprint('prefix', repr(decoder.decode(bytes([0]))), decoder.getstate())\ntry:\n    print('decoded', repr(decoder.decode(bytes([17,0,0]), True)))\nexcept BaseException as error:\n    print('failure', type(error).__name__, error.args)\nprint('events', events)\nprint('state', decoder.getstate())\ndecoder.errors = 'replace'\nprint('flush', repr(decoder.decode(b'', True)), decoder.getstate())\ndecoder.reset()\nprint('reset', decoder.getstate(), flush=True)\n",
+      "sha256": "63dca6a748b736cb9e3ed8abe6efe499735b094245348283421126e54610344c",
+      "stdout": "prefix '' (b'\\x00', 0)\nfailure IndexError ('position -1 from error handler out of bounds',)\nevents [('error', 'utf-32-be', b'\\x00\\x11\\x00\\x00', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('index', (b'\\x00', 0))]\nstate (b'\\x00', 0)\nflush '�' (b'', 0)\nreset (b'', 0)\n",
+      "status": 0,
+      "stderr": ""
+    }
+  ]
+}

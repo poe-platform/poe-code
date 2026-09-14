@@ -1,0 +1,233 @@
+{
+  "target": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O"
+  },
+  "adapter": "Explicit node:fs descriptors, readSync, partial-write-safe writeSync, fsyncSync; temporary files removed in finally. No mocks.",
+  "cases": [
+    {
+      "name": "EncodedFile live globals, defaults and reflected compiler layout",
+      "source": "assert input() == 'contract'\n\nimport codecs\nfn = codecs.EncodedFile\ncode = fn.__code__\nassert fn.__globals__ is codecs.__dict__\nassert fn.__kwdefaults__ is None and fn.__closure__ is None\nassert fn.__annotate__ is None and fn.__annotations__ == {}\nassert fn.__annotations__ is fn.__annotations__\nassert code.co_name == code.co_qualname == 'EncodedFile'\nassert code.co_filename == '<frozen codecs>' and code.co_firstlineno == 937\nassert code.co_argcount == 4 and code.co_posonlyargcount == code.co_kwonlyargcount == 0\nassert code.co_nlocals == 7 and code.co_flags == 67108867\nassert code.co_varnames == ('file', 'data_encoding', 'file_encoding', 'errors', 'data_info', 'file_info', 'sr')\nassert code.co_freevars == code.co_cellvars == ()\nlookup = fn.__globals__.pop('lookup')\ntry:\n    fn(None, 'utf-8')\nexcept NameError as error:\n    assert error.args == (\"name 'lookup' is not defined\",)\n    assert error.name == 'lookup'\nelse:\n    raise AssertionError('deleted global remained visible')\nfn.__globals__['lookup'] = lookup\nassert fn(None, 'utf-8').stream is None\ndel fn.__defaults__\nassert fn.__defaults__ is None\ntry:\n    fn(None, 'utf-8')\nexcept TypeError as error:\n    assert error.args == (\"EncodedFile() missing 2 required positional arguments: 'file_encoding' and 'errors'\",)\nelse:\n    raise AssertionError('deleted defaults remained visible')\nfn.__defaults__ = (None, 'strict')\nassert fn(None, 'utf-8').errors == 'strict'\n\nprint('verified')\n",
+      "sha256": "c662a910821bcf3913987e2dc3a35fb8045aceb9bbca970e9eda0711ad70264d",
+      "reference": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "verified\n",
+        "reads": 1,
+        "writes": 2
+      },
+      "match": true
+    },
+    {
+      "name": "EncodedFile accepts and preserves native default-container subtypes",
+      "source": "assert input() == 'contract'\n\nimport codecs\nclass Defaults(tuple):\n    def __len__(self):\n        raise AssertionError('virtual length')\n    def __getitem__(self, key):\n        raise AssertionError('virtual item')\n    def __iter__(self):\n        raise AssertionError('virtual iteration')\nclass Keywords(dict):\n    def __getitem__(self, key):\n        raise AssertionError('virtual keyword')\nfn = codecs.EncodedFile\noriginal = fn.__defaults__\nerrors = object()\ndefaults = Defaults((None, errors))\nkeywords = Keywords(unused=object())\nfn.__defaults__ = defaults\nfn.__kwdefaults__ = keywords\nassert fn.__defaults__ is defaults\nassert fn.__kwdefaults__ is keywords\nstream = object()\nwrapped = fn(stream, 'utf-8')\nassert wrapped.stream is stream and wrapped.errors is errors\nassert wrapped.data_encoding == wrapped.file_encoding == 'utf-8'\nfn.__defaults__ = Defaults((stream, 'utf-8', None, errors))\nassert fn().stream is stream\nfn.__defaults__ = original\nfn.__kwdefaults__ = None\n\n# Code replacement still uses the original function's live default containers.\ncode = fn.__code__\ndef replacement(*, errors):\n    return errors\nfn.__code__ = replacement.__code__\nkeywords = Keywords(errors=errors)\nfn.__kwdefaults__ = keywords\nassert fn() is errors\nchanged = object()\nkeywords['errors'] = changed\nassert fn() is changed\nfn.__code__ = code\nfn.__kwdefaults__ = None\n\nprint('verified')\n",
+      "sha256": "b677b50e317a8238d18ed9f24bd802bcec34b0bb23eb099c2f94fd47bb4710ea",
+      "reference": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "verified\n",
+        "reads": 1,
+        "writes": 2
+      },
+      "match": true
+    },
+    {
+      "name": "EncodedFile binding rejects invalid calls before lookup",
+      "source": "assert input() == 'contract'\n\nimport codecs\nevents = []\ndef lookup(name):\n    events.append(name)\n    raise AssertionError('body entered')\ncodecs.lookup = lookup\nfor args, kwargs, message in [\n    ((), {}, \"EncodedFile() missing 2 required positional arguments: 'file' and 'data_encoding'\"),\n    ((None,), {}, \"EncodedFile() missing 1 required positional argument: 'data_encoding'\"),\n    ((None,) * 5, {}, 'EncodedFile() takes from 2 to 4 positional arguments but 5 were given'),\n    ((None,), {'file': None}, \"EncodedFile() got multiple values for argument 'file'\"),\n    ((), {'unexpected': None}, \"EncodedFile() got an unexpected keyword argument 'unexpected'\"),\n]:\n    try:\n        codecs.EncodedFile(*args, **kwargs)\n    except TypeError as error:\n        assert error.args == (message,), error.args\n    else:\n        raise AssertionError('invalid binding accepted')\nassert events == []\n\nprint('verified')\n",
+      "sha256": "7f2518ae979c6bbc4a59b4235d7a170ff133ad6ab4c4630653a2cb84d629351d",
+      "reference": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "verified\n",
+        "reads": 1,
+        "writes": 2
+      },
+      "match": true
+    },
+    {
+      "name": "EncodedFile descriptor failure preserves ordered partial assignments",
+      "source": "assert input() == 'contract'\n\nimport codecs\noriginal = codecs.lookup('utf-8')\nfor failing in ('encode', 'decode', 'streamreader', 'streamwriter', 'data_encoding', 'file_encoding'):\n    events = []\n    failure = LookupError(failing)\n    class Info:\n        def __getattribute__(self, name):\n            events.append(name)\n            if name == failing:\n                raise failure\n            return getattr(original, name)\n    class Field:\n        def __set__(self, obj, value):\n            events.append(value)\n            if value == failing:\n                raise failure\n    class Result:\n        data_encoding = Field()\n        file_encoding = Field()\n    result = Result()\n    def lookup(name):\n        events.append(name)\n        return Info()\n    def recoder(*args):\n        events.append('construct')\n        return result\n    codecs.lookup = lookup\n    codecs.StreamRecoder = recoder\n    try:\n        codecs.EncodedFile(object(), 'data_encoding', 'file_encoding')\n    except LookupError as error:\n        assert error is failure\n        assert error.args == (failing,)\n        assert not hasattr(error, '__notes__')\n    else:\n        raise AssertionError('failure lost')\n    expected = ['data_encoding', 'file_encoding', 'encode', 'decode', 'streamreader', 'streamwriter', 'construct', 'data_encoding', 'file_encoding']\n    index = expected.index(failing, 2)\n    assert events == expected[:index + 1], events\n\nprint('verified')\n",
+      "sha256": "4a91b106b77d6c27c37885fb890cd3066fa3e6901c3d11d9a7ea411c1ab27fe7",
+      "reference": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "verified\n",
+        "reads": 1,
+        "writes": 2
+      },
+      "match": true
+    },
+    {
+      "name": "EncodedFile exact documentation",
+      "source": "assert input() == 'contract'\nimport codecs\nassert codecs.EncodedFile.__doc__ == \"Return a wrapped version of file which provides transparent\\nencoding translation.\\n\\nData written to the wrapped file is decoded according\\nto the given data_encoding and then encoded to the underlying\\nfile using file_encoding. The intermediate data type\\nwill usually be Unicode but depends on the specified codecs.\\n\\nBytes read from the file are decoded using file_encoding and then\\npassed back to the caller encoded using data_encoding.\\n\\nIf file_encoding is not given, it defaults to data_encoding.\\n\\nerrors may be given to define the error handling. It defaults\\nto 'strict' which causes ValueErrors to be raised in case an\\nencoding error occurs.\\n\\nThe returned wrapped file object provides two extra attributes\\n.data_encoding and .file_encoding which reflect the given\\nparameters of the same name. The attributes can be used for\\nintrospection by Python programs.\\n\\n\"\n\nprint('verified')\n",
+      "sha256": "1c4c3325f19a05d495461fb000841fd6f89413a8d966c57cbcc41555147b787e",
+      "reference": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "verified\n",
+        "reads": 1,
+        "writes": 2
+      },
+      "match": true
+    },
+    {
+      "name": "EncodedFile transcodes reads and writes through the registered stream codecs",
+      "source": "assert input() == 'contract'\n\nimport codecs\nclass Stream:\n    def __init__(self, data):\n        self.data = data\n        self.position = 0\n        self.written = []\n        self.closed = False\n    def read(self, size=-1):\n        if size < 0:\n            size = len(self.data)\n        result = self.data[self.position:self.position + size]\n        self.position += len(result)\n        return result\n    def write(self, data):\n        self.written.append(data)\n    def close(self):\n        self.closed = True\nstream = Stream(b'\\xe9\\nA\\n')\nwrapped = codecs.EncodedFile(stream, 'utf-8', 'latin-1')\nassert type(wrapped) is codecs.StreamRecoder\nassert wrapped.stream is stream\nassert (wrapped.data_encoding, wrapped.file_encoding, wrapped.errors) == ('utf-8', 'latin-1', 'strict')\nassert wrapped.readline() == b'\\xc3\\xa9\\n'\nassert wrapped.read() == b'A\\n'\nassert wrapped.read() == b''\nassert wrapped.write(b'\\xc3\\xa9') is None\nassert wrapped.writelines([b'X', b'\\xc3\\xa9']) is None\nassert stream.written == [b'\\xe9', b'X\\xe9']\nwith wrapped as entered:\n    assert entered is wrapped\nassert stream.closed\nclass Name(str):\n    def __str__(self):\n        raise AssertionError('virtual name')\nname = Name('utf-8')\nsame = codecs.EncodedFile(Stream(b'A'), name)\nassert same.data_encoding is name and same.file_encoding is name\nassert same.read() == b'A'\nassert codecs.EncodedFile.__module__ == 'codecs'\nassert codecs.EncodedFile.__name__ == 'EncodedFile'\nassert codecs.EncodedFile.__qualname__ == 'EncodedFile'\nassert codecs.EncodedFile.__defaults__ == (None, 'strict')\nassert codecs.EncodedFile.__code__.co_firstlineno == 937\nassert codecs.EncodedFile.__code__.co_filename == '<frozen codecs>'\n\nprint('verified')\n",
+      "sha256": "00f6e9861c3fe113a699aa3afd88e76c80b6a796a04fc3ff631a2249d268c265",
+      "reference": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "verified\n",
+        "reads": 1,
+        "writes": 2
+      },
+      "match": true
+    },
+    {
+      "name": "EncodedFile observes live lookup, descriptors and StreamRecoder replacement in order",
+      "source": "assert input() == 'contract'\n\nimport codecs\nevents = []\nstream, data, file, errors, result = object(), object(), object(), object(), type('Result', (), {})()\nclass Info:\n    def __getattribute__(self, name):\n        events.append(name)\n        return name\ninfo = Info()\ndef lookup(name):\n    events.append(name)\n    return info\ndef recoder(*args):\n    events.append(args)\n    return result\ncodecs.lookup = lookup\ncodecs.StreamRecoder = recoder\nassert codecs.EncodedFile(file=stream, data_encoding=data, file_encoding=file, errors=errors) is result\nassert events == [data, file, 'encode', 'decode', 'streamreader', 'streamwriter', (stream, 'encode', 'decode', 'streamreader', 'streamwriter', errors)]\nassert result.data_encoding is data and result.file_encoding is file\nevents.clear()\nassert codecs.EncodedFile(stream, data) is result\nassert events[:2] == [data, data]\nassert events[-1][-1] == 'strict'\nassert result.file_encoding is data\n\nprint('verified')\n",
+      "sha256": "17360721b41838a8b35132d1c19d20960e9b99e311599f37c068226323ce9eff",
+      "reference": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "verified\n",
+        "reads": 1,
+        "writes": 2
+      },
+      "match": true
+    },
+    {
+      "name": "EncodedFile preserves lookup and stream constructor failures and partial effects",
+      "source": "assert input() == 'contract'\n\nimport codecs\nevents = []\nfailure = ValueError('stream failure')\nclass Reader:\n    def __init__(self, stream, errors):\n        events.append(('reader', stream, errors))\nclass Writer:\n    def __init__(self, stream, errors):\n        events.append(('writer', stream, errors))\n        raise failure\ndef transform(value, errors='strict'):\n    return (value, len(value))\ninfo = codecs.CodecInfo(transform, transform, Reader, Writer)\ndef search(name):\n    events.append(name)\n    return info\ncodecs.register(search)\nstream = object()\ntry:\n    codecs.EncodedFile(stream, 'encoded-file-data', 'encoded-file-target', 'custom')\nexcept ValueError as caught:\n    assert caught is failure\n    assert not hasattr(caught, '__notes__')\nelse:\n    raise AssertionError('writer failure lost')\nassert events == ['encoded_file_data', 'encoded_file_target', ('reader', stream, 'custom'), ('writer', stream, 'custom')]\nevents.clear()\ndef lookup(name):\n    events.append(name)\n    raise failure\ncodecs.lookup = lookup\ntry:\n    codecs.EncodedFile(stream, 'data', 'file')\nexcept ValueError as caught:\n    assert caught is failure\nelse:\n    raise AssertionError('lookup failure lost')\nassert events == ['data']\n\nprint('verified')\n",
+      "sha256": "666800f95bf3fe215a31b93019df124ab2ca8b6edf7c5af0e559873b66cf9de4",
+      "reference": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "verified\n",
+        "reads": 1,
+        "writes": 2
+      },
+      "match": true
+    },
+    {
+      "name": "EncodedFile constant and instruction metadata",
+      "source": "assert input() == 'contract'\nimport codecs\nc = codecs.EncodedFile.__code__\nassert c.co_consts == (codecs.EncodedFile.__doc__,)\nassert type(c.co_code) is bytes\nassert type(c.co_linetable) is bytes\nassert type(c.co_exceptiontable) is bytes\nassert list(c.co_lines())\nassert list(c.co_positions())\n\nprint('verified')\n",
+      "sha256": "0d1822e14e93fcb2fd0f4426133cec5e62dfed9624aead3d85d81c3f221d94f6",
+      "reference": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "exception",
+        "diagnostic": "AttributeError: 'code' object has no attribute 'co_consts'",
+        "stdout": "",
+        "reads": 1,
+        "writes": 0
+      },
+      "match": false
+    },
+    {
+      "name": "EncodedFile real traceback frame chain",
+      "source": "assert input() == 'contract'\nimport codecs\nfailure = LookupError('failure')\ndef lookup(name):\n    raise failure\ncodecs.lookup = lookup\ntry:\n    codecs.EncodedFile(None, 'utf-8')\nexcept LookupError as error:\n    assert error is failure\n    tb = error.__traceback__\n    frames = []\n    while tb is not None:\n        frames.append((tb.tb_frame.f_code.co_name, tb.tb_lineno, tb.tb_lasti))\n        tb = tb.tb_next\n    print(frames)\n    assert [entry[0] for entry in frames] == ['<module>', 'EncodedFile', 'lookup']\n\nprint('verified')\n",
+      "sha256": "3f510bf6159da7b299194c3649c1f9c6ce4b847c14f40090dd4b41120465f2dc",
+      "reference": {
+        "status": 0,
+        "stdout": "[('<module>', 8, 104), ('EncodedFile', 964, 26), ('lookup', 5, 12)]\nverified\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "exception",
+        "diagnostic": "AssertionError: ",
+        "stdout": "[]\n",
+        "reads": 1,
+        "writes": 2
+      },
+      "match": false
+    },
+    {
+      "name": "EncodedFile public binary stream",
+      "source": "assert input() == 'contract'\nimport codecs, io\nstream = io.BytesIO(b'\\xe9\\n')\nwrapped = codecs.EncodedFile(stream, 'utf-8', 'latin-1')\nassert wrapped.readlines() == [b'\\xc3\\xa9\\n']\nwrapped.seek(0)\nassert next(wrapped) == b'\\xc3\\xa9\\n'\nwrapped.reset()\nwith wrapped as entered:\n    assert entered is wrapped\nassert stream.closed\n\nprint('verified')\n",
+      "sha256": "a700761b36abedcf490897258a681dab257fe3dfe48af5d767dc06d97cb5a436",
+      "reference": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "exception",
+        "diagnostic": "ModuleNotFoundError: No module named 'io'",
+        "stdout": "",
+        "reads": 1,
+        "writes": 0
+      },
+      "match": false
+    },
+    {
+      "name": "EncodedFile callback service",
+      "source": "\nimport codecs\nevents = []\ndef search(name):\n    assert name == 'encoded_file_service'\n    assert input() == 'continue'\n    return codecs.lookup('utf-8')\ncodecs.register(search)\nclass Stream:\n    def write(self, data):\n        assert data == b'encoded'\n        print('encoded')\nstream = codecs.EncodedFile(Stream(), 'encoded-file-service')\nstream.write(b'encoded')\nprint('finished')\n",
+      "sha256": "fd5b99a6e83f900bc5748fe3ef78334d65d342fdd62659754006c1358426495d",
+      "reference": {
+        "status": 0,
+        "stdout": "encoded\nfinished\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "encoded\nfinished\n",
+        "reads": 1,
+        "writes": 4
+      },
+      "match": true
+    }
+  ],
+  "cancellation": {
+    "source": "\nimport codecs\nevents = []\ndef search(name):\n    assert name == 'encoded_file_service'\n    assert input() == 'continue'\n    return codecs.lookup('utf-8')\ncodecs.register(search)\nclass Stream:\n    def write(self, data):\n        assert data == b'encoded'\n        print('encoded')\nstream = codecs.EncodedFile(Stream(), 'encoded-file-service')\nstream.write(b'encoded')\nprint('finished')\n",
+    "result": {
+      "status": "terminated",
+      "reason": "cancelled",
+      "message": "execution cancelled"
+    },
+    "resumed": {
+      "status": "terminated",
+      "reason": "cancelled",
+      "message": "execution cancelled"
+    },
+    "reads": 1,
+    "writes": 0,
+    "stdout": ""
+  }
+}

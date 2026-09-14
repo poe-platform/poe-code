@@ -1,6 +1,6 @@
 import { ConstantIterator } from "./constant-iterator.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import { createRuntimeRangeIterator } from "./runtime-range-iterator.js";
+import { RuntimeRangeIterator } from "./runtime-range-iterator.js";
 import type { RuntimeValue } from "./runtime-values.js";
 import type { ConstantValues } from "./constant-values.js";
 import { PythonRuntimeError } from "./error.js";
@@ -9,6 +9,7 @@ import type { CompletionIterator } from "./iterator-completion.js";
 import { ProtocolIterator, type IterationContext } from "./protocol-iterator.js";
 import { lengthHint } from "./length-hint.js";
 import { nativeIteratorLengthHint } from "./native-iterator-length-hint.js";
+import {RuntimeBytesIterator} from "./runtime-bytes-iterator.js";
 
 /** Acquire host iteration for exact builtin runtime values. Prepared iterator
  * records preserve their cursor identity; lists use live storage, not snapshots.
@@ -41,11 +42,12 @@ export function runtimeIterate(value: RuntimeValue, values: ConstantValues, mete
       meter.checkpoint(1, 32);
       return value.items.iterate(key => key);
     case "range": {
-      const iterator = createRuntimeRangeIterator(value.value, false, values, meter);
+      const iterator = new RuntimeRangeIterator(value, false, values, meter);
       if (hint) nativeIteratorLengthHint(iterator, meter);
       return iterator;
     }
-    case "tuple": case "str": case "bytes": return new ConstantIterator<RuntimeValue>(value, values, meter);
+    case "bytes":return new RuntimeBytesIterator(value,values,meter);
+    case "tuple": case "str": return new ConstantIterator<RuntimeValue>(value, values, meter);
     default: {
       if (protocol !== undefined) {
         const iterator = new ProtocolIterator(value, protocol, meter, notIterable);

@@ -20,6 +20,7 @@ export interface CallableIterationContext<Value> {
  * guards remain external; no implicit callable close is introduced.
  */
 export class CallableIterator<Value> implements IterableIterator<Value> {
+  readonly typeName = "callable_iterator";
   #source: { callable: Value; sentinel: Value } | undefined;
 
   constructor(callable: Value, sentinel: Value, private readonly context: CallableIterationContext<Value>, private readonly meter: ExecutionMeter) {
@@ -32,6 +33,14 @@ export class CallableIterator<Value> implements IterableIterator<Value> {
   }
 
   [Symbol.iterator](): IterableIterator<Value> { return this; }
+
+  /** Read after resolving the calling frame's builtin iter: that lookup can
+   * execute guest code and exhaust this cursor. Returned references retain
+   * their identity even when later iteration releases the cursor's ownership. */
+  reductionState(): Readonly<{ callable: Value; sentinel: Value }> | undefined {
+    this.meter.checkpoint();
+    return this.#source;
+  }
 
   next(): CompletionResult<Value> {
     this.meter.checkpoint(1, 16);

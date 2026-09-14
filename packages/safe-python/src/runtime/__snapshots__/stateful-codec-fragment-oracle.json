@@ -1,0 +1,82 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "seed": 175,
+  "alphabet": [
+    0,
+    10,
+    14,
+    15,
+    27,
+    36,
+    38,
+    40,
+    41,
+    46,
+    64,
+    65,
+    66,
+    67,
+    68,
+    70,
+    73,
+    74,
+    78,
+    79,
+    80,
+    81,
+    90,
+    92,
+    126,
+    127,
+    128,
+    255
+  ],
+  "generator": "import codecs, hashlib, json, platform, sys, unicodedata\nfrom pathlib import Path\nassert sys.version_info[:3] == (3,14,7)\nassert unicodedata.unidata_version == '16.0.0'\nnames=['iso2022_jp','iso2022_jp_1','iso2022_jp_2','iso2022_jp_3','iso2022_jp_2004','iso2022_jp_ext','iso2022_kr','hz']\nalphabet=[0,10,14,15,27,36,38,40,41,46,64,65,66,67,68,70,73,74,78,79,80,81,90,92,126,127,128,255]\nseed=175\ncount=2000\nrows=[]\nfor name in names:\n    state=seed\n    def next_value():\n        global state\n        state=(state*1664525+1013904223)&0xffffffff\n        return state>>8\n    digest=hashlib.sha256()\n    for index in range(count):\n        data=bytes(alphabet[next_value()%len(alphabet)] for _ in range(1+next_value()%29))\n        if index%2==0: data=b'\\x1b'+data\n        policy=['strict','ignore','replace'][next_value()%3]\n        split=next_value()%(len(data)+1)\n        decoder=codecs.getincrementaldecoder(name)(policy)\n        steps=[]\n        for part,final in [(data[:split],False),(data[split:],False),(b'',True),(b'AB',True)]:\n            try: result=['ok',list(map(ord,decoder.decode(part,final)))]\n            except UnicodeDecodeError as error: result=['error',type(error).__name__,error.encoding,list(error.object),error.start,error.end,error.reason]\n            except Exception as error: result=['error',type(error).__name__,str(error)]\n            saved=decoder.getstate()\n            steps.append([result,[list(saved[0]),str(saved[1])]])\n            restored=codecs.getincrementaldecoder(name)(policy)\n            restored.setstate(saved)\n            decoder=restored\n        decoder.reset()\n        saved=decoder.getstate()\n        steps.append([list(saved[0]),str(saved[1])])\n        digest.update((json.dumps([list(data),policy,split,steps],separators=(',',':'))+'\\n').encode())\n    rows.append({'name':name,'count':count,'digest':digest.hexdigest()})\nprint(json.dumps({'reference':{'version':sys.version,'unicode':unicodedata.unidata_version,'platform':platform.platform(),'byteorder':sys.byteorder},'seed':seed,'alphabet':alphabet,'generator':Path(__file__).read_text(),'cases':rows},indent=2))\n",
+  "cases": [
+    {
+      "name": "iso2022_jp",
+      "count": 2000,
+      "digest": "507c2e47c408b7518784c80b97a16b00ba3d11cb236dfcef2800f02ead553a94"
+    },
+    {
+      "name": "iso2022_jp_1",
+      "count": 2000,
+      "digest": "c254304d4d7c3ec94a14ee54914ad60e68026bb685d7463158f17a4e17d0cf54"
+    },
+    {
+      "name": "iso2022_jp_2",
+      "count": 2000,
+      "digest": "24e20152d0817a39f9ca9d99d08e768477f466540aff3302bc554ffe9aecb0ce"
+    },
+    {
+      "name": "iso2022_jp_3",
+      "count": 2000,
+      "digest": "6b71ef5316e4af31d0a9693deb201fcfdb2de57d1777b54bca80c78e58f0c102"
+    },
+    {
+      "name": "iso2022_jp_2004",
+      "count": 2000,
+      "digest": "748bb5043c469d9d8f9cf1445bf48ca1bc2c9901062bce4517b79b5dd2586576"
+    },
+    {
+      "name": "iso2022_jp_ext",
+      "count": 2000,
+      "digest": "55bf92df2dd3191c6a2d187935a18786eb054db9fc0d030faa0b470312397e51"
+    },
+    {
+      "name": "iso2022_kr",
+      "count": 2000,
+      "digest": "ac00ce2a2272c858947fdf6505eefaf4120e6a6fa0121a21d21bdb9ba19002f6"
+    },
+    {
+      "name": "hz",
+      "count": 2000,
+      "digest": "2b9bbe3dfa551cad8428f479e7ca29e64d2b2118b94dcac19821bc9709bdb57f"
+    }
+  ]
+}

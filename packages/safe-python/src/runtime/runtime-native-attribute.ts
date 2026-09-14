@@ -1,5 +1,11 @@
+import { runtimeCallable } from "./runtime-callability.js";
+import { diagnosticTypeName } from "./diagnostic-type-name.js";
+import { runtimeDictionaryPayload } from "./runtime-dictionary-payload.js";
 import { PythonRuntimeError } from "./error.js";
 import { readRuntimeIteratorMethod } from "./runtime-iterator-method.js";
+import { RuntimeRangeIterator } from "./runtime-range-iterator.js";
+import {RuntimeBytesIterator} from "./runtime-bytes-iterator.js";
+import { CallableIterator } from "./callable-iterator.js";
 import { createRuntimeNativeRepresentationMethod, hasNativeRepresentation } from "./runtime-native-representation-method.js";
 import { createRuntimeFormatContext, hasNativeObjectFormat } from "./runtime-format.js";
 import { createRuntimeBraceFormatMethod } from "./runtime-brace-format-method.js";
@@ -29,6 +35,8 @@ import { createRuntimeSplitlinesMethod } from "./runtime-splitlines-method.js";
 import { createRuntimeSplitMethod } from "./runtime-split-method.js";
 import { createRuntimeStringReplaceMethod } from "./runtime-string-replace-method.js";
 import { createRuntimeBytesReplaceMethod } from "./runtime-bytes-replace-method.js";
+import {createRuntimeBytesDecodeMethod} from "./runtime-bytes-decode-method.js";
+import {createRuntimeTextDecoder} from "./runtime-text-decoding.js";
 import { createRuntimeBytesTranslateMethod } from "./runtime-bytes-translate-method.js";
 import { createRuntimeBytesMaketransMethod } from "./runtime-bytes-maketrans-method.js";
 import { createRuntimeBytesHexMethod } from "./runtime-bytes-hex-method.js";
@@ -58,7 +66,7 @@ import type { RuntimeBytesInputContext } from "./runtime-bytes-input.js";
 import { createRuntimeStringTranslateMethod, type RuntimeStringTranslationContext } from "./runtime-string-translate-method.js";
 import { createRuntimeStringMaketransMethod } from "./runtime-string-maketrans-method.js";
 import type { RuntimeBufferContext } from "./runtime-buffer-context.js";
-import { isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
+import { hasRuntimeInstanceAttributes, isRuntimeSet, type RuntimeValue, type RuntimeValues } from "./runtime-values.js";
 import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
 import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
 import { RuntimeAttributeStorage } from "./runtime-attribute-storage.js";
@@ -112,9 +120,28 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
       meter.checkpoint(); receiver.value.attributes = storage;
       return dictionary;
     }
-    if (name === "__annotate__") return values.none;
+    if (name === "__annotate__") return receiver.value.annotate ?? values.none;
     if (name === "__annotations__") {
       if (receiver.value.annotations !== undefined) return receiver.value.annotations;
+      const annotate = receiver.value.annotate;
+      if (annotate !== undefined && runtimeCallable(annotate, meter, { callable(candidate) {
+        return hasRuntimeInstanceAttributes(candidate) && lookupMroAttribute(candidate.type.value.mro, values.string("__call__"), (owner, key) => owner.namespace.items.lookup(key), meter) !== undefined;
+      } })) {
+        if (beginCall === undefined) throw Error("function annotation evaluation requires a call policy");
+        let result: RuntimeValue;
+        try {
+          const call = beginCall(annotate);
+          meter.checkpoint(); call.positional(values.integer(1));
+          meter.checkpoint(); result = call.invoke();
+        } finally { meter.checkpoint(); }
+        if (runtimeDictionaryPayload(result) === undefined) {
+          const typeName = methods?.actualType?.(result).value.name ?? (result.kind === "none" ? "NoneType" : result.kind);
+          meter.checkpoint(0, 128 + 2 * typeName.length);
+          throw new PythonRuntimeError("TypeError", `__annotate__ returned non-dict of type '${diagnosticTypeName(typeName, meter, 100)}'`);
+        }
+        receiver.value.annotations = result;
+        return result;
+      }
       if (methods?.dictionaryKeys === undefined) throw Error("function annotation dictionaries require a key policy");
       const dictionary = values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(methods.dictionaryKeys, meter, runtimeDictionaryStorage));
       meter.checkpoint(); receiver.value.annotations = dictionary; return dictionary;
@@ -130,6 +157,12 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
     if (name === "__func__" || name === "__wrapped__") return receiver.value;
     const attribute = receiver.state.attributes.get(name);
     if (attribute !== undefined) return attribute;
+    if((name==="__doc__"||name==="__dict__")&&methods?.actualType!==undefined){
+      const type=methods.actualType(receiver);meter.checkpoint();
+      const inherited=lookupMroAttribute(type.value.mro,values.string(name),(owner,key)=>owner.namespace.items.lookup(key),meter);
+      if(inherited?.value.kind==="getset_descriptor")return readRuntimeGetsetDescriptor(inherited.value,receiver,type,meter);
+      if(inherited!==undefined)return inherited.value;
+    }
   }
   if (receiver.kind === "method") {
     if (name === "__func__") return receiver.value.function;
@@ -139,17 +172,24 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
   if (descriptorMethod !== undefined) return descriptorMethod;
   const metadata = readRuntimeNativeMethodMetadata(receiver, name, values, meter, methods);
   if (metadata !== undefined) return metadata;
+  if (name === "__dir__" && methods?.actualType !== undefined) {
+    const type = methods.actualType(receiver); meter.checkpoint();
+    const member = lookupMroAttribute(type.value.mro, values.string(name), (owner, key) => owner.namespace.items.lookup(key), meter)?.value;
+    if (member?.kind === "method_descriptor") return getRuntimeMethodDescriptor(member, receiver, type, values, meter);
+  }
   if ((receiver.kind === "slice" || receiver.kind === "mappingproxy" || receiver.kind === "range" || receiver.kind === "int" || receiver.kind === "bool" || receiver.kind === "float" || receiver.kind === "complex") && methods?.actualType !== undefined) {
     const type = methods.actualType(receiver); meter.checkpoint();
     const member = receiver.kind === "bool" ? lookupMroAttribute(type.value.mro, values.string(name), (owner, key) => owner.namespace.items.lookup(key), meter)?.value : type.value.namespace.items.lookup(values.string(name))?.value;
+    if (name === "__doc__" && member !== undefined) return member;
     if (member?.kind === "member_descriptor" || member?.kind === "getset_descriptor") return readRuntimeGetsetDescriptor(member, receiver, type, meter);
     if (member?.kind === "wrapper_descriptor" || member?.kind === "method_descriptor" || member?.kind === "classmethod_descriptor") return getRuntimeMethodDescriptor(member, receiver, type, values, meter);
   }
-  if (((receiver.kind === "str" && (runtimeStringSlotNames.has(name)||runtimeStringArithmeticSlotNames.has(name)||runtimeStringMethodNames.has(name))) || receiver.kind === "cell" || receiver.kind === "none" || receiver.kind === "not-implemented" || receiver.kind === "ellipsis" || receiver.kind === "tuple" || receiver.kind === "dict" || receiver.kind === "dict_keys" || receiver.kind === "dict_values" || receiver.kind === "dict_items") && methods?.actualType !== undefined) {
+  if ((name === "__subclasshook__" || receiver.kind === "bytes" || (receiver.kind === "iterator"&&(receiver.value instanceof RuntimeBytesIterator || receiver.value instanceof RuntimeRangeIterator || receiver.value instanceof CallableIterator)) || (receiver.kind === "str" && (name === "__doc__"||runtimeStringSlotNames.has(name)||runtimeStringArithmeticSlotNames.has(name)||runtimeStringMethodNames.has(name))) || receiver.kind === "cell" || receiver.kind === "none" || receiver.kind === "not-implemented" || receiver.kind === "ellipsis" || receiver.kind === "tuple" || receiver.kind === "dict" || receiver.kind === "dict_keys" || receiver.kind === "dict_values" || receiver.kind === "dict_items") && methods?.actualType !== undefined) {
     const type = methods.actualType(receiver); meter.checkpoint();
     const member = lookupMroAttribute(type.value.mro, values.string(name), (owner, key) => owner.namespace.items.lookup(key), meter)?.value;
     if (name === "__hash__" && member?.kind === "none") return member;
     if (name === "mapping" && member?.kind === "getset_descriptor") return readRuntimeGetsetDescriptor(member, receiver, type, meter);
+    if (name === "__doc__" && member !== undefined) return member;
     if (member?.kind === "staticmethod") return member.value;
     if (member?.kind === "wrapper_descriptor" || member?.kind === "method_descriptor" || member?.kind === "classmethod_descriptor") return getRuntimeMethodDescriptor(member, receiver, type, values, meter);
   }
@@ -198,6 +238,7 @@ export function runtimeNativeAttribute(receiver: RuntimeValue, name: string, val
   if ((receiver.kind === "str" || receiver.kind === "bytes") && name === "expandtabs") return createRuntimeExpandtabsMethod(receiver, values, meter, methods?.integerIndex);
   if ((receiver.kind === "str" || receiver.kind === "bytes") && (name === "center" || name === "ljust" || name === "rjust" || name === "zfill")) return createRuntimePadMethod(receiver, name, values, meter, methods?.integerIndex, methods?.bytes);
   if (receiver.kind === "bytes") {
+    if (name === "decode") return createRuntimeBytesDecodeMethod(receiver,values,meter,createRuntimeTextDecoder(values));
     if (name === "fromhex") return createRuntimeBytesFromhexMethod(values, meter, methods?.buffers);
     if (name === "hex") return createRuntimeBytesHexMethod(receiver, values, meter, methods?.integerIndex);
     if (name === "maketrans") return createRuntimeBytesMaketransMethod(values, meter, methods?.buffers);

@@ -15,6 +15,7 @@ export class DictionaryEntrySlots<Entry extends object> {
   #slots: (Entry | undefined)[];
   #positions: Map<Entry, number>;
   #usable = 0;
+  #capacity = 0;
   #unicode: boolean | undefined;
 
   /** Construction hint, not a guarantee: tiny hints use the normal empty table;
@@ -33,6 +34,7 @@ export class DictionaryEntrySlots<Entry extends object> {
     meter.checkpoint(1, 96 + capacity * 8);
     this.#slots = []; this.#positions = new Map();
     this.#usable = capacity;
+    this.#capacity = capacity;
     this.#unicode = capacity === 0 ? undefined : exactStrings;
     Object.freeze(this);
   }
@@ -47,6 +49,41 @@ export class DictionaryEntrySlots<Entry extends object> {
       return;
     }
     this.#rebuild(this.#unicode === false ? false : exactString, entry);
+  }
+
+  /** Merge clones a clean combined table only at minimum size or when its
+   * live entries would not fit in a table with half as many hash slots. */
+  get mergeCloneable(): boolean {
+    this.meter.checkpoint();
+    return this.#slots.length === this.#positions.size && (this.#capacity === 5 || this.#positions.size > Math.floor(this.#capacity / 2));
+  }
+
+  /** Native fromkeys always resizes before scanning, even for a self-source.
+   * Keep at least the existing capacity, compact holes and reserve enough
+   * entries for the source. A general-key destination never becomes Unicode.
+   */
+  prepareFromKeys(minimumEntries: number, source?: DictionaryEntrySlots<Entry>): void {
+    if (!Number.isSafeInteger(minimumEntries) || minimumEntries < 0) throw new RangeError("minimum dictionary entries must be a nonnegative safe integer");
+    let size = 8;
+    while (Math.floor(size * 2 / 3) < Math.max(minimumEntries, this.#capacity)) {
+      this.meter.checkpoint();
+      size *= 2;
+    }
+    const capacity = Math.floor(size * 2 / 3);
+    if (capacity > 0xffffffff) exhaustAllocation(this.meter);
+    const unicode = this.#unicode !== false && source !== undefined && source.#unicode !== false;
+    this.meter.checkpoint(1 + this.#slots.length, 96 + capacity * 8 + this.#positions.size * 40);
+    const slots: Entry[] = [], positions = new Map<Entry, number>();
+    for (const entry of this.#slots) {
+      if (entry === undefined) continue;
+      positions.set(entry, slots.length);
+      slots.push(entry);
+    }
+    this.#slots = slots;
+    this.#positions = positions;
+    this.#capacity = capacity;
+    this.#usable = capacity - slots.length;
+    this.#unicode = unicode;
   }
 
   #rebuild(unicode: boolean, appended: Entry): void {
@@ -66,6 +103,7 @@ export class DictionaryEntrySlots<Entry extends object> {
     positions.set(appended, slots.length); slots.push(appended);
     this.#slots = slots; this.#positions = positions;
     this.#usable = capacity - slots.length;
+    this.#capacity = capacity;
     this.#unicode = unicode;
   }
 
@@ -97,7 +135,26 @@ export class DictionaryEntrySlots<Entry extends object> {
 
   clear(): void {
     this.meter.checkpoint(1 + this.#slots.length);
-    this.#slots.length = 0; this.#positions.clear(); this.#usable = 0; this.#unicode = undefined;
+    this.#slots.length = 0; this.#positions.clear(); this.#usable = 0; this.#capacity = 0; this.#unicode = undefined;
+  }
+
+  get lastPosition(): number { this.meter.checkpoint(); return this.#slots.length - 1; }
+
+  /** Reverse scans fail when a retained position lies beyond the current table;
+   * shrinking/compacting does not clamp that position to the new last entry. */
+  previous(position: number): Readonly<{ position: number; entry: Entry }> | undefined {
+    this.meter.checkpoint();
+    if (!Number.isSafeInteger(position) || position < -1) throw new RangeError("reverse dictionary position must be a safe integer at least -1");
+    if (position >= this.#slots.length) return undefined;
+    for (let index = position; index >= 0; index--) {
+      this.meter.checkpoint();
+      const entry = this.#slots[index];
+      if (entry !== undefined) {
+        this.meter.checkpoint(0, 32);
+        return Object.freeze({ position: index - 1, entry });
+      }
+    }
+    return undefined;
   }
 
   /** No exhaustion latch: the owner keeps the unchanged input position when no

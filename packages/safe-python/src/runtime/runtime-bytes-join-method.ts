@@ -7,6 +7,7 @@ import type { ExpressionContext } from "./expression-evaluation.js";
 import type { RuntimeBufferContext, RuntimeBufferLease } from "./runtime-buffer-context.js";
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import { ListStorage } from "./list-storage.js";
+import { runtimeExceptionMatches } from "./runtime-exception-matches.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 /** Consume generic iterables before member validation; an iterator failure
@@ -41,7 +42,7 @@ export function createRuntimeBytesJoinMethod(receiver: Extract<RuntimeValue, { k
           try { leases[index] = buffers?.acquireSimple(item); }
           catch (error) {
             meter.checkpoint();
-            if (!(error instanceof PythonRuntimeError)) throw error;
+            if (!(error instanceof PythonRuntimeError) && !runtimeExceptionMatches(error, "BaseException", invocation)) throw error;
           }
           meter.checkpoint();
           if (leases[index] === undefined) {

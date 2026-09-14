@@ -4,7 +4,7 @@ import type { ImmutableBytes } from "./immutable-bytes.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { hashReal } from "./real-comparison.js";
 import { PythonRuntimeError } from "./error.js";
-import type { RangeValue, RuntimeValue } from "./runtime-values.js";
+import type { BuiltinInvocationContext, RangeValue, RuntimeValue } from "./runtime-values.js";
 import { protocolHash, type HashProtocolContext } from "./hash-protocol.js";
 import { RuntimeHashError } from "./runtime-hash-error.js";
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
@@ -20,6 +20,8 @@ export interface ConstantHashContext {
 }
 
 export interface RuntimeHashContext extends ConstantHashContext {
+  describeException?: BuiltinInvocationContext["describeException"];
+  hashErrorTypeName?: BuiltinInvocationContext["hashErrorTypeName"];
   /** Select guest type-slot dispatch for a value, including nested immutable
    * members. Undefined retains the exact native path. Keep this policy stable
    * for the lifetime of hashed dictionary/set keys. */
@@ -82,9 +84,12 @@ export function runtimeHash(value: RuntimeValue, context: ConstantHashContext | 
         try { result = protocolHash(current, guest, meter); }
         catch (error) {
           meter.checkpoint();
-          if (!(error instanceof PythonRuntimeError) || error.name !== "TypeError") throw error;
+          const describe = "none" in context ? context.describeException?.(error, "TypeError") : undefined;
+          if (describe === undefined && (!(error instanceof PythonRuntimeError) || error.name !== "TypeError")) throw error;
           const type = rootGuest === undefined ? value.kind : rootGuest.typeName(value);
-          throw new RuntimeHashError(diagnosticTypeName(type, meter), error, meter);
+          const name = "none" in context && context.hashErrorTypeName !== undefined
+            ? () => context.hashErrorTypeName!(value) : diagnosticTypeName(type, meter);
+          throw new RuntimeHashError(name, error, meter, describe);
         }
       }
       else if (current.kind === "tuple" || current.kind === "slice" || current.kind === "range") {
@@ -98,6 +103,8 @@ export function runtimeHash(value: RuntimeValue, context: ConstantHashContext | 
         result = BigInt.asIntN(64, prime5 + (prime5 ^ 3527539n));
       } else {
         switch (current.kind) {
+          // CPython 3.14's none_hash is independent of object identity and seeds.
+          case "none": result = 0xfca86420n; break;
           case "frozenset": result = current.items.keySetHash(); break;
           case "mappingproxy": current = current.value; continue;
           case "method": {

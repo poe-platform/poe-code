@@ -10,7 +10,7 @@ import type { MethodDescriptorValue, RuntimeValue, RuntimeValues, TypeValue } fr
  * not participate and a setter need not retain the supplied list. */
 export function createExceptionAddNoteDescriptor(owner:TypeValue,values:RuntimeValues,meter:ExecutionMeter):MethodDescriptorValue {
   meter.checkpoint(0,96);
-  return values.methodDescriptor({owner,name:"add_note",doc:"Add a note to the exception",accepts:receiver=>runtimeExceptionPayload(receiver)!==undefined,
+  return values.methodDescriptor({owner,name:"add_note",doc:"Add a note to the exception",textSignature:"($self, note, /)",accepts:receiver=>runtimeExceptionPayload(receiver)!==undefined,
     invoke(receiver,positional,keywords,meter,invocation,bound) {
       meter.checkpoint();
       const name=bound&&receiver.kind==="instance"?receiver.type.value.name:owner.value.name;

@@ -1,0 +1,31 @@
+{
+  "target": "CPython 3.14.7 (main, Aug 5 2026, 10:29:49), Clang 21.0.0; Unicode 16.0.0",
+  "oracleSource": "import codecs, hashlib, json\noriginals=['','A','\ud83d\ude00']\npendings=['','Z','12345678']\nactions=['end','negative','rewind','out-of-bounds','overflow','raise','reset','nested','nested-failure','policy']\ndef state(text,opaque):\n    b=text.encode('utf-8'); return int.from_bytes(bytes([len(b)])+b+opaque.to_bytes(8,'little'),'little')\ndef describe(e,failure):\n    if isinstance(e,UnicodeEncodeError): return ['error',type(e).__name__,e.encoding,list(map(ord,e.object)),e.start,e.end,e.reason]\n    return ['error',type(e).__name__,str(e),e is failure]\nfor name in ['gb2312','gbk','big5','cp950']:\n    rows=[]\n    for original in originals:\n      for pending in pendings:\n       for final in [False,True]:\n        for action in actions:\n         for replacement in ['bytes','text','invalid']:\n          seen=[]; count=[0]; failure=ValueError('guest failure')\n          encoder=codecs.getincrementalencoder(name)('encoder_matrix')\n          retained_policy=encoder.errors\n          def handler(error):\n            count[0]+=1\n            seen.append([error.encoding,list(map(ord,error.object)),error.start,error.end,error.reason])\n            encoder.setstate(state(pending,99))\n            if action=='raise': raise failure\n            if action=='reset': encoder.reset()\n            if action=='policy': encoder.errors='ignore'\n            if action in ('nested','nested-failure'):\n              encoder.setstate(state('X',123))\n              if action=='nested-failure': encoder.errors='strict'\n              try: result=['ok',list(encoder.encode('Y' if action=='nested' else '\\ud800',False))]\n              except BaseException as e: result=describe(e,failure)\n              encoder.errors='encoder_matrix'\n              seen.append(['nested',result,str(encoder.getstate())])\n            position=error.end\n            if action=='negative' and position<len(error.object): position-=len(error.object)\n            if action=='rewind' and count[0]==1: position=0\n            if action=='out-of-bounds': position=len(error.object)+1\n            if action=='overflow': position=1<<63\n            return (b'\\x80\\xff' if replacement=='bytes' else '\u4e2d' if replacement=='text' else '\\ud800',position)\n          codecs.register_error('encoder_matrix',handler)\n          encoder.setstate(state(original,42))\n          try: result=['ok',list(encoder.encode('\\ud800A\\udfff',final))]\n          except BaseException as e: result=describe(e,failure)\n          rows.append([list(map(ord,original)),list(map(ord,pending)),final,action,replacement,seen,result,str(encoder.getstate())])\n    data=''.join(json.dumps(row,separators=(',',':'),ensure_ascii=True)+'\\n' for row in rows)\n    print(name,len(rows),hashlib.sha256(data.encode()).hexdigest(),flush=True)\n    with open('/tmp/safe-python-encoder-matrix-'+name+'.json','w') as f: json.dump(rows,f)\n",
+  "serialization": "One compact JSON record plus LF, in nested-loop order. Strings in records are ASCII; text inputs and error objects are Unicode code point arrays.",
+  "references": {
+    "gb2312": {
+      "records": 540,
+      "sha256": "59a2c5cd930c309c021755fe300e95882c374175f21cab29cec048e9382e34fa"
+    },
+    "gbk": {
+      "records": 540,
+      "sha256": "c712023ab403f1b20bc746b64a7bbd6a3de491983b6f60cb7690f541295dbe88"
+    },
+    "big5": {
+      "records": 540,
+      "sha256": "e14b488399fa7a957e8b86a83b0a98994ef8e0e7f13b33c7d5d942d1968a7341"
+    },
+    "cp950": {
+      "records": 540,
+      "sha256": "d2e3e81dcd965551ac5ca1fc1a9779110935b16feba0b0febe755fb2b52c3479"
+    }
+  },
+  "unretainedPolicy": {
+    "sourceChange": "Replace retained_policy=encoder.errors with print(name,repr(original),repr(pending),final,action,replacement,flush=True)",
+    "returncode": -11,
+    "lastStartedCase": "gb2312 '\ud83d\ude00' '' False policy bytes",
+    "stderr": "",
+    "status": "Unresolved native policy-lifetime behavior. The retained-policy matrix is separate evidence; the unretained case is not accepted or excluded from the compatibility target."
+  },
+  "scope": "Internal mapping/state machine comparison only. Public multibyte guest types, registry publication and services remain unavailable and unfinished."
+}

@@ -28,7 +28,7 @@ describe("canonical runtime type registry", () => {
       [v.list([]),registry.listType()],[v.tuple([]),registry.tupleType()],[v.cell({}),registry.cellType()]
     ] as const)expect(registry.nativeType(value)).toBe(expected);
     expect(registry.nativeType(v.string("canonical string"))).toBe(registry.stringType());
-    expect(registry.nativeType(v.bytes(new Uint8Array()))).toBeUndefined();
+    expect(registry.nativeType(v.bytes(new Uint8Array()))).toBe(registry.bytesType());
   });
   it("retains published instance and metaclass identities during type selection",()=>{
     const {registry,values:v,layout}=fixture(),owner=registry.publish(layout("Owned"),registry.type),instance=v.instance(owner);

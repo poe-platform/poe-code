@@ -13,11 +13,14 @@ export interface FunctionDefaultOverrides<Value> {
 }
 
 export interface KeywordNames<Key> {
-  /** Exact source-name spelling, or undefined if the key cannot equal a source
-   * identifier. Never normalize caller keys or collapse surrogate sequences. */
+  /** Native spelling, or undefined for unrepresentable source-identifier text.
+   * Never normalize caller keys or collapse surrogate sequences. Subclass
+   * equality is independent of this spelling and is supplied by matches. */
   parameter(key: Key): string | undefined;
-  /** Diagnostic formatting only; it must not change matching or stored keys. */
-  display(key: Key): string;
+  /** Guest equality for string subclasses, evaluated in signature order. */
+  matches?(key: Key, parameter: string): boolean;
+  /** Diagnostic formatting only; native joins bypass subclass str conversion. */
+  display(key: Key, mode?: "native"): string;
 }
 
 export interface BoundArguments<Value, Key = string> {
@@ -50,15 +53,6 @@ export function bindArguments<Value, Key = string>(
       if (parameter.kind !== "positional-only") keywordParameters.set(parameter.name, parameter);
     }
   }
-  const keywordNames = new Map<Key, string | undefined>(), suppliedNames = new Set<string>();
-  for (const key of keywords.keys()) {
-    meter?.checkpoint(1, 48);
-    if (!names && typeof key !== "string") throw new Error("non-string keyword storage requires a name adapter");
-    const name = names ? names.parameter(key) : key as string;
-    meter?.checkpoint();
-    keywordNames.set(key, name);
-    if (name !== undefined) suppliedNames.add(name);
-  }
   const values = new Map<string, Value>(), varKeywords = new Map<Key, Value>();
   const varPositional: Value[] = [];
   for (let index = 0; index < positional.length; index++) {
@@ -69,10 +63,17 @@ export function bindArguments<Value, Key = string>(
   let keywordOnlyGiven = 0;
   for (const [key, value] of keywords) {
     meter?.checkpoint();
-    const name = keywordNames.get(key);
-    const parameter = name === undefined ? undefined : keywordParameters.get(name);
+    if (!names && typeof key !== "string") throw new Error("non-string keyword storage requires a name adapter");
+    const name = names ? names.parameter(key) : key as string;
+    let parameter: CallParameter | undefined;
+    if (names?.matches) {
+      for (const candidate of keywordParameters.values()) {
+        meter?.checkpoint();
+        if (names.matches(key, candidate.name)) { parameter = candidate; break; }
+      }
+    } else parameter = name === undefined ? undefined : keywordParameters.get(name);
     if (parameter !== undefined) {
-      if (values.has(parameter.name)) throw new PythonRuntimeError("TypeError", `${functionName}() got multiple values for argument '${parameter.name}'`);
+      if (values.has(parameter.name)) throw new PythonRuntimeError("TypeError", `${functionName}() got multiple values for argument '${names ? names.display(key) : name}'`);
       values.set(parameter.name, value);
       if (parameter.kind === "keyword-only") keywordOnlyGiven++;
     } else if (hasVarKeywords) varKeywords.set(key, value);
@@ -80,7 +81,12 @@ export function bindArguments<Value, Key = string>(
       const conflicts: string[] = [];
       for (const candidate of positionalParameters) {
         meter?.checkpoint();
-        if (candidate.kind === "positional-only" && suppliedNames.has(candidate.name)) conflicts.push(candidate.name);
+        if (candidate.kind !== "positional-only") continue;
+        for (const supplied of keywords.keys()) {
+          meter?.checkpoint();
+          const matches = names?.matches ? names.matches(supplied, candidate.name) : (names ? names.parameter(supplied) : supplied) === candidate.name;
+          if (matches) conflicts.push(names ? names.display(supplied, "native") : supplied as string);
+        }
       }
       if (conflicts.length) throw new PythonRuntimeError("TypeError", `${functionName}() got some positional-only arguments passed as keyword arguments: '${conflicts.join(", ")}'`);
       meter?.checkpoint(keywordParameters.size);

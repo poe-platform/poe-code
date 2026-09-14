@@ -1,0 +1,75 @@
+{
+  "oracle": "CPython 3.14.7 / Unicode 16.0.0 / darwin",
+  "adapter": "PythonSession input/output using explicit node:fs open descriptors; readSync/writeSync/fsyncSync, no memfs",
+  "input": "é\n🐍\nA\n",
+  "results": [
+    {
+      "name": "UTF-8 short reads and writes",
+      "result": {
+        "status": "ok"
+      },
+      "output": "c3a90a\nf09f908d0a\n410a\n",
+      "readCalls": 6
+    },
+    {
+      "name": "reader.read",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1
+    },
+    {
+      "name": "writer.write",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1
+    },
+    {
+      "name": "paired.reset",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1
+    },
+    {
+      "name": "recoder.seek",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1
+    },
+    {
+      "name": "incremental handler",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1
+    },
+    {
+      "name": "iterator source",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1
+    }
+  ]
+}

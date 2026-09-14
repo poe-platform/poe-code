@@ -2,6 +2,8 @@ import { CompensatedSum } from "./compensated-sum.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { CompletionIterator } from "./iterator-completion.js";
 import { integerToFloat } from "./numeric-conversion.js";
+import { runtimeIntegerPayload } from "./runtime-integer-payload.js";
+import { runtimeFloatPayload } from "./runtime-float-payload.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 const MIN_FAST_INTEGER = -(1n << 63n);
@@ -40,8 +42,9 @@ export function sumIterator(cursor: CompletionIterator<RuntimeValue>, start: Run
       if (item.done) return values.float(real.toNumber());
       const value = item.value;
       if (value.kind === "float") { real.add(value.value); continue; }
-      if (value.kind === "int" || value.kind === "bool") {
-        real.add(value.kind === "int" ? integerToFloat(value.value) : value.value ? 1 : 0); continue;
+      const integer = runtimeIntegerPayload(value);
+      if (integer !== undefined) {
+        real.add(integer.kind === "int" ? integerToFloat(integer.value) : integer.value ? 1 : 0); continue;
       }
       result = add(values.float(real.toNumber()), value); meter.checkpoint();
       break;
@@ -54,10 +57,15 @@ export function sumIterator(cursor: CompletionIterator<RuntimeValue>, start: Run
       if (item.done) return values.complex(real.toNumber(), imaginary.toNumber());
       const value = item.value;
       if (value.kind === "complex") { real.add(value.real); imaginary.add(value.imaginary); continue; }
-      if (value.kind === "float") { real.add(value.value); continue; }
-      if (value.kind === "int" || value.kind === "bool") {
-        real.add(value.kind === "int" ? integerToFloat(value.value) : value.value ? 1 : 0); continue;
+      // CPython accepts numeric subtype storage in these phases without
+      // invoking conversion or arithmetic overrides. Float accumulation still
+      // requires exact floats, and complex accumulation exact complex values.
+      const integer = runtimeIntegerPayload(value);
+      if (integer !== undefined) {
+        real.add(integer.kind === "int" ? integerToFloat(integer.value) : integer.value ? 1 : 0); continue;
       }
+      const floating = runtimeFloatPayload(value);
+      if (floating !== undefined) { real.add(floating.value); continue; }
       result = add(values.complex(real.toNumber(), imaginary.toNumber()), value); meter.checkpoint();
       break;
     }

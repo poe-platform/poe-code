@@ -4,6 +4,7 @@ import { ImmutableBytes } from "./immutable-bytes.js";
 import { OrderedKeyMap } from "./ordered-key-map.js";
 import { runtimeNativeAttribute } from "./runtime-native-attribute.js";
 import { RuntimeValues, type RuntimeValue } from "./runtime-values.js";
+import {createRuntimeBytesFromhexMethod} from "./runtime-bytes-fromhex-method.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 100000, maxAllocatedBytes: 100000 }), v = new RuntimeValues(meter);
@@ -73,4 +74,16 @@ it("checks decoding work and output allocation budgets", () => {
   const { call, v } = fixture(), source = v.string("00".repeat(2000));
   expect(() => call([source], new ExecutionBudget({ maxSteps: 30, maxAllocatedBytes: 10000 }))).toThrow(ExecutionLimitError);
   expect(() => call([source], new ExecutionBudget({ maxSteps: 10000, maxAllocatedBytes: 1000 }))).toThrow(ExecutionLimitError);
+});
+
+it.each([1023,1024])("retains full input reservation for buffer exports with %s whitespace bytes",padding=>{
+  const meter=new ExecutionBudget({maxSteps:100000,maxAllocatedBytes:100000}),values=new RuntimeValues(meter);
+  const storage=ImmutableBytes.copyOf([52,49,...Array<number>(padding).fill(32)],meter);
+  const keywords=values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>({hash:()=>1n,equal:(a,b)=>a===b},meter));
+  let releases=0;
+  const method=createRuntimeBytesFromhexMethod(values,meter,{acquireSimple(){return {byteLength:storage.length,copy:()=>storage,release(){releases++;}};}});
+  const result=method.value.invoke([values.cell({})],keywords,meter);
+  expect(bytes(result)).toEqual([65]);
+  expect(result===values.bytes(Uint8Array.of(65))).toBe(padding===1023);
+  expect(releases).toBe(1);
 });

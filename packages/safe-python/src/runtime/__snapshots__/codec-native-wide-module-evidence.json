@@ -1,0 +1,144 @@
+{
+  "reference": [
+    "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "16.0.0",
+    "darwin",
+    "little",
+    "arm64"
+  ],
+  "modules": [
+    {
+      "module": "encodings.utf_16",
+      "sha256": "08437559c8d255a5ba1449c1c75beaa62b0834fe4259d161ecf8699381e4c8e1",
+      "verbatim": true
+    },
+    {
+      "module": "encodings.utf_32",
+      "sha256": "6c235e377e1e277cde5f684cee6f6f8da4c73d153a21891df0cb834f17cd2b6f",
+      "verbatim": true
+    }
+  ],
+  "adapter": "Explicit synchronous file descriptors using readSync, partial-write-aware writeSync and fsyncSync; descriptors closed and temporary files removed.",
+  "rows": [
+    {
+      "name": "utf-16 registry and module API",
+      "source": "assert input() == 'native-wide'\n\nimport codecs\nimport encodings.utf_16 as module\nname = 'utf-16'\nunit = 2\nlittle = 'utf_16_le'\nbig = 'utf_16_be'\nbom = codecs.BOM_UTF16_LE\ntext = 'Aé🐍'\ndata = bom + text.encode(little)\n\ninfo = codecs.lookup(name)\nalias = codecs.lookup('u16')\nassert alias is codecs.lookup('u16') and alias is not info\nassert alias.name == info.name and alias.encode is info.encode\nassert alias.decode is info.decode\nassert type(info) is codecs.CodecInfo\nassert info.name == name\nassert info.encode is module.encode is getattr(codecs, 'utf_16_encode')\nassert info.decode is module.decode\nassert info.incrementalencoder is module.IncrementalEncoder\nassert info.incrementaldecoder is module.IncrementalDecoder\nassert info.streamreader is module.StreamReader\nassert info.streamwriter is module.StreamWriter\nassert module.getregentry() is not info\nassert module.encode(text) == (data, len(text))\nassert module.decode(data) == (text, len(data))\nassert module.decode(text.encode(little)) == (text, len(data) - unit)\nassert codecs.encode(text, name) == data\nassert codecs.decode(data, name) == text\nassert bytes(text, name) == data\n\nprint('verified')\n",
+      "sha256": "268bee65bf3be8ba06ae5e5c8f763f9d227eb30770580690537b357b47adb89e",
+      "guestStatus": "exception",
+      "error": "ModuleNotFoundError: No module named 'sys'",
+      "reads": 1,
+      "stdout": "",
+      "oracleStatus": 0,
+      "oracleStdout": "verified\n",
+      "oracleStderr": ""
+    },
+    {
+      "name": "utf-16 incremental encoder state and failed first call",
+      "source": "assert input() == 'native-wide'\n\nimport codecs\nimport encodings.utf_16 as module\nname = 'utf-16'\nunit = 2\nlittle = 'utf_16_le'\nbig = 'utf_16_be'\nbom = codecs.BOM_UTF16_LE\ntext = 'Aé🐍'\ndata = bom + text.encode(little)\n\nencoder = module.IncrementalEncoder()\nassert encoder.errors == 'strict' and encoder.encoder is None\nassert encoder.getstate() == 2\ntry:\n    encoder.encode('\\ud800')\nexcept UnicodeEncodeError as error:\n    assert (error.encoding, error.object, error.start, error.end, error.reason) == (name, '\\ud800', 0, 1, 'surrogates not allowed')\nelse:\n    assert False\nassert encoder.getstate() == 2 and encoder.encoder is None\nassert encoder.encode('') == bom\nassert encoder.getstate() == 0\nassert encoder.encode(text, True) == text.encode(little)\nassert encoder.encode('', True) == b''\nencoder.reset()\nassert encoder.getstate() == 2 and encoder.encode(text) == data\nfor state in (0, False, [], 1, 2, -1, [0]):\n    encoder.setstate(state)\n    assert encoder.getstate() == (2 if state else 0)\n    assert encoder.encode(text) == (data if state else text.encode(little))\n\nprint('verified')\n",
+      "sha256": "60767f6c43936f35ba9975171776f77f83ae51d9fe5a5d6d1852f129b065d27d",
+      "guestStatus": "exception",
+      "error": "ModuleNotFoundError: No module named 'sys'",
+      "reads": 1,
+      "stdout": "",
+      "oracleStatus": 0,
+      "oracleStdout": "verified\n",
+      "oracleStderr": ""
+    },
+    {
+      "name": "utf-16 every incremental split and state restoration",
+      "source": "assert input() == 'native-wide'\n\nimport codecs\nimport encodings.utf_16 as module\nname = 'utf-16'\nunit = 2\nlittle = 'utf_16_le'\nbig = 'utf_16_be'\nbom = codecs.BOM_UTF16_LE\ntext = 'Aé🐍'\ndata = bom + text.encode(little)\n\nfor byteorder, flag in ((little, 0), (big, 1)):\n    prefix = bom if flag == 0 else getattr(codecs, 'BOM_UTF16_BE')\n    encoded = prefix + text.encode(byteorder)\n    for split in range(len(encoded) + 1):\n        decoder = module.IncrementalDecoder()\n        assert decoder.getstate() == (b'', 2)\n        first = decoder.decode(encoded[:split])\n        state = decoder.getstate()\n        assert state[1] == (2 if split < unit else flag)\n        restored = module.IncrementalDecoder()\n        restored.setstate(state)\n        assert restored.getstate() == state\n        assert first + decoder.decode(encoded[split:], True) == text\n        assert first + restored.decode(encoded[split:], True) == text\n        decoder.reset()\n        assert decoder.getstate() == (b'', 2) and decoder.decoder is None\n        assert decoder.decode(data, True) == text\nfor state, byteorder in ((0, little), (1, big)):\n    decoder = module.IncrementalDecoder()\n    decoder.setstate((b'', state))\n    assert decoder.decode(text.encode(byteorder), True) == text\n\nprint('verified')\n",
+      "sha256": "d311a31dad873fc6f94d9666be51f22f23aa8a01b0f9ed84871c85c877961a3f",
+      "guestStatus": "exception",
+      "error": "ModuleNotFoundError: No module named 'sys'",
+      "reads": 1,
+      "stdout": "",
+      "oracleStatus": 0,
+      "oracleStdout": "verified\n",
+      "oracleStderr": ""
+    },
+    {
+      "name": "utf-16 missing BOM and truncated input recovery",
+      "source": "assert input() == 'native-wide'\n\nimport codecs\nimport encodings.utf_16 as module\nname = 'utf-16'\nunit = 2\nlittle = 'utf_16_le'\nbig = 'utf_16_be'\nbom = codecs.BOM_UTF16_LE\ntext = 'Aé🐍'\ndata = bom + text.encode(little)\n\nfor errors in ('strict', 'ignore', 'replace'):\n    decoder = module.IncrementalDecoder(errors)\n    raw = 'A'.encode(little)\n    try:\n        decoder.decode(raw, True)\n    except UnicodeDecodeError as error:\n        assert error.args == (name, raw, 0, unit, 'Stream does not start with BOM')\n        assert error.object is raw\n    else:\n        assert False\n    assert decoder.getstate() == (b'', 2)\n    assert decoder.decode(data, True) == text\ndecoder = module.IncrementalDecoder()\nassert decoder.decode(bom[:1]) == ''\nassert decoder.getstate() == (bom[:1], 2)\ntry:\n    decoder.decode(b'', True)\nexcept UnicodeDecodeError as error:\n    assert (error.object, error.start, error.end, error.reason) == (bom[:1], 0, 1, 'truncated data')\nelse:\n    assert False\nassert decoder.getstate() == (bom[:1], 2)\nassert decoder.decode(data[1:], True) == text\n\nprint('verified')\n",
+      "sha256": "2ad98f7f445522b97d9675583f29b876fc45b5b94fa87340da1f826a2566e29b",
+      "guestStatus": "exception",
+      "error": "ModuleNotFoundError: No module named 'sys'",
+      "reads": 1,
+      "stdout": "",
+      "oracleStatus": 0,
+      "oracleStdout": "verified\n",
+      "oracleStderr": ""
+    },
+    {
+      "name": "utf-16 stream adapters BOM and reset",
+      "source": "assert input() == 'native-wide'\n\nimport codecs\nimport encodings.utf_16 as module\nname = 'utf-16'\nunit = 2\nlittle = 'utf_16_le'\nbig = 'utf_16_be'\nbom = codecs.BOM_UTF16_LE\ntext = 'Aé🐍'\ndata = bom + text.encode(little)\n\nclass Stream:\n    def __init__(self, data=b''):\n        self.data = data\n    def write(self, data):\n        self.data += data\n    def read(self, size=-1):\n        if size < 0:\n            size = len(self.data)\n        result = self.data[:size]\n        self.data = self.data[size:]\n        return result\nstream = Stream()\nwriter = codecs.getwriter(name)(stream)\nassert writer.encoder is None\nwriter.write('')\nwriter.write(text)\nwriter.write('')\nassert stream.data == data\nwriter.reset()\nassert writer.encoder is None\nwriter.write(text)\nassert stream.data == data + data\nreader = codecs.getreader(name)(Stream(data))\nassert reader.read(1) + reader.read() == text\nassert reader.decode is getattr(codecs, little + '_decode')\nreader.reset()\nassert 'decode' not in reader.__dict__\nassert reader.decode(data) == (text, len(data))\nreader.reset()\nraw = 'A'.encode(little)\ntry:\n    reader.decode(raw)\nexcept UnicodeDecodeError as error:\n    assert error.args == (name, raw, 0, unit, 'Stream does not start with BOM')\nelse:\n    assert False\nassert 'decode' not in reader.__dict__\n\nprint('verified')\n",
+      "sha256": "c5ad51ae8f8ac19581be0707c16b5a2f08f8438a9c643d095d1efba3666bdc8d",
+      "guestStatus": "exception",
+      "error": "ModuleNotFoundError: No module named 'sys'",
+      "reads": 1,
+      "stdout": "",
+      "oracleStatus": 0,
+      "oracleStdout": "verified\n",
+      "oracleStderr": ""
+    },
+    {
+      "name": "utf-32 registry and module API",
+      "source": "assert input() == 'native-wide'\n\nimport codecs\nimport encodings.utf_32 as module\nname = 'utf-32'\nunit = 4\nlittle = 'utf_32_le'\nbig = 'utf_32_be'\nbom = codecs.BOM_UTF32_LE\ntext = 'Aé🐍'\ndata = bom + text.encode(little)\n\ninfo = codecs.lookup(name)\nalias = codecs.lookup('u32')\nassert alias is codecs.lookup('u32') and alias is not info\nassert alias.name == info.name and alias.encode is info.encode\nassert alias.decode is info.decode\nassert type(info) is codecs.CodecInfo\nassert info.name == name\nassert info.encode is module.encode is getattr(codecs, 'utf_32_encode')\nassert info.decode is module.decode\nassert info.incrementalencoder is module.IncrementalEncoder\nassert info.incrementaldecoder is module.IncrementalDecoder\nassert info.streamreader is module.StreamReader\nassert info.streamwriter is module.StreamWriter\nassert module.getregentry() is not info\nassert module.encode(text) == (data, len(text))\nassert module.decode(data) == (text, len(data))\nassert module.decode(text.encode(little)) == (text, len(data) - unit)\nassert codecs.encode(text, name) == data\nassert codecs.decode(data, name) == text\nassert bytes(text, name) == data\n\nprint('verified')\n",
+      "sha256": "48dbd26c36256b09a66fdef1b669318b75a1ef3cd98ccac7353b18aea2352e50",
+      "guestStatus": "exception",
+      "error": "ModuleNotFoundError: No module named 'sys'",
+      "reads": 1,
+      "stdout": "",
+      "oracleStatus": 0,
+      "oracleStdout": "verified\n",
+      "oracleStderr": ""
+    },
+    {
+      "name": "utf-32 incremental encoder state and failed first call",
+      "source": "assert input() == 'native-wide'\n\nimport codecs\nimport encodings.utf_32 as module\nname = 'utf-32'\nunit = 4\nlittle = 'utf_32_le'\nbig = 'utf_32_be'\nbom = codecs.BOM_UTF32_LE\ntext = 'Aé🐍'\ndata = bom + text.encode(little)\n\nencoder = module.IncrementalEncoder()\nassert encoder.errors == 'strict' and encoder.encoder is None\nassert encoder.getstate() == 2\ntry:\n    encoder.encode('\\ud800')\nexcept UnicodeEncodeError as error:\n    assert (error.encoding, error.object, error.start, error.end, error.reason) == (name, '\\ud800', 0, 1, 'surrogates not allowed')\nelse:\n    assert False\nassert encoder.getstate() == 2 and encoder.encoder is None\nassert encoder.encode('') == bom\nassert encoder.getstate() == 0\nassert encoder.encode(text, True) == text.encode(little)\nassert encoder.encode('', True) == b''\nencoder.reset()\nassert encoder.getstate() == 2 and encoder.encode(text) == data\nfor state in (0, False, [], 1, 2, -1, [0]):\n    encoder.setstate(state)\n    assert encoder.getstate() == (2 if state else 0)\n    assert encoder.encode(text) == (data if state else text.encode(little))\n\nprint('verified')\n",
+      "sha256": "339182084078296c2d743870bc04144911f6e704c0b6500e1031b5d790c9cdbe",
+      "guestStatus": "exception",
+      "error": "ModuleNotFoundError: No module named 'sys'",
+      "reads": 1,
+      "stdout": "",
+      "oracleStatus": 0,
+      "oracleStdout": "verified\n",
+      "oracleStderr": ""
+    },
+    {
+      "name": "utf-32 every incremental split and state restoration",
+      "source": "assert input() == 'native-wide'\n\nimport codecs\nimport encodings.utf_32 as module\nname = 'utf-32'\nunit = 4\nlittle = 'utf_32_le'\nbig = 'utf_32_be'\nbom = codecs.BOM_UTF32_LE\ntext = 'Aé🐍'\ndata = bom + text.encode(little)\n\nfor byteorder, flag in ((little, 0), (big, 1)):\n    prefix = bom if flag == 0 else getattr(codecs, 'BOM_UTF32_BE')\n    encoded = prefix + text.encode(byteorder)\n    for split in range(len(encoded) + 1):\n        decoder = module.IncrementalDecoder()\n        assert decoder.getstate() == (b'', 2)\n        first = decoder.decode(encoded[:split])\n        state = decoder.getstate()\n        assert state[1] == (2 if split < unit else flag)\n        restored = module.IncrementalDecoder()\n        restored.setstate(state)\n        assert restored.getstate() == state\n        assert first + decoder.decode(encoded[split:], True) == text\n        assert first + restored.decode(encoded[split:], True) == text\n        decoder.reset()\n        assert decoder.getstate() == (b'', 2) and decoder.decoder is None\n        assert decoder.decode(data, True) == text\nfor state, byteorder in ((0, little), (1, big)):\n    decoder = module.IncrementalDecoder()\n    decoder.setstate((b'', state))\n    assert decoder.decode(text.encode(byteorder), True) == text\n\nprint('verified')\n",
+      "sha256": "209cfa9de3e3b43237d4a8e4b740868b31aaf6fbc74b33ce5275f232c8fc1687",
+      "guestStatus": "exception",
+      "error": "ModuleNotFoundError: No module named 'sys'",
+      "reads": 1,
+      "stdout": "",
+      "oracleStatus": 0,
+      "oracleStdout": "verified\n",
+      "oracleStderr": ""
+    },
+    {
+      "name": "utf-32 missing BOM and truncated input recovery",
+      "source": "assert input() == 'native-wide'\n\nimport codecs\nimport encodings.utf_32 as module\nname = 'utf-32'\nunit = 4\nlittle = 'utf_32_le'\nbig = 'utf_32_be'\nbom = codecs.BOM_UTF32_LE\ntext = 'Aé🐍'\ndata = bom + text.encode(little)\n\nfor errors in ('strict', 'ignore', 'replace'):\n    decoder = module.IncrementalDecoder(errors)\n    raw = 'A'.encode(little)\n    try:\n        decoder.decode(raw, True)\n    except UnicodeDecodeError as error:\n        assert error.args == (name, raw, 0, unit, 'Stream does not start with BOM')\n        assert error.object is raw\n    else:\n        assert False\n    assert decoder.getstate() == (b'', 2)\n    assert decoder.decode(data, True) == text\ndecoder = module.IncrementalDecoder()\nassert decoder.decode(bom[:1]) == ''\nassert decoder.getstate() == (bom[:1], 2)\ntry:\n    decoder.decode(b'', True)\nexcept UnicodeDecodeError as error:\n    assert (error.object, error.start, error.end, error.reason) == (bom[:1], 0, 1, 'truncated data')\nelse:\n    assert False\nassert decoder.getstate() == (bom[:1], 2)\nassert decoder.decode(data[1:], True) == text\n\nprint('verified')\n",
+      "sha256": "34c33a7ec0a171980f81afc452f8325b0a37f1a4423e29331a4e75bbe72bf501",
+      "guestStatus": "exception",
+      "error": "ModuleNotFoundError: No module named 'sys'",
+      "reads": 1,
+      "stdout": "",
+      "oracleStatus": 0,
+      "oracleStdout": "verified\n",
+      "oracleStderr": ""
+    },
+    {
+      "name": "utf-32 stream adapters BOM and reset",
+      "source": "assert input() == 'native-wide'\n\nimport codecs\nimport encodings.utf_32 as module\nname = 'utf-32'\nunit = 4\nlittle = 'utf_32_le'\nbig = 'utf_32_be'\nbom = codecs.BOM_UTF32_LE\ntext = 'Aé🐍'\ndata = bom + text.encode(little)\n\nclass Stream:\n    def __init__(self, data=b''):\n        self.data = data\n    def write(self, data):\n        self.data += data\n    def read(self, size=-1):\n        if size < 0:\n            size = len(self.data)\n        result = self.data[:size]\n        self.data = self.data[size:]\n        return result\nstream = Stream()\nwriter = codecs.getwriter(name)(stream)\nassert writer.encoder is None\nwriter.write('')\nwriter.write(text)\nwriter.write('')\nassert stream.data == data\nwriter.reset()\nassert writer.encoder is None\nwriter.write(text)\nassert stream.data == data + data\nreader = codecs.getreader(name)(Stream(data))\nassert reader.read(1) + reader.read() == text\nassert reader.decode is getattr(codecs, little + '_decode')\nreader.reset()\nassert 'decode' not in reader.__dict__\nassert reader.decode(data) == (text, len(data))\nreader.reset()\nraw = 'A'.encode(little)\ntry:\n    reader.decode(raw)\nexcept UnicodeDecodeError as error:\n    assert error.args == (name, raw, 0, unit, 'Stream does not start with BOM')\nelse:\n    assert False\nassert 'decode' not in reader.__dict__\n\nprint('verified')\n",
+      "sha256": "4bacf9600cf13735eae4d5ac2e3ca151479723e99adfbeb3aa1e8efcc7dc5397",
+      "guestStatus": "exception",
+      "error": "ModuleNotFoundError: No module named 'sys'",
+      "reads": 1,
+      "stdout": "",
+      "oracleStatus": 0,
+      "oracleStdout": "verified\n",
+      "oracleStderr": ""
+    }
+  ]
+}

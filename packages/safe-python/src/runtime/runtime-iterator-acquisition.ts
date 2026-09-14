@@ -4,7 +4,7 @@ import { runtimeIterate } from "./runtime-iteration.js";
 import { SequenceIterator } from "./sequence-iterator.js";
 import type { RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
-const nativeIteratorNames={list:"list_iterator",tuple:"tuple_iterator",str:"str_iterator",bytes:"bytes_iterator",
+const nativeIteratorNames={list:"list_iterator",tuple:"tuple_iterator",bytes:"bytes_iterator",
   dict:"dict_keyiterator",mappingproxy:"dict_keyiterator",dict_keys:"dict_keyiterator",dict_values:"dict_valueiterator",
   dict_items:"dict_itemiterator",set:"set_iterator",frozenset:"set_iterator"} as const;
 
@@ -14,7 +14,8 @@ const nativeIteratorNames={list:"list_iterator",tuple:"tuple_iterator",str:"str_
 export function acquireRuntimeIterator(source:RuntimeValue,values:RuntimeValues,meter:ExecutionMeter,protocol?:IterationContext<RuntimeValue>):RuntimeValue {
   switch(source.kind) {
     case "iterator":return source;
-    case "list":case "tuple":case "str":case "bytes":case "range":
+    case "str":return values.iterator(runtimeIterate(source,values,meter));
+    case "list":case "tuple":case "bytes":case "range":
     case "dict":case "mappingproxy":case "dict_keys":case "dict_values":
     case "dict_items":case "set":case "frozenset":
       return values.iterator(runtimeIterate(source,values,meter),source.kind==="range"?undefined:nativeIteratorNames[source.kind]);

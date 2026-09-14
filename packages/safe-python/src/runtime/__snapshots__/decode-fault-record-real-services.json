@@ -1,0 +1,40 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "source": "import _codecs\nfor decode, data, expected in [(_codecs.ascii_decode, b'\\xffZ', 'ordinal not in range(128)'), (_codecs.utf_8_decode, b'\\xffZ', 'invalid start byte'), (_codecs.utf_7_decode, b'\\xffZ', 'unexpected special character'), (_codecs.utf_16_le_decode, b'\\x00\\xdcZ\\x00', 'illegal encoding'), (_codecs.utf_32_le_decode, b'\\x00\\xd8\\x00\\x00Z\\x00\\x00\\x00', 'code point in surrogate code point range(0xd800, 0xe000)')]:\n    seen = []\n    def recover(error):\n        assert error.object == data\n        assert error.start == 0\n        assert error.reason == expected\n        seen.append(error)\n        print('recovery', error.encoding)\n        return ('?', error.end - len(data))\n    _codecs.register_error('fault_record', recover)\n    assert decode(data, 'fault_record') == ('?Z', len(data))\n    assert len(seen) == 1\nprint('verified')\n",
+  "oracle": {
+    "stdout": "recovery ascii\nrecovery utf-8\nrecovery utf7\nrecovery utf-16-le\nrecovery utf-32-le\nverified\n",
+    "status": 0
+  },
+  "adapter": "Actual owned file descriptors, complete writeSync loops, fsyncSync and readback; close and temporary directory cleanup in finally. Python used as external oracle only.",
+  "cases": [
+    {
+      "mode": "normal",
+      "status": "ok",
+      "writes": 22,
+      "stdout": "recovery ascii\nrecovery utf-8\nrecovery utf7\nrecovery utf-16-le\nrecovery utf-32-le\nverified\n"
+    },
+    {
+      "mode": "cancel-return",
+      "status": "terminated",
+      "reason": "cancelled",
+      "retryStatus": "terminated",
+      "retryReason": "cancelled",
+      "writes": 1,
+      "stdout": "recovery"
+    },
+    {
+      "mode": "cancel-throw",
+      "status": "terminated",
+      "reason": "cancelled",
+      "retryStatus": "terminated",
+      "retryReason": "cancelled",
+      "writes": 1,
+      "stdout": "recovery"
+    }
+  ]
+}

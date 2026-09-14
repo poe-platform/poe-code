@@ -1,0 +1,444 @@
+{
+  "adapter": "node:fs readSync(0)/writeSync(1) over actual subprocess pipes",
+  "status": 0,
+  "stdoutBytes": 468,
+  "stdoutSha256": "4ab29fd9b3bf54106b577c8c11499169958845c04edc0ae55a81d00ab378588e",
+  "exactStdoutMatch": true,
+  "execution": {
+    "reads": 48,
+    "rows": [
+      {
+        "name": "utf_16: position returns",
+        "seed": [
+          "1",
+          "2"
+        ],
+        "cancel": false,
+        "status": "ok"
+      },
+      {
+        "name": "utf_16: position raises",
+        "seed": [
+          "1",
+          "2"
+        ],
+        "cancel": false,
+        "status": "ok"
+      },
+      {
+        "name": "utf_16_le: position returns",
+        "seed": [
+          "1",
+          "2"
+        ],
+        "cancel": false,
+        "status": "ok"
+      },
+      {
+        "name": "utf_16_le: position raises",
+        "seed": [
+          "1",
+          "2"
+        ],
+        "cancel": false,
+        "status": "ok"
+      },
+      {
+        "name": "utf_16_be: position returns",
+        "seed": [
+          "1",
+          "2"
+        ],
+        "cancel": false,
+        "status": "ok"
+      },
+      {
+        "name": "utf_16_be: position raises",
+        "seed": [
+          "1",
+          "2"
+        ],
+        "cancel": false,
+        "status": "ok"
+      },
+      {
+        "name": "utf_32: position returns",
+        "seed": [
+          "1",
+          "2"
+        ],
+        "cancel": false,
+        "status": "ok"
+      },
+      {
+        "name": "utf_32: position raises",
+        "seed": [
+          "1",
+          "2"
+        ],
+        "cancel": false,
+        "status": "ok"
+      },
+      {
+        "name": "utf_32_le: position returns",
+        "seed": [
+          "1",
+          "2"
+        ],
+        "cancel": false,
+        "status": "ok"
+      },
+      {
+        "name": "utf_32_le: position raises",
+        "seed": [
+          "1",
+          "2"
+        ],
+        "cancel": false,
+        "status": "ok"
+      },
+      {
+        "name": "utf_32_be: position returns",
+        "seed": [
+          "1",
+          "2"
+        ],
+        "cancel": false,
+        "status": "ok"
+      },
+      {
+        "name": "utf_32_be: position raises",
+        "seed": [
+          "1",
+          "2"
+        ],
+        "cancel": false,
+        "status": "ok"
+      },
+      {
+        "name": "utf_16: position returns",
+        "seed": [
+          "1",
+          "2"
+        ],
+        "cancel": true,
+        "status": "terminated"
+      },
+      {
+        "name": "utf_16: position raises",
+        "seed": [
+          "1",
+          "2"
+        ],
+        "cancel": true,
+        "status": "terminated"
+      },
+      {
+        "name": "utf_16_le: position returns",
+        "seed": [
+          "1",
+          "2"
+        ],
+        "cancel": true,
+        "status": "terminated"
+      },
+      {
+        "name": "utf_16_le: position raises",
+        "seed": [
+          "1",
+          "2"
+        ],
+        "cancel": true,
+        "status": "terminated"
+      },
+      {
+        "name": "utf_16_be: position returns",
+        "seed": [
+          "1",
+          "2"
+        ],
+        "cancel": true,
+        "status": "terminated"
+      },
+      {
+        "name": "utf_16_be: position raises",
+        "seed": [
+          "1",
+          "2"
+        ],
+        "cancel": true,
+        "status": "terminated"
+      },
+      {
+        "name": "utf_32: position returns",
+        "seed": [
+          "1",
+          "2"
+        ],
+        "cancel": true,
+        "status": "terminated"
+      },
+      {
+        "name": "utf_32: position raises",
+        "seed": [
+          "1",
+          "2"
+        ],
+        "cancel": true,
+        "status": "terminated"
+      },
+      {
+        "name": "utf_32_le: position returns",
+        "seed": [
+          "1",
+          "2"
+        ],
+        "cancel": true,
+        "status": "terminated"
+      },
+      {
+        "name": "utf_32_le: position raises",
+        "seed": [
+          "1",
+          "2"
+        ],
+        "cancel": true,
+        "status": "terminated"
+      },
+      {
+        "name": "utf_32_be: position returns",
+        "seed": [
+          "1",
+          "2"
+        ],
+        "cancel": true,
+        "status": "terminated"
+      },
+      {
+        "name": "utf_32_be: position raises",
+        "seed": [
+          "1",
+          "2"
+        ],
+        "cancel": true,
+        "status": "terminated"
+      },
+      {
+        "name": "utf_16: position returns",
+        "seed": [
+          "17",
+          "23"
+        ],
+        "cancel": false,
+        "status": "ok"
+      },
+      {
+        "name": "utf_16: position raises",
+        "seed": [
+          "17",
+          "23"
+        ],
+        "cancel": false,
+        "status": "ok"
+      },
+      {
+        "name": "utf_16_le: position returns",
+        "seed": [
+          "17",
+          "23"
+        ],
+        "cancel": false,
+        "status": "ok"
+      },
+      {
+        "name": "utf_16_le: position raises",
+        "seed": [
+          "17",
+          "23"
+        ],
+        "cancel": false,
+        "status": "ok"
+      },
+      {
+        "name": "utf_16_be: position returns",
+        "seed": [
+          "17",
+          "23"
+        ],
+        "cancel": false,
+        "status": "ok"
+      },
+      {
+        "name": "utf_16_be: position raises",
+        "seed": [
+          "17",
+          "23"
+        ],
+        "cancel": false,
+        "status": "ok"
+      },
+      {
+        "name": "utf_32: position returns",
+        "seed": [
+          "17",
+          "23"
+        ],
+        "cancel": false,
+        "status": "ok"
+      },
+      {
+        "name": "utf_32: position raises",
+        "seed": [
+          "17",
+          "23"
+        ],
+        "cancel": false,
+        "status": "ok"
+      },
+      {
+        "name": "utf_32_le: position returns",
+        "seed": [
+          "17",
+          "23"
+        ],
+        "cancel": false,
+        "status": "ok"
+      },
+      {
+        "name": "utf_32_le: position raises",
+        "seed": [
+          "17",
+          "23"
+        ],
+        "cancel": false,
+        "status": "ok"
+      },
+      {
+        "name": "utf_32_be: position returns",
+        "seed": [
+          "17",
+          "23"
+        ],
+        "cancel": false,
+        "status": "ok"
+      },
+      {
+        "name": "utf_32_be: position raises",
+        "seed": [
+          "17",
+          "23"
+        ],
+        "cancel": false,
+        "status": "ok"
+      },
+      {
+        "name": "utf_16: position returns",
+        "seed": [
+          "17",
+          "23"
+        ],
+        "cancel": true,
+        "status": "terminated"
+      },
+      {
+        "name": "utf_16: position raises",
+        "seed": [
+          "17",
+          "23"
+        ],
+        "cancel": true,
+        "status": "terminated"
+      },
+      {
+        "name": "utf_16_le: position returns",
+        "seed": [
+          "17",
+          "23"
+        ],
+        "cancel": true,
+        "status": "terminated"
+      },
+      {
+        "name": "utf_16_le: position raises",
+        "seed": [
+          "17",
+          "23"
+        ],
+        "cancel": true,
+        "status": "terminated"
+      },
+      {
+        "name": "utf_16_be: position returns",
+        "seed": [
+          "17",
+          "23"
+        ],
+        "cancel": true,
+        "status": "terminated"
+      },
+      {
+        "name": "utf_16_be: position raises",
+        "seed": [
+          "17",
+          "23"
+        ],
+        "cancel": true,
+        "status": "terminated"
+      },
+      {
+        "name": "utf_32: position returns",
+        "seed": [
+          "17",
+          "23"
+        ],
+        "cancel": true,
+        "status": "terminated"
+      },
+      {
+        "name": "utf_32: position raises",
+        "seed": [
+          "17",
+          "23"
+        ],
+        "cancel": true,
+        "status": "terminated"
+      },
+      {
+        "name": "utf_32_le: position returns",
+        "seed": [
+          "17",
+          "23"
+        ],
+        "cancel": true,
+        "status": "terminated"
+      },
+      {
+        "name": "utf_32_le: position raises",
+        "seed": [
+          "17",
+          "23"
+        ],
+        "cancel": true,
+        "status": "terminated"
+      },
+      {
+        "name": "utf_32_be: position returns",
+        "seed": [
+          "17",
+          "23"
+        ],
+        "cancel": true,
+        "status": "terminated"
+      },
+      {
+        "name": "utf_32_be: position raises",
+        "seed": [
+          "17",
+          "23"
+        ],
+        "cancel": true,
+        "status": "terminated"
+      }
+    ]
+  }
+}

@@ -1,0 +1,447 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O"
+  },
+  "rows": [
+    {
+      "name": "ValueError",
+      "phase": "write",
+      "result": {
+        "status": "exception",
+        "type": "ValueError",
+        "args": [
+          "stream failed"
+        ]
+      },
+      "events": [
+        "write"
+      ],
+      "source": "import sys\nevents = []\nclass Out:\n    def write(self, text):\n        events.append('write')\n        if 'write' == 'write': raise ValueError('stream failed')\n        return len(text)\n    def flush(self):\n        events.append('flush')\n        if 'write' == 'flush': raise ValueError('stream failed')\nclass In:\n    def readline(self):\n        events.append('read')\n        if 'write' == 'read': raise ValueError('stream failed')\n        return 'answer\\n'\noldin, oldout = sys.stdin, sys.stdout\ntry:\n    sys.stdin, sys.stdout = In(), Out()\n    try: result = ('ok', input('prompt'))\n    except BaseException as error: result = ('exception', type(error).__name__, error.args)\nfinally:\n    sys.stdin, sys.stdout = oldin, oldout\nprint(repr((result, events)))\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "(('exception', 'ValueError', ('stream failed',)), ['write'])\n",
+        "stderr": ""
+      },
+      "publicRuntime": {
+        "status": "exception",
+        "exception": "ImportError('__import__ not found')"
+      }
+    },
+    {
+      "name": "ValueError",
+      "phase": "flush",
+      "result": {
+        "status": "ok",
+        "value": "answer"
+      },
+      "events": [
+        "write",
+        "flush",
+        "read"
+      ],
+      "source": "import sys\nevents = []\nclass Out:\n    def write(self, text):\n        events.append('write')\n        if 'flush' == 'write': raise ValueError('stream failed')\n        return len(text)\n    def flush(self):\n        events.append('flush')\n        if 'flush' == 'flush': raise ValueError('stream failed')\nclass In:\n    def readline(self):\n        events.append('read')\n        if 'flush' == 'read': raise ValueError('stream failed')\n        return 'answer\\n'\noldin, oldout = sys.stdin, sys.stdout\ntry:\n    sys.stdin, sys.stdout = In(), Out()\n    try: result = ('ok', input('prompt'))\n    except BaseException as error: result = ('exception', type(error).__name__, error.args)\nfinally:\n    sys.stdin, sys.stdout = oldin, oldout\nprint(repr((result, events)))\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "(('ok', 'answer'), ['write', 'flush', 'read'])\n",
+        "stderr": ""
+      },
+      "publicRuntime": {
+        "status": "exception",
+        "exception": "ImportError('__import__ not found')"
+      }
+    },
+    {
+      "name": "ValueError",
+      "phase": "read",
+      "result": {
+        "status": "exception",
+        "type": "ValueError",
+        "args": [
+          "stream failed"
+        ]
+      },
+      "events": [
+        "write",
+        "flush",
+        "read"
+      ],
+      "source": "import sys\nevents = []\nclass Out:\n    def write(self, text):\n        events.append('write')\n        if 'read' == 'write': raise ValueError('stream failed')\n        return len(text)\n    def flush(self):\n        events.append('flush')\n        if 'read' == 'flush': raise ValueError('stream failed')\nclass In:\n    def readline(self):\n        events.append('read')\n        if 'read' == 'read': raise ValueError('stream failed')\n        return 'answer\\n'\noldin, oldout = sys.stdin, sys.stdout\ntry:\n    sys.stdin, sys.stdout = In(), Out()\n    try: result = ('ok', input('prompt'))\n    except BaseException as error: result = ('exception', type(error).__name__, error.args)\nfinally:\n    sys.stdin, sys.stdout = oldin, oldout\nprint(repr((result, events)))\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "(('exception', 'ValueError', ('stream failed',)), ['write', 'flush', 'read'])\n",
+        "stderr": ""
+      },
+      "publicRuntime": {
+        "status": "exception",
+        "exception": "ImportError('__import__ not found')"
+      }
+    },
+    {
+      "name": "TypeError",
+      "phase": "write",
+      "result": {
+        "status": "exception",
+        "type": "TypeError",
+        "args": [
+          "stream failed"
+        ]
+      },
+      "events": [
+        "write"
+      ],
+      "source": "import sys\nevents = []\nclass Out:\n    def write(self, text):\n        events.append('write')\n        if 'write' == 'write': raise TypeError('stream failed')\n        return len(text)\n    def flush(self):\n        events.append('flush')\n        if 'write' == 'flush': raise TypeError('stream failed')\nclass In:\n    def readline(self):\n        events.append('read')\n        if 'write' == 'read': raise TypeError('stream failed')\n        return 'answer\\n'\noldin, oldout = sys.stdin, sys.stdout\ntry:\n    sys.stdin, sys.stdout = In(), Out()\n    try: result = ('ok', input('prompt'))\n    except BaseException as error: result = ('exception', type(error).__name__, error.args)\nfinally:\n    sys.stdin, sys.stdout = oldin, oldout\nprint(repr((result, events)))\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "(('exception', 'TypeError', ('stream failed',)), ['write'])\n",
+        "stderr": ""
+      },
+      "publicRuntime": {
+        "status": "exception",
+        "exception": "ImportError('__import__ not found')"
+      }
+    },
+    {
+      "name": "TypeError",
+      "phase": "flush",
+      "result": {
+        "status": "ok",
+        "value": "answer"
+      },
+      "events": [
+        "write",
+        "flush",
+        "read"
+      ],
+      "source": "import sys\nevents = []\nclass Out:\n    def write(self, text):\n        events.append('write')\n        if 'flush' == 'write': raise TypeError('stream failed')\n        return len(text)\n    def flush(self):\n        events.append('flush')\n        if 'flush' == 'flush': raise TypeError('stream failed')\nclass In:\n    def readline(self):\n        events.append('read')\n        if 'flush' == 'read': raise TypeError('stream failed')\n        return 'answer\\n'\noldin, oldout = sys.stdin, sys.stdout\ntry:\n    sys.stdin, sys.stdout = In(), Out()\n    try: result = ('ok', input('prompt'))\n    except BaseException as error: result = ('exception', type(error).__name__, error.args)\nfinally:\n    sys.stdin, sys.stdout = oldin, oldout\nprint(repr((result, events)))\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "(('ok', 'answer'), ['write', 'flush', 'read'])\n",
+        "stderr": ""
+      },
+      "publicRuntime": {
+        "status": "exception",
+        "exception": "ImportError('__import__ not found')"
+      }
+    },
+    {
+      "name": "TypeError",
+      "phase": "read",
+      "result": {
+        "status": "exception",
+        "type": "TypeError",
+        "args": [
+          "stream failed"
+        ]
+      },
+      "events": [
+        "write",
+        "flush",
+        "read"
+      ],
+      "source": "import sys\nevents = []\nclass Out:\n    def write(self, text):\n        events.append('write')\n        if 'read' == 'write': raise TypeError('stream failed')\n        return len(text)\n    def flush(self):\n        events.append('flush')\n        if 'read' == 'flush': raise TypeError('stream failed')\nclass In:\n    def readline(self):\n        events.append('read')\n        if 'read' == 'read': raise TypeError('stream failed')\n        return 'answer\\n'\noldin, oldout = sys.stdin, sys.stdout\ntry:\n    sys.stdin, sys.stdout = In(), Out()\n    try: result = ('ok', input('prompt'))\n    except BaseException as error: result = ('exception', type(error).__name__, error.args)\nfinally:\n    sys.stdin, sys.stdout = oldin, oldout\nprint(repr((result, events)))\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "(('exception', 'TypeError', ('stream failed',)), ['write', 'flush', 'read'])\n",
+        "stderr": ""
+      },
+      "publicRuntime": {
+        "status": "exception",
+        "exception": "ImportError('__import__ not found')"
+      }
+    },
+    {
+      "name": "MemoryError",
+      "phase": "write",
+      "result": {
+        "status": "exception",
+        "type": "MemoryError",
+        "args": [
+          "stream failed"
+        ]
+      },
+      "events": [
+        "write"
+      ],
+      "source": "import sys\nevents = []\nclass Out:\n    def write(self, text):\n        events.append('write')\n        if 'write' == 'write': raise MemoryError('stream failed')\n        return len(text)\n    def flush(self):\n        events.append('flush')\n        if 'write' == 'flush': raise MemoryError('stream failed')\nclass In:\n    def readline(self):\n        events.append('read')\n        if 'write' == 'read': raise MemoryError('stream failed')\n        return 'answer\\n'\noldin, oldout = sys.stdin, sys.stdout\ntry:\n    sys.stdin, sys.stdout = In(), Out()\n    try: result = ('ok', input('prompt'))\n    except BaseException as error: result = ('exception', type(error).__name__, error.args)\nfinally:\n    sys.stdin, sys.stdout = oldin, oldout\nprint(repr((result, events)))\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "(('exception', 'MemoryError', ('stream failed',)), ['write'])\n",
+        "stderr": ""
+      },
+      "publicRuntime": {
+        "status": "exception",
+        "exception": "ImportError('__import__ not found')"
+      }
+    },
+    {
+      "name": "MemoryError",
+      "phase": "flush",
+      "result": {
+        "status": "ok",
+        "value": "answer"
+      },
+      "events": [
+        "write",
+        "flush",
+        "read"
+      ],
+      "source": "import sys\nevents = []\nclass Out:\n    def write(self, text):\n        events.append('write')\n        if 'flush' == 'write': raise MemoryError('stream failed')\n        return len(text)\n    def flush(self):\n        events.append('flush')\n        if 'flush' == 'flush': raise MemoryError('stream failed')\nclass In:\n    def readline(self):\n        events.append('read')\n        if 'flush' == 'read': raise MemoryError('stream failed')\n        return 'answer\\n'\noldin, oldout = sys.stdin, sys.stdout\ntry:\n    sys.stdin, sys.stdout = In(), Out()\n    try: result = ('ok', input('prompt'))\n    except BaseException as error: result = ('exception', type(error).__name__, error.args)\nfinally:\n    sys.stdin, sys.stdout = oldin, oldout\nprint(repr((result, events)))\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "(('ok', 'answer'), ['write', 'flush', 'read'])\n",
+        "stderr": ""
+      },
+      "publicRuntime": {
+        "status": "exception",
+        "exception": "ImportError('__import__ not found')"
+      }
+    },
+    {
+      "name": "MemoryError",
+      "phase": "read",
+      "result": {
+        "status": "exception",
+        "type": "MemoryError",
+        "args": [
+          "stream failed"
+        ]
+      },
+      "events": [
+        "write",
+        "flush",
+        "read"
+      ],
+      "source": "import sys\nevents = []\nclass Out:\n    def write(self, text):\n        events.append('write')\n        if 'read' == 'write': raise MemoryError('stream failed')\n        return len(text)\n    def flush(self):\n        events.append('flush')\n        if 'read' == 'flush': raise MemoryError('stream failed')\nclass In:\n    def readline(self):\n        events.append('read')\n        if 'read' == 'read': raise MemoryError('stream failed')\n        return 'answer\\n'\noldin, oldout = sys.stdin, sys.stdout\ntry:\n    sys.stdin, sys.stdout = In(), Out()\n    try: result = ('ok', input('prompt'))\n    except BaseException as error: result = ('exception', type(error).__name__, error.args)\nfinally:\n    sys.stdin, sys.stdout = oldin, oldout\nprint(repr((result, events)))\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "(('exception', 'MemoryError', ('stream failed',)), ['write', 'flush', 'read'])\n",
+        "stderr": ""
+      },
+      "publicRuntime": {
+        "status": "exception",
+        "exception": "ImportError('__import__ not found')"
+      }
+    },
+    {
+      "name": "KeyboardInterrupt",
+      "phase": "write",
+      "result": {
+        "status": "exception",
+        "type": "KeyboardInterrupt",
+        "args": [
+          "stream failed"
+        ]
+      },
+      "events": [
+        "write"
+      ],
+      "source": "import sys\nevents = []\nclass Out:\n    def write(self, text):\n        events.append('write')\n        if 'write' == 'write': raise KeyboardInterrupt('stream failed')\n        return len(text)\n    def flush(self):\n        events.append('flush')\n        if 'write' == 'flush': raise KeyboardInterrupt('stream failed')\nclass In:\n    def readline(self):\n        events.append('read')\n        if 'write' == 'read': raise KeyboardInterrupt('stream failed')\n        return 'answer\\n'\noldin, oldout = sys.stdin, sys.stdout\ntry:\n    sys.stdin, sys.stdout = In(), Out()\n    try: result = ('ok', input('prompt'))\n    except BaseException as error: result = ('exception', type(error).__name__, error.args)\nfinally:\n    sys.stdin, sys.stdout = oldin, oldout\nprint(repr((result, events)))\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "(('exception', 'KeyboardInterrupt', ('stream failed',)), ['write'])\n",
+        "stderr": ""
+      },
+      "publicRuntime": {
+        "status": "exception",
+        "exception": "ImportError('__import__ not found')"
+      }
+    },
+    {
+      "name": "KeyboardInterrupt",
+      "phase": "flush",
+      "result": {
+        "status": "ok",
+        "value": "answer"
+      },
+      "events": [
+        "write",
+        "flush",
+        "read"
+      ],
+      "source": "import sys\nevents = []\nclass Out:\n    def write(self, text):\n        events.append('write')\n        if 'flush' == 'write': raise KeyboardInterrupt('stream failed')\n        return len(text)\n    def flush(self):\n        events.append('flush')\n        if 'flush' == 'flush': raise KeyboardInterrupt('stream failed')\nclass In:\n    def readline(self):\n        events.append('read')\n        if 'flush' == 'read': raise KeyboardInterrupt('stream failed')\n        return 'answer\\n'\noldin, oldout = sys.stdin, sys.stdout\ntry:\n    sys.stdin, sys.stdout = In(), Out()\n    try: result = ('ok', input('prompt'))\n    except BaseException as error: result = ('exception', type(error).__name__, error.args)\nfinally:\n    sys.stdin, sys.stdout = oldin, oldout\nprint(repr((result, events)))\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "(('ok', 'answer'), ['write', 'flush', 'read'])\n",
+        "stderr": ""
+      },
+      "publicRuntime": {
+        "status": "exception",
+        "exception": "ImportError('__import__ not found')"
+      }
+    },
+    {
+      "name": "KeyboardInterrupt",
+      "phase": "read",
+      "result": {
+        "status": "exception",
+        "type": "KeyboardInterrupt",
+        "args": [
+          "stream failed"
+        ]
+      },
+      "events": [
+        "write",
+        "flush",
+        "read"
+      ],
+      "source": "import sys\nevents = []\nclass Out:\n    def write(self, text):\n        events.append('write')\n        if 'read' == 'write': raise KeyboardInterrupt('stream failed')\n        return len(text)\n    def flush(self):\n        events.append('flush')\n        if 'read' == 'flush': raise KeyboardInterrupt('stream failed')\nclass In:\n    def readline(self):\n        events.append('read')\n        if 'read' == 'read': raise KeyboardInterrupt('stream failed')\n        return 'answer\\n'\noldin, oldout = sys.stdin, sys.stdout\ntry:\n    sys.stdin, sys.stdout = In(), Out()\n    try: result = ('ok', input('prompt'))\n    except BaseException as error: result = ('exception', type(error).__name__, error.args)\nfinally:\n    sys.stdin, sys.stdout = oldin, oldout\nprint(repr((result, events)))\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "(('exception', 'KeyboardInterrupt', ('stream failed',)), ['write', 'flush', 'read'])\n",
+        "stderr": ""
+      },
+      "publicRuntime": {
+        "status": "exception",
+        "exception": "ImportError('__import__ not found')"
+      }
+    },
+    {
+      "name": "SystemExit",
+      "phase": "write",
+      "result": {
+        "status": "exception",
+        "type": "SystemExit",
+        "args": [
+          "stream failed"
+        ]
+      },
+      "events": [
+        "write"
+      ],
+      "source": "import sys\nevents = []\nclass Out:\n    def write(self, text):\n        events.append('write')\n        if 'write' == 'write': raise SystemExit('stream failed')\n        return len(text)\n    def flush(self):\n        events.append('flush')\n        if 'write' == 'flush': raise SystemExit('stream failed')\nclass In:\n    def readline(self):\n        events.append('read')\n        if 'write' == 'read': raise SystemExit('stream failed')\n        return 'answer\\n'\noldin, oldout = sys.stdin, sys.stdout\ntry:\n    sys.stdin, sys.stdout = In(), Out()\n    try: result = ('ok', input('prompt'))\n    except BaseException as error: result = ('exception', type(error).__name__, error.args)\nfinally:\n    sys.stdin, sys.stdout = oldin, oldout\nprint(repr((result, events)))\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "(('exception', 'SystemExit', ('stream failed',)), ['write'])\n",
+        "stderr": ""
+      },
+      "publicRuntime": {
+        "status": "exception",
+        "exception": "ImportError('__import__ not found')"
+      }
+    },
+    {
+      "name": "SystemExit",
+      "phase": "flush",
+      "result": {
+        "status": "ok",
+        "value": "answer"
+      },
+      "events": [
+        "write",
+        "flush",
+        "read"
+      ],
+      "source": "import sys\nevents = []\nclass Out:\n    def write(self, text):\n        events.append('write')\n        if 'flush' == 'write': raise SystemExit('stream failed')\n        return len(text)\n    def flush(self):\n        events.append('flush')\n        if 'flush' == 'flush': raise SystemExit('stream failed')\nclass In:\n    def readline(self):\n        events.append('read')\n        if 'flush' == 'read': raise SystemExit('stream failed')\n        return 'answer\\n'\noldin, oldout = sys.stdin, sys.stdout\ntry:\n    sys.stdin, sys.stdout = In(), Out()\n    try: result = ('ok', input('prompt'))\n    except BaseException as error: result = ('exception', type(error).__name__, error.args)\nfinally:\n    sys.stdin, sys.stdout = oldin, oldout\nprint(repr((result, events)))\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "(('ok', 'answer'), ['write', 'flush', 'read'])\n",
+        "stderr": ""
+      },
+      "publicRuntime": {
+        "status": "exception",
+        "exception": "ImportError('__import__ not found')"
+      }
+    },
+    {
+      "name": "SystemExit",
+      "phase": "read",
+      "result": {
+        "status": "exception",
+        "type": "SystemExit",
+        "args": [
+          "stream failed"
+        ]
+      },
+      "events": [
+        "write",
+        "flush",
+        "read"
+      ],
+      "source": "import sys\nevents = []\nclass Out:\n    def write(self, text):\n        events.append('write')\n        if 'read' == 'write': raise SystemExit('stream failed')\n        return len(text)\n    def flush(self):\n        events.append('flush')\n        if 'read' == 'flush': raise SystemExit('stream failed')\nclass In:\n    def readline(self):\n        events.append('read')\n        if 'read' == 'read': raise SystemExit('stream failed')\n        return 'answer\\n'\noldin, oldout = sys.stdin, sys.stdout\ntry:\n    sys.stdin, sys.stdout = In(), Out()\n    try: result = ('ok', input('prompt'))\n    except BaseException as error: result = ('exception', type(error).__name__, error.args)\nfinally:\n    sys.stdin, sys.stdout = oldin, oldout\nprint(repr((result, events)))\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "(('exception', 'SystemExit', ('stream failed',)), ['write', 'flush', 'read'])\n",
+        "stderr": ""
+      },
+      "publicRuntime": {
+        "status": "exception",
+        "exception": "ImportError('__import__ not found')"
+      }
+    }
+  ],
+  "realAdapterRows": [
+    {
+      "source": "print(repr(input('prompt> ')))",
+      "input": "\n",
+      "runtime": {
+        "status": "ok",
+        "stdout": "prompt> ''\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "prompt> ''\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "source": "print(repr(input('prompt> ')))",
+      "input": "plain\n",
+      "runtime": {
+        "status": "ok",
+        "stdout": "prompt> 'plain'\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "prompt> 'plain'\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "source": "print(repr(input('prompt> ')))",
+      "input": "last",
+      "runtime": {
+        "status": "ok",
+        "stdout": "prompt> 'last'\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "prompt> 'last'\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "source": "print(repr(input('prompt> ')))",
+      "input": "é🐍\n",
+      "runtime": {
+        "status": "ok",
+        "stdout": "prompt> 'é🐍'\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "prompt> 'é🐍'\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "source": "print(repr(input('prompt> ')))",
+      "input": "a\u0000b\n",
+      "runtime": {
+        "status": "ok",
+        "stdout": "prompt> 'a\\x00b'\n"
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "prompt> 'a\\x00b'\n",
+        "stderr": ""
+      },
+      "matches": true
+    }
+  ],
+  "evidenceScope": "15 unchanged guest sys-stream error programs remain blocked in public PythonSession by missing __import__. Kernel tests exercise their flush/error-order behavior using mocked stream services and real runtime exception storage. Five successful input programs separately exercise real explicit readSync/writeSync/fsyncSync file adapters. These are not complete input compatibility evidence."
+}

@@ -83,12 +83,16 @@ export class ByteBufferView {
     const length = Number(indices.length);
     const offset = length === 0 ? 0 : this.#offset + Number(indices.start * this.#stride);
     const stride = BigInt.asIntN(64, indices.step * this.#stride);
+    // Each view owns metadata and a separate export, even without byte storage.
+    // Admit that allocation before the constructor increments the export count.
+    meter?.checkpoint(1, 96);
     return new ByteBufferView(buffer, this.#exports, offset, stride, length, this.#readonly);
   }
 
   toreadonly(meter?: ExecutionMeter): ByteBufferView {
     meter?.checkpoint();
     const buffer = this.#checkActive();
+    meter?.checkpoint(1, 96);
     return new ByteBufferView(buffer, this.#exports, this.#offset, this.#stride, this.#length, true);
   }
 
@@ -100,7 +104,7 @@ export class ByteBufferView {
     let snapshot: Uint8Array;
     if (source instanceof ByteBufferView) snapshot = source.snapshot(meter);
     else {
-      meter?.checkpoint(source.length, source.byteLength);
+      meter?.checkpoint(source.length, 64 + source.byteLength);
       snapshot = new Uint8Array(source);
     }
     // Snapshot the complete source and admit all writes before touching shared
@@ -113,7 +117,9 @@ export class ByteBufferView {
   snapshot(meter?: ExecutionMeter): Uint8Array {
     meter?.checkpoint();
     const buffer = this.#checkActive();
-    meter?.checkpoint(this.#length, this.#length);
+    // A retained snapshot owns typed-array metadata even for an empty view.
+    // Admit metadata and payload together before allocating or mutating aliases.
+    meter?.checkpoint(this.#length, 64 + this.#length);
     const output = new Uint8Array(this.#length);
     const stride = Number(this.#stride);
     for (let index = 0; index < this.#length; index++) output[index] = buffer[this.#offset + index * stride]!;

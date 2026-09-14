@@ -8,7 +8,7 @@ import type { RuntimeValues, TypeValue, WrapperDescriptorValue } from "./runtime
  * descriptor. Nested callable hashing remains guest-aware. */
 export function createNativeHashWrapper(kind: NativeBoundCallableKind|"none", owner: TypeValue, values: RuntimeValues, meter: ExecutionMeter): WrapperDescriptorValue {
   meter.checkpoint(1, 96);
-  return values.wrapperDescriptor({ owner, name: "__hash__", doc: "Return hash(self).", accepts: receiver => receiver.kind === kind,
+  return values.wrapperDescriptor({ owner, name: "__hash__", textSignature: "($self, /)", doc: "Return hash(self).", accepts: receiver => receiver.kind === kind,
     invoke(receiver, positional, keywords, meter, invocation) {
       let fatal=false;
       try {

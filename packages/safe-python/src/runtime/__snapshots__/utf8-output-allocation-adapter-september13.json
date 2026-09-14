@@ -1,0 +1,87 @@
+{
+  "oracle": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0\n",
+  "source": "\nimport _codecs\nimport codecs\ndef recover(error):\n    print('recover', error.encoding, error.start, error.end, error.reason)\n    return (b'REPAIR' * 20, -1)\n_codecs.register_error('utf8_output_audit', recover)\nprint(_codecs.utf_8_encode('A\\ud800Z', 'utf8_output_audit'))\nfor errors in ('ignore', 'replace', 'surrogatepass', 'surrogateescape', 'backslashreplace', 'xmlcharrefreplace', 'namereplace'):\n    print(errors, _codecs.utf_8_encode('A\\udc80Z', errors))\nencoder = codecs.getincrementalencoder('utf-8-sig')()\nprint(encoder.getstate(), encoder.encode(''), encoder.getstate())\nprint(encoder.encode('A'), encoder.encode('é', True))\nencoder.reset()\nprint(encoder.encode('B'))\ndef fail(error):\n    raise ValueError('guest failure')\n_codecs.register_error('utf8_output_fail', fail)\ntry:\n    _codecs.utf_8_encode('\\ud800', 'utf8_output_fail')\nexcept ValueError as error:\n    print(type(error).__name__, error.args)\n",
+  "expected": "recover utf-8 1 2 surrogates not allowed\n(b'AREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRZ', 3)\nignore (b'AZ', 3)\nreplace (b'A?Z', 3)\nsurrogatepass (b'A\\xed\\xb2\\x80Z', 3)\nsurrogateescape (b'A\\x80Z', 3)\nbackslashreplace (b'A\\\\udc80Z', 3)\nxmlcharrefreplace (b'A&#56448;Z', 3)\nnamereplace (b'A\\\\udc80Z', 3)\n1 b'\\xef\\xbb\\xbf' 0\nb'A' b'\\xc3\\xa9'\nb'\\xef\\xbb\\xbfB'\nValueError ('guest failure',)\n",
+  "runs": [
+    {
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "baseline",
+      "result": {
+        "status": "ok"
+      },
+      "writes": 56,
+      "output": "recover utf-8 1 2 surrogates not allowed\n(b'AREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRZ', 3)\nignore (b'AZ', 3)\nreplace (b'A?Z', 3)\nsurrogatepass (b'A\\xed\\xb2\\x80Z', 3)\nsurrogateescape (b'A\\x80Z', 3)\nbackslashreplace (b'A\\\\udc80Z', 3)\nxmlcharrefreplace (b'A&#56448;Z', 3)\nnamereplace (b'A\\\\udc80Z', 3)\n1 b'\\xef\\xbb\\xbf' 0\nb'A' b'\\xc3\\xa9'\nb'\\xef\\xbb\\xbfB'\nValueError ('guest failure',)\n"
+    },
+    {
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "writes": 1,
+      "output": "recover"
+    },
+    {
+      "hashSeed": [
+        "1",
+        "2"
+      ],
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "writes": 1,
+      "output": "recover"
+    },
+    {
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "baseline",
+      "result": {
+        "status": "ok"
+      },
+      "writes": 56,
+      "output": "recover utf-8 1 2 surrogates not allowed\n(b'AREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRREPAIRZ', 3)\nignore (b'AZ', 3)\nreplace (b'A?Z', 3)\nsurrogatepass (b'A\\xed\\xb2\\x80Z', 3)\nsurrogateescape (b'A\\x80Z', 3)\nbackslashreplace (b'A\\\\udc80Z', 3)\nxmlcharrefreplace (b'A&#56448;Z', 3)\nnamereplace (b'A\\\\udc80Z', 3)\n1 b'\\xef\\xbb\\xbf' 0\nb'A' b'\\xc3\\xa9'\nb'\\xef\\xbb\\xbfB'\nValueError ('guest failure',)\n"
+    },
+    {
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "writes": 1,
+      "output": "recover"
+    },
+    {
+      "hashSeed": [
+        "3",
+        "4"
+      ],
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "writes": 1,
+      "output": "recover"
+    }
+  ]
+}

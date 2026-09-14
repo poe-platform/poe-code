@@ -5,12 +5,14 @@ import { PythonSyntaxError,type SourceMeter } from "./source.js";
 import type { SourceSpan } from "./ast.js";
 import {normalizeFutureFlags} from "./future-flags.js";
 
-export function createTokenCursor(text: string, options: LexerOptions = {}): TokenCursor {
+export function createTokenCursor(text: string, options: LexerOptions = {}, mode: "exec" | "eval" = "exec"): TokenCursor {
   options.meter?.checkpoint(1,64);
   const futureFlags=normalizeFutureFlags(options.futureFlags,options.meter);
   const comments: SourceSpan[] = [];
-  const tokens = lex(text, { ...options, onComment: span => { options.meter?.checkpoint(1,8);comments.push(span); options.onComment?.(span); } });
-  const cursor=new TokenCursor(tokens, options.filename, text, comments,options.meter,options.enterRecursiveCall);
+  options.meter?.checkpoint(0,32);
+  const tokenization = {syntaxOnly: false,implicitNewline:mode==="exec"};
+  const tokens = lex(text, { ...options, tokenization, onComment: span => { options.meter?.checkpoint(1,8);comments.push(span); options.onComment?.(span); } });
+  const cursor=new TokenCursor(tokens, options.filename, text, comments,options.meter,options.enterRecursiveCall,mode,tokenization);
   if(futureFlags&0x400000){options.meter?.checkpoint(1,32);cursor.futureFeatures.add("barry_as_FLUFL");}
   return cursor;
 }
@@ -22,7 +24,7 @@ export class TokenCursor {
   private offset = 0;
   private attempts = 0;
   private lexerFailure: unknown;
-  constructor(private readonly tokens: Iterator<Token>, private readonly filename = "<string>", private readonly sourceText = "", private readonly comments: readonly SourceSpan[] = [],readonly meter?:SourceMeter,readonly enterRecursiveCall?:()=>()=>void) {meter?.checkpoint(1,136);}
+  constructor(private readonly tokens: Iterator<Token>, readonly filename = "<string>", private readonly sourceText = "", private readonly comments: readonly SourceSpan[] = [],readonly meter?:SourceMeter,readonly enterRecursiveCall?:()=>()=>void,private readonly mode: "exec" | "eval" = "exec", private readonly tokenization?: {syntaxOnly: boolean}) {meter?.checkpoint(1,144);}
 
   /** Retrieve original spelling, excluding lexer-identified comments only. */
   sourceBetween(start: number, end: number): string {
@@ -57,7 +59,19 @@ export class TokenCursor {
         this.meter?.checkpoint(0,8);this.buffered.push(next.value);
       } catch (error) {
         this.meter?.checkpoint();
-        if (error instanceof PythonSyntaxError) error.withSource(this.sourceText,false,this.meter);
+        if (error instanceof PythonSyntaxError) {
+          if (error.unclosedDelimiter) {
+            let start = error.position.offset, end = start;
+            while (start > 0 && this.sourceText[start - 1] !== "\n" && this.sourceText[start - 1] !== "\r") {this.meter?.checkpoint(); start--;}
+            while (end < this.sourceText.length && this.sourceText[end] !== "\n" && this.sourceText[end] !== "\r") {this.meter?.checkpoint(); end++;}
+            let after = end;
+            if (this.sourceText[after] === "\r") after++;
+            if (this.sourceText[after] === "\n") after++;
+            this.meter?.checkpoint(0, 32 + 2 * (end - start));
+            error.withSourceLine(this.sourceText.slice(start, end) + (after === this.sourceText.length && (end < after || this.mode === "exec") ? "\n" : ""), this.meter);
+          }
+          error.withSource(this.sourceText,false,this.meter);
+        }
         this.lexerFailure = error; throw error;
       }
     }
@@ -68,6 +82,23 @@ export class TokenCursor {
     const token = this.peek();
     if (token.kind !== "end") { this.offset++; this.releaseConsumed(); }
     return token;
+  }
+
+  /** Finish the existing tokenizer after a parser error, without replaying
+   * warnings/comments or grammar callbacks. Resource/service failures remain
+   * fatal. A tokenizer error already observed by the parser is not replaced. */
+  finishSyntaxError(error: PythonSyntaxError): PythonSyntaxError {
+    this.meter?.checkpoint();
+    if (this.lexerFailure !== undefined) return error;
+    if (this.tokenization !== undefined) this.tokenization.syntaxOnly = true;
+    try {
+      while (this.peek().kind !== "end") this.take();
+    } catch (failure) {
+      if (!(failure instanceof PythonSyntaxError)) throw failure;
+      if (failure.tokenizerPriority === "always" ||
+        (failure.tokenizerPriority === "earlier-line" && failure.position.line < error.position.line)) return failure;
+    }
+    return error;
   }
 
   /** Try an ordered grammar alternative; lexical side effects happen only once. */
@@ -96,6 +127,33 @@ export class TokenCursor {
   expect(text: string): Token {
     if (this.peek().text !== text) throw this.error(`expected '${text}'`);
     return this.take();
+  }
+
+  /** Parser NEWLINE diagnostics include a trailing comment and keep the end
+   * column on that physical line. Eval's synthetic EOF newline has no span;
+   * an explicit invalid-grammar rule instead attributes its next token. */
+  newlineError(message = "invalid syntax", nextToken = false): PythonSyntaxError {
+    const token = this.peek();
+    if (token.kind !== "newline") throw new Error("newline diagnostic requires a newline token");
+    this.meter?.checkpoint(1, 256 + 2 * message.length);
+    let start = token.start;
+    let end = {...token.start, column: token.start.column + 1};
+    if (this.mode === "eval" && token.text === "") {
+      start = {...start, column: nextToken ? start.column - 1 : -1};
+      end = {...end, column: nextToken ? -2 : -1};
+    } else {
+      // Speculative grammar reads may have already scanned later comments.
+      let low = 0, high = this.comments.length;
+      while (low < high) {
+        this.meter?.checkpoint();
+        const middle = Math.floor((low + high) / 2);
+        if (this.comments[middle].end.offset < token.start.offset) low = middle + 1;
+        else high = middle;
+      }
+      const comment = this.comments[low];
+      if (comment?.end.offset === token.start.offset && comment.start.line === token.start.line) start = comment.start;
+    }
+    return new PythonSyntaxError(message, this.filename, start, end).withSource(this.sourceText, this.mode === "exec", this.meter);
   }
 
   error(message = "invalid syntax", ErrorType: typeof PythonSyntaxError = PythonSyntaxError): PythonSyntaxError {

@@ -9,6 +9,7 @@ export type FunctionNode = Extract<Statement, { kind: "function" }> | Extract<Ex
 export type ExpressionScope = {
   kind: "module" | "class" | "function" | "async-function" | "comprehension" | "async-comprehension";
   generator: boolean;
+  suspends?: boolean;
 };
 
 /** Check lexical expression placement and record yields in their owning scope. */
@@ -45,20 +46,37 @@ function* contextChildren(expression:Expression,scope:ExpressionScope,filename:s
   if (expression.kind === "comprehension" || expression.kind === "dictionary-comprehension") {
     const generator = expression.kind === "comprehension" && expression.collection === "generator";
     meter?.checkpoint(0,48);
-    const inner: ExpressionScope = { kind: generator || asynchronous ? "async-comprehension" : "comprehension", generator: false };
+    const inner: ExpressionScope = { kind: "async-comprehension", generator: false, suspends: false };
     for (let index = 0; index < expression.clauses.length; index++) {
       const clause = expression.clauses[index]!;
       meter?.checkpoint();
-      if (clause.async && !generator && !asynchronous) {meter?.checkpoint(0,384);throw new PythonSyntaxError("asynchronous comprehension outside of an asynchronous function", filename, clause.start);}
+      if (clause.async) inner.suspends = true;
       meter?.checkpoint(0,48);yield {expression:clause.iterable,scope:index===0?scope:inner};
       meter?.checkpoint(0,48);yield {expression:clause.target,scope:inner};
       for (const filter of clause.filters) {meter?.checkpoint(1,48);yield {expression:filter,scope:inner};}
     }
     if (expression.kind === "comprehension") {meter?.checkpoint(0,48);yield {expression:expression.element,scope:inner};}
     else {meter?.checkpoint(0,48);yield {expression:expression.key,scope:inner};meter?.checkpoint(0,48);yield {expression:expression.value,scope:inner};}
+    // Eager comprehensions suspend their parent; generator expressions defer
+    // their body, so only their first iterable can suspend the enclosing scope.
+    if (!generator && inner.suspends) {
+      if (!asynchronous) {
+        meter?.checkpoint(0,384);
+        const span = expression.contentSpan ?? expression;
+        throw new PythonSyntaxError("asynchronous comprehension outside of an asynchronous function", filename, span.start, span.end);
+      }
+      scope.suspends = true;
+    }
     return;
   }
-  if (expression.kind === "await" && !asynchronous) {meter?.checkpoint(0,320);throw new PythonSyntaxError("'await' outside async function", filename, expression.start);}
+  if (expression.kind === "await") {
+    if (!asynchronous) {
+      meter?.checkpoint(0,320);
+      const span = expression.contentSpan ?? expression;
+      throw new PythonSyntaxError("'await' outside async function", filename, span.start, span.end);
+    }
+    scope.suspends = true;
+  }
   if (expression.kind === "yield" || expression.kind === "yield-from") {
     if (scope.kind !== "function" && scope.kind !== "async-function") {meter?.checkpoint(0,352);throw new PythonSyntaxError("'yield' outside function or inside comprehension", filename, expression.start);}
     if (expression.kind === "yield-from" && asynchronous) {meter?.checkpoint(0,320);throw new PythonSyntaxError("'yield from' inside async function", filename, expression.start);}

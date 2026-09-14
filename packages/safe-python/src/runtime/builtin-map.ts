@@ -30,7 +30,7 @@ export function createMapBuiltin(values: RuntimeValues, meter: ExecutionMeter, c
         if (invocation?.truth !== undefined) return invocation.truth(value);
         return runtimeTruth(value, meter);
       } };
-      const strict = runtimeStrictOption("map", keywords, truth, meter);
+      const strict = runtimeStrictOption("map", keywords, truth, meter, values, invocation);
       if (positional.length < 2) throw new PythonRuntimeError("TypeError", "map() must have at least two arguments.");
       const count = positional.length - 1;
       meter.checkpoint(1, 32 + count * 8);

@@ -14,6 +14,8 @@ export function createRuntimeHashContext(base: RuntimeHashContext, meter: Execut
   meter.checkpoint(0, 128);
   return {
     ...base,
+    describeException: invocation.describeException ?? base.describeException,
+    hashErrorTypeName: invocation.hashErrorTypeName ?? base.hashErrorTypeName,
     guestHash(value) {
       const explicit = base.guestHash?.(value); meter.checkpoint();
       if (explicit !== undefined) return explicit;

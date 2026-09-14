@@ -1,3 +1,4 @@
+import {bindRuntimeClinicArguments} from "./runtime-clinic-arguments.js";
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { ListStorage } from "./list-storage.js";
@@ -14,18 +15,12 @@ export function createRuntimeSplitlinesMethod(receiver: RuntimeValue, values: Ru
   if (source === undefined) throw Error("line splitting requires native string or bytes storage");
   return values.builtinFunction({
     name: "splitlines",
-    invoke(positional, keywords, meter) {
+    invoke(positional, keywords, meter, invocation) {
       meter.checkpoint();
       const count = positional.length + keywords.items.size;
       if (count > 1) throw new PythonRuntimeError("TypeError", `splitlines() takes at most 1 ${positional.length === 0 ? "keyword " : ""}argument (${count} given)`);
-      let keepends: RuntimeValue = positional[0] ?? values.false;
-      for (const [name, value] of keywords.items.snapshot()) {
-        if (name.kind !== "str") throw new PythonRuntimeError("TypeError", "keywords must be strings");
-        let label = "";
-        for (const point of name.value) { meter.checkpoint(1, point > 0xffff ? 4 : 2); label += String.fromCodePoint(point); }
-        if (label !== "keepends") throw new PythonRuntimeError("TypeError", `splitlines() got an unexpected keyword argument '${label}'`);
-        keepends = value;
-      }
+      const [argument]=bindRuntimeClinicArguments("splitlines",["keepends"],positional,keywords,values,meter,invocation);
+      const keepends=argument??values.false;
       const retain = truth === undefined ? runtimeTruth(keepends, meter) : truth(keepends);
       meter.checkpoint();
       const length = BigInt(source.value.length);

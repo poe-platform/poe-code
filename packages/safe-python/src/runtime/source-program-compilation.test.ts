@@ -120,9 +120,9 @@ it("preserves cancellation from a throwing constant adapter",()=>{
   const controller=new AbortController(),meter=new ExecutionBudget({maxSteps:100000,maxAllocatedBytes:1000000,signal:controller.signal});
   expect(()=>compileSourceProgram("pass",options,{...constants,string(){controller.abort();throw new Error("constant failure");}},meter)).toThrow(ExecutionLimitError);
 });
-it("ignores type expressions and strips docstrings throughout nested code",()=>{
+it("binds aliases without evaluating type expressions and strips nested docstrings",()=>{
   const program=compileSourceProgram('"doc"\ntype Alias[T: missing()] = absent()\ndef f[T](x: nonexistent()) -> missing():\n "function doc"\n return x',{...options,stripDocstring:true},constants,budget());
   expect(program.module.docstring).toBeUndefined();
   expect([...program.functions.values()][0].docstring).toBeUndefined();
-  expect([...program.module.scope.bindings.keys()]).toEqual(["f"]);
+  expect([...program.module.scope.bindings.keys()]).toEqual(["Alias","f"]);
 });

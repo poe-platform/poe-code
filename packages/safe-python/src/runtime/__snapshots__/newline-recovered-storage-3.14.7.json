@@ -1,0 +1,6207 @@
+{
+  "target": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "rows": [
+    {
+      "lead": 194,
+      "replacement": [],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [],
+      "ascii": true,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 194,
+      "replacement": [],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [],
+      "ascii": true,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 194,
+      "replacement": [],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [],
+      "ascii": true,
+      "equal": true,
+      "reuse": true,
+      "state": 1,
+      "newlines": null
+    },
+    {
+      "lead": 194,
+      "replacement": [],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [
+        13
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [],
+      "ascii": true,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 194,
+      "replacement": [],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [],
+      "ascii": true,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 194,
+      "replacement": [],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [],
+      "ascii": true,
+      "equal": true,
+      "reuse": true,
+      "state": 1,
+      "newlines": null
+    },
+    {
+      "lead": 194,
+      "replacement": [],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [
+        10
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [
+        13,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [
+        13,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        56,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        56,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        13,
+        56,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        13,
+        56,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        56,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        56,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        10,
+        56,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        10,
+        56,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        13
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 1,
+      "newlines": null
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        13
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        56,
+        13
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        13
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        13,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 1,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        13
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        13,
+        56,
+        13
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        13
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 1,
+      "newlines": null
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        13
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        56,
+        10
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        13
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 1,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        13
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        10,
+        56,
+        10
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        13
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 1,
+      "newlines": null
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        13
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [
+        13
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        13
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [
+        13
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": true,
+      "state": 1,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        13
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [
+        13,
+        13
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        13
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 1,
+      "newlines": null
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        13
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [
+        10
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        13
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [
+        10
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 1,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        13
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [
+        10,
+        10
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        13,
+        10
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        13,
+        10
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        13,
+        10
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        13,
+        10
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        13,
+        10
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        13,
+        13,
+        10
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\r\n"
+      ]
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        13,
+        10
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        13,
+        13,
+        10
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\r\n"
+      ]
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        13,
+        10
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        10
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        13,
+        10
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        10
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        13,
+        10
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        10,
+        10
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\r\n"
+      ]
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        13,
+        10
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        10,
+        10
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\r\n"
+      ]
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        13,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        56,
+        13,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        13,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        56,
+        13,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        13,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        13,
+        56,
+        13,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        13,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        13,
+        56,
+        13,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        13,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        56,
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        13,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        56,
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        13,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        10,
+        56,
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        13,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        10,
+        56,
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        13,
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        56,
+        13,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        13,
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        56,
+        13,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        13,
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        13,
+        56,
+        13,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\r\n"
+      ]
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        13,
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        13,
+        56,
+        13,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\r\n"
+      ]
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        13,
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        56,
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        13,
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        56,
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        13,
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        10,
+        56,
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\r\n"
+      ]
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        13,
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        10,
+        56,
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\r\n"
+      ]
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        56,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\n"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        56,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\n"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        13,
+        56,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\n"
+      ]
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        13,
+        56,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\n"
+      ]
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        56,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\n"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        56,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\n"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        10,
+        56,
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\n"
+      ]
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        56,
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        10,
+        56,
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\n"
+      ]
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\n"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\n"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        13,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        13,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\n"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\n"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        269,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        269,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        269,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        269,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        269,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        13,
+        269,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        269,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        13,
+        269,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        269,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        269,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        269,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        269,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        269,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        10,
+        269,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        269,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        10,
+        269,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        55296,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        55296,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        55296,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        55296,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        55296,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        13,
+        55296,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        55296,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        13,
+        55296,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        55296,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        55296,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        55296,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        55296,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        55296,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        10,
+        55296,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 194,
+      "replacement": [
+        55296,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        10,
+        55296,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [],
+      "ascii": true,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 196,
+      "replacement": [],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [],
+      "ascii": true,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 196,
+      "replacement": [],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [],
+      "ascii": true,
+      "equal": true,
+      "reuse": true,
+      "state": 1,
+      "newlines": null
+    },
+    {
+      "lead": 196,
+      "replacement": [],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [
+        13
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [],
+      "ascii": true,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 196,
+      "replacement": [],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [],
+      "ascii": true,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 196,
+      "replacement": [],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [],
+      "ascii": true,
+      "equal": true,
+      "reuse": true,
+      "state": 1,
+      "newlines": null
+    },
+    {
+      "lead": 196,
+      "replacement": [],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [
+        10
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        56,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        56,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        13
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 1,
+      "newlines": null
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        13
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        13
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        13
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 1,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        13
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        56,
+        13
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        13
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 1,
+      "newlines": null
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        13
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        10
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        13
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 1,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        13
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56,
+        10
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        13
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 1,
+      "newlines": null
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        13
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        13
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 1,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        13
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        13
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        13
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 1,
+      "newlines": null
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        13
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        13
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 1,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        13
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        10
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        13,
+        10
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        10
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        13,
+        10
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        10
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        13,
+        10
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        13,
+        10
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\r\n"
+      ]
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        13,
+        10
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        13,
+        10
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\r\n"
+      ]
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        13,
+        10
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        13,
+        10
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        13,
+        10
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        10
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\r\n"
+      ]
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        13,
+        10
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        10
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\r\n"
+      ]
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        13,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        13,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        13,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        13,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        13,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        56,
+        13,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        13,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        56,
+        13,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        13,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        13,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        13,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56,
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        13,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56,
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        13,
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        13,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        13,
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        13,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        13,
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        56,
+        13,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\r\n"
+      ]
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        13,
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        56,
+        13,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\r\n"
+      ]
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        13,
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        13,
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        13,
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56,
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\r\n"
+      ]
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        13,
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56,
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\r\n"
+      ]
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\n"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\n"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        56,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\n"
+      ]
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        56,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\n"
+      ]
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\n"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\n"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56,
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\n"
+      ]
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        56,
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56,
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\n"
+      ]
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\n"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\n"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\n"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\n"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        269,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        269,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        269,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        269,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        269,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        13,
+        269,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        269,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        13,
+        269,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        269,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        269,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        269,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        269,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        269,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        10,
+        269,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        269,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        10,
+        269,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        55296,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        55296,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        55296,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        55296,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        55296,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        13,
+        55296,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        55296,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        13,
+        55296,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        55296,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        55296,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        55296,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        55296,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        55296,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        10,
+        55296,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 196,
+      "replacement": [
+        55296,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": true,
+      "output": [
+        10,
+        55296,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [],
+      "ascii": true,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 240,
+      "replacement": [],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [],
+      "ascii": true,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 240,
+      "replacement": [],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [],
+      "ascii": true,
+      "equal": true,
+      "reuse": true,
+      "state": 1,
+      "newlines": null
+    },
+    {
+      "lead": 240,
+      "replacement": [],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [
+        13
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [],
+      "ascii": true,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 240,
+      "replacement": [],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [],
+      "ascii": true,
+      "equal": true,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 240,
+      "replacement": [],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [],
+      "ascii": true,
+      "equal": true,
+      "reuse": true,
+      "state": 1,
+      "newlines": null
+    },
+    {
+      "lead": 240,
+      "replacement": [],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": true,
+      "input_equal": true,
+      "output": [
+        10
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        56,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        56,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        13
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 1,
+      "newlines": null
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        13
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        13
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        13
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 1,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        13
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        56,
+        13
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        13
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 1,
+      "newlines": null
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        13
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        10
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        13
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 1,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        13
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56,
+        10
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        13
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 1,
+      "newlines": null
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        13
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        13
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 1,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        13
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        13
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        13
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 1,
+      "newlines": null
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        13
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        13
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 1,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        13
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        10
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        13,
+        10
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        10
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        13,
+        10
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        10
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        13,
+        10
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        13,
+        10
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\r\n"
+      ]
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        13,
+        10
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        13,
+        10
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\r\n"
+      ]
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        13,
+        10
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        13,
+        10
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        13,
+        10
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        10
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\r\n"
+      ]
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        13,
+        10
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        10
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\r\n"
+      ]
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        13,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        13,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        13,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        13,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        13,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        56,
+        13,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        13,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        56,
+        13,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        13,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        13,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        13,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56,
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        13,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56,
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        13,
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        13,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        13,
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        13,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        13,
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        56,
+        13,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\r\n"
+      ]
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        13,
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        56,
+        13,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\r\n"
+      ]
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        13,
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        13,
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        13,
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56,
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\r\n"
+      ]
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        13,
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56,
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\r\n"
+      ]
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\n"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\n"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        56,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\n"
+      ]
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        56,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\n"
+      ]
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\n"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        56,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\n"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56,
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\n"
+      ]
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        56,
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56,
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": [
+        "\r",
+        "\n"
+      ]
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\n"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\n"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        10,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\n"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": "\n"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        10,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        56
+      ],
+      "ascii": true,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r\n"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        269,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        269,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        269,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        269,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        269,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        269,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        269,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        269,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        269,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        269,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        269,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        269,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        269,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        269,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        269,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        269,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        55296,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        55296,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        55296,
+        56
+      ],
+      "translate": false,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        55296,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        55296,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        55296,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        55296,
+        56
+      ],
+      "translate": false,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        13,
+        55296,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        55296,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        55296,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        55296,
+        56
+      ],
+      "translate": true,
+      "pending": false,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        55296,
+        56
+      ],
+      "ascii": false,
+      "equal": false,
+      "reuse": true,
+      "state": 0,
+      "newlines": null
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        55296,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": false,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        55296,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    },
+    {
+      "lead": 240,
+      "replacement": [
+        55296,
+        56
+      ],
+      "translate": true,
+      "pending": true,
+      "final": true,
+      "input_ascii": false,
+      "input_equal": false,
+      "output": [
+        10,
+        55296,
+        56
+      ],
+      "ascii": false,
+      "equal": true,
+      "reuse": false,
+      "state": 0,
+      "newlines": "\r"
+    }
+  ],
+  "oracle": {
+    "source": "import codecs, io, json, sys, unicodedata\nassert sys.version_info[:3] == (3, 14, 7)\nassert unicodedata.unidata_version == '16.0.0'\nassert sys.platform == 'darwin' and sys.byteorder == 'little'\noriginal = codecs.lookup_error('strict')\nretained = []\ndef capture(value, errors):\n    retained.append(errors)\n    return value, 0\ncodecs.register(lambda name: (capture, capture, None, None) if name == 'newline_storage' else None)\nclass Name(str):\n    pass\nrows = []\nfor lead in (0xc2, 0xc4, 0xf0):\n    for replacement in ('', '8', '88', '8\\r', '\\r', '\\r\\n', '8\\r8', '8\\r\\n8', '8\\n8', '\\n8', '\\u010d8', '\\ud8008'):\n        def recover(error):\n            return (bytes([lead]) if isinstance(error, UnicodeEncodeError) else replacement, error.end)\n        codecs.register_error('strict', recover)\n        codecs.encode('', 'newline_storage', Name('\\ud801'))\n        text = retained[-1]\n        codecs.register_error('strict', original)\n        for translate in (False, True):\n            for pending in (False, True):\n                for final in (False, True):\n                    decoder = io.IncrementalNewlineDecoder(None, translate)\n                    decoder.setstate((b'', int(pending)))\n                    result = decoder.decode(text, final)\n                    ordinary = ''.join(chr(ord(c)) for c in result)\n                    rows.append(dict(lead=lead, replacement=list(map(ord,replacement)), translate=translate, pending=pending, final=final, input_ascii=text.isascii(), input_equal=text==replacement, output=list(map(ord,result)), ascii=result.isascii(), equal=result==ordinary, reuse=result is text, state=decoder.getstate()[1], newlines=decoder.newlines))\nprint(json.dumps(dict(target=dict(version=sys.version, unicode=unicodedata.unidata_version, platform=sys.platform, byteorder=sys.byteorder), rows=rows)))\n",
+    "status": 0,
+    "stderr": ""
+  }
+}

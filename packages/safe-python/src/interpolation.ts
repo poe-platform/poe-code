@@ -1,7 +1,9 @@
 import type { PythonSource, SourcePosition,SourceMeter } from "./source.js";
+import { PythonSyntaxError } from "./source.js";
 import type { StructuralToken } from "./lexer.js";
 import { escapeWarning, readEscape } from "./strings.js";
 import {maximumDelimiterDepth,maximumInterpolatedStringLevels} from "./lexical-limits.js";
+import {decodeInterpolatedLiteral} from "./interpolated-literal-decoding.js";
 
 export type InterpolatedToken = {
   readonly text: string;
@@ -15,6 +17,8 @@ export type InterpolatedToken = {
     readonly content: string;
     /** Decoded Python code points, including distinct escaped surrogates. */
     readonly value: Uint32Array;
+    /** Parser-owned reduction; standalone lexer callers retain eager values. */
+    readonly decodeAt?: (span:{readonly start:SourcePosition;readonly end:SourcePosition})=>Uint32Array;
   }
 );
 
@@ -40,7 +44,7 @@ export class Interpolation {
   private quotedDepth=0;
   private fields=0;
 
-  constructor(meter:SourceMeter|undefined=undefined){meter?.checkpoint(1,96);this.modes=[];}
+  constructor(meter:SourceMeter|undefined=undefined,private readonly deferDecoding=false,private readonly implicitNewline=true){meter?.checkpoint(1,96);this.modes=[];}
 
   get replacementDepth():number {return this.fields;}
 
@@ -91,7 +95,9 @@ export class Interpolation {
     } finally {source.meter?.checkpoint();}
   }
 
-  readText(source: PythonSource, depth: number, onWarning?: (message: string, position: SourcePosition) => void): InterpolatedToken | StructuralToken {
+  readText(source: PythonSource, depth: number, onWarning?: (message: string, position: SourcePosition) => void): InterpolatedToken | StructuralToken;
+  readText(source: PythonSource, depth: number, onWarning: ((message: string, position: SourcePosition) => void) | undefined, decode: boolean): InterpolatedToken | StructuralToken | undefined;
+  readText(source: PythonSource, depth: number, onWarning?: (message: string, position: SourcePosition) => void, decode = true): InterpolatedToken | StructuralToken | undefined {
     try {
     source.meter?.checkpoint(1,224);
     const mode = this.modes[this.modes.length - 1];
@@ -126,6 +132,7 @@ export class Interpolation {
         if (mode.mode === "literal" && source.peek(1) === character) {
           source.meter?.checkpoint(0,72+2*character.length);
           source.advance(); source.advance(); content += character; points.push(character.codePointAt(0)!);
+          if(this.deferDecoding)break;
           continue;
         }
         if (character === "}" && mode.mode === "literal") throw source.error("single '}' is not allowed in interpolated strings");
@@ -146,10 +153,29 @@ export class Interpolation {
         if (next === "{" || next === "}") {
           source.meter?.checkpoint(0,8);
           points.push(92);
-          if (!owner.raw) warn(next, position);
+          if (decode && !owner.raw) warn(next, position);
           continue;
         }
-        if (owner.raw) { source.meter?.checkpoint(0,80+2*next.length);content += source.advance(); points.push(92, next.codePointAt(0)!); }
+        if (!decode || this.deferDecoding) {
+          const escapeStart=source.position.offset;
+          let namedEnd=false;
+          source.advance();
+          // Named-escape braces remain literal text even while semantic
+          // decoding is disabled. Quote/newline boundaries still belong to
+          // the tokenizer; malformed names must not consume following code.
+          if (!owner.raw && next === "N" && source.peek() === "{") {
+            source.advance();
+            while (!source.done && source.peek() !== "}" && source.peek() !== owner.quote && source.peek() !== "\n") source.advance();
+            if (source.peek() === "}") {source.advance();namedEnd=true;}
+          }
+          if(decode){
+            const width=source.position.offset-escapeStart;
+            source.meter?.checkpoint(width,160+6*width);
+            content+=source.text.slice(escapeStart,source.position.offset).replaceAll("\r\n","\n").replaceAll("\r","\n");
+          }
+          if(this.deferDecoding&&namedEnd)break;
+        }
+        else if (owner.raw) { source.meter?.checkpoint(0,80+2*next.length);content += source.advance(); points.push(92, next.codePointAt(0)!); }
         else {
           const escapeStart = source.position.offset;
           const escaped=readEscape(source,false,position,warn);
@@ -162,9 +188,15 @@ export class Interpolation {
       } else {source.meter?.checkpoint(0,8);points.push(character.codePointAt(0)!);}
     }
     if (source.position.offset === start.offset) this.assertClosed(source);
+    if (!decode) return;
     if (warning) onWarning?.(warning.message, warning.position);
     const end=source.position,width=end.offset-start.offset;
     source.meter?.checkpoint(1+width+content.length+points.length,128+2*width+2*content.length+4*points.length);
+    if(this.deferDecoding){
+      const decodeAt=(span:{readonly start:SourcePosition;readonly end:SourcePosition})=>decodeInterpolatedLiteral(content,owner.raw,source,span,mode.mode==="format",this.implicitNewline,onWarning);
+      return {kind:`${owner.flavor}-middle`,text:source.text.slice(start.offset,end.offset),content,
+        get value(){return decodeAt({start,end});},decodeAt,start,end};
+    }
     return {
       kind: `${owner.flavor}-middle`, text: source.text.slice(start.offset, end.offset),
       content, value: Uint32Array.from(points), start, end
@@ -176,6 +208,12 @@ export class Interpolation {
     try {
     source.meter?.checkpoint();
     const mode = this.modes[this.modes.length - 1];
+    if (mode?.mode === "field") {
+      source.meter?.checkpoint(0,192);
+      const error = new PythonSyntaxError("'{' was never closed", source.filename, mode.start, {...mode.start, column: -1});
+      error.unclosedDelimiter = true;
+      throw error;
+    }
     if (mode) throw source.error(mode.mode === "literal" ? "unterminated interpolated string literal" : "expecting '}' in interpolated string", mode.start);
     } finally {source.meter?.checkpoint();}
   }

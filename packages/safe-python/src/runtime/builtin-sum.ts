@@ -1,9 +1,11 @@
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import { suggestName } from "./name-suggestion.js";
+import { unexpectedBuiltinKeyword } from "./unexpected-builtin-keyword.js";
 import type { IterationContext } from "./protocol-iterator.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import { runtimeAddition } from "./runtime-addition.js";
+import { runtimeStringPayload } from "./runtime-string-payload.js";
+import { runtimeBytesPayload } from "./runtime-bytes-payload.js";
 import { sumIterator } from "./sum-iterator.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
@@ -28,20 +30,17 @@ export function createSumBuiltin(values: RuntimeValues, meter: ExecutionMeter, c
     if (positional.length === 0) throw new PythonRuntimeError("TypeError", "sum() takes at least 1 positional argument (0 given)");
     let start = positional[1];
     for (const [name, value] of keywords.items.snapshot()) {
-      if (name.kind !== "str") throw new PythonRuntimeError("TypeError", "keywords must be strings");
+      const payload = runtimeStringPayload(name);
+      if (payload === undefined) throw new PythonRuntimeError("TypeError", "keywords must be strings");
       let label = "";
-      for (const point of name.value) { meter.checkpoint(1, point > 0xffff ? 4 : 2); label += String.fromCodePoint(point); }
+      for (const point of payload.value) { meter.checkpoint(1, point > 0xffff ? 4 : 2); label += String.fromCodePoint(point); }
       if (label === "start") start = value;
-      else {
-        const suggestion = suggestName(label, ["start"], meter);
-        const hint = suggestion === undefined ? "" : `. Did you mean '${suggestion}'?`;
-        throw new PythonRuntimeError("TypeError", `sum() got an unexpected keyword argument '${label}'${hint}`);
-      }
+      else unexpectedBuiltinKeyword("sum", keywords, ["start"], values, meter, invocation);
     }
     const cursor = runtimeIterate(positional[0], values, meter, context.iteration ?? invocation?.iteration);
     if (start === undefined) start = values.integer(0);
     else {
-      const kind = start.kind === "str" ? "strings" : start.kind === "bytes" ? "bytes" : context.stringStart?.(start);
+      const kind = runtimeStringPayload(start) !== undefined ? "strings" : runtimeBytesPayload(start) !== undefined ? "bytes" : context.stringStart?.(start);
       meter.checkpoint();
       if (kind !== undefined) throw new PythonRuntimeError("TypeError", `sum() can't sum ${kind} [use ${kind === "strings" ? "''" : "b''"}.join(seq) instead]`);
     }

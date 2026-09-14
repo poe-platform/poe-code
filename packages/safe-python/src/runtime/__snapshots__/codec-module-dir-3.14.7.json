@@ -1,0 +1,45 @@
+{
+  "reference": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0\nmacOS-26.4.1-arm64-arm-64bit-Mach-O\n",
+  "cases": [
+    {
+      "name": "directory descriptor metadata and bound argument diagnostics",
+      "source": "\nimport codecs\nModule = type(codecs)\nmethod = Module.__dir__\nassert method.__name__ == '__dir__'\nassert method.__qualname__ == 'module.__dir__'\nassert method.__objclass__ is Module\nassert method.__doc__ == '__dir__() -> list\\nspecialized dir() implementation'\nassert method.__text_signature__ == '($self, /)'\nfor call, message in (\n    (lambda: method(), 'unbound method module.__dir__() needs an argument'),\n    (lambda: method(None), \"descriptor '__dir__' for 'module' objects doesn't apply to a 'NoneType' object\"),\n    (lambda: method(codecs, 1), 'module.__dir__() takes no arguments (1 given)'),\n    (lambda: method(codecs, x=1), 'module.__dir__() takes no keyword arguments'),\n    (lambda: codecs.__dir__(1), '__dir__() takes no arguments (1 given)'),\n    (lambda: codecs.__dir__(x=1), '__dir__() takes no keyword arguments'),\n):\n    try:\n        call()\n    except TypeError as error:\n        assert error.args == (message,)\n    else:\n        assert False\nprint('verified')\n",
+      "input": "visible\n",
+      "stdout": "verified\n",
+      "stderr": "",
+      "exit": 0
+    },
+    {
+      "name": "visible dictionary and native dictionary subtype operations",
+      "source": "\nimport codecs\nModule = type(codecs)\nevents = []\nclass Namespace(dict):\n    def keys(self):\n        raise AssertionError('virtual keys')\n    def __getitem__(self, key):\n        raise AssertionError('virtual lookup')\n    def __iter__(self):\n        raise AssertionError('virtual iteration')\nnamespace = Namespace(z=1, a=2)\nclass M(Module):\n    @property\n    def __dict__(self):\n        events.append('dict')\n        return namespace\nmodule = M('probe')\nmodule.hidden = True\nassert Module.__dir__(module) == ['z', 'a']\nassert dir(module) == ['a', 'z']\nassert events == ['dict', 'dict']\nresult = ['z', 'a']\ndef custom():\n    events.append('call')\n    namespace.clear()\n    return result\nnamespace['__dir__'] = custom\nassert Module.__dir__(module) is result\nassert events == ['dict', 'dict', 'dict', 'call']\nassert namespace == {}\nassert Module.__dir__(module) == []\nprint('verified')\n",
+      "input": "visible\n",
+      "stdout": "verified\n",
+      "stderr": "",
+      "exit": 0
+    },
+    {
+      "name": "dictionary validation and callback failure identity",
+      "source": "\nimport _codecs\nModule = type(_codecs)\nclass M(Module):\n    @property\n    def __dict__(self):\n        return namespace\nmodule = M('probe')\nfor namespace in (None, [], 1):\n    try:\n        Module.__dir__(module)\n    except TypeError as error:\n        assert error.args == ('<module>.__dict__ is not a dictionary',)\n    else:\n        assert False\nfor callback in (None, 1):\n    namespace = {'__dir__': callback}\n    try:\n        Module.__dir__(module)\n    except TypeError as error:\n        assert error.args == (\"'\" + type(callback).__name__ + \"' object is not callable\",)\n    else:\n        assert False\nfailure = ValueError('directory failed')\ndef callback():\n    raise failure\nnamespace = {'__dir__': callback}\ntry:\n    Module.__dir__(module)\nexcept ValueError as error:\n    assert error is failure\nelse:\n    assert False\nnamespace = {'__dir__': lambda: None}\nassert Module.__dir__(module) is None\nprint('verified')\n",
+      "input": "visible\n",
+      "stdout": "verified\n",
+      "stderr": "",
+      "exit": 0
+    },
+    {
+      "name": "overridden attribute lookup and dictionary errors",
+      "source": "\nimport encodings\nModule = type(encodings)\nevents = []\nfailure = ValueError('dictionary failed')\nclass M(Module):\n    def __getattribute__(self, name):\n        events.append(name)\n        if name == '__dict__':\n            if broken:\n                raise failure\n            return {'visible': 1}\n        return Module.__getattribute__(self, name)\nmodule = M('probe')\nbroken = False\nassert Module.__dir__(module) == ['visible']\nbroken = True\ntry:\n    Module.__dir__(module)\nexcept ValueError as error:\n    assert error is failure\nelse:\n    assert False\nassert events == ['__dict__', '__dict__']\nprint('verified')\n",
+      "input": "visible\n",
+      "stdout": "verified\n",
+      "stderr": "",
+      "exit": 0
+    },
+    {
+      "name": "directory descriptor uses explicit input and output services",
+      "source": "\nimport codecs\nModule = type(codecs)\nclass M(Module):\n    @property\n    def __dict__(self):\n        return {input(): 1}\nmodule = M('service')\nassert Module.__dir__(module) == ['visible']\nprint('verified')\n",
+      "input": "visible\n",
+      "stdout": "verified\n",
+      "stderr": "",
+      "exit": 0
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "start": "2026-09-14T02:55:36.626Z",
+  "finish": "2026-09-14T02:56:08.669Z",
+  "command": "npm run test:unit --workspace=@poe-code/safe-python -- src/runtime/euc-kr-codec.test.ts --maxWorkers=4 --pool=vmThreads --reporter=json",
+  "status": 0,
+  "totals": {
+    "tests": 802,
+    "passed": 802,
+    "failed": 0,
+    "pending": 0
+  },
+  "partitionCount": 768,
+  "failures": [],
+  "stderr": "",
+  "partitionAndIntegrityCount": 769,
+  "maxPartitionAndIntegrityMilliseconds": 14.410084000000097,
+  "typecheck": {
+    "command": "npm run typecheck --workspace=@poe-code/safe-python",
+    "status": 0
+  },
+  "eslint": {
+    "command": "npx eslint packages/safe-python/src/runtime/euc-kr-codec.test.ts",
+    "status": 0
+  },
+  "testSHA256": "9f29929bf6bf1eed16b9be31db35d65ad78bf22836702047e46ffda08aea8815"
+}

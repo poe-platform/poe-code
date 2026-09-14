@@ -1,0 +1,166 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "results": [
+    {
+      "name": "missing handler lookup and diagnostic precision",
+      "mode": "normal",
+      "source": "import codecs\nassert input() == 'ready'\nfor name in ('', 'missing', 'é' * 201, 'a' * 399 + '€'):\n    try:\n        codecs.lookup_error(name)\n    except LookupError as error:\n        print(type(error).__name__, error.args)\n    else:\n        assert False\n",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "LookupError (\"unknown error handler name ''\",)\nLookupError (\"unknown error handler name 'missing'\",)\nLookupError (\"unknown error handler name 'éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé'\",)\nLookupError (\"unknown error handler name 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'\",)\n",
+      "reads": 1,
+      "writes": 16,
+      "oracle": {
+        "stdout": "LookupError (\"unknown error handler name ''\",)\nLookupError (\"unknown error handler name 'missing'\",)\nLookupError (\"unknown error handler name 'éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé'\",)\nLookupError (\"unknown error handler name 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'\",)\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "name": "missing handler lookup and diagnostic precision",
+      "mode": "cancel-return",
+      "source": "import codecs\nassert input() == 'ready'\nfor name in ('', 'missing', 'é' * 201, 'a' * 399 + '€'):\n    try:\n        codecs.lookup_error(name)\n    except LookupError as error:\n        print(type(error).__name__, error.args)\n    else:\n        assert False\n",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "reads": 1,
+      "writes": 0,
+      "oracle": {
+        "stdout": "LookupError (\"unknown error handler name ''\",)\nLookupError (\"unknown error handler name 'missing'\",)\nLookupError (\"unknown error handler name 'éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé'\",)\nLookupError (\"unknown error handler name 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'\",)\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "name": "missing handler lookup and diagnostic precision",
+      "mode": "cancel-throw",
+      "source": "import codecs\nassert input() == 'ready'\nfor name in ('', 'missing', 'é' * 201, 'a' * 399 + '€'):\n    try:\n        codecs.lookup_error(name)\n    except LookupError as error:\n        print(type(error).__name__, error.args)\n    else:\n        assert False\n",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "reads": 1,
+      "writes": 0,
+      "oracle": {
+        "stdout": "LookupError (\"unknown error handler name ''\",)\nLookupError (\"unknown error handler name 'missing'\",)\nLookupError (\"unknown error handler name 'éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé'\",)\nLookupError (\"unknown error handler name 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'\",)\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "name": "missing recovery handlers and negative resume",
+      "mode": "normal",
+      "source": "import codecs\nassert input() == 'ready'\nfor name in ('', 'missing', 'é' * 201):\n    try:\n        b'\\xff'.decode('ascii', name)\n    except LookupError as error:\n        print(type(error).__name__, error.args)\n    else:\n        assert False\nseen = []\ndef recover(error):\n    seen.append((error.object, error.start, error.end))\n    return ('?', -1)\ncodecs.register_error('resume', recover)\nprint(b'\\xffZ'.decode('ascii', 'resume'), seen)\n",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "LookupError (\"unknown error handler name ''\",)\nLookupError (\"unknown error handler name 'missing'\",)\nLookupError (\"unknown error handler name 'éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé'\",)\n?Z [(b'\\xffZ', 0, 1)]\n",
+      "reads": 1,
+      "writes": 16,
+      "oracle": {
+        "stdout": "LookupError (\"unknown error handler name ''\",)\nLookupError (\"unknown error handler name 'missing'\",)\nLookupError (\"unknown error handler name 'éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé'\",)\n?Z [(b'\\xffZ', 0, 1)]\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "name": "missing recovery handlers and negative resume",
+      "mode": "cancel-return",
+      "source": "import codecs\nassert input() == 'ready'\nfor name in ('', 'missing', 'é' * 201):\n    try:\n        b'\\xff'.decode('ascii', name)\n    except LookupError as error:\n        print(type(error).__name__, error.args)\n    else:\n        assert False\nseen = []\ndef recover(error):\n    seen.append((error.object, error.start, error.end))\n    return ('?', -1)\ncodecs.register_error('resume', recover)\nprint(b'\\xffZ'.decode('ascii', 'resume'), seen)\n",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "reads": 1,
+      "writes": 0,
+      "oracle": {
+        "stdout": "LookupError (\"unknown error handler name ''\",)\nLookupError (\"unknown error handler name 'missing'\",)\nLookupError (\"unknown error handler name 'éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé'\",)\n?Z [(b'\\xffZ', 0, 1)]\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "name": "missing recovery handlers and negative resume",
+      "mode": "cancel-throw",
+      "source": "import codecs\nassert input() == 'ready'\nfor name in ('', 'missing', 'é' * 201):\n    try:\n        b'\\xff'.decode('ascii', name)\n    except LookupError as error:\n        print(type(error).__name__, error.args)\n    else:\n        assert False\nseen = []\ndef recover(error):\n    seen.append((error.object, error.start, error.end))\n    return ('?', -1)\ncodecs.register_error('resume', recover)\nprint(b'\\xffZ'.decode('ascii', 'resume'), seen)\n",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "reads": 1,
+      "writes": 0,
+      "oracle": {
+        "stdout": "LookupError (\"unknown error handler name ''\",)\nLookupError (\"unknown error handler name 'missing'\",)\nLookupError (\"unknown error handler name 'éééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééééé'\",)\n?Z [(b'\\xffZ', 0, 1)]\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "name": "handler failure identity and replacement",
+      "mode": "normal",
+      "source": "import codecs\nassert input() == 'ready'\nfailure = ValueError('handler failed')\ndef handler(error):\n    raise failure\ncodecs.register_error('handler', handler)\ntry:\n    b'\\xff'.decode('ascii', 'handler')\nexcept ValueError as caught:\n    print(caught is failure, caught.args)\ncodecs.register_error('handler', lambda error: ('!', error.end))\nprint(b'\\xff'.decode('ascii', 'handler'))\n",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "True ('handler failed',)\n!\n",
+      "reads": 1,
+      "writes": 6,
+      "oracle": {
+        "stdout": "True ('handler failed',)\n!\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "name": "handler failure identity and replacement",
+      "mode": "cancel-return",
+      "source": "import codecs\nassert input() == 'ready'\nfailure = ValueError('handler failed')\ndef handler(error):\n    raise failure\ncodecs.register_error('handler', handler)\ntry:\n    b'\\xff'.decode('ascii', 'handler')\nexcept ValueError as caught:\n    print(caught is failure, caught.args)\ncodecs.register_error('handler', lambda error: ('!', error.end))\nprint(b'\\xff'.decode('ascii', 'handler'))\n",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "reads": 1,
+      "writes": 0,
+      "oracle": {
+        "stdout": "True ('handler failed',)\n!\n",
+        "stderr": "",
+        "status": 0
+      }
+    },
+    {
+      "name": "handler failure identity and replacement",
+      "mode": "cancel-throw",
+      "source": "import codecs\nassert input() == 'ready'\nfailure = ValueError('handler failed')\ndef handler(error):\n    raise failure\ncodecs.register_error('handler', handler)\ntry:\n    b'\\xff'.decode('ascii', 'handler')\nexcept ValueError as caught:\n    print(caught is failure, caught.args)\ncodecs.register_error('handler', lambda error: ('!', error.end))\nprint(b'\\xff'.decode('ascii', 'handler'))\n",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "reads": 1,
+      "writes": 0,
+      "oracle": {
+        "stdout": "True ('handler failed',)\n!\n",
+        "stderr": "",
+        "status": 0
+      }
+    }
+  ]
+}

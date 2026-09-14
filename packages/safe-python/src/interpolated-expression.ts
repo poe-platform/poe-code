@@ -1,8 +1,12 @@
 import type { CollectionItem, Expression, InterpolatedPart } from "./ast.js";
 import type { TokenCursor } from "./token-cursor.js";
 import { readYield } from "./yield-expression.js";
+import type {InterpolatedToken} from "./interpolation.js";
+import type {SourcePosition} from "./source.js";
 
 type ReadExpression = (cursor: TokenCursor, minimum?: number) => Expression;
+type TextToken=Extract<InterpolatedToken,{kind:"fstring-middle"|"tstring-middle"}>;
+type PendingPart=Exclude<InterpolatedPart,{kind:"text"}>|TextToken;
 
 export function readInterpolatedString(cursor: TokenCursor, read: ReadExpression): Extract<Expression, { kind: "interpolated-string" }> {
   try {
@@ -12,25 +16,40 @@ export function readInterpolatedString(cursor: TokenCursor, read: ReadExpression
   const endKind = flavor === "formatted" ? "fstring-end" : "tstring-end";
   const parts = readParts(cursor, read);
   if (cursor.peek().kind !== endKind) throw cursor.error("expected end of interpolated string");
-  return { kind: "interpolated-string", flavor, parts, start: opening.start, end: cursor.take().end };
+  const closing=cursor.take();
+  return { kind: "interpolated-string", flavor, parts:decodeParts(parts,closing,cursor), start: opening.start, end: closing.end };
   } finally {cursor.meter?.checkpoint();}
 }
 
-function readParts(cursor: TokenCursor, read: ReadExpression): InterpolatedPart[] {
+function decodeParts(parts:PendingPart[],span:{readonly start:SourcePosition;readonly end:SourcePosition},cursor:TokenCursor):InterpolatedPart[]{
+  cursor.meter?.checkpoint(parts.length,32+8*parts.length);
+  return parts.map(part=>{
+    if(part.kind==="field")return part;
+    cursor.meter?.checkpoint(0,72);
+    return {kind:"text",value:part.decodeAt?.(span)??part.value,start:part.start,end:part.end};
+  });
+}
+
+function readParts(cursor: TokenCursor, read: ReadExpression,format=false): PendingPart[] {
   cursor.meter?.checkpoint(1,32);
-  const parts: InterpolatedPart[] = [];
+  const parts: PendingPart[] = [];
   while (true) {
     const token = cursor.peek();
     if (token.kind === "fstring-middle" || token.kind === "tstring-middle") {
       cursor.take();
       cursor.meter?.checkpoint(0,72);
-      parts.push({ kind: "text", value: token.value, start: token.start, end: token.end });
+      // Format specifications decode while their grammar production is read;
+      // outer literal segments wait until the closing quote has been consumed.
+      if(format&&token.decodeAt){
+        const value=token.decodeAt(token);
+        parts.push({kind:token.kind,text:token.text,content:token.content,value,start:token.start,end:token.end});
+      }else parts.push(token);
     } else if (token.text === "{") {cursor.meter?.checkpoint(0,8);parts.push(readField(cursor, read));}
     else return parts;
   }
 }
 
-function readField(cursor: TokenCursor, read: ReadExpression): InterpolatedPart {
+function readField(cursor: TokenCursor, read: ReadExpression): Exclude<InterpolatedPart,{kind:"text"}> {
   cursor.meter?.checkpoint(1,96);
   const opening = cursor.expect("{");
   const expression = readFieldExpression(cursor, read);
@@ -53,7 +72,7 @@ function readField(cursor: TokenCursor, read: ReadExpression): InterpolatedPart 
     cursor.take();
   }
   let format: InterpolatedPart[] | null = null;
-  if (cursor.peek().text === ":") { cursor.take(); format = readParts(cursor, read); }
+  if (cursor.peek().text === ":") { cursor.take(); format = decodeParts(readParts(cursor, read,true),cursor.peek(),cursor); }
   if (debugText !== null && conversion === null && format === null) conversion = "r";
   return { kind: "field", expression, expressionText, debugText, conversion, format, start: opening.start, end: cursor.expect("}").end };
 }

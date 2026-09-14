@@ -1,3 +1,4 @@
+import {unsupportedBuffer} from "./runtime-buffer-error.js";
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeSizeIndex } from "./runtime-size-index.js";
@@ -19,11 +20,11 @@ export function createRuntimeBytesReplaceMethod(receiver: Extract<RuntimeValue, 
       try {
         if (old.kind !== "bytes") {
           oldLease = buffers?.acquireSimple(old); meter.checkpoint();
-          if (oldLease === undefined) replacementBytesArgument(old);
+          if (oldLease === undefined) unsupportedBuffer(old,meter,buffers);
         }
         if (replacement.kind !== "bytes") {
           replacementLease = buffers?.acquireSimple(replacement); meter.checkpoint();
-          if (replacementLease === undefined) replacementBytesArgument(replacement);
+          if (replacementLease === undefined) unsupportedBuffer(replacement,meter,buffers);
         }
         const count = positional[2] === undefined ? -1n : runtimeSizeIndex(positional[2], meter, context);
         const oldBytes = old.kind === "bytes" ? old.value : oldLease!.copy(); meter.checkpoint();
@@ -36,9 +37,4 @@ export function createRuntimeBytesReplaceMethod(receiver: Extract<RuntimeValue, 
       }
     }
   });
-}
-
-function replacementBytesArgument(value: RuntimeValue): never {
-  const type = value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind;
-  throw new PythonRuntimeError("TypeError", `a bytes-like object is required, not '${type}'`);
 }

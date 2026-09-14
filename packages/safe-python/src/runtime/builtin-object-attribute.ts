@@ -1,3 +1,4 @@
+import { runtimeStringPayload } from "./runtime-string-payload.js";
 import { validateAttributeName } from "./attribute-name.js";
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
@@ -16,13 +17,14 @@ export function createObjectAttributeWrapper(name: "__getattribute__" | "__setat
       if (name !== "__getattribute__" && instance.kind === "type") throw new PythonRuntimeError("TypeError", `can't apply this ${name} to ${instance.metaclass.value.name} object`);
       const key = positional[0]; validateAttributeName(key, { typeName: invocation?.typeName }, meter);
       let attributeName = "";
-      if (key.kind === "str") for (const point of key.value) { meter.checkpoint(1, point > 0xffff ? 4 : 2); attributeName += String.fromCodePoint(point); }
+      const payload = runtimeStringPayload(key);
+      if (payload !== undefined) for (const point of payload.value) { meter.checkpoint(1, point > 0xffff ? 4 : 2); attributeName += String.fromCodePoint(point); }
       if (name === "__getattribute__") {
         if (invocation?.objectAttributeDefault === undefined) throw Error("object attribute reads require a default attribute policy");
-        const result = invocation.objectAttributeDefault(instance, attributeName); meter.checkpoint(); return result;
+        const result = invocation.objectAttributeDefault(instance, attributeName, invocation.attributeKey?.(key)); meter.checkpoint(); return result;
       }
       if (invocation?.mutateObjectAttributeDefault === undefined) throw Error("object attribute mutation requires a default attribute policy");
-      invocation.mutateObjectAttributeDefault(instance, attributeName, name === "__setattr__" ? { kind: "set", value: positional[1] } : { kind: "delete" });
+      invocation.mutateObjectAttributeDefault(instance, attributeName, name === "__setattr__" ? { kind: "set", value: positional[1] } : { kind: "delete" }, key.kind === "str" ? undefined : invocation.attributeKey?.(key));
       meter.checkpoint(); return values.none;
     }
   });

@@ -27,7 +27,7 @@ export function createZipBuiltin(values: RuntimeValues, meter: ExecutionMeter, c
         if (invocation?.truth !== undefined) return invocation.truth(value);
         return runtimeTruth(value, meter);
       } };
-      const strict = runtimeStrictOption("zip", keywords, truth, meter);
+      const strict = runtimeStrictOption("zip", keywords, truth, meter, values, invocation);
       meter.checkpoint(1, 64 + positional.length * 8);
       const sources = new Array<CompletionIterator<RuntimeValue>>(positional.length);
       for (let i = 0; i < positional.length; i++) {

@@ -1,3 +1,4 @@
+import {runtimeBytesPayload} from "./runtime-bytes-payload.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { lookupRuntimeSpecialMethod, runtimeActualType, type RuntimeSpecialMethodContext } from "./runtime-special-method.js";
 import { resolveRuntimeTypeAttribute } from "./runtime-type-layout.js";
@@ -25,8 +26,8 @@ export function createRuntimeNumericContext(operator: string, left: RuntimeValue
   const names = runtimeNumericMethods.get(operator);
   if (names === undefined) throw Error(`unsupported numeric operator: ${operator}`);
   const { forward: forwardName, reflected: reflectedName } = names;
-  const leftType = leftGuest || isRuntimeSet(left) || left.kind === "dict" || left.kind === "int" || left.kind === "float" || left.kind === "complex" || (left.kind==="str"&&runtimeStringPayload(right)!==undefined) ? runtimeActualType(left, special, meter) : undefined; meter.checkpoint();
-  const rightType = rightGuest || isRuntimeSet(right) || right.kind === "dict" || right.kind === "int" || right.kind === "float" || right.kind === "complex" || (right.kind==="str"&&runtimeStringPayload(left)!==undefined) ? runtimeActualType(right, special, meter) : undefined; meter.checkpoint();
+  const leftType = leftGuest || isRuntimeSet(left) || left.kind === "dict" || left.kind === "int" || left.kind === "float" || left.kind === "complex" || (left.kind==="str"&&runtimeStringPayload(right)!==undefined) || (left.kind==="bytes"&&runtimeBytesPayload(right)!==undefined) ? runtimeActualType(left, special, meter) : undefined; meter.checkpoint();
+  const rightType = rightGuest || isRuntimeSet(right) || right.kind === "dict" || right.kind === "int" || right.kind === "float" || right.kind === "complex" || (right.kind==="str"&&runtimeStringPayload(left)!==undefined) || (right.kind==="bytes"&&runtimeBytesPayload(left)!==undefined) ? runtimeActualType(right, special, meter) : undefined; meter.checkpoint();
   let relation: "same" | "right-subtype" | "other" = "other";
   if (leftType !== undefined && rightType !== undefined) {
     if (leftType === rightType) relation = "same";
@@ -36,7 +37,7 @@ export function createRuntimeNumericContext(operator: string, left: RuntimeValue
     }
   }
   meter.checkpoint(0, 512);
-  const sequenceFallbacks = { left: !leftGuest || (runtimeListPayload(left) === undefined && runtimeTuplePayload(left) === undefined && runtimeStringPayload(left)===undefined), right: !rightGuest || (runtimeListPayload(right) === undefined && runtimeTuplePayload(right) === undefined && runtimeStringPayload(right)===undefined) };
+  const sequenceFallbacks = { left: !leftGuest || (runtimeListPayload(left) === undefined && runtimeTuplePayload(left) === undefined && runtimeStringPayload(left)===undefined && runtimeBytesPayload(left)===undefined), right: !rightGuest || (runtimeListPayload(right) === undefined && runtimeTuplePayload(right) === undefined && runtimeStringPayload(right)===undefined && runtimeBytesPayload(right)===undefined) };
   const call = (receiver: RuntimeValue, other: RuntimeValue, type: TypeValue | undefined, name: string): RuntimeValue => {
     if (type === undefined) {
       if (receiver.kind === "bool" && other.kind === "instance" && runtimeIntegerPayload(other) !== undefined) {
@@ -56,7 +57,7 @@ export function createRuntimeNumericContext(operator: string, left: RuntimeValue
     }
     const method = lookupRuntimeSpecialMethod(receiver, type, values.string(name), special, values, meter);
     meter.checkpoint();
-    if (runtimeListPayload(receiver) !== undefined || runtimeTuplePayload(receiver) !== undefined || runtimeStringPayload(receiver)!==undefined) {
+    if (runtimeListPayload(receiver) !== undefined || runtimeTuplePayload(receiver) !== undefined || runtimeStringPayload(receiver)!==undefined || runtimeBytesPayload(receiver)!==undefined) {
       let nativeSequence = method?.kind === "method-wrapper" && method.value.descriptor.value.sequenceOperator === operator && method.value.descriptor.value.name === name;
       if (nativeSequence) {
         // Forward/reflected overrides share the native numeric slot. Once one

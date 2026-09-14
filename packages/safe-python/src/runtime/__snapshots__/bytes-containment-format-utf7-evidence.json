@@ -1,0 +1,9 @@
+{
+  "template": "packages/safe-python/src/session-utf7-shift-boundaries.test.ts",
+  "batches": 72,
+  "rows": 7120,
+  "consumerCalls": 14240,
+  "retainedSourcesIdentical": true,
+  "sourceSha256": "8998cff056e47bc4b69fee721fb142677d07a082412e1305acf5563d9dea7f8c",
+  "result": "passed"
+}

@@ -35,6 +35,20 @@ type StringConstant = Extract<PrimitiveConstant, { kind: "str" }>;
 const VALUE_BYTES = 32;
 const REFERENCE_BYTES = 8;
 
+/** CPython's constant interning rule is ASCII alphanumerics and underscore,
+ * independent of Unicode identifier classification. Trusted frozen definitions
+ * can prepare this name before per-interpreter materialization. */
+export function literalStringInternName(points: Uint32Array, meter?: ExecutionMeter): string | undefined {
+  let name = "";
+  for (const point of points) {
+    meter?.checkpoint();
+    if (!(point >= 65 && point <= 90 || point >= 97 && point <= 122 || point >= 48 && point <= 57 || point === 95)) return undefined;
+    meter?.checkpoint(0, 2);
+    name += String.fromCharCode(point);
+  }
+  return name;
+}
+
 /** Concrete immutable value records for literals and compiled constants. These
  * host records must never be exposed through guest JavaScript property access.
  * Singleton identity is scoped to this factory/runtime. Tuples own only their
@@ -53,6 +67,7 @@ export class ConstantValues {
   #smallIntegers: Map<number, Extract<PrimitiveConstant, { kind: "int" }>> | undefined;
   #smallBytes: Map<number, BytesConstant> | undefined;
   #smallStrings: Map<number, StringConstant> | undefined;
+  #internedStrings: Map<string, StringConstant> | undefined;
   #emptyTuple: TupleConstant<never> | undefined;
   readonly none: Extract<PrimitiveConstant, { kind: "none" }>;
   readonly true: Extract<PrimitiveConstant, { kind: "bool" }>;
@@ -114,7 +129,7 @@ export class ConstantValues {
     if (points.length === 0) key = -1;
     else if (points.length === 1 && identity === "canonical") {
       const point = points instanceof CodePointString ? points.codePointAt(0n, this.meter) : points[0];
-      if (point <= 255) key = point;
+      if (point <= 255 && (!(points instanceof CodePointString) || points.compactWidth(this.meter) === 1)) key = point;
     }
     if (key !== undefined) {
       const cached = this.#smallStrings?.get(key);
@@ -131,11 +146,23 @@ export class ConstantValues {
   }
 
   string(value: string, identity: "canonical" | "fresh" = "canonical"): Extract<PrimitiveConstant, { kind: "str" }> {
-    this.meter.checkpoint(1, value.length * Uint32Array.BYTES_PER_ELEMENT);
-    const points = new Uint32Array(value.length);
-    let length = 0;
-    for (const character of value) { this.meter.checkpoint(); points[length++] = character.codePointAt(0)!; }
-    return this.stringPoints(points.subarray(0, length), identity);
+    return this.stringPoints(CodePointString.fromString(value, this.meter), identity);
+  }
+
+  /** Explicit interning for trusted names and compiler-selected constants.
+   * Ordinary string construction never consults this interpreter-owned pool.
+   * Codec cache invalidation must not discard interned string identities.
+   * Frozen recipes may supply the immutable storage from which their name was
+   * prepared; this avoids constructing a second payload on a pool miss. */
+  internString(value: string, prepared?: CodePointString): StringConstant {
+    this.meter.checkpoint(value.length + 1);
+    const cached = this.#internedStrings?.get(value);
+    if (cached !== undefined) return cached;
+    this.meter.checkpoint(0, (this.#internedStrings === undefined ? 64 : 0) + 32 + value.length * 2);
+    const result = prepared === undefined ? this.string(value) : this.stringPoints(prepared, "canonical");
+    this.#internedStrings ??= new Map();
+    this.#internedStrings.set(value, result);
+    return result;
   }
 
   bytes(value: Uint8Array | ImmutableBytes, identity: "canonical" | "fresh" = "canonical"): BytesConstant {
@@ -198,7 +225,11 @@ export class ConstantValues {
       case "integer": return this.integer(node.value as bigint);
       case "float": return this.float(node.value as number);
       case "imaginary": return this.complex(0, node.value as number);
-      case "string": return this.stringPoints(node.value as Uint32Array, "canonical");
+      case "string": {
+        const points = node.value as Uint32Array;
+        const name = literalStringInternName(points, this.meter);
+        return name === undefined ? this.stringPoints(points, "canonical") : this.internString(name);
+      }
       case "bytes": return this.bytes(node.value as Uint8Array);
     }
   }

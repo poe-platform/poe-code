@@ -11,7 +11,7 @@ import type { ClassMethodDescriptorValue,RuntimeValues,TypeValue } from "./runti
  * storage bypasses __float__. Bound subtypes construct from a plain complex. */
 export function createComplexFromNumberDescriptor(owner:TypeValue,values:RuntimeValues,meter:ExecutionMeter):ClassMethodDescriptorValue {
   meter.checkpoint(0,96);
-  return values.classMethodDescriptor({owner,name:"from_number",doc:"Convert number to a complex floating-point number.",
+  return values.classMethodDescriptor({textSignature: "($type, number, /)", owner,name:"from_number",doc:"Convert number to a complex floating-point number.",
     accepts(receiver,meter) {
       if(receiver.kind!=="type")return false;
       for(const ancestor of receiver.value.mro){meter.checkpoint();if(ancestor===owner.value)return true;}

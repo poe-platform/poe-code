@@ -1,0 +1,1152 @@
+[
+  {
+    "name": "set keys len=0 match",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 0\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "set keys len=0 miss",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 0\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "set keys len=0 contains_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 0\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "set keys len=0 iter_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 0\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('iter',), ['len', 'iter'])"
+  },
+  {
+    "name": "set keys len=1 match",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 1\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "set keys len=1 miss",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 1\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "set keys len=1 contains_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 1\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "set keys len=1 iter_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 1\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('iter',), ['len', 'iter'])"
+  },
+  {
+    "name": "set keys len=2 match",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'contains'])"
+  },
+  {
+    "name": "set keys len=2 miss",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, ['len', 'contains'])"
+  },
+  {
+    "name": "set keys len=2 contains_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('contains',), ['len', 'contains'])"
+  },
+  {
+    "name": "set keys len=2 iter_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, ['len', 'contains'])"
+  },
+  {
+    "name": "set keys len=-1 match",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return -1\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('__len__() should return >= 0',), ['len'])"
+  },
+  {
+    "name": "set keys len=-1 miss",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return -1\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('__len__() should return >= 0',), ['len'])"
+  },
+  {
+    "name": "set keys len=-1 contains_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return -1\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('__len__() should return >= 0',), ['len'])"
+  },
+  {
+    "name": "set keys len=-1 iter_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return -1\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('__len__() should return >= 0',), ['len'])"
+  },
+  {
+    "name": "set keys len=True match",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return True\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "set keys len=True miss",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return True\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "set keys len=True contains_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return True\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "set keys len=True iter_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return True\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('iter',), ['len', 'iter'])"
+  },
+  {
+    "name": "set keys len=1.5 match",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 1.5\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'float' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "set keys len=1.5 miss",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 1.5\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'float' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "set keys len=1.5 contains_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 1.5\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'float' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "set keys len=1.5 iter_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 1.5\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'float' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "set keys len=2**100 match",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2**100\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'OverflowError', (\"cannot fit 'int' into an index-sized integer\",), ['len'])"
+  },
+  {
+    "name": "set keys len=2**100 miss",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2**100\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'OverflowError', (\"cannot fit 'int' into an index-sized integer\",), ['len'])"
+  },
+  {
+    "name": "set keys len=2**100 contains_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2**100\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'OverflowError', (\"cannot fit 'int' into an index-sized integer\",), ['len'])"
+  },
+  {
+    "name": "set keys len=2**100 iter_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2**100\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'OverflowError', (\"cannot fit 'int' into an index-sized integer\",), ['len'])"
+  },
+  {
+    "name": "set keys len='bad' match",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 'bad'\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'str' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "set keys len='bad' miss",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 'bad'\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'str' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "set keys len='bad' contains_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 'bad'\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'str' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "set keys len='bad' iter_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 'bad'\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'str' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "set keys len=None match",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return None\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'NoneType' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "set keys len=None miss",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return None\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'NoneType' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "set keys len=None contains_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return None\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'NoneType' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "set keys len=None iter_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return None\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'NoneType' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "set keys len=ValueError('length') match",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('length',), ['len'])"
+  },
+  {
+    "name": "set keys len=ValueError('length') miss",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('length',), ['len'])"
+  },
+  {
+    "name": "set keys len=ValueError('length') contains_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('length',), ['len'])"
+  },
+  {
+    "name": "set keys len=ValueError('length') iter_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('length',), ['len'])"
+  },
+  {
+    "name": "set items len=0 match",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 0\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "set items len=0 miss",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 0\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "set items len=0 contains_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 0\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "set items len=0 iter_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 0\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('iter',), ['len', 'iter'])"
+  },
+  {
+    "name": "set items len=1 match",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 1\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "set items len=1 miss",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 1\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "set items len=1 contains_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 1\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "set items len=1 iter_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 1\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('iter',), ['len', 'iter'])"
+  },
+  {
+    "name": "set items len=2 match",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'contains'])"
+  },
+  {
+    "name": "set items len=2 miss",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, ['len', 'contains'])"
+  },
+  {
+    "name": "set items len=2 contains_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('contains',), ['len', 'contains'])"
+  },
+  {
+    "name": "set items len=2 iter_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, ['len', 'contains'])"
+  },
+  {
+    "name": "set items len=-1 match",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return -1\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('__len__() should return >= 0',), ['len'])"
+  },
+  {
+    "name": "set items len=-1 miss",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return -1\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('__len__() should return >= 0',), ['len'])"
+  },
+  {
+    "name": "set items len=-1 contains_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return -1\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('__len__() should return >= 0',), ['len'])"
+  },
+  {
+    "name": "set items len=-1 iter_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return -1\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('__len__() should return >= 0',), ['len'])"
+  },
+  {
+    "name": "set items len=True match",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return True\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "set items len=True miss",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return True\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "set items len=True contains_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return True\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "set items len=True iter_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return True\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('iter',), ['len', 'iter'])"
+  },
+  {
+    "name": "set items len=1.5 match",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 1.5\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'float' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "set items len=1.5 miss",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 1.5\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'float' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "set items len=1.5 contains_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 1.5\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'float' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "set items len=1.5 iter_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 1.5\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'float' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "set items len=2**100 match",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2**100\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'OverflowError', (\"cannot fit 'int' into an index-sized integer\",), ['len'])"
+  },
+  {
+    "name": "set items len=2**100 miss",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2**100\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'OverflowError', (\"cannot fit 'int' into an index-sized integer\",), ['len'])"
+  },
+  {
+    "name": "set items len=2**100 contains_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2**100\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'OverflowError', (\"cannot fit 'int' into an index-sized integer\",), ['len'])"
+  },
+  {
+    "name": "set items len=2**100 iter_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2**100\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'OverflowError', (\"cannot fit 'int' into an index-sized integer\",), ['len'])"
+  },
+  {
+    "name": "set items len='bad' match",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 'bad'\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'str' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "set items len='bad' miss",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 'bad'\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'str' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "set items len='bad' contains_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 'bad'\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'str' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "set items len='bad' iter_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 'bad'\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'str' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "set items len=None match",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return None\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'NoneType' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "set items len=None miss",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return None\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'NoneType' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "set items len=None contains_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return None\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'NoneType' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "set items len=None iter_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return None\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'NoneType' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "set items len=ValueError('length') match",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('length',), ['len'])"
+  },
+  {
+    "name": "set items len=ValueError('length') miss",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('length',), ['len'])"
+  },
+  {
+    "name": "set items len=ValueError('length') contains_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('length',), ['len'])"
+  },
+  {
+    "name": "set items len=ValueError('length') iter_error",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('length',), ['len'])"
+  },
+  {
+    "name": "frozenset keys len=0 match",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 0\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "frozenset keys len=0 miss",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 0\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "frozenset keys len=0 contains_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 0\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "frozenset keys len=0 iter_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 0\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('iter',), ['len', 'iter'])"
+  },
+  {
+    "name": "frozenset keys len=1 match",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 1\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "frozenset keys len=1 miss",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 1\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "frozenset keys len=1 contains_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 1\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "frozenset keys len=1 iter_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 1\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('iter',), ['len', 'iter'])"
+  },
+  {
+    "name": "frozenset keys len=2 match",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'contains'])"
+  },
+  {
+    "name": "frozenset keys len=2 miss",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, ['len', 'contains'])"
+  },
+  {
+    "name": "frozenset keys len=2 contains_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('contains',), ['len', 'contains'])"
+  },
+  {
+    "name": "frozenset keys len=2 iter_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, ['len', 'contains'])"
+  },
+  {
+    "name": "frozenset keys len=-1 match",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return -1\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('__len__() should return >= 0',), ['len'])"
+  },
+  {
+    "name": "frozenset keys len=-1 miss",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return -1\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('__len__() should return >= 0',), ['len'])"
+  },
+  {
+    "name": "frozenset keys len=-1 contains_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return -1\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('__len__() should return >= 0',), ['len'])"
+  },
+  {
+    "name": "frozenset keys len=-1 iter_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return -1\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('__len__() should return >= 0',), ['len'])"
+  },
+  {
+    "name": "frozenset keys len=True match",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return True\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "frozenset keys len=True miss",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return True\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "frozenset keys len=True contains_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return True\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "frozenset keys len=True iter_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return True\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('iter',), ['len', 'iter'])"
+  },
+  {
+    "name": "frozenset keys len=1.5 match",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 1.5\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'float' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset keys len=1.5 miss",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 1.5\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'float' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset keys len=1.5 contains_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 1.5\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'float' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset keys len=1.5 iter_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 1.5\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'float' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset keys len=2**100 match",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2**100\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'OverflowError', (\"cannot fit 'int' into an index-sized integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset keys len=2**100 miss",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2**100\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'OverflowError', (\"cannot fit 'int' into an index-sized integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset keys len=2**100 contains_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2**100\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'OverflowError', (\"cannot fit 'int' into an index-sized integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset keys len=2**100 iter_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2**100\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'OverflowError', (\"cannot fit 'int' into an index-sized integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset keys len='bad' match",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 'bad'\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'str' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset keys len='bad' miss",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 'bad'\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'str' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset keys len='bad' contains_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 'bad'\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'str' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset keys len='bad' iter_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 'bad'\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'str' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset keys len=None match",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return None\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'NoneType' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset keys len=None miss",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return None\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'NoneType' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset keys len=None contains_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return None\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'NoneType' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset keys len=None iter_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return None\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'NoneType' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset keys len=ValueError('length') match",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('length',), ['len'])"
+  },
+  {
+    "name": "frozenset keys len=ValueError('length') miss",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('length',), ['len'])"
+  },
+  {
+    "name": "frozenset keys len=ValueError('length') contains_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter(['a'])\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('length',), ['len'])"
+  },
+  {
+    "name": "frozenset keys len=ValueError('length') iter_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('length',), ['len'])"
+  },
+  {
+    "name": "frozenset items len=0 match",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 0\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "frozenset items len=0 miss",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 0\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "frozenset items len=0 contains_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 0\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "frozenset items len=0 iter_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 0\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('iter',), ['len', 'iter'])"
+  },
+  {
+    "name": "frozenset items len=1 match",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 1\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "frozenset items len=1 miss",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 1\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "frozenset items len=1 contains_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 1\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "frozenset items len=1 iter_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 1\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('iter',), ['len', 'iter'])"
+  },
+  {
+    "name": "frozenset items len=2 match",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'contains'])"
+  },
+  {
+    "name": "frozenset items len=2 miss",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, ['len', 'contains'])"
+  },
+  {
+    "name": "frozenset items len=2 contains_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('contains',), ['len', 'contains'])"
+  },
+  {
+    "name": "frozenset items len=2 iter_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, ['len', 'contains'])"
+  },
+  {
+    "name": "frozenset items len=-1 match",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return -1\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('__len__() should return >= 0',), ['len'])"
+  },
+  {
+    "name": "frozenset items len=-1 miss",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return -1\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('__len__() should return >= 0',), ['len'])"
+  },
+  {
+    "name": "frozenset items len=-1 contains_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return -1\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('__len__() should return >= 0',), ['len'])"
+  },
+  {
+    "name": "frozenset items len=-1 iter_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return -1\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('__len__() should return >= 0',), ['len'])"
+  },
+  {
+    "name": "frozenset items len=True match",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return True\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "frozenset items len=True miss",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return True\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "frozenset items len=True contains_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return True\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, ['len', 'iter'])"
+  },
+  {
+    "name": "frozenset items len=True iter_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return True\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('iter',), ['len', 'iter'])"
+  },
+  {
+    "name": "frozenset items len=1.5 match",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 1.5\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'float' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset items len=1.5 miss",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 1.5\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'float' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset items len=1.5 contains_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 1.5\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'float' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset items len=1.5 iter_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 1.5\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'float' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset items len=2**100 match",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2**100\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'OverflowError', (\"cannot fit 'int' into an index-sized integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset items len=2**100 miss",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2**100\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'OverflowError', (\"cannot fit 'int' into an index-sized integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset items len=2**100 contains_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2**100\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'OverflowError', (\"cannot fit 'int' into an index-sized integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset items len=2**100 iter_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2**100\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'OverflowError', (\"cannot fit 'int' into an index-sized integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset items len='bad' match",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 'bad'\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'str' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset items len='bad' miss",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 'bad'\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'str' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset items len='bad' contains_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 'bad'\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'str' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset items len='bad' iter_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 'bad'\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'str' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset items len=None match",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return None\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'NoneType' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset items len=None miss",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return None\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'NoneType' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset items len=None contains_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return None\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'NoneType' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset items len=None iter_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return None\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"'NoneType' object cannot be interpreted as an integer\",), ['len'])"
+  },
+  {
+    "name": "frozenset items len=ValueError('length') match",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\n def __contains__(self,item):\n  events.append('contains')\n  return True\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('length',), ['len'])"
+  },
+  {
+    "name": "frozenset items len=ValueError('length') miss",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('length',), ['len'])"
+  },
+  {
+    "name": "frozenset items len=ValueError('length') contains_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\n def __contains__(self,item):\n  events.append('contains')\n  raise ValueError('contains')\n def __iter__(self):\n  events.append('iter')\n  return iter([('a', 1)])\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('length',), ['len'])"
+  },
+  {
+    "name": "frozenset items len=ValueError('length') iter_error",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter')\nother=S()\nview={'a':1}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'ValueError', ('length',), ['len'])"
+  },
+  {
+    "name": "bind keys set 0 view.isdisjoint(other)",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(0): d[i]=i\nview=d.keys()\nobservation=(view.isdisjoint(other),events)\n",
+    "expected": "(True, ['len'])"
+  },
+  {
+    "name": "bind keys set 0 type(view).isdisjoint(view,other)",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(0): d[i]=i\nview=d.keys()\nobservation=(type(view).isdisjoint(view,other),events)\n",
+    "expected": "(True, ['len'])"
+  },
+  {
+    "name": "bind keys set 0 type(view).__dict__['isdisjoint'].__get__(view,type(view))(other)",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(0): d[i]=i\nview=d.keys()\nobservation=(type(view).__dict__['isdisjoint'].__get__(view,type(view))(other),events)\n",
+    "expected": "(True, ['len'])"
+  },
+  {
+    "name": "bind keys set 1 view.isdisjoint(other)",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(1): d[i]=i\nview=d.keys()\nobservation=(view.isdisjoint(other),events)\n",
+    "expected": "(True, ['len', 'contains'])"
+  },
+  {
+    "name": "bind keys set 1 type(view).isdisjoint(view,other)",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(1): d[i]=i\nview=d.keys()\nobservation=(type(view).isdisjoint(view,other),events)\n",
+    "expected": "(True, ['len', 'contains'])"
+  },
+  {
+    "name": "bind keys set 1 type(view).__dict__['isdisjoint'].__get__(view,type(view))(other)",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(1): d[i]=i\nview=d.keys()\nobservation=(type(view).__dict__['isdisjoint'].__get__(view,type(view))(other),events)\n",
+    "expected": "(True, ['len', 'contains'])"
+  },
+  {
+    "name": "bind keys set 2 view.isdisjoint(other)",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(2): d[i]=i\nview=d.keys()\nobservation=(view.isdisjoint(other),events)\n",
+    "expected": "(True, ['len', 'iter'])"
+  },
+  {
+    "name": "bind keys set 2 type(view).isdisjoint(view,other)",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(2): d[i]=i\nview=d.keys()\nobservation=(type(view).isdisjoint(view,other),events)\n",
+    "expected": "(True, ['len', 'iter'])"
+  },
+  {
+    "name": "bind keys set 2 type(view).__dict__['isdisjoint'].__get__(view,type(view))(other)",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(2): d[i]=i\nview=d.keys()\nobservation=(type(view).__dict__['isdisjoint'].__get__(view,type(view))(other),events)\n",
+    "expected": "(True, ['len', 'iter'])"
+  },
+  {
+    "name": "bind keys frozenset 0 view.isdisjoint(other)",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(0): d[i]=i\nview=d.keys()\nobservation=(view.isdisjoint(other),events)\n",
+    "expected": "(True, ['len'])"
+  },
+  {
+    "name": "bind keys frozenset 0 type(view).isdisjoint(view,other)",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(0): d[i]=i\nview=d.keys()\nobservation=(type(view).isdisjoint(view,other),events)\n",
+    "expected": "(True, ['len'])"
+  },
+  {
+    "name": "bind keys frozenset 0 type(view).__dict__['isdisjoint'].__get__(view,type(view))(other)",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(0): d[i]=i\nview=d.keys()\nobservation=(type(view).__dict__['isdisjoint'].__get__(view,type(view))(other),events)\n",
+    "expected": "(True, ['len'])"
+  },
+  {
+    "name": "bind keys frozenset 1 view.isdisjoint(other)",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(1): d[i]=i\nview=d.keys()\nobservation=(view.isdisjoint(other),events)\n",
+    "expected": "(True, ['len', 'contains'])"
+  },
+  {
+    "name": "bind keys frozenset 1 type(view).isdisjoint(view,other)",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(1): d[i]=i\nview=d.keys()\nobservation=(type(view).isdisjoint(view,other),events)\n",
+    "expected": "(True, ['len', 'contains'])"
+  },
+  {
+    "name": "bind keys frozenset 1 type(view).__dict__['isdisjoint'].__get__(view,type(view))(other)",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(1): d[i]=i\nview=d.keys()\nobservation=(type(view).__dict__['isdisjoint'].__get__(view,type(view))(other),events)\n",
+    "expected": "(True, ['len', 'contains'])"
+  },
+  {
+    "name": "bind keys frozenset 2 view.isdisjoint(other)",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(2): d[i]=i\nview=d.keys()\nobservation=(view.isdisjoint(other),events)\n",
+    "expected": "(True, ['len', 'iter'])"
+  },
+  {
+    "name": "bind keys frozenset 2 type(view).isdisjoint(view,other)",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(2): d[i]=i\nview=d.keys()\nobservation=(type(view).isdisjoint(view,other),events)\n",
+    "expected": "(True, ['len', 'iter'])"
+  },
+  {
+    "name": "bind keys frozenset 2 type(view).__dict__['isdisjoint'].__get__(view,type(view))(other)",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(2): d[i]=i\nview=d.keys()\nobservation=(type(view).__dict__['isdisjoint'].__get__(view,type(view))(other),events)\n",
+    "expected": "(True, ['len', 'iter'])"
+  },
+  {
+    "name": "bind keys list 0 view.isdisjoint(other)",
+    "source": "events=[]\nclass S(list):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(0): d[i]=i\nview=d.keys()\nobservation=(view.isdisjoint(other),events)\n",
+    "expected": "(True, ['iter'])"
+  },
+  {
+    "name": "bind keys list 0 type(view).isdisjoint(view,other)",
+    "source": "events=[]\nclass S(list):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(0): d[i]=i\nview=d.keys()\nobservation=(type(view).isdisjoint(view,other),events)\n",
+    "expected": "(True, ['iter'])"
+  },
+  {
+    "name": "bind keys list 0 type(view).__dict__['isdisjoint'].__get__(view,type(view))(other)",
+    "source": "events=[]\nclass S(list):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(0): d[i]=i\nview=d.keys()\nobservation=(type(view).__dict__['isdisjoint'].__get__(view,type(view))(other),events)\n",
+    "expected": "(True, ['iter'])"
+  },
+  {
+    "name": "bind keys list 1 view.isdisjoint(other)",
+    "source": "events=[]\nclass S(list):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(1): d[i]=i\nview=d.keys()\nobservation=(view.isdisjoint(other),events)\n",
+    "expected": "(True, ['iter'])"
+  },
+  {
+    "name": "bind keys list 1 type(view).isdisjoint(view,other)",
+    "source": "events=[]\nclass S(list):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(1): d[i]=i\nview=d.keys()\nobservation=(type(view).isdisjoint(view,other),events)\n",
+    "expected": "(True, ['iter'])"
+  },
+  {
+    "name": "bind keys list 1 type(view).__dict__['isdisjoint'].__get__(view,type(view))(other)",
+    "source": "events=[]\nclass S(list):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(1): d[i]=i\nview=d.keys()\nobservation=(type(view).__dict__['isdisjoint'].__get__(view,type(view))(other),events)\n",
+    "expected": "(True, ['iter'])"
+  },
+  {
+    "name": "bind keys list 2 view.isdisjoint(other)",
+    "source": "events=[]\nclass S(list):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(2): d[i]=i\nview=d.keys()\nobservation=(view.isdisjoint(other),events)\n",
+    "expected": "(True, ['iter'])"
+  },
+  {
+    "name": "bind keys list 2 type(view).isdisjoint(view,other)",
+    "source": "events=[]\nclass S(list):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(2): d[i]=i\nview=d.keys()\nobservation=(type(view).isdisjoint(view,other),events)\n",
+    "expected": "(True, ['iter'])"
+  },
+  {
+    "name": "bind keys list 2 type(view).__dict__['isdisjoint'].__get__(view,type(view))(other)",
+    "source": "events=[]\nclass S(list):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(2): d[i]=i\nview=d.keys()\nobservation=(type(view).__dict__['isdisjoint'].__get__(view,type(view))(other),events)\n",
+    "expected": "(True, ['iter'])"
+  },
+  {
+    "name": "bind items set 0 view.isdisjoint(other)",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(0): d[i]=i\nview=d.items()\nobservation=(view.isdisjoint(other),events)\n",
+    "expected": "(True, ['len'])"
+  },
+  {
+    "name": "bind items set 0 type(view).isdisjoint(view,other)",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(0): d[i]=i\nview=d.items()\nobservation=(type(view).isdisjoint(view,other),events)\n",
+    "expected": "(True, ['len'])"
+  },
+  {
+    "name": "bind items set 0 type(view).__dict__['isdisjoint'].__get__(view,type(view))(other)",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(0): d[i]=i\nview=d.items()\nobservation=(type(view).__dict__['isdisjoint'].__get__(view,type(view))(other),events)\n",
+    "expected": "(True, ['len'])"
+  },
+  {
+    "name": "bind items set 1 view.isdisjoint(other)",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(1): d[i]=i\nview=d.items()\nobservation=(view.isdisjoint(other),events)\n",
+    "expected": "(True, ['len', 'contains'])"
+  },
+  {
+    "name": "bind items set 1 type(view).isdisjoint(view,other)",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(1): d[i]=i\nview=d.items()\nobservation=(type(view).isdisjoint(view,other),events)\n",
+    "expected": "(True, ['len', 'contains'])"
+  },
+  {
+    "name": "bind items set 1 type(view).__dict__['isdisjoint'].__get__(view,type(view))(other)",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(1): d[i]=i\nview=d.items()\nobservation=(type(view).__dict__['isdisjoint'].__get__(view,type(view))(other),events)\n",
+    "expected": "(True, ['len', 'contains'])"
+  },
+  {
+    "name": "bind items set 2 view.isdisjoint(other)",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(2): d[i]=i\nview=d.items()\nobservation=(view.isdisjoint(other),events)\n",
+    "expected": "(True, ['len', 'iter'])"
+  },
+  {
+    "name": "bind items set 2 type(view).isdisjoint(view,other)",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(2): d[i]=i\nview=d.items()\nobservation=(type(view).isdisjoint(view,other),events)\n",
+    "expected": "(True, ['len', 'iter'])"
+  },
+  {
+    "name": "bind items set 2 type(view).__dict__['isdisjoint'].__get__(view,type(view))(other)",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(2): d[i]=i\nview=d.items()\nobservation=(type(view).__dict__['isdisjoint'].__get__(view,type(view))(other),events)\n",
+    "expected": "(True, ['len', 'iter'])"
+  },
+  {
+    "name": "bind items frozenset 0 view.isdisjoint(other)",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(0): d[i]=i\nview=d.items()\nobservation=(view.isdisjoint(other),events)\n",
+    "expected": "(True, ['len'])"
+  },
+  {
+    "name": "bind items frozenset 0 type(view).isdisjoint(view,other)",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(0): d[i]=i\nview=d.items()\nobservation=(type(view).isdisjoint(view,other),events)\n",
+    "expected": "(True, ['len'])"
+  },
+  {
+    "name": "bind items frozenset 0 type(view).__dict__['isdisjoint'].__get__(view,type(view))(other)",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(0): d[i]=i\nview=d.items()\nobservation=(type(view).__dict__['isdisjoint'].__get__(view,type(view))(other),events)\n",
+    "expected": "(True, ['len'])"
+  },
+  {
+    "name": "bind items frozenset 1 view.isdisjoint(other)",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(1): d[i]=i\nview=d.items()\nobservation=(view.isdisjoint(other),events)\n",
+    "expected": "(True, ['len', 'contains'])"
+  },
+  {
+    "name": "bind items frozenset 1 type(view).isdisjoint(view,other)",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(1): d[i]=i\nview=d.items()\nobservation=(type(view).isdisjoint(view,other),events)\n",
+    "expected": "(True, ['len', 'contains'])"
+  },
+  {
+    "name": "bind items frozenset 1 type(view).__dict__['isdisjoint'].__get__(view,type(view))(other)",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(1): d[i]=i\nview=d.items()\nobservation=(type(view).__dict__['isdisjoint'].__get__(view,type(view))(other),events)\n",
+    "expected": "(True, ['len', 'contains'])"
+  },
+  {
+    "name": "bind items frozenset 2 view.isdisjoint(other)",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(2): d[i]=i\nview=d.items()\nobservation=(view.isdisjoint(other),events)\n",
+    "expected": "(True, ['len', 'iter'])"
+  },
+  {
+    "name": "bind items frozenset 2 type(view).isdisjoint(view,other)",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(2): d[i]=i\nview=d.items()\nobservation=(type(view).isdisjoint(view,other),events)\n",
+    "expected": "(True, ['len', 'iter'])"
+  },
+  {
+    "name": "bind items frozenset 2 type(view).__dict__['isdisjoint'].__get__(view,type(view))(other)",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(2): d[i]=i\nview=d.items()\nobservation=(type(view).__dict__['isdisjoint'].__get__(view,type(view))(other),events)\n",
+    "expected": "(True, ['len', 'iter'])"
+  },
+  {
+    "name": "bind items list 0 view.isdisjoint(other)",
+    "source": "events=[]\nclass S(list):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(0): d[i]=i\nview=d.items()\nobservation=(view.isdisjoint(other),events)\n",
+    "expected": "(True, ['iter'])"
+  },
+  {
+    "name": "bind items list 0 type(view).isdisjoint(view,other)",
+    "source": "events=[]\nclass S(list):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(0): d[i]=i\nview=d.items()\nobservation=(type(view).isdisjoint(view,other),events)\n",
+    "expected": "(True, ['iter'])"
+  },
+  {
+    "name": "bind items list 0 type(view).__dict__['isdisjoint'].__get__(view,type(view))(other)",
+    "source": "events=[]\nclass S(list):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(0): d[i]=i\nview=d.items()\nobservation=(type(view).__dict__['isdisjoint'].__get__(view,type(view))(other),events)\n",
+    "expected": "(True, ['iter'])"
+  },
+  {
+    "name": "bind items list 1 view.isdisjoint(other)",
+    "source": "events=[]\nclass S(list):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(1): d[i]=i\nview=d.items()\nobservation=(view.isdisjoint(other),events)\n",
+    "expected": "(True, ['iter'])"
+  },
+  {
+    "name": "bind items list 1 type(view).isdisjoint(view,other)",
+    "source": "events=[]\nclass S(list):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(1): d[i]=i\nview=d.items()\nobservation=(type(view).isdisjoint(view,other),events)\n",
+    "expected": "(True, ['iter'])"
+  },
+  {
+    "name": "bind items list 1 type(view).__dict__['isdisjoint'].__get__(view,type(view))(other)",
+    "source": "events=[]\nclass S(list):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(1): d[i]=i\nview=d.items()\nobservation=(type(view).__dict__['isdisjoint'].__get__(view,type(view))(other),events)\n",
+    "expected": "(True, ['iter'])"
+  },
+  {
+    "name": "bind items list 2 view.isdisjoint(other)",
+    "source": "events=[]\nclass S(list):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(2): d[i]=i\nview=d.items()\nobservation=(view.isdisjoint(other),events)\n",
+    "expected": "(True, ['iter'])"
+  },
+  {
+    "name": "bind items list 2 type(view).isdisjoint(view,other)",
+    "source": "events=[]\nclass S(list):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(2): d[i]=i\nview=d.items()\nobservation=(type(view).isdisjoint(view,other),events)\n",
+    "expected": "(True, ['iter'])"
+  },
+  {
+    "name": "bind items list 2 type(view).__dict__['isdisjoint'].__get__(view,type(view))(other)",
+    "source": "events=[]\nclass S(list):\n def __len__(self):\n  events.append('len')\n  return 2\n def __contains__(self,item):\n  events.append('contains')\n  return False\n def __iter__(self):\n  events.append('iter')\n  return iter([])\nother=S()\nd={}\nfor i in range(2): d[i]=i\nview=d.items()\nobservation=(type(view).__dict__['isdisjoint'].__get__(view,type(view))(other),events)\n",
+    "expected": "(True, ['iter'])"
+  },
+  {
+    "name": "precedence keys set view.isdisjoint(other)",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\nother=S()\nview={}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)\n",
+    "expected": "('error', 'ValueError', ('length',), ['len'])"
+  },
+  {
+    "name": "precedence keys set view.isdisjoint(other,other)",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\nother=S()\nview={}.keys()\ntry:\n result=view.isdisjoint(other,other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)\n",
+    "expected": "('error', 'TypeError', ('dict_keys.isdisjoint() takes exactly one argument (2 given)',), [])"
+  },
+  {
+    "name": "precedence keys set view.isdisjoint(x=other)",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\nother=S()\nview={}.keys()\ntry:\n result=view.isdisjoint(x=other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)\n",
+    "expected": "('error', 'TypeError', ('dict_keys.isdisjoint() takes no keyword arguments',), [])"
+  },
+  {
+    "name": "precedence keys set view.isdisjoint(other,x=other)",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\nother=S()\nview={}.keys()\ntry:\n result=view.isdisjoint(other,x=other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)\n",
+    "expected": "('error', 'TypeError', ('dict_keys.isdisjoint() takes no keyword arguments',), [])"
+  },
+  {
+    "name": "precedence keys frozenset view.isdisjoint(other)",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\nother=S()\nview={}.keys()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)\n",
+    "expected": "('error', 'ValueError', ('length',), ['len'])"
+  },
+  {
+    "name": "precedence keys frozenset view.isdisjoint(other,other)",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\nother=S()\nview={}.keys()\ntry:\n result=view.isdisjoint(other,other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)\n",
+    "expected": "('error', 'TypeError', ('dict_keys.isdisjoint() takes exactly one argument (2 given)',), [])"
+  },
+  {
+    "name": "precedence keys frozenset view.isdisjoint(x=other)",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\nother=S()\nview={}.keys()\ntry:\n result=view.isdisjoint(x=other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)\n",
+    "expected": "('error', 'TypeError', ('dict_keys.isdisjoint() takes no keyword arguments',), [])"
+  },
+  {
+    "name": "precedence keys frozenset view.isdisjoint(other,x=other)",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\nother=S()\nview={}.keys()\ntry:\n result=view.isdisjoint(other,x=other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)\n",
+    "expected": "('error', 'TypeError', ('dict_keys.isdisjoint() takes no keyword arguments',), [])"
+  },
+  {
+    "name": "precedence items set view.isdisjoint(other)",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\nother=S()\nview={}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)\n",
+    "expected": "('error', 'ValueError', ('length',), ['len'])"
+  },
+  {
+    "name": "precedence items set view.isdisjoint(other,other)",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\nother=S()\nview={}.items()\ntry:\n result=view.isdisjoint(other,other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)\n",
+    "expected": "('error', 'TypeError', ('dict_items.isdisjoint() takes exactly one argument (2 given)',), [])"
+  },
+  {
+    "name": "precedence items set view.isdisjoint(x=other)",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\nother=S()\nview={}.items()\ntry:\n result=view.isdisjoint(x=other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)\n",
+    "expected": "('error', 'TypeError', ('dict_items.isdisjoint() takes no keyword arguments',), [])"
+  },
+  {
+    "name": "precedence items set view.isdisjoint(other,x=other)",
+    "source": "events=[]\nclass S(set):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\nother=S()\nview={}.items()\ntry:\n result=view.isdisjoint(other,x=other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)\n",
+    "expected": "('error', 'TypeError', ('dict_items.isdisjoint() takes no keyword arguments',), [])"
+  },
+  {
+    "name": "precedence items frozenset view.isdisjoint(other)",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\nother=S()\nview={}.items()\ntry:\n result=view.isdisjoint(other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)\n",
+    "expected": "('error', 'ValueError', ('length',), ['len'])"
+  },
+  {
+    "name": "precedence items frozenset view.isdisjoint(other,other)",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\nother=S()\nview={}.items()\ntry:\n result=view.isdisjoint(other,other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)\n",
+    "expected": "('error', 'TypeError', ('dict_items.isdisjoint() takes exactly one argument (2 given)',), [])"
+  },
+  {
+    "name": "precedence items frozenset view.isdisjoint(x=other)",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\nother=S()\nview={}.items()\ntry:\n result=view.isdisjoint(x=other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)\n",
+    "expected": "('error', 'TypeError', ('dict_items.isdisjoint() takes no keyword arguments',), [])"
+  },
+  {
+    "name": "precedence items frozenset view.isdisjoint(other,x=other)",
+    "source": "events=[]\nclass S(frozenset):\n def __len__(self):\n  events.append('len')\n  raise ValueError('length')\nother=S()\nview={}.items()\ntry:\n result=view.isdisjoint(other,x=other)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)\n",
+    "expected": "('error', 'TypeError', ('dict_items.isdisjoint() takes no keyword arguments',), [])"
+  }
+]

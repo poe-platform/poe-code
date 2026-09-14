@@ -6,7 +6,7 @@ import type { BuiltinFunctionValue, RuntimeValue,RuntimeValues, TypeValue } from
 /** Singleton type allocation preserves the execution-owned sentinel identity. */
 export function createSingletonNewBuiltin(owner: TypeValue, singleton:Extract<RuntimeValue,{kind:"none"|"not-implemented"|"ellipsis"}>,values: RuntimeValues, meter: ExecutionMeter): BuiltinFunctionValue {
   meter.checkpoint(0, 96);
-  return values.builtinFunction({ name: "__new__", owner, keywordValidation: "callee",
+  return values.builtinFunction({ name: "__new__", owner, keywordValidation: "callee", doc: "Create and return a new object.  See help(type) for accurate signature.", textSignature: "($type, *args, **kwargs)",
     invoke(positional, keywords, meter, invocation) {
       let fatal=false;
       try {

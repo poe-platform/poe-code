@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { parseModule } from "./module.js";
 
-describe("ignored generic type parameters", () => {
+describe("generic type parameters", () => {
   it("parses constrained, bounded, variadic, and defaulted parameters", () => {
     for (const source of [
       "def f[T: Bound, U: (A,B), *Ts, **P](x: T) -> U: return x",
@@ -10,7 +10,7 @@ describe("ignored generic type parameters", () => {
     ]) {
       const node = parseModule(source).body[0];
       expect(["function", "class"]).toContain(node.kind);
-      expect(node).not.toHaveProperty("typeParameters");
+      expect(node).toHaveProperty("typeParameters");
     }
   });
 
@@ -19,9 +19,9 @@ describe("ignored generic type parameters", () => {
       .toMatchObject({ body: [{ kind: "function", decorators: [{ name: "decorator" }] }, { kind: "class" }] });
   });
 
-  it("does not retain or validate type expressions as executable code", () => {
+  it("validates type expression scopes without evaluating missing names", () => {
     const ignored = "[(x:=1) for x in xs]";
-    expect(() => parseModule(`def f[T: ${ignored}, U = ${ignored}](): pass`)).not.toThrow();
+    expect(() => parseModule(`def f[T: ${ignored}, U = ${ignored}](): pass`)).toThrow("assignment expression cannot rebind comprehension iteration variable 'x'");
     expect(() => parseModule(`class C[T = missing()]: pass`)).not.toThrow();
     expect(() => parseModule(`def f[T](x=${ignored}): pass`)).toThrow(SyntaxError);
     expect(() => parseModule(`class C[T](${ignored}): pass`)).toThrow(SyntaxError);

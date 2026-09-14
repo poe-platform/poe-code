@@ -78,11 +78,11 @@ describe("concrete default type attribute access", () => {
     const state = fixture(), context = { slots(): never { throw new Error("descriptor lookup must not run"); } };
     state.registry.type.value.namespace.items.set(state.name, state.v.true);
     for (const cls of [state.registry.object, state.registry.type]) {
-      for (const name of ["x", "missing", "__mro__", "a'\n𐀀"]) {
+      for (const [name, representation] of [["x", "'x'"], ["missing", "'missing'"], ["__mro__", "'__mro__'"], ["a'\n𐀀", '"a\'\\n𐀀"']]) {
         const key = state.v.string(name), before = cls.value.namespace.items.lookup(key);
         for (const change of [{ kind: "set", value: state.v.false }, { kind: "delete" }] as const) {
           expect(() => mutateRuntimeTypeAttribute(cls, key, change, context, state.v, state.meter))
-            .toThrow(`cannot set '${name}' attribute of immutable type '${cls.value.name}'`);
+            .toThrow(`cannot set ${representation} attribute of immutable type '${cls.value.name}'`);
           expect(cls.value.namespace.items.lookup(key)).toEqual(before);
         }
       }

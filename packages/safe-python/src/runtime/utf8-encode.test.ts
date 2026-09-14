@@ -60,14 +60,14 @@ describe("UTF-8 encoding", () => {
 
   it("checks working and final output allocation against the budget", () => {
     const input = text([65]);
-    const denied = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 3 });
+    const denied = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 67 });
     expect(() => encodeUtf8(input, "strict", denied)).toThrow(expect.objectContaining({ reason: "allocation" }));
     expect(denied.usage.allocatedBytes).toBe(0);
-    const partial = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 4 });
+    const partial = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 68 });
     expect(() => encodeUtf8(input, "strict", partial)).toThrow(expect.objectContaining({ reason: "allocation" }));
-    expect(partial.usage.allocatedBytes).toBe(4);
-    const allowed = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 5 });
+    expect(partial.usage.allocatedBytes).toBe(68);
+    const allowed = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 133 });
     expect([...encodeUtf8(input, "strict", allowed)]).toEqual([65]);
-    expect(allowed.usage.allocatedBytes).toBe(5);
+    expect(allowed.usage.allocatedBytes).toBe(133);
   });
 });

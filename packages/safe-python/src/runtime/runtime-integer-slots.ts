@@ -60,7 +60,7 @@ export function installRuntimeIntegerSlots(owner: TypeValue, values: RuntimeValu
       const first = reflected ? "value" : "self", second = reflected ? "self" : "value";
       const doc = operator === "**" ? `Return pow(${first}, ${second}, mod).` : operator === "divmod()" ? `Return divmod(${first}, ${second}).` : `Return ${first}${operator}${second}.`;
       meter.checkpoint(0, 96);
-      owner.value.namespace.items.set(values.string(name), values.wrapperDescriptor({ owner, name, doc, accepts: value => runtimeIntegerPayload(value) !== undefined,
+      owner.value.namespace.items.set(values.string(name), values.wrapperDescriptor({ owner, name, doc, textSignature: operator === "**" ? "($self, value, mod=None, /)" : "($self, value, /)", accepts: value => runtimeIntegerPayload(value) !== undefined,
         invoke(receiver, positional, keywords, meter) {
           meter.checkpoint();
           if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", `wrapper ${name}() takes no keyword arguments`);

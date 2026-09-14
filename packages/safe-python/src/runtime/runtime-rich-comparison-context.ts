@@ -14,7 +14,7 @@ const methods: ReadonlyMap<string, readonly [string, string]> = new Map([
   ["<", ["__lt__", ">"]], ["<=", ["__le__", ">="]], [">", ["__gt__", "<"]], [">=", ["__ge__", "<="]]
 ]);
 
-const nativeContainerKinds = new Set(["dict", "list", "tuple", "set", "frozenset", "int", "float", "complex"]);
+const nativeContainerKinds = new Set(["dict", "list", "tuple", "set", "frozenset", "int", "float", "complex", "bytes", "str"]);
 
 /** Live type-MRO comparison dispatch. Strict subtypes reflect first even when
  * they inherit the method; same-type operands still get both attempts. Opaque
@@ -48,7 +48,7 @@ export function createRuntimeRichComparisonContext(operator: string, left: Runti
   };
   const call = (op: string, receiver: RuntimeValue, other: RuntimeValue, type: TypeValue | undefined): RuntimeValue => {
     if (type === undefined) return runtimeReceiverComparison(op, receiver, runtimeFloatPayload(other) ?? runtimeIntegerPayload(other) ?? other, values, meter, undefined, invocation);
-    const method = lookupRuntimeSpecialMethod(receiver, type, values.string(methods.get(op)![0]), special, values, meter);
+    const method = lookupRuntimeSpecialMethod(receiver, type, values.internString(methods.get(op)![0]), special, values, meter);
     meter.checkpoint();
     if (method !== undefined) {
       meter.checkpoint(0, 16);
@@ -69,7 +69,7 @@ export function createRuntimeRichComparisonContext(operator: string, left: Runti
       reflected: () => call(names[1], right, left, rightType)
     },
     typeName(value) {
-      if (usesRuntimeGuestNumericSlots(value)) { const type = runtimeActualType(value, special, meter); meter.checkpoint(); return type.value.name; }
+      if (usesRuntimeGuestNumericSlots(value)) { const type = runtimeActualType(value, special, meter); meter.checkpoint(); return type.value.diagnosticName; }
       return value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind;
     }
   };

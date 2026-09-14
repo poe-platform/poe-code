@@ -9,7 +9,7 @@ import type { MethodDescriptorValue, RuntimeValues, TypeValue } from "./runtime-
  * and value across setter callbacks. Mutations are visible to subsequent scans. */
 export function createExceptionSetstateDescriptor(owner:TypeValue,values:RuntimeValues,meter:ExecutionMeter):MethodDescriptorValue {
   meter.checkpoint(0,96);
-  return values.methodDescriptor({owner,name:"__setstate__",accepts:value=>runtimeExceptionPayload(value)!==undefined,
+  return values.methodDescriptor({owner,name:"__setstate__",textSignature:"($self, state, /)",accepts:value=>runtimeExceptionPayload(value)!==undefined,
     invoke(receiver,positional,keywords,meter,invocation,bound) {
       meter.checkpoint();
       const name=bound&&receiver.kind==="instance"?receiver.type.value.name:owner.value.name;

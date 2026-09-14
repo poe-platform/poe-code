@@ -1,3 +1,4 @@
+import { validateAnnotation } from "./annotation-validation.js";
 import type { CollectionItem, Expression } from "./ast.js";
 import type { Statement } from "./statement-ast.js";
 import type { TokenCursor } from "./token-cursor.js";
@@ -16,10 +17,11 @@ export function readAssignmentOrExpression(cursor: TokenCursor): Statement {
     validateSingleTarget(value, cursor);
     cursor.take();
     const annotation = readExpression(cursor);
+    validateAnnotation(annotation, cursor);
     const assigned = cursor.peek().text === "=";
     if (assigned) cursor.take();
     const rhs = assigned ? readStatementValue(cursor) : null;
-    return { kind: "annotated-assignment", target: value, value: rhs,
+    return { kind: "annotated-assignment", annotation, target: value, value: rhs,
       simple: value.kind === "name" && first.kind === "name" && value.end.offset === first.end.offset,
       start: first.start, end: rhs?.end ?? annotation.end };
   }

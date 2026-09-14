@@ -9,7 +9,8 @@ import { readLambda } from "./lambda.js";
 import { validateExpression } from "./expression-validation.js";
 import { readStringExpression } from "./string-expressions.js";
 import { normalizeNfkc } from "./normalization.js";
-import { PythonSyntaxError } from "./source.js";
+import { PythonSource, PythonSyntaxError } from "./source.js";
+import { PythonIndentationError } from "./indentation.js";
 
 const binaryPrecedence: Readonly<Record<string, number>> = {
   or: 2, and: 3, "|": 6, "^": 7, "&": 8, "<<": 9, ">>": 9,
@@ -19,8 +20,42 @@ const comparisons = new Set(["<", "<=", ">", ">=", "==", "!=", "<>", "in", "is",
 
 /** Parse a standalone expression, including comma-separated tuple forms. */
 export function parseExpression(text: string, options: LexerOptions = {}): Expression {
+  let cursor: TokenCursor | undefined;
   try {
-    const cursor = createTokenCursor(text, options);
+    cursor = createTokenCursor(text, options, "eval");
+    if (cursor.peek().kind === "end") {
+      // An empty eval grammar reports the last physical line the tokenizer
+      // read, not the end marker's next line or an implicit final newline.
+      const source = new PythonSource(text, options.filename, options.meter);
+      let line = 0, offset = source.position.offset, atStart = true, diagnostic = "";
+      let whitespace = true, indentation = 0;
+      while (!source.done) {
+        if (atStart) {
+          line++;
+          offset = source.position.offset;
+          diagnostic = "";
+          whitespace = true;
+          indentation = 0;
+        }
+        const character = source.advance();
+        options.meter?.checkpoint(1, 4);
+        diagnostic += character;
+        if (character === "\f") indentation = 0;
+        else if (character === " " || character === "\t") indentation++;
+        else whitespace = false;
+        atStart = character === "\n";
+      }
+      options.meter?.checkpoint(1, 320);
+      // An unterminated whitespace line can still produce an INDENT token
+      // in eval mode. A formfeed resets indentation, just as in the lexer.
+      if (whitespace && indentation > 0) {
+        throw new PythonIndentationError("unexpected indent", cursor.filename,
+          {offset, line, column: diagnostic.length - 1}, {offset, line, column: -2})
+          .withSourceLine(diagnostic, options.meter);
+      }
+      const position = {offset, line, column: -1};
+      throw new PythonSyntaxError("invalid syntax", cursor.filename, position, position).withSourceLine(diagnostic, options.meter);
+    }
     let result = readExpression(cursor);
     if (cursor.peek().text === ",") {
       cursor.meter?.checkpoint(0,104);
@@ -37,12 +72,20 @@ export function parseExpression(text: string, options: LexerOptions = {}): Expre
       result = { kind: "tuple", items, start: result.start, end };
     }
     while (cursor.peek().kind === "newline") cursor.take();
-    if (cursor.peek().kind !== "end") throw cursor.error("unexpected token after expression");
+    if (cursor.peek().kind !== "end") {
+      const token = cursor.peek();
+      cursor.meter?.checkpoint(0, 192);
+      // Eval input keeps its physical final line. The lexer's structural
+      // newline must not become source text in the parser's diagnostic.
+      throw new PythonSyntaxError("invalid syntax", cursor.filename, token.start, token.end)
+        .withSource(text, false, cursor.meter);
+    }
     validateExpression(result, options.filename,undefined,options.meter);
     return result;
   } catch (error) {
-    if (error instanceof PythonSyntaxError) error.withSource(text,false,options.meter);
-    throw error;
+    const failure = error instanceof PythonSyntaxError && cursor !== undefined ? cursor.finishSyntaxError(error) : error;
+    if (failure instanceof PythonSyntaxError) failure.withSource(text,false,options.meter);
+    throw failure;
   } finally {options.meter?.checkpoint();}
 }
 
@@ -60,6 +103,7 @@ export function readExpression(cursor: TokenCursor, minimum = 0): Expression {
       cursor.take();
       const condition = readExpression(cursor, 2);
       cursor.expect("else");
+      if (cursor.peek().kind === "newline") throw cursor.newlineError("expected expression after 'else', but statement is given", true);
       const alternate = readExpression(cursor, 1);
       cursor.meter?.checkpoint(0,96);
       left = { kind: "conditional", condition, consequent: left, alternate, start: left.start, end: alternate.end };
@@ -136,5 +180,6 @@ function readAtom(cursor: TokenCursor): Expression {
     cursor.meter?.checkpoint(0,80);
     return { kind: "name", spelling: token.text, name: normalizeNfkc(token.text,cursor.meter), start: token.start, end: token.end };
   }
+  if (token.kind === "newline") throw cursor.newlineError();
   throw cursor.error("expected expression");
 }

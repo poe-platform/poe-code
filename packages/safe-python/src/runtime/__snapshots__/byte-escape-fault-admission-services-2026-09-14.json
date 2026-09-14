@@ -1,0 +1,75 @@
+{
+  "recordedAt": "2026-09-14T15:28:43.806Z",
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "adapter": "PythonSession output.write: fs.writeSync at most 3 bytes per call; output.flush: fs.fsyncSync. Owned descriptors closed and temporary files removed.",
+  "cases": [
+    {
+      "source": "import codecs\ntry:\n    codecs.escape_decode(bytes([92]), \"ignore\")\nexcept ValueError as error:\n    print(type(error).__name__, error.args, error.__context__, error.__cause__, error.__suppress_context__, error.__traceback__ is not None, flush=True)\nprint(codecs.escape_decode(bytes([65, 92, 120, 52, 50])), flush=True)\n",
+      "sha256": "61a8548c5e6094d06935408c60ea5301000248c99fd80a733d01215b1541be4d",
+      "limits": {
+        "maxSteps": 1000000,
+        "maxAllocatedBytes": 16000000,
+        "maxDepth": 100
+      },
+      "oracle": {
+        "stdout": "ValueError ('Trailing \\\\ in string',) None None False True\n(b'AB', 5)\n",
+        "stderr": "",
+        "status": 0
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "ValueError ('Trailing \\\\ in string',) None None False False\n(b'AB', 5)\n",
+        "writes": 32,
+        "flushes": 2
+      },
+      "match": false
+    },
+    {
+      "source": "import codecs\ntry:\n    codecs.escape_decode(bytes([65,92,120,48,90]), \"strict\")\nexcept ValueError as error:\n    print(type(error).__name__, error.args, error.__context__, error.__cause__, error.__suppress_context__, error.__traceback__ is not None, flush=True)\nprint(codecs.escape_decode(bytes([65, 92, 120, 52, 50])), flush=True)\n",
+      "sha256": "72356079940f07d808bff08639035c1538e0bd5c6636de9c0311a3409496f112",
+      "limits": {
+        "maxSteps": 1000000,
+        "maxAllocatedBytes": 16000000,
+        "maxDepth": 100
+      },
+      "oracle": {
+        "stdout": "ValueError ('invalid \\\\x escape at position 1',) None None False True\n(b'AB', 5)\n",
+        "stderr": "",
+        "status": 0
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "ValueError ('invalid \\\\x escape at position 1',) None None False False\n(b'AB', 5)\n",
+        "writes": 36,
+        "flushes": 2
+      },
+      "match": false
+    },
+    {
+      "source": "import codecs\ntry:\n    codecs.escape_decode(bytes([92,120]), \"unknown\")\nexcept ValueError as error:\n    print(type(error).__name__, error.args, error.__context__, error.__cause__, error.__suppress_context__, error.__traceback__ is not None, flush=True)\nprint(codecs.escape_decode(bytes([65, 92, 120, 52, 50])), flush=True)\n",
+      "sha256": "be4748a7f2377095ab2f8654def1f2bf5826e48da404406a5ed101cdf6e6c84f",
+      "limits": {
+        "maxSteps": 1000000,
+        "maxAllocatedBytes": 16000000,
+        "maxDepth": 100
+      },
+      "oracle": {
+        "stdout": "ValueError ('decoding error; unknown error handling code: unknown',) None None False True\n(b'AB', 5)\n",
+        "stderr": "",
+        "status": 0
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "ValueError ('decoding error; unknown error handling code: unknown',) None None False False\n(b'AB', 5)\n",
+        "writes": 42,
+        "flushes": 2
+      },
+      "match": false
+    }
+  ]
+}

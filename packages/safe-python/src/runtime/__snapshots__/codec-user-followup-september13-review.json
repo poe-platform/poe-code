@@ -1,0 +1,127 @@
+{
+  "scope": "Read-only runtime review; plan/evidence changes and complete-corpus EUC-KR test partitioning to address a reproduced timeout",
+  "implementationSHA256": {
+    "runtime/runtime-codec-registry.ts": "af09c087ce814069fca48abc800fadb1870d47d8f0dc298d3614aa8dc3af4704",
+    "runtime/runtime-codec-registry-functions.ts": "df404f8204f6dc3eea78383e579efddeec5487e70a39c32e55ed695e4bb5a798",
+    "runtime/runtime-codec-recovery.ts": "65934ad875220e6777eda5fe6f8bea78cddbebdf03744cb1314dfe8bdb8c528e",
+    "runtime/runtime-string-decoding.ts": "943f485182edb071edae0c82550d6722a1370b5a3c63dd1009ea75283d27dc08",
+    "runtime/runtime-text-decoding.ts": "c0a8005ec0a510e2b93db75090abced315e0c9d5d1bd19dc8cdbea8d50a8d3bc",
+    "runtime/runtime-utf8-decoding.ts": "c63d478c6c70ca4b4d2fc1430b05843ca9892cc436285e1d9612315d2109ba43",
+    "runtime/runtime-utf8-encoding.ts": "57b78b61d9ec7aec562675290e005c246f89fdf9f7fa4cccb2fe7e077d644c82",
+    "runtime/utf8-incremental.ts": "7e633f8a439aeaa433b7450002d7f31146edf9812645e98a5f77ebdd4acd2e1a",
+    "runtime/utf8-signature.ts": "9f1e17d6cc2385ba081fcfce16f74ef6911ba6386bac87c910e08a749006c4a3",
+    "runtime/utf-wide-incremental.ts": "0cbeb91f112d81693556d2bb6daf7a3e2b13b3cfb85d63a3d9cf1d3d6917fa96",
+    "session.ts": "c5118ee7c2d71fe00a4b350ca1d5c34b335d9cb48ca20f6520f2d42f0466c9c1"
+  },
+  "focused": [
+    {
+      "command": "npm run test:unit --workspace=@poe-code/safe-python -- src/session-codec-stream-mutation.test.ts src/session-codec-escape-negative-resume.test.ts src/session-codec-handler-field-precedence.test.ts --maxWorkers=2 --pool=vmThreads",
+      "status": 1,
+      "passed": 29,
+      "failed": 1,
+      "seconds": 7.78,
+      "failures": [
+        "stream reader bytearray and memoryview short reads: name 'bytearray' is not defined"
+      ]
+    },
+    {
+      "command": "npm run test:unit --workspace=@poe-code/safe-python -- src/session-codec-decoder-consumers.test.ts src/session-codec-module.test.ts src/session-codec-encoder-callback-state.test.ts --maxWorkers=2 --pool=vmThreads",
+      "status": 1,
+      "passed": 73,
+      "failed": 25,
+      "seconds": 12.16,
+      "failures": {
+        "unknown encoding: decoder-contract": 8,
+        "unknown encoding: public_text": 1,
+        "unknown encoding: utf-16": 8,
+        "unknown encoding: utf-32": 8
+      }
+    }
+  ],
+  "typecheck": {
+    "command": "npm run typecheck --workspace=@poe-code/safe-python",
+    "status": 0
+  },
+  "eslint": {
+    "command": "npx eslint packages/safe-python/src/runtime/runtime-codec-registry.ts packages/safe-python/src/runtime/runtime-codec-registry-functions.ts packages/safe-python/src/runtime/runtime-codec-recovery.ts packages/safe-python/src/runtime/runtime-string-decoding.ts packages/safe-python/src/runtime/runtime-text-decoding.ts packages/safe-python/src/runtime/runtime-utf8-encoding.ts packages/safe-python/src/runtime/utf8-incremental.ts packages/safe-python/src/runtime/utf8-signature.ts packages/safe-python/src/runtime/utf-wide-incremental.ts packages/safe-python/src/session-codec-stream-mutation.test.ts packages/safe-python/src/session-codec-escape-negative-resume.test.ts packages/safe-python/src/session-codec-handler-field-precedence.test.ts packages/safe-python/src/session-codec-decoder-consumers.test.ts packages/safe-python/src/session-codec-module.test.ts packages/safe-python/src/session-codec-encoder-callback-state.test.ts",
+    "status": 0
+  },
+  "pipeline": {
+    "tasks": 1277,
+    "changed": {
+      "id": "codec-registry",
+      "field": "status.implement",
+      "before": "done",
+      "after": "open"
+    },
+    "otherFrontmatterDeepEqual": true
+  },
+  "directBlockers": [
+    {
+      "source": "import encodings.utf_16",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "exception",
+        "error": "ModuleNotFoundError(\"No module named 'sys'\")"
+      }
+    },
+    {
+      "source": "import encodings.utf_32",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "exception",
+        "error": "ModuleNotFoundError(\"No module named 'sys'\")"
+      }
+    },
+    {
+      "source": "import sys",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "exception",
+        "error": "ModuleNotFoundError(\"No module named 'sys'\")"
+      }
+    },
+    {
+      "source": "memoryview",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "exception",
+        "error": "NameError(\"name 'memoryview' is not defined\")"
+      }
+    },
+    {
+      "source": "bytearray",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "exception",
+        "error": "NameError(\"name 'bytearray' is not defined\")"
+      }
+    }
+  ],
+  "eucKrPrePartitionIsolated": {
+    "command": "npm run test:unit --workspace=@poe-code/safe-python -- src/runtime/euc-kr-codec.test.ts --maxWorkers=2 --pool=vmThreads",
+    "status": 0,
+    "passed": 36,
+    "seconds": 32.39
+  }
+}

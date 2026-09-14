@@ -1,0 +1,99 @@
+{
+  "oracle": [
+    "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "16.0.0",
+    "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "little"
+  ],
+  "records": [
+    {
+      "name": "registry normalization, identity and invalidation",
+      "mode": "normal",
+      "source": "import codecs\nevents = []\ndef search(name):\n    events.append(name)\n    if name == 'user_edge':\n        return codecs.CodecInfo(lambda value: (value, 0), lambda value: (value, 0), name=name)\ncodecs.register(search)\na = codecs.lookup('  USER--EDGE!!')\nassert codecs.lookup('user_edge') is a\ncodecs.unregister(search)\ntry:\n    codecs.lookup('user_edge')\nexcept LookupError:\n    print('invalidated')\ncodecs.register(search)\nb = codecs.lookup('user_edge')\nassert a is not b\nprint(events)\n",
+      "reference": {
+        "status": 0,
+        "stdout": "invalidated\n['user_edge', 'user_edge']\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "invalidated\n['user_edge', 'user_edge']\n",
+        "reads": 0,
+        "writes": 4
+      },
+      "matches": true
+    },
+    {
+      "name": "split multibyte and surrogate round trips",
+      "mode": "normal",
+      "source": "import codecs\nfor name in ('utf-8', 'utf-7', 'utf-8-sig'):\n    data = 'Aé🐍Z'.encode(name)\n    for split in range(len(data) + 1):\n        decoder = codecs.getincrementaldecoder(name)()\n        first = decoder.decode(data[:split])\n        state = decoder.getstate()\n        copy = codecs.getincrementaldecoder(name)()\n        copy.setstate(state)\n        tail = decoder.decode(data[split:], True)\n        assert first + tail == 'Aé🐍Z'\n        assert copy.decode(data[split:], True) == tail\n    print(name, len(data) + 1)\nassert '\\ud800'.encode('utf-8', 'surrogatepass').decode('utf-8', 'surrogatepass') == '\\ud800'\nassert b'\\xff'.decode('utf-8', 'surrogateescape').encode('utf-8', 'surrogateescape') == b'\\xff'\nprint('surrogates')\n",
+      "reference": {
+        "status": 0,
+        "stdout": "utf-8 9\nutf-7 13\nutf-8-sig 12\nsurrogates\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "utf-8 9\nutf-7 13\nutf-8-sig 12\nsurrogates\n",
+        "reads": 0,
+        "writes": 14
+      },
+      "matches": true
+    },
+    {
+      "name": "negative resume, guest failure and explicit input service",
+      "mode": "normal",
+      "source": "import codecs\nfailure = ValueError('guest callback')\nevents = []\ndef handler(error):\n    print('callback')\n    assert input() == 'ready'\n    events.append((error.start, error.end))\n    return ('!', -1)\ncodecs.register_error('user_edge_handler', handler)\nassert b'\\xffZ'.decode('utf-8', 'user_edge_handler') == '!Z'\nassert '\\ud800Z'.encode('utf-8', 'user_edge_handler') == b'!Z'\ndef broken(error):\n    raise failure\ncodecs.register_error('user_edge_handler', broken)\ntry:\n    b'\\xff'.decode('utf-8', 'user_edge_handler')\nexcept ValueError as error:\n    assert error is failure\n    print(str(error))\nprint(events)\n",
+      "reference": {
+        "status": 0,
+        "stdout": "callback\ncallback\nguest callback\n[(0, 1), (0, 1)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "stdout": "callback\ncallback\nguest callback\n[(0, 1), (0, 1)]\n",
+        "reads": 2,
+        "writes": 8
+      },
+      "matches": true
+    },
+    {
+      "name": "negative resume, guest failure and explicit input service",
+      "mode": "cancel-return",
+      "source": "import codecs\nfailure = ValueError('guest callback')\nevents = []\ndef handler(error):\n    print('callback')\n    assert input() == 'ready'\n    events.append((error.start, error.end))\n    return ('!', -1)\ncodecs.register_error('user_edge_handler', handler)\nassert b'\\xffZ'.decode('utf-8', 'user_edge_handler') == '!Z'\nassert '\\ud800Z'.encode('utf-8', 'user_edge_handler') == b'!Z'\ndef broken(error):\n    raise failure\ncodecs.register_error('user_edge_handler', broken)\ntry:\n    b'\\xff'.decode('utf-8', 'user_edge_handler')\nexcept ValueError as error:\n    assert error is failure\n    print(str(error))\nprint(events)\n",
+      "reference": {
+        "status": 0,
+        "stdout": "callback\ncallback\nguest callback\n[(0, 1), (0, 1)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "stdout": "callback\n",
+        "reads": 1,
+        "writes": 2,
+        "terminalReuse": true
+      },
+      "matches": true
+    },
+    {
+      "name": "negative resume, guest failure and explicit input service",
+      "mode": "cancel-throw",
+      "source": "import codecs\nfailure = ValueError('guest callback')\nevents = []\ndef handler(error):\n    print('callback')\n    assert input() == 'ready'\n    events.append((error.start, error.end))\n    return ('!', -1)\ncodecs.register_error('user_edge_handler', handler)\nassert b'\\xffZ'.decode('utf-8', 'user_edge_handler') == '!Z'\nassert '\\ud800Z'.encode('utf-8', 'user_edge_handler') == b'!Z'\ndef broken(error):\n    raise failure\ncodecs.register_error('user_edge_handler', broken)\ntry:\n    b'\\xff'.decode('utf-8', 'user_edge_handler')\nexcept ValueError as error:\n    assert error is failure\n    print(str(error))\nprint(events)\n",
+      "reference": {
+        "status": 0,
+        "stdout": "callback\ncallback\nguest callback\n[(0, 1), (0, 1)]\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "stdout": "callback\n",
+        "reads": 1,
+        "writes": 2,
+        "terminalReuse": true
+      },
+      "matches": true
+    }
+  ]
+}

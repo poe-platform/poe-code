@@ -59,9 +59,12 @@ describe("UTF-8 decoding", () => {
     const denied = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 3 });
     expect(() => decodeUtf8(new Uint8Array([65]), "strict", denied)).toThrow(expect.objectContaining({ reason: "allocation" }));
     expect(denied.usage.allocatedBytes).toBe(0);
-    const allowed = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 8 });
+    // Eight payload bytes plus scratch, view, copied-array and result metadata.
+    const allowed = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 264 });
     expect([...decodeUtf8(new Uint8Array([65]), "strict", allowed).text]).toEqual([65]);
-    expect(allowed.usage.allocatedBytes).toBe(8);
+    expect(allowed.usage.allocatedBytes).toBe(264);
+    const short = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 263 });
+    expect(() => decodeUtf8(new Uint8Array([65]), "strict", short)).toThrow(expect.objectContaining({ reason: "allocation" }));
     const steps = new ExecutionBudget({ maxSteps: 1, maxAllocatedBytes: 100 });
     expect(() => decodeUtf8(new Uint8Array([65, 66]), "strict", steps)).toThrow(expect.objectContaining({ reason: "steps" }));
   });

@@ -38,9 +38,9 @@ export interface FunctionState<Value> extends LexicalNamespaces<Value> {
   qualifiedName: Value;
   module: Value;
   doc: Value;
-  /** Source annotations are deliberately ignored. The runtime lazily publishes
-   * an empty guest dictionary for introspection; no evaluator is captured. */
+  /** Successful annotation evaluation is cached independently of its callable. */
   annotations?: Value;
+  annotate?: Value;
 }
 
 /** Capture a fresh function definition around reusable code. Copy default/cell

@@ -7,7 +7,7 @@ import type { MethodDescriptorValue, RuntimeValues, TypeValue } from "./runtime-
  * a previously unmaterialized dictionary. Existing dictionary aliases survive. */
 export function createExceptionReduceDescriptor(owner:TypeValue,values:RuntimeValues,meter:ExecutionMeter):MethodDescriptorValue {
   meter.checkpoint(0,96);
-  return values.methodDescriptor({owner,name:"__reduce__",accepts:value=>runtimeExceptionPayload(value)!==undefined,
+  return values.methodDescriptor({owner,name:"__reduce__",textSignature:"($self, /)",accepts:value=>runtimeExceptionPayload(value)!==undefined,
     invoke(receiver,positional,keywords,meter,_invocation,bound) {
       meter.checkpoint();
       if(receiver.kind!=="instance")throw Error("exception reduction requires an instance");

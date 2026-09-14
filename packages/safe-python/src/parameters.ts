@@ -1,3 +1,4 @@
+import { validateAnnotation } from "./annotation-validation.js";
 import type { Expression, Parameter } from "./ast.js";
 import { reservedWords } from "./keywords.js";
 import type { TokenCursor } from "./token-cursor.js";
@@ -46,11 +47,16 @@ export function readParameters(cursor: TokenCursor, read: (cursor: TokenCursor, 
       names.add(bindingName);
       cursor.take();
       let end = name.end;
+      let annotation: Parameter["annotation"];
       if (terminator === ")" && cursor.peek().text === ":") {
         cursor.take();
         const starred = kind === "var-positional" && cursor.peek().text === "*";
-        if (starred) cursor.take();
-        end = read(cursor, starred ? 6 : undefined).end;
+        const star = starred ? cursor.take() : undefined;
+        const expression = read(cursor, starred ? 6 : undefined);
+        validateAnnotation(expression, cursor);
+        if (star) cursor.meter?.checkpoint(0, 72);
+        annotation = star ? { kind: "unpack", value: expression, start: star.start, end: expression.end } : expression;
+        end = expression.end;
       }
       let value: Expression | null = null;
       if (cursor.peek().text === "=") {
@@ -64,7 +70,7 @@ export function readParameters(cursor: TokenCursor, read: (cursor: TokenCursor, 
       }
       if (kind === "keyword-only") keywordCount++;
       cursor.meter?.checkpoint(0,96);
-      parameters.push({ kind, spelling: name.text, name: bindingName, default: value, start: first.start, end: value?.end ?? end });
+      parameters.push({ kind, ...(annotation === undefined ? {} : { annotation }), spelling: name.text, name: bindingName, default: value, start: first.start, end: value?.end ?? end });
     }
     if (cursor.peek().text !== ",") break;
     cursor.take();

@@ -11,6 +11,7 @@ import type { RuntimeValues, TypeValue } from "./runtime-values.js";
 /** A proxy retains its original mapping. Explicit slots delegate complete
  * operations to that mapping, including guest reflection and truth conversion. */
 export function installRuntimeMappingProxySlots(owner: TypeValue, values: RuntimeValues, meter: ExecutionMeter): void {
+  owner.value.namespace.items.set(values.string("__doc__"), values.string("Read-only proxy of a mapping."));
   const comparisons = new Map([["__eq__", "=="], ["__ne__", "!="], ["__lt__", "<"], ["__le__", "<="], ["__gt__", ">"], ["__ge__", ">="]]);
   const slots = [["__len__", "Return len(self)."], ["__iter__", "Implement iter(self)."], ["__getitem__", "Return self[key]."],
     ["__contains__", "Return bool(key in self)."], ["__repr__", "Return repr(self)."], ["__str__", "Return str(self)."],

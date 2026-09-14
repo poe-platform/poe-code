@@ -20,7 +20,15 @@ export function createRuntimeInvocationFormatContext(values: RuntimeValues, mete
     };
   };
   return createRuntimeFormatContext(values, meter, {
-    defaultRepr: fallback.defaultRepr.bind(fallback),
+    defaultRepr(value) {
+      if (invocation.actualType === undefined) return fallback.defaultRepr(value);
+      const type = invocation.actualType(value); meter.checkpoint();
+      const identity = (invocation.identity ?? values.identity).id(value); meter.checkpoint();
+      const hex = identity.toString(16); meter.checkpoint(0, 32 + 2 * hex.length);
+      // PyObject_Repr's NULL-slot fallback uses tp_name, unlike the explicit
+      // object.__repr__ wrapper, which reads __module__ and __qualname__.
+      return values.string(`<${type.value.diagnosticName} object at 0x${hex}>`);
+    },
     typeName: invocation.typeName?.bind(invocation),
     lookupFormat: value => lookup(value, "__format__"),
     lookupStr: value => lookup(value, "__str__"),

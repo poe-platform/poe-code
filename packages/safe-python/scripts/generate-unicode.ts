@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
-import { compileUnicodeNames, compileIdentifierRanges } from "./unicode-data.js";
+import { compileUnicodeNames, compileIdentifierRanges, compileCodecNames } from "./unicode-data.js";
 import { compileNormalizationData } from "./normalization-data.js";
 import { compileClassificationData } from "./unicode-classification-data.js";
 import { compileCaseMappings } from "./unicode-case-data.js";
@@ -13,7 +13,8 @@ const inputs = [
   ["DerivedNormalizationProps.txt", "4d4c03892dea9146d674b686e495df2d55a28d071ac474041d73518f887abddc"],
   ["extracted/DerivedNumericType.txt", "786833e0a3f5ec0c0cd0940e4c15f730f3a92163f354ecd7dede28a70c0fa892"],
   ["SpecialCasing.txt", "8d5de354eef79f2395a54c9c7dcebbaf3d30fc962d0f85611ea97aa973a0c451"],
-  ["CaseFolding.txt", "6f1f9c588eb4a5c718d9e8f93b782685e5c7fec872cf05e8e6878053599e09bb"]
+  ["CaseFolding.txt", "6f1f9c588eb4a5c718d9e8f93b782685e5c7fec872cf05e8e6878053599e09bb"],
+  ["NamedSequences.txt", "4ff660cb922480cd5aab9a689b1a6905d0a54575baf9967d0f1e00ac866f04dd"]
 ];
 const texts = await Promise.all(inputs.map(async ([path, hash]) => {
   const response = await fetch(`https://www.unicode.org/Public/16.0.0/ucd/${path}`);
@@ -24,14 +25,21 @@ const texts = await Promise.all(inputs.map(async ([path, hash]) => {
   }
   return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
 }));
-const { names, ranges } = compileUnicodeNames(texts[0], texts[1]);
+const { names, ranges, canonical } = compileUnicodeNames(texts[0], texts[1]);
 const license = await readFile(new URL("../UNICODE-LICENSE.txt", import.meta.url), "utf8");
 const output = `/*\n${license}\n*/\n` +
   "// Generated from Unicode 16.0.0 by scripts/generate-unicode.ts. Do not edit.\n" +
   `export const unicodeNamedCharacters: string = ${JSON.stringify(names)};\n` +
+  `export const unicodeCanonicalNames: readonly number[] = ${JSON.stringify(canonical)};\n` +
   `export const unicodeNameRanges: ReadonlyArray<readonly [string, number, number]> = ${JSON.stringify(ranges)};\n`;
 await writeFile(new URL("../src/unicode-names-data.ts", import.meta.url), output);
 console.log(`Generated ${names.split("\n").length - 1} names and ${ranges.length} ranges (${output.length} characters).`);
+const codecNames = compileCodecNames(texts[1], texts[8]);
+const codecNameOutput = `/*\n${license}\n*/\n` +
+  "// Generated from Unicode 16.0.0 by scripts/generate-unicode.ts. Do not edit.\n" +
+  `export const codecAliasNames: readonly string[] = ${JSON.stringify(codecNames.aliases)};\n` +
+  `export const codecSequenceNames: readonly string[] = ${JSON.stringify(codecNames.sequences)};\n`;
+await writeFile(new URL("../src/unicode-codec-name-data.ts", import.meta.url), codecNameOutput);
 const identifiers = compileIdentifierRanges(texts[2]);
 const identifierOutput = `/*\n${license}\n*/\n` +
   "// Generated from Unicode 16.0.0 by scripts/generate-unicode.ts. Do not edit.\n" +

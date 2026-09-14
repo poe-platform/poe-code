@@ -1,0 +1,207 @@
+{
+  "oracle": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "implementation": "cpython",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "machine": "arm64",
+    "byteorder": "little"
+  },
+  "setup": "Unregister encodings.search_function; register a search callback returning CodecInfo(None, decode, name=name). decode records its arguments and returns (\"value = 42\\n\", 0). Compile each ASCII-encoded source as source.py in exec mode and execute it in a fresh namespace. Restore the default search function before serializing evidence.",
+  "cases": [
+    {
+      "encoding": "utf-8",
+      "source": "# coding: utf-8\r\nvalue = 1",
+      "value": 1,
+      "events": []
+    },
+    {
+      "encoding": "utf8",
+      "source": "# coding: utf8\r\nvalue = 1",
+      "value": 1,
+      "events": []
+    },
+    {
+      "encoding": "ascii",
+      "source": "# coding: ascii\r\nvalue = 1",
+      "value": 1,
+      "events": []
+    },
+    {
+      "encoding": "us-ascii",
+      "source": "# coding: us-ascii\r\nvalue = 1",
+      "value": 1,
+      "events": []
+    },
+    {
+      "encoding": "latin1",
+      "source": "# coding: latin1\r\nvalue = 1",
+      "value": 1,
+      "events": []
+    },
+    {
+      "encoding": "latin-1",
+      "source": "# coding: latin-1\r\nvalue = 1",
+      "value": 1,
+      "events": []
+    },
+    {
+      "encoding": "iso-8859-1",
+      "source": "# coding: iso-8859-1\r\nvalue = 1",
+      "value": 1,
+      "events": []
+    },
+    {
+      "encoding": "u8",
+      "source": "# coding: u8\r\nvalue = 1",
+      "value": 42,
+      "events": [
+        {
+          "operation": "search",
+          "name": "u8"
+        },
+        {
+          "operation": "decode",
+          "argc": 1,
+          "input_type": "memoryview",
+          "owner": null,
+          "readonly": true,
+          "input": "# coding: u8\nvalue = 1\n"
+        }
+      ]
+    },
+    {
+      "encoding": "utf",
+      "source": "# coding: utf\r\nvalue = 1",
+      "value": 42,
+      "events": [
+        {
+          "operation": "search",
+          "name": "utf"
+        },
+        {
+          "operation": "decode",
+          "argc": 1,
+          "input_type": "memoryview",
+          "owner": null,
+          "readonly": true,
+          "input": "# coding: utf\nvalue = 1\n"
+        }
+      ]
+    },
+    {
+      "encoding": "cp65001",
+      "source": "# coding: cp65001\r\nvalue = 1",
+      "value": 42,
+      "events": [
+        {
+          "operation": "search",
+          "name": "cp65001"
+        },
+        {
+          "operation": "decode",
+          "argc": 1,
+          "input_type": "memoryview",
+          "owner": null,
+          "readonly": true,
+          "input": "# coding: cp65001\nvalue = 1\n"
+        }
+      ]
+    },
+    {
+      "encoding": "646",
+      "source": "# coding: 646\r\nvalue = 1",
+      "value": 42,
+      "events": [
+        {
+          "operation": "search",
+          "name": "646"
+        },
+        {
+          "operation": "decode",
+          "argc": 1,
+          "input_type": "memoryview",
+          "owner": null,
+          "readonly": true,
+          "input": "# coding: 646\nvalue = 1\n"
+        }
+      ]
+    },
+    {
+      "encoding": "cp367",
+      "source": "# coding: cp367\r\nvalue = 1",
+      "value": 42,
+      "events": [
+        {
+          "operation": "search",
+          "name": "cp367"
+        },
+        {
+          "operation": "decode",
+          "argc": 1,
+          "input_type": "memoryview",
+          "owner": null,
+          "readonly": true,
+          "input": "# coding: cp367\nvalue = 1\n"
+        }
+      ]
+    },
+    {
+      "encoding": "latin",
+      "source": "# coding: latin\r\nvalue = 1",
+      "value": 42,
+      "events": [
+        {
+          "operation": "search",
+          "name": "latin"
+        },
+        {
+          "operation": "decode",
+          "argc": 1,
+          "input_type": "memoryview",
+          "owner": null,
+          "readonly": true,
+          "input": "# coding: latin\nvalue = 1\n"
+        }
+      ]
+    },
+    {
+      "encoding": "l1",
+      "source": "# coding: l1\r\nvalue = 1",
+      "value": 42,
+      "events": [
+        {
+          "operation": "search",
+          "name": "l1"
+        },
+        {
+          "operation": "decode",
+          "argc": 1,
+          "input_type": "memoryview",
+          "owner": null,
+          "readonly": true,
+          "input": "# coding: l1\nvalue = 1\n"
+        }
+      ]
+    },
+    {
+      "encoding": "cp819",
+      "source": "# coding: cp819\r\nvalue = 1",
+      "value": 42,
+      "events": [
+        {
+          "operation": "search",
+          "name": "cp819"
+        },
+        {
+          "operation": "decode",
+          "argc": 1,
+          "input_type": "memoryview",
+          "owner": null,
+          "readonly": true,
+          "input": "# coding: cp819\nvalue = 1\n"
+        }
+      ]
+    }
+  ]
+}

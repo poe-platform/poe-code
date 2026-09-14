@@ -30,6 +30,7 @@ function qualifiedName(owner: TypeValue, name: string, source: "descriptor" | "m
 /** Native descriptors cache their defining owner's qualified name. Bound
  * built-ins instead consult their receiver's current type on every read. */
 export function readRuntimeNativeMethodMetadata(receiver: RuntimeValue, name: string, values: RuntimeValues, meter: ExecutionMeter, context?: NativeMethodMetadataContext): RuntimeValue | undefined {
+  if (receiver.kind === "builtin_function_or_method" && name === "__module__") return values.builtinFunctionModule(receiver);
   if (receiver.kind === "builtin_function_or_method" && name === "__doc__") {
     meter.checkpoint();
     const doc = receiver.binding === undefined ? receiver.value.doc : receiver.binding.descriptor.value.doc;
@@ -38,6 +39,7 @@ export function readRuntimeNativeMethodMetadata(receiver: RuntimeValue, name: st
   if (receiver.kind === "builtin_function_or_method" && receiver.binding !== undefined) {
     meter.checkpoint();
     const binding = receiver.binding;
+    if (name === "__text_signature__") return binding.descriptor.value.textSignature===undefined?values.none:values.string(binding.descriptor.value.textSignature);
     if (name === "__name__") return values.string(binding.descriptor.value.name);
     if (name === "__self__") return binding.instance;
     if (name !== "__qualname__") return undefined;
@@ -51,11 +53,17 @@ export function readRuntimeNativeMethodMetadata(receiver: RuntimeValue, name: st
     }
     return qualifiedName(owner, binding.descriptor.value.name, "method", values, meter, context);
   }
+  if (receiver.kind === "builtin_function_or_method" && (receiver.value.module !== undefined || (receiver.value.owner === undefined && receiver.value.staticOwner === undefined))) {
+    meter.checkpoint();
+    if (name === "__name__" || name === "__qualname__") return values.string(receiver.value.name);
+    if (name === "__self__") return receiver.value.moduleOwner ?? values.none;
+    if (name === "__text_signature__") return receiver.value.textSignature === undefined ? values.none : values.string(receiver.value.textSignature);
+  }
   if (receiver.kind === "builtin_function_or_method" && (receiver.value.owner !== undefined || receiver.value.staticOwner !== undefined)) {
     meter.checkpoint();
+    if (name === "__text_signature__") return receiver.value.textSignature===undefined?values.none:values.string(receiver.value.textSignature);
     if (name === "__self__") return receiver.value.owner ?? values.none;
     if (name === "__name__") return values.string(receiver.value.name);
-    if (name === "__module__") return values.none;
     if (name === "__qualname__") return qualifiedName((receiver.value.owner ?? receiver.value.staticOwner)!, receiver.value.name, "method", values, meter, context);
   }
   if (receiver.kind === "method-wrapper" && name === "__self__") { meter.checkpoint(); return receiver.value.instance; }
@@ -66,6 +74,7 @@ export function readRuntimeNativeMethodMetadata(receiver: RuntimeValue, name: st
     const doc = descriptor.value.doc ?? (descriptor.kind === "wrapper_descriptor" ? wrapperDocumentation.get(descriptor.value.name) : undefined);
     return doc === undefined ? values.none : values.string(doc);
   }
+  if (name === "__text_signature__") return descriptor.value.textSignature===undefined?values.none:values.string(descriptor.value.textSignature);
   if (name === "__name__") return values.string(descriptor.value.name);
   if (name === "__objclass__") return descriptor.value.owner;
   if (name === "__qualname__") return values.descriptorQualifiedName(descriptor, () => qualifiedName(descriptor.value.owner, descriptor.value.name, "descriptor", values, meter, context));

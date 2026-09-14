@@ -1,0 +1,759 @@
+{
+  "oracle": "/opt/homebrew/bin/python3.14",
+  "metadata": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0\nmacOS-26.4.1-arm64-arm-64bit-Mach-O\n",
+  "adapter": "Explicit node:fs descriptors: readSync, partial-write-safe writeSync, fsyncSync; guest streams and codecs; cleanup in finally.",
+  "rows": [
+    {
+      "name": "codecs.Codec",
+      "sourceSha256": "89d08bee5efba332bdfe3d27167a7420fd97b9947d9d85d380e7191b781aae63",
+      "input": "",
+      "result": {
+        "status": "ok"
+      },
+      "output": "['__module__', '__firstlineno__', '__doc__', 'encode', 'decode', '__static_attributes__', '__dict__', '__weakref__']\ncodecs Codec 117 () Defines the interface for stateless encoders/decoders.\n\nThe .encode()/.decode() methods may use different error\nhandling schemes by providing the errors argument. These\nstring values are predefined:\n\n 'strict' - raise a ValueError error (or a subclass)\n 'ignore' - ignore the character and continue with the next\n 'replace' - replace with a suitable replacement character;\n            Python will use the official U+FFFD REPLACEMENT\n            CHARACTER for the builtin Unicode codecs on\n            decoding and '?' on encoding.\n 'surrogateescape' - replace with private code points U+DCnn.\n 'xmlcharrefreplace' - Replace with the appropriate XML\n                       character reference (only for encoding).\n 'backslashreplace'  - Replace with backslashed escape sequences.\n 'namereplace'       - Replace with \\N{...} escape sequences\n                       (only for encoding).\n\nThe set of allowed values can be extended via register_error.\n\n\n__module__ str\n__firstlineno__ int\n__doc__ str\nencode function\nencode Codec.encode codecs Encodes the object input and returns a tuple (output\nobject, length consumed).\n\nerrors defines the error handling to apply. It defaults to\n'strict' handling.\n\nThe method may not store state in the Codec instance. Use\nStreamWriter for codecs which have to keep state in order to\nmake encoding efficient.\n\nThe encoder must be able to handle zero length input and\nreturn an empty object of the output object type in this\nsituation.\n\n ('strict',) None {}\n3 0 0 ('self', 'input', 'errors') 141 <frozen codecs> 201326595 None\ndecode function\ndecode Codec.decode codecs Decodes the object input and returns a tuple (output\nobject, length consumed).\n\ninput must be an object which provides the bf_getreadbuf\nbuffer slot. Python strings, buffer objects and memory\nmapped files are examples of objects providing this slot.\n\nerrors defines the error handling to apply. It defaults to\n'strict' handling.\n\nThe method may not store state in the Codec instance. Use\nStreamReader for codecs which have to keep state in order to\nmake decoding efficient.\n\nThe decoder must be able to handle zero length input and\nreturn an empty object of the output object type in this\nsituation.\n\n ('strict',) None {}\n3 0 0 ('self', 'input', 'errors') 160 <frozen codecs> 201326595 None\n__static_attributes__ tuple\n__dict__ getset_descriptor\n__dict__ Codec.__dict__ True dictionary for instance variables\n__weakref__ getset_descriptor\n__weakref__ Codec.__weakref__ True list of weak references to the object\n",
+      "reads": 0,
+      "writes": 120,
+      "flushes": 0,
+      "reference": {
+        "status": 0,
+        "stdout": "['__module__', '__firstlineno__', '__doc__', 'encode', 'decode', '__static_attributes__', '__dict__', '__weakref__']\ncodecs Codec 117 () Defines the interface for stateless encoders/decoders.\n\nThe .encode()/.decode() methods may use different error\nhandling schemes by providing the errors argument. These\nstring values are predefined:\n\n 'strict' - raise a ValueError error (or a subclass)\n 'ignore' - ignore the character and continue with the next\n 'replace' - replace with a suitable replacement character;\n            Python will use the official U+FFFD REPLACEMENT\n            CHARACTER for the builtin Unicode codecs on\n            decoding and '?' on encoding.\n 'surrogateescape' - replace with private code points U+DCnn.\n 'xmlcharrefreplace' - Replace with the appropriate XML\n                       character reference (only for encoding).\n 'backslashreplace'  - Replace with backslashed escape sequences.\n 'namereplace'       - Replace with \\N{...} escape sequences\n                       (only for encoding).\n\nThe set of allowed values can be extended via register_error.\n\n\n__module__ str\n__firstlineno__ int\n__doc__ str\nencode function\nencode Codec.encode codecs Encodes the object input and returns a tuple (output\nobject, length consumed).\n\nerrors defines the error handling to apply. It defaults to\n'strict' handling.\n\nThe method may not store state in the Codec instance. Use\nStreamWriter for codecs which have to keep state in order to\nmake encoding efficient.\n\nThe encoder must be able to handle zero length input and\nreturn an empty object of the output object type in this\nsituation.\n\n ('strict',) None {}\n3 0 0 ('self', 'input', 'errors') 141 <frozen codecs> 201326595 None\ndecode function\ndecode Codec.decode codecs Decodes the object input and returns a tuple (output\nobject, length consumed).\n\ninput must be an object which provides the bf_getreadbuf\nbuffer slot. Python strings, buffer objects and memory\nmapped files are examples of objects providing this slot.\n\nerrors defines the error handling to apply. It defaults to\n'strict' handling.\n\nThe method may not store state in the Codec instance. Use\nStreamReader for codecs which have to keep state in order to\nmake decoding efficient.\n\nThe decoder must be able to handle zero length input and\nreturn an empty object of the output object type in this\nsituation.\n\n ('strict',) None {}\n3 0 0 ('self', 'input', 'errors') 160 <frozen codecs> 201326595 None\n__static_attributes__ tuple\n__dict__ getset_descriptor\n__dict__ Codec.__dict__ True dictionary for instance variables\n__weakref__ getset_descriptor\n__weakref__ Codec.__weakref__ True list of weak references to the object\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "codecs.IncrementalEncoder",
+      "sourceSha256": "cb0e96338a76669cd4e5efeaf33452caa54a662009a619c3d17abb136e8b18ed",
+      "input": "",
+      "result": {
+        "status": "ok"
+      },
+      "output": "['__module__', '__firstlineno__', '__doc__', '__init__', 'encode', 'reset', 'getstate', 'setstate', '__static_attributes__', '__dict__', '__weakref__']\ncodecs IncrementalEncoder 183 ('buffer', 'errors') \nAn IncrementalEncoder encodes an input in multiple steps. The input can\nbe passed piece by piece to the encode() method. The IncrementalEncoder\nremembers the state of the encoding process between calls to encode().\n\n__module__ str\n__firstlineno__ int\n__doc__ str\n__init__ function\n__init__ IncrementalEncoder.__init__ codecs \nCreates an IncrementalEncoder instance.\n\nThe IncrementalEncoder may use different error handling schemes by\nproviding the errors keyword argument. See the module docstring\nfor a list of possible values.\n ('strict',) None {}\n2 0 0 ('self', 'errors') 189 <frozen codecs> 201326595 None\nencode function\nencode IncrementalEncoder.encode codecs \nEncodes input and returns the resulting object.\n (False,) None {}\n3 0 0 ('self', 'input', 'final') 200 <frozen codecs> 201326595 None\nreset function\nreset IncrementalEncoder.reset codecs \nResets the encoder to the initial state.\n None None {}\n1 0 0 ('self',) 206 <frozen codecs> 201326595 None\ngetstate function\ngetstate IncrementalEncoder.getstate codecs \nReturn the current state of the encoder.\n None None {}\n1 0 0 ('self',) 211 <frozen codecs> 201326595 None\nsetstate function\nsetstate IncrementalEncoder.setstate codecs \nSet the current state of the encoder. state must have been\nreturned by getstate().\n None None {}\n2 0 0 ('self', 'state') 217 <frozen codecs> 201326595 None\n__static_attributes__ tuple\n__dict__ getset_descriptor\n__dict__ IncrementalEncoder.__dict__ True dictionary for instance variables\n__weakref__ getset_descriptor\n__weakref__ IncrementalEncoder.__weakref__ True list of weak references to the object\n",
+      "reads": 0,
+      "writes": 222,
+      "flushes": 0,
+      "reference": {
+        "status": 0,
+        "stdout": "['__module__', '__firstlineno__', '__doc__', '__init__', 'encode', 'reset', 'getstate', 'setstate', '__static_attributes__', '__dict__', '__weakref__']\ncodecs IncrementalEncoder 183 ('buffer', 'errors') \nAn IncrementalEncoder encodes an input in multiple steps. The input can\nbe passed piece by piece to the encode() method. The IncrementalEncoder\nremembers the state of the encoding process between calls to encode().\n\n__module__ str\n__firstlineno__ int\n__doc__ str\n__init__ function\n__init__ IncrementalEncoder.__init__ codecs \nCreates an IncrementalEncoder instance.\n\nThe IncrementalEncoder may use different error handling schemes by\nproviding the errors keyword argument. See the module docstring\nfor a list of possible values.\n ('strict',) None {}\n2 0 0 ('self', 'errors') 189 <frozen codecs> 201326595 None\nencode function\nencode IncrementalEncoder.encode codecs \nEncodes input and returns the resulting object.\n (False,) None {}\n3 0 0 ('self', 'input', 'final') 200 <frozen codecs> 201326595 None\nreset function\nreset IncrementalEncoder.reset codecs \nResets the encoder to the initial state.\n None None {}\n1 0 0 ('self',) 206 <frozen codecs> 201326595 None\ngetstate function\ngetstate IncrementalEncoder.getstate codecs \nReturn the current state of the encoder.\n None None {}\n1 0 0 ('self',) 211 <frozen codecs> 201326595 None\nsetstate function\nsetstate IncrementalEncoder.setstate codecs \nSet the current state of the encoder. state must have been\nreturned by getstate().\n None None {}\n2 0 0 ('self', 'state') 217 <frozen codecs> 201326595 None\n__static_attributes__ tuple\n__dict__ getset_descriptor\n__dict__ IncrementalEncoder.__dict__ True dictionary for instance variables\n__weakref__ getset_descriptor\n__weakref__ IncrementalEncoder.__weakref__ True list of weak references to the object\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "codecs.BufferedIncrementalEncoder",
+      "sourceSha256": "725fad57fb895d2972c4dcd886283ea32ae7352c116db9183dd3404081621b12",
+      "input": "",
+      "result": {
+        "status": "ok"
+      },
+      "output": "['__module__', '__firstlineno__', '__doc__', '__init__', '_buffer_encode', 'encode', 'reset', 'getstate', 'setstate', '__static_attributes__']\ncodecs BufferedIncrementalEncoder 223 ('buffer',) \nThis subclass of IncrementalEncoder can be used as the baseclass for an\nincremental encoder if the encoder must keep some of the output in a\nbuffer between calls to encode().\n\n__module__ str\n__firstlineno__ int\n__doc__ str\n__init__ function\n__init__ BufferedIncrementalEncoder.__init__ codecs None ('strict',) None {}\n2 0 0 ('self', 'errors') 229 <frozen codecs> 134217731 None\n_buffer_encode function\n_buffer_encode BufferedIncrementalEncoder._buffer_encode codecs None None None {}\n4 0 0 ('self', 'input', 'errors', 'final') 234 <frozen codecs> 134217731 None\nencode function\nencode BufferedIncrementalEncoder.encode codecs None (False,) None {}\n3 0 0 ('self', 'input', 'final', 'data', 'result', 'consumed') 239 <frozen codecs> 134217731 None\nreset function\nreset BufferedIncrementalEncoder.reset codecs None None None {}\n1 0 0 ('self',) 247 <frozen codecs> 134217731 None\ngetstate function\ngetstate BufferedIncrementalEncoder.getstate codecs None None None {}\n1 0 0 ('self',) 251 <frozen codecs> 134217731 None\nsetstate function\nsetstate BufferedIncrementalEncoder.setstate codecs None None None {}\n2 0 0 ('self', 'state') 254 <frozen codecs> 134217731 None\n__static_attributes__ tuple\n",
+      "reads": 0,
+      "writes": 232,
+      "flushes": 0,
+      "reference": {
+        "status": 0,
+        "stdout": "['__module__', '__firstlineno__', '__doc__', '__init__', '_buffer_encode', 'encode', 'reset', 'getstate', 'setstate', '__static_attributes__']\ncodecs BufferedIncrementalEncoder 223 ('buffer',) \nThis subclass of IncrementalEncoder can be used as the baseclass for an\nincremental encoder if the encoder must keep some of the output in a\nbuffer between calls to encode().\n\n__module__ str\n__firstlineno__ int\n__doc__ str\n__init__ function\n__init__ BufferedIncrementalEncoder.__init__ codecs None ('strict',) None {}\n2 0 0 ('self', 'errors') 229 <frozen codecs> 134217731 None\n_buffer_encode function\n_buffer_encode BufferedIncrementalEncoder._buffer_encode codecs None None None {}\n4 0 0 ('self', 'input', 'errors', 'final') 234 <frozen codecs> 134217731 None\nencode function\nencode BufferedIncrementalEncoder.encode codecs None (False,) None {}\n3 0 0 ('self', 'input', 'final', 'data', 'result', 'consumed') 239 <frozen codecs> 134217731 None\nreset function\nreset BufferedIncrementalEncoder.reset codecs None None None {}\n1 0 0 ('self',) 247 <frozen codecs> 134217731 None\ngetstate function\ngetstate BufferedIncrementalEncoder.getstate codecs None None None {}\n1 0 0 ('self',) 251 <frozen codecs> 134217731 None\nsetstate function\nsetstate BufferedIncrementalEncoder.setstate codecs None None None {}\n2 0 0 ('self', 'state') 254 <frozen codecs> 134217731 None\n__static_attributes__ tuple\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "codecs.IncrementalDecoder",
+      "sourceSha256": "60254f6c8069c27887d4927054ba16310c1128c264fbec66ddfb0c82020934c1",
+      "input": "",
+      "result": {
+        "status": "ok"
+      },
+      "output": "['__module__', '__firstlineno__', '__doc__', '__init__', 'decode', 'reset', 'getstate', 'setstate', '__static_attributes__', '__dict__', '__weakref__']\ncodecs IncrementalDecoder 257 ('errors',) \nAn IncrementalDecoder decodes an input in multiple steps. The input can\nbe passed piece by piece to the decode() method. The IncrementalDecoder\nremembers the state of the decoding process between calls to decode().\n\n__module__ str\n__firstlineno__ int\n__doc__ str\n__init__ function\n__init__ IncrementalDecoder.__init__ codecs \nCreate an IncrementalDecoder instance.\n\nThe IncrementalDecoder may use different error handling schemes by\nproviding the errors keyword argument. See the module docstring\nfor a list of possible values.\n ('strict',) None {}\n2 0 0 ('self', 'errors') 263 <frozen codecs> 201326595 None\ndecode function\ndecode IncrementalDecoder.decode codecs \nDecode input and returns the resulting object.\n (False,) None {}\n3 0 0 ('self', 'input', 'final') 273 <frozen codecs> 201326595 None\nreset function\nreset IncrementalDecoder.reset codecs \nReset the decoder to the initial state.\n None None {}\n1 0 0 ('self',) 279 <frozen codecs> 201326595 None\ngetstate function\ngetstate IncrementalDecoder.getstate codecs \nReturn the current state of the decoder.\n\nThis must be a (buffered_input, additional_state_info) tuple.\nbuffered_input must be a bytes object containing bytes that\nwere passed to decode() that have not yet been converted.\nadditional_state_info must be a non-negative integer\nrepresenting the state of the decoder WITHOUT yet having\nprocessed the contents of buffered_input.  In the initial state\nand after reset(), getstate() must return (b\"\", 0).\n None None {}\n1 0 0 ('self',) 284 <frozen codecs> 201326595 None\nsetstate function\nsetstate IncrementalDecoder.setstate codecs \nSet the current state of the decoder.\n\nstate must have been returned by getstate().  The effect of\nsetstate((b\"\", 0)) must be equivalent to reset().\n None None {}\n2 0 0 ('self', 'state') 298 <frozen codecs> 201326595 None\n__static_attributes__ tuple\n__dict__ getset_descriptor\n__dict__ IncrementalDecoder.__dict__ True dictionary for instance variables\n__weakref__ getset_descriptor\n__weakref__ IncrementalDecoder.__weakref__ True list of weak references to the object\n",
+      "reads": 0,
+      "writes": 222,
+      "flushes": 0,
+      "reference": {
+        "status": 0,
+        "stdout": "['__module__', '__firstlineno__', '__doc__', '__init__', 'decode', 'reset', 'getstate', 'setstate', '__static_attributes__', '__dict__', '__weakref__']\ncodecs IncrementalDecoder 257 ('errors',) \nAn IncrementalDecoder decodes an input in multiple steps. The input can\nbe passed piece by piece to the decode() method. The IncrementalDecoder\nremembers the state of the decoding process between calls to decode().\n\n__module__ str\n__firstlineno__ int\n__doc__ str\n__init__ function\n__init__ IncrementalDecoder.__init__ codecs \nCreate an IncrementalDecoder instance.\n\nThe IncrementalDecoder may use different error handling schemes by\nproviding the errors keyword argument. See the module docstring\nfor a list of possible values.\n ('strict',) None {}\n2 0 0 ('self', 'errors') 263 <frozen codecs> 201326595 None\ndecode function\ndecode IncrementalDecoder.decode codecs \nDecode input and returns the resulting object.\n (False,) None {}\n3 0 0 ('self', 'input', 'final') 273 <frozen codecs> 201326595 None\nreset function\nreset IncrementalDecoder.reset codecs \nReset the decoder to the initial state.\n None None {}\n1 0 0 ('self',) 279 <frozen codecs> 201326595 None\ngetstate function\ngetstate IncrementalDecoder.getstate codecs \nReturn the current state of the decoder.\n\nThis must be a (buffered_input, additional_state_info) tuple.\nbuffered_input must be a bytes object containing bytes that\nwere passed to decode() that have not yet been converted.\nadditional_state_info must be a non-negative integer\nrepresenting the state of the decoder WITHOUT yet having\nprocessed the contents of buffered_input.  In the initial state\nand after reset(), getstate() must return (b\"\", 0).\n None None {}\n1 0 0 ('self',) 284 <frozen codecs> 201326595 None\nsetstate function\nsetstate IncrementalDecoder.setstate codecs \nSet the current state of the decoder.\n\nstate must have been returned by getstate().  The effect of\nsetstate((b\"\", 0)) must be equivalent to reset().\n None None {}\n2 0 0 ('self', 'state') 298 <frozen codecs> 201326595 None\n__static_attributes__ tuple\n__dict__ getset_descriptor\n__dict__ IncrementalDecoder.__dict__ True dictionary for instance variables\n__weakref__ getset_descriptor\n__weakref__ IncrementalDecoder.__weakref__ True list of weak references to the object\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "codecs.BufferedIncrementalDecoder",
+      "sourceSha256": "0f59ce2bdb3fbcbb94093ec4073e956500653a5d9a7d35a5422f9b5c962790d9",
+      "input": "",
+      "result": {
+        "status": "ok"
+      },
+      "output": "['__module__', '__firstlineno__', '__doc__', '__init__', '_buffer_decode', 'decode', 'reset', 'getstate', 'setstate', '__static_attributes__']\ncodecs BufferedIncrementalDecoder 306 ('buffer',) \nThis subclass of IncrementalDecoder can be used as the baseclass for an\nincremental decoder if the decoder must be able to handle incomplete\nbyte sequences.\n\n__module__ str\n__firstlineno__ int\n__doc__ str\n__init__ function\n__init__ BufferedIncrementalDecoder.__init__ codecs None ('strict',) None {}\n2 0 0 ('self', 'errors') 312 <frozen codecs> 134217731 None\n_buffer_decode function\n_buffer_decode BufferedIncrementalDecoder._buffer_decode codecs None None None {}\n4 0 0 ('self', 'input', 'errors', 'final') 317 <frozen codecs> 134217731 None\ndecode function\ndecode BufferedIncrementalDecoder.decode codecs None (False,) None {}\n3 0 0 ('self', 'input', 'final', 'data', 'result', 'consumed') 322 <frozen codecs> 134217731 None\nreset function\nreset BufferedIncrementalDecoder.reset codecs None None None {}\n1 0 0 ('self',) 330 <frozen codecs> 134217731 None\ngetstate function\ngetstate BufferedIncrementalDecoder.getstate codecs None None None {}\n1 0 0 ('self',) 334 <frozen codecs> 134217731 None\nsetstate function\nsetstate BufferedIncrementalDecoder.setstate codecs None None None {}\n2 0 0 ('self', 'state') 338 <frozen codecs> 134217731 None\n__static_attributes__ tuple\n",
+      "reads": 0,
+      "writes": 232,
+      "flushes": 0,
+      "reference": {
+        "status": 0,
+        "stdout": "['__module__', '__firstlineno__', '__doc__', '__init__', '_buffer_decode', 'decode', 'reset', 'getstate', 'setstate', '__static_attributes__']\ncodecs BufferedIncrementalDecoder 306 ('buffer',) \nThis subclass of IncrementalDecoder can be used as the baseclass for an\nincremental decoder if the decoder must be able to handle incomplete\nbyte sequences.\n\n__module__ str\n__firstlineno__ int\n__doc__ str\n__init__ function\n__init__ BufferedIncrementalDecoder.__init__ codecs None ('strict',) None {}\n2 0 0 ('self', 'errors') 312 <frozen codecs> 134217731 None\n_buffer_decode function\n_buffer_decode BufferedIncrementalDecoder._buffer_decode codecs None None None {}\n4 0 0 ('self', 'input', 'errors', 'final') 317 <frozen codecs> 134217731 None\ndecode function\ndecode BufferedIncrementalDecoder.decode codecs None (False,) None {}\n3 0 0 ('self', 'input', 'final', 'data', 'result', 'consumed') 322 <frozen codecs> 134217731 None\nreset function\nreset BufferedIncrementalDecoder.reset codecs None None None {}\n1 0 0 ('self',) 330 <frozen codecs> 134217731 None\ngetstate function\ngetstate BufferedIncrementalDecoder.getstate codecs None None None {}\n1 0 0 ('self',) 334 <frozen codecs> 134217731 None\nsetstate function\nsetstate BufferedIncrementalDecoder.setstate codecs None None None {}\n2 0 0 ('self', 'state') 338 <frozen codecs> 134217731 None\n__static_attributes__ tuple\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "codecs.StreamReader",
+      "sourceSha256": "db566025ea7c8618eaa33ee9e3489ceca6440b01d9cbc00c56cdd3cfad882abf",
+      "input": "",
+      "result": {
+        "status": "ok"
+      },
+      "output": "['__module__', '__firstlineno__', 'charbuffertype', '__init__', 'decode', 'read', 'readline', 'readlines', 'reset', 'seek', '__next__', '__iter__', '__getattr__', '__enter__', '__exit__', '__reduce_ex__', '__static_attributes__', '__doc__']\ncodecs StreamReader 425 ('_empty_charbuffer', 'bytebuffer', 'charbuffer', 'errors', 'linebuffer', 'stream') None\n__module__ str\n__firstlineno__ int\ncharbuffertype type\n__init__ function\n__init__ StreamReader.__init__ codecs Creates a StreamReader instance.\n\nstream must be a file-like object open for reading.\n\nThe StreamReader may use different error handling\nschemes by providing the errors keyword argument. These\nparameters are predefined:\n\n 'strict' - raise a ValueError (or a subclass)\n 'ignore' - ignore the character and continue with the next\n 'replace'- replace with a suitable replacement character\n 'backslashreplace' - Replace with backslashed escape sequences;\n\nThe set of allowed parameter values can be extended via\nregister_error.\n ('strict',) None {}\n3 0 0 ('self', 'stream', 'errors') 429 <frozen codecs> 201326595 None\ndecode function\ndecode StreamReader.decode codecs None ('strict',) None {}\n3 0 0 ('self', 'input', 'errors') 454 <frozen codecs> 134217731 None\nread function\nread StreamReader.read codecs Decodes data from the stream self.stream and returns the\nresulting object.\n\nchars indicates the number of decoded code points or bytes to\nreturn. read() will never return more data than requested,\nbut it might return less, if there is not enough available.\n\nsize indicates the approximate maximum number of decoded\nbytes or code points to read for decoding. The decoder\ncan modify this setting as appropriate. The default value\n-1 indicates to read and decode as much as possible.  size\nis intended to prevent having to decode huge files in one\nstep.\n\nIf firstline is true, and a UnicodeDecodeError happens\nafter the first line terminator in the input only the first line\nwill be returned, the rest of the input will be kept until the\nnext call to read().\n\nThe method should use a greedy read strategy, meaning that\nit should read as much data as is allowed within the\ndefinition of the encoding and the given size, e.g.  if\noptional encoding endings or state markers are available\non the stream, these should be read too.\n (-1, -1, False) None {}\n4 0 0 ('self', 'size', 'chars', 'firstline', 'newdata', 'data', 'newchars', 'decodedbytes', 'exc', 'lines', 'result') 457 <frozen codecs> 201326595 None\nreadline function\nreadline StreamReader.readline codecs Read one line from the input stream and return the\ndecoded data.\n\nsize, if given, is passed as size argument to the\nread() method.\n\n (None, True) None {}\n3 0 0 ('self', 'size', 'keepends', 'line', 'readsize', 'data', 'lines', 'line0withend', 'line0withoutend') 537 <frozen codecs> 201326595 None\nreadlines function\nreadlines StreamReader.readlines codecs Read all lines available on the input stream\nand return them as a list.\n\nLine breaks are implemented using the codec's decoder\nmethod and are included in the list entries.\n\nsizehint, if given, is ignored since there is no efficient\nway of finding the true end-of-line.\n\n (None, True) None {}\n3 0 0 ('self', 'sizehint', 'keepends', 'data') 612 <frozen codecs> 201326595 None\nreset function\nreset StreamReader.reset codecs Resets the codec buffers used for keeping internal state.\n\nNote that no stream repositioning should take place.\nThis method is primarily intended to be able to recover\nfrom decoding errors.\n\n None None {}\n1 0 0 ('self',) 627 <frozen codecs> 201326595 None\nseek function\nseek StreamReader.seek codecs Set the input stream's current position.\n\nResets the codec buffers used for keeping state.\n (0,) None {}\n3 0 0 ('self', 'offset', 'whence') 640 <frozen codecs> 201326595 None\n__next__ function\n__next__ StreamReader.__next__ codecs Return the next decoded line from the input stream. None None {}\n1 0 0 ('self', 'line') 648 <frozen codecs> 201326595 None\n__iter__ function\n__iter__ StreamReader.__iter__ codecs None None None {}\n1 0 0 ('self',) 656 <frozen codecs> 134217731 None\n__getattr__ function\n__getattr__ StreamReader.__getattr__ codecs Inherit all other methods from the underlying stream.\n         (<built-in function getattr>,) None {}\n3 0 0 ('self', 'name', 'getattr') 659 <frozen codecs> 201326595 None\n__enter__ function\n__enter__ StreamReader.__enter__ codecs None None None {}\n1 0 0 ('self',) 666 <frozen codecs> 134217731 None\n__exit__ function\n__exit__ StreamReader.__exit__ codecs None None None {}\n4 0 0 ('self', 'type', 'value', 'tb') 669 <frozen codecs> 134217731 None\n__reduce_ex__ function\n__reduce_ex__ StreamReader.__reduce_ex__ codecs None None None {}\n2 0 0 ('self', 'proto') 672 <frozen codecs> 134217731 None\n__static_attributes__ tuple\n__doc__ NoneType\n",
+      "reads": 0,
+      "writes": 474,
+      "flushes": 0,
+      "reference": {
+        "status": 0,
+        "stdout": "['__module__', '__firstlineno__', 'charbuffertype', '__init__', 'decode', 'read', 'readline', 'readlines', 'reset', 'seek', '__next__', '__iter__', '__getattr__', '__enter__', '__exit__', '__reduce_ex__', '__static_attributes__', '__doc__']\ncodecs StreamReader 425 ('_empty_charbuffer', 'bytebuffer', 'charbuffer', 'errors', 'linebuffer', 'stream') None\n__module__ str\n__firstlineno__ int\ncharbuffertype type\n__init__ function\n__init__ StreamReader.__init__ codecs Creates a StreamReader instance.\n\nstream must be a file-like object open for reading.\n\nThe StreamReader may use different error handling\nschemes by providing the errors keyword argument. These\nparameters are predefined:\n\n 'strict' - raise a ValueError (or a subclass)\n 'ignore' - ignore the character and continue with the next\n 'replace'- replace with a suitable replacement character\n 'backslashreplace' - Replace with backslashed escape sequences;\n\nThe set of allowed parameter values can be extended via\nregister_error.\n ('strict',) None {}\n3 0 0 ('self', 'stream', 'errors') 429 <frozen codecs> 201326595 None\ndecode function\ndecode StreamReader.decode codecs None ('strict',) None {}\n3 0 0 ('self', 'input', 'errors') 454 <frozen codecs> 134217731 None\nread function\nread StreamReader.read codecs Decodes data from the stream self.stream and returns the\nresulting object.\n\nchars indicates the number of decoded code points or bytes to\nreturn. read() will never return more data than requested,\nbut it might return less, if there is not enough available.\n\nsize indicates the approximate maximum number of decoded\nbytes or code points to read for decoding. The decoder\ncan modify this setting as appropriate. The default value\n-1 indicates to read and decode as much as possible.  size\nis intended to prevent having to decode huge files in one\nstep.\n\nIf firstline is true, and a UnicodeDecodeError happens\nafter the first line terminator in the input only the first line\nwill be returned, the rest of the input will be kept until the\nnext call to read().\n\nThe method should use a greedy read strategy, meaning that\nit should read as much data as is allowed within the\ndefinition of the encoding and the given size, e.g.  if\noptional encoding endings or state markers are available\non the stream, these should be read too.\n (-1, -1, False) None {}\n4 0 0 ('self', 'size', 'chars', 'firstline', 'newdata', 'data', 'newchars', 'decodedbytes', 'exc', 'lines', 'result') 457 <frozen codecs> 201326595 None\nreadline function\nreadline StreamReader.readline codecs Read one line from the input stream and return the\ndecoded data.\n\nsize, if given, is passed as size argument to the\nread() method.\n\n (None, True) None {}\n3 0 0 ('self', 'size', 'keepends', 'line', 'readsize', 'data', 'lines', 'line0withend', 'line0withoutend') 537 <frozen codecs> 201326595 None\nreadlines function\nreadlines StreamReader.readlines codecs Read all lines available on the input stream\nand return them as a list.\n\nLine breaks are implemented using the codec's decoder\nmethod and are included in the list entries.\n\nsizehint, if given, is ignored since there is no efficient\nway of finding the true end-of-line.\n\n (None, True) None {}\n3 0 0 ('self', 'sizehint', 'keepends', 'data') 612 <frozen codecs> 201326595 None\nreset function\nreset StreamReader.reset codecs Resets the codec buffers used for keeping internal state.\n\nNote that no stream repositioning should take place.\nThis method is primarily intended to be able to recover\nfrom decoding errors.\n\n None None {}\n1 0 0 ('self',) 627 <frozen codecs> 201326595 None\nseek function\nseek StreamReader.seek codecs Set the input stream's current position.\n\nResets the codec buffers used for keeping state.\n (0,) None {}\n3 0 0 ('self', 'offset', 'whence') 640 <frozen codecs> 201326595 None\n__next__ function\n__next__ StreamReader.__next__ codecs Return the next decoded line from the input stream. None None {}\n1 0 0 ('self', 'line') 648 <frozen codecs> 201326595 None\n__iter__ function\n__iter__ StreamReader.__iter__ codecs None None None {}\n1 0 0 ('self',) 656 <frozen codecs> 134217731 None\n__getattr__ function\n__getattr__ StreamReader.__getattr__ codecs Inherit all other methods from the underlying stream.\n         (<built-in function getattr>,) None {}\n3 0 0 ('self', 'name', 'getattr') 659 <frozen codecs> 201326595 None\n__enter__ function\n__enter__ StreamReader.__enter__ codecs None None None {}\n1 0 0 ('self',) 666 <frozen codecs> 134217731 None\n__exit__ function\n__exit__ StreamReader.__exit__ codecs None None None {}\n4 0 0 ('self', 'type', 'value', 'tb') 669 <frozen codecs> 134217731 None\n__reduce_ex__ function\n__reduce_ex__ StreamReader.__reduce_ex__ codecs None None None {}\n2 0 0 ('self', 'proto') 672 <frozen codecs> 134217731 None\n__static_attributes__ tuple\n__doc__ NoneType\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "codecs.StreamWriter",
+      "sourceSha256": "eb99deeca63d2442a51e3c32d6a820f7cc32df9a7fccf3c2e6cf651351539b9d",
+      "input": "",
+      "result": {
+        "status": "ok"
+      },
+      "output": "['__module__', '__firstlineno__', '__init__', 'write', 'writelines', 'reset', 'seek', '__getattr__', '__enter__', '__exit__', '__reduce_ex__', '__static_attributes__', '__doc__']\ncodecs StreamWriter 349 ('errors', 'stream') None\n__module__ str\n__firstlineno__ int\n__init__ function\n__init__ StreamWriter.__init__ codecs Creates a StreamWriter instance.\n\nstream must be a file-like object open for writing.\n\nThe StreamWriter may use different error handling\nschemes by providing the errors keyword argument. These\nparameters are predefined:\n\n 'strict' - raise a ValueError (or a subclass)\n 'ignore' - ignore the character and continue with the next\n 'replace'- replace with a suitable replacement character\n 'xmlcharrefreplace' - Replace with the appropriate XML\n                       character reference.\n 'backslashreplace'  - Replace with backslashed escape\n                       sequences.\n 'namereplace'       - Replace with \\N{...} escape sequences.\n\nThe set of allowed parameter values can be extended via\nregister_error.\n ('strict',) None {}\n3 0 0 ('self', 'stream', 'errors') 351 <frozen codecs> 201326595 None\nwrite function\nwrite StreamWriter.write codecs Writes the object's contents encoded to self.stream.\n         None None {}\n2 0 0 ('self', 'object', 'data', 'consumed') 376 <frozen codecs> 201326595 None\nwritelines function\nwritelines StreamWriter.writelines codecs Writes the concatenated list of strings to the stream\nusing .write().\n None None {}\n2 0 0 ('self', 'list') 383 <frozen codecs> 201326595 None\nreset function\nreset StreamWriter.reset codecs Resets the codec buffers used for keeping internal state.\n\nCalling this method should ensure that the data on the\noutput is put into a clean state, that allows appending\nof new fresh data without having to rescan the whole\nstream to recover state.\n\n None None {}\n1 0 0 ('self',) 390 <frozen codecs> 201326595 None\nseek function\nseek StreamWriter.seek codecs None (0,) None {}\n3 0 0 ('self', 'offset', 'whence') 402 <frozen codecs> 134217731 None\n__getattr__ function\n__getattr__ StreamWriter.__getattr__ codecs Inherit all other methods from the underlying stream.\n         (<built-in function getattr>,) None {}\n3 0 0 ('self', 'name', 'getattr') 407 <frozen codecs> 201326595 None\n__enter__ function\n__enter__ StreamWriter.__enter__ codecs None None None {}\n1 0 0 ('self',) 414 <frozen codecs> 134217731 None\n__exit__ function\n__exit__ StreamWriter.__exit__ codecs None None None {}\n4 0 0 ('self', 'type', 'value', 'tb') 417 <frozen codecs> 134217731 None\n__reduce_ex__ function\n__reduce_ex__ StreamWriter.__reduce_ex__ codecs None None None {}\n2 0 0 ('self', 'proto') 420 <frozen codecs> 134217731 None\n__static_attributes__ tuple\n__doc__ NoneType\n",
+      "reads": 0,
+      "writes": 334,
+      "flushes": 0,
+      "reference": {
+        "status": 0,
+        "stdout": "['__module__', '__firstlineno__', '__init__', 'write', 'writelines', 'reset', 'seek', '__getattr__', '__enter__', '__exit__', '__reduce_ex__', '__static_attributes__', '__doc__']\ncodecs StreamWriter 349 ('errors', 'stream') None\n__module__ str\n__firstlineno__ int\n__init__ function\n__init__ StreamWriter.__init__ codecs Creates a StreamWriter instance.\n\nstream must be a file-like object open for writing.\n\nThe StreamWriter may use different error handling\nschemes by providing the errors keyword argument. These\nparameters are predefined:\n\n 'strict' - raise a ValueError (or a subclass)\n 'ignore' - ignore the character and continue with the next\n 'replace'- replace with a suitable replacement character\n 'xmlcharrefreplace' - Replace with the appropriate XML\n                       character reference.\n 'backslashreplace'  - Replace with backslashed escape\n                       sequences.\n 'namereplace'       - Replace with \\N{...} escape sequences.\n\nThe set of allowed parameter values can be extended via\nregister_error.\n ('strict',) None {}\n3 0 0 ('self', 'stream', 'errors') 351 <frozen codecs> 201326595 None\nwrite function\nwrite StreamWriter.write codecs Writes the object's contents encoded to self.stream.\n         None None {}\n2 0 0 ('self', 'object', 'data', 'consumed') 376 <frozen codecs> 201326595 None\nwritelines function\nwritelines StreamWriter.writelines codecs Writes the concatenated list of strings to the stream\nusing .write().\n None None {}\n2 0 0 ('self', 'list') 383 <frozen codecs> 201326595 None\nreset function\nreset StreamWriter.reset codecs Resets the codec buffers used for keeping internal state.\n\nCalling this method should ensure that the data on the\noutput is put into a clean state, that allows appending\nof new fresh data without having to rescan the whole\nstream to recover state.\n\n None None {}\n1 0 0 ('self',) 390 <frozen codecs> 201326595 None\nseek function\nseek StreamWriter.seek codecs None (0,) None {}\n3 0 0 ('self', 'offset', 'whence') 402 <frozen codecs> 134217731 None\n__getattr__ function\n__getattr__ StreamWriter.__getattr__ codecs Inherit all other methods from the underlying stream.\n         (<built-in function getattr>,) None {}\n3 0 0 ('self', 'name', 'getattr') 407 <frozen codecs> 201326595 None\n__enter__ function\n__enter__ StreamWriter.__enter__ codecs None None None {}\n1 0 0 ('self',) 414 <frozen codecs> 134217731 None\n__exit__ function\n__exit__ StreamWriter.__exit__ codecs None None None {}\n4 0 0 ('self', 'type', 'value', 'tb') 417 <frozen codecs> 134217731 None\n__reduce_ex__ function\n__reduce_ex__ StreamWriter.__reduce_ex__ codecs None None None {}\n2 0 0 ('self', 'proto') 420 <frozen codecs> 134217731 None\n__static_attributes__ tuple\n__doc__ NoneType\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "codecs.StreamReaderWriter",
+      "sourceSha256": "0855e2c51abd2ce5ec5b47497357bf662b5ad35448c296b977e5a39b044e8ada",
+      "input": "",
+      "result": {
+        "status": "ok"
+      },
+      "output": "['__module__', '__firstlineno__', '__doc__', 'encoding', '__init__', 'read', 'readline', 'readlines', '__next__', '__iter__', 'write', 'writelines', 'reset', 'seek', '__getattr__', '__enter__', '__exit__', '__reduce_ex__', '__static_attributes__', '__dict__', '__weakref__']\ncodecs StreamReaderWriter 677 ('errors', 'reader', 'stream', 'writer') StreamReaderWriter instances allow wrapping streams which\nwork in both read and write modes.\n\nThe design is such that one can use the factory functions\nreturned by the codec.lookup() function to construct the\ninstance.\n\n\n__module__ str\n__firstlineno__ int\n__doc__ str\nencoding str\n__init__ function\n__init__ StreamReaderWriter.__init__ codecs Creates a StreamReaderWriter instance.\n\nstream must be a Stream-like object.\n\nReader, Writer must be factory functions or classes\nproviding the StreamReader, StreamWriter interface resp.\n\nError handling is done in the same way as defined for the\nStreamWriter/Readers.\n\n ('strict',) None {}\n5 0 0 ('self', 'stream', 'Reader', 'Writer', 'errors') 690 <frozen codecs> 201326595 None\nread function\nread StreamReaderWriter.read codecs None (-1,) None {}\n2 0 0 ('self', 'size') 708 <frozen codecs> 134217731 None\nreadline function\nreadline StreamReaderWriter.readline codecs None (None, True) None {}\n3 0 0 ('self', 'size', 'keepends') 712 <frozen codecs> 134217731 None\nreadlines function\nreadlines StreamReaderWriter.readlines codecs None (None, True) None {}\n3 0 0 ('self', 'sizehint', 'keepends') 716 <frozen codecs> 134217731 None\n__next__ function\n__next__ StreamReaderWriter.__next__ codecs Return the next decoded line from the input stream. None None {}\n1 0 0 ('self',) 720 <frozen codecs> 201326595 None\n__iter__ function\n__iter__ StreamReaderWriter.__iter__ codecs None None None {}\n1 0 0 ('self',) 725 <frozen codecs> 134217731 None\nwrite function\nwrite StreamReaderWriter.write codecs None None None {}\n2 0 0 ('self', 'data') 728 <frozen codecs> 134217731 None\nwritelines function\nwritelines StreamReaderWriter.writelines codecs None None None {}\n2 0 0 ('self', 'list') 732 <frozen codecs> 134217731 None\nreset function\nreset StreamReaderWriter.reset codecs None None None {}\n1 0 0 ('self',) 736 <frozen codecs> 134217731 None\nseek function\nseek StreamReaderWriter.seek codecs None (0,) None {}\n3 0 0 ('self', 'offset', 'whence') 741 <frozen codecs> 134217731 None\n__getattr__ function\n__getattr__ StreamReaderWriter.__getattr__ codecs Inherit all other methods from the underlying stream.\n         (<built-in function getattr>,) None {}\n3 0 0 ('self', 'name', 'getattr') 747 <frozen codecs> 201326595 None\n__enter__ function\n__enter__ StreamReaderWriter.__enter__ codecs None None None {}\n1 0 0 ('self',) 756 <frozen codecs> 134217731 None\n__exit__ function\n__exit__ StreamReaderWriter.__exit__ codecs None None None {}\n4 0 0 ('self', 'type', 'value', 'tb') 759 <frozen codecs> 134217731 None\n__reduce_ex__ function\n__reduce_ex__ StreamReaderWriter.__reduce_ex__ codecs None None None {}\n2 0 0 ('self', 'proto') 762 <frozen codecs> 134217731 None\n__static_attributes__ tuple\n__dict__ getset_descriptor\n__dict__ StreamReaderWriter.__dict__ True dictionary for instance variables\n__weakref__ getset_descriptor\n__weakref__ StreamReaderWriter.__weakref__ True list of weak references to the object\n",
+      "reads": 0,
+      "writes": 532,
+      "flushes": 0,
+      "reference": {
+        "status": 0,
+        "stdout": "['__module__', '__firstlineno__', '__doc__', 'encoding', '__init__', 'read', 'readline', 'readlines', '__next__', '__iter__', 'write', 'writelines', 'reset', 'seek', '__getattr__', '__enter__', '__exit__', '__reduce_ex__', '__static_attributes__', '__dict__', '__weakref__']\ncodecs StreamReaderWriter 677 ('errors', 'reader', 'stream', 'writer') StreamReaderWriter instances allow wrapping streams which\nwork in both read and write modes.\n\nThe design is such that one can use the factory functions\nreturned by the codec.lookup() function to construct the\ninstance.\n\n\n__module__ str\n__firstlineno__ int\n__doc__ str\nencoding str\n__init__ function\n__init__ StreamReaderWriter.__init__ codecs Creates a StreamReaderWriter instance.\n\nstream must be a Stream-like object.\n\nReader, Writer must be factory functions or classes\nproviding the StreamReader, StreamWriter interface resp.\n\nError handling is done in the same way as defined for the\nStreamWriter/Readers.\n\n ('strict',) None {}\n5 0 0 ('self', 'stream', 'Reader', 'Writer', 'errors') 690 <frozen codecs> 201326595 None\nread function\nread StreamReaderWriter.read codecs None (-1,) None {}\n2 0 0 ('self', 'size') 708 <frozen codecs> 134217731 None\nreadline function\nreadline StreamReaderWriter.readline codecs None (None, True) None {}\n3 0 0 ('self', 'size', 'keepends') 712 <frozen codecs> 134217731 None\nreadlines function\nreadlines StreamReaderWriter.readlines codecs None (None, True) None {}\n3 0 0 ('self', 'sizehint', 'keepends') 716 <frozen codecs> 134217731 None\n__next__ function\n__next__ StreamReaderWriter.__next__ codecs Return the next decoded line from the input stream. None None {}\n1 0 0 ('self',) 720 <frozen codecs> 201326595 None\n__iter__ function\n__iter__ StreamReaderWriter.__iter__ codecs None None None {}\n1 0 0 ('self',) 725 <frozen codecs> 134217731 None\nwrite function\nwrite StreamReaderWriter.write codecs None None None {}\n2 0 0 ('self', 'data') 728 <frozen codecs> 134217731 None\nwritelines function\nwritelines StreamReaderWriter.writelines codecs None None None {}\n2 0 0 ('self', 'list') 732 <frozen codecs> 134217731 None\nreset function\nreset StreamReaderWriter.reset codecs None None None {}\n1 0 0 ('self',) 736 <frozen codecs> 134217731 None\nseek function\nseek StreamReaderWriter.seek codecs None (0,) None {}\n3 0 0 ('self', 'offset', 'whence') 741 <frozen codecs> 134217731 None\n__getattr__ function\n__getattr__ StreamReaderWriter.__getattr__ codecs Inherit all other methods from the underlying stream.\n         (<built-in function getattr>,) None {}\n3 0 0 ('self', 'name', 'getattr') 747 <frozen codecs> 201326595 None\n__enter__ function\n__enter__ StreamReaderWriter.__enter__ codecs None None None {}\n1 0 0 ('self',) 756 <frozen codecs> 134217731 None\n__exit__ function\n__exit__ StreamReaderWriter.__exit__ codecs None None None {}\n4 0 0 ('self', 'type', 'value', 'tb') 759 <frozen codecs> 134217731 None\n__reduce_ex__ function\n__reduce_ex__ StreamReaderWriter.__reduce_ex__ codecs None None None {}\n2 0 0 ('self', 'proto') 762 <frozen codecs> 134217731 None\n__static_attributes__ tuple\n__dict__ getset_descriptor\n__dict__ StreamReaderWriter.__dict__ True dictionary for instance variables\n__weakref__ getset_descriptor\n__weakref__ StreamReaderWriter.__weakref__ True list of weak references to the object\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "codecs.StreamRecoder",
+      "sourceSha256": "b7aa588511832378c0590ec786be99bae700ae8b30594a6266f0712c2a5a120a",
+      "input": "",
+      "result": {
+        "status": "ok"
+      },
+      "output": "['__module__', '__firstlineno__', '__doc__', 'data_encoding', 'file_encoding', '__init__', 'read', 'readline', 'readlines', '__next__', '__iter__', 'write', 'writelines', 'reset', 'seek', '__getattr__', '__enter__', '__exit__', '__reduce_ex__', '__static_attributes__', '__dict__', '__weakref__']\ncodecs StreamRecoder 767 ('decode', 'encode', 'errors', 'reader', 'stream', 'writer') StreamRecoder instances translate data from one encoding to another.\n\nThey use the complete set of APIs returned by the\ncodecs.lookup() function to implement their task.\n\nData written to the StreamRecoder is first decoded into an\nintermediate format (depending on the \"decode\" codec) and then\nwritten to the underlying stream using an instance of the provided\nWriter class.\n\nIn the other direction, data is read from the underlying stream using\na Reader instance and then encoded and returned to the caller.\n\n\n__module__ str\n__firstlineno__ int\n__doc__ str\ndata_encoding str\nfile_encoding str\n__init__ function\n__init__ StreamRecoder.__init__ codecs Creates a StreamRecoder instance which implements a two-way\nconversion: encode and decode work on the frontend (the\ndata visible to .read() and .write()) while Reader and Writer\nwork on the backend (the data in stream).\n\nYou can use these objects to do transparent\ntranscodings from e.g. latin-1 to utf-8 and back.\n\nstream must be a file-like object.\n\nencode and decode must adhere to the Codec interface; Reader and\nWriter must be factory functions or classes providing the\nStreamReader and StreamWriter interfaces resp.\n\nError handling is done in the same way as defined for the\nStreamWriter/Readers.\n\n ('strict',) None {}\n7 0 0 ('self', 'stream', 'encode', 'decode', 'Reader', 'Writer', 'errors') 787 <frozen codecs> 201326595 None\nread function\nread StreamRecoder.read codecs None (-1,) None {}\n2 0 0 ('self', 'size', 'data', 'bytesencoded') 815 <frozen codecs> 134217731 None\nreadline function\nreadline StreamRecoder.readline codecs None (None,) None {}\n2 0 0 ('self', 'size', 'data', 'bytesencoded') 821 <frozen codecs> 134217731 None\nreadlines function\nreadlines StreamRecoder.readlines codecs None (None,) None {}\n2 0 0 ('self', 'sizehint', 'data', 'bytesencoded') 830 <frozen codecs> 134217731 None\n__next__ function\n__next__ StreamRecoder.__next__ codecs Return the next decoded line from the input stream. None None {}\n1 0 0 ('self', 'data', 'bytesencoded') 836 <frozen codecs> 201326595 None\n__iter__ function\n__iter__ StreamRecoder.__iter__ codecs None None None {}\n1 0 0 ('self',) 843 <frozen codecs> 134217731 None\nwrite function\nwrite StreamRecoder.write codecs None None None {}\n2 0 0 ('self', 'data', 'bytesdecoded') 846 <frozen codecs> 134217731 None\nwritelines function\nwritelines StreamRecoder.writelines codecs None None None {}\n2 0 0 ('self', 'list', 'data', 'bytesdecoded') 851 <frozen codecs> 134217731 None\nreset function\nreset StreamRecoder.reset codecs None None None {}\n1 0 0 ('self',) 857 <frozen codecs> 134217731 None\nseek function\nseek StreamRecoder.seek codecs None (0,) None {}\n3 0 0 ('self', 'offset', 'whence') 862 <frozen codecs> 134217731 None\n__getattr__ function\n__getattr__ StreamRecoder.__getattr__ codecs Inherit all other methods from the underlying stream.\n         (<built-in function getattr>,) None {}\n3 0 0 ('self', 'name', 'getattr') 868 <frozen codecs> 201326595 None\n__enter__ function\n__enter__ StreamRecoder.__enter__ codecs None None None {}\n1 0 0 ('self',) 875 <frozen codecs> 134217731 None\n__exit__ function\n__exit__ StreamRecoder.__exit__ codecs None None None {}\n4 0 0 ('self', 'type', 'value', 'tb') 878 <frozen codecs> 134217731 None\n__reduce_ex__ function\n__reduce_ex__ StreamRecoder.__reduce_ex__ codecs None None None {}\n2 0 0 ('self', 'proto') 881 <frozen codecs> 134217731 None\n__static_attributes__ tuple\n__dict__ getset_descriptor\n__dict__ StreamRecoder.__dict__ True dictionary for instance variables\n__weakref__ getset_descriptor\n__weakref__ StreamRecoder.__weakref__ True list of weak references to the object\n",
+      "reads": 0,
+      "writes": 536,
+      "flushes": 0,
+      "reference": {
+        "status": 0,
+        "stdout": "['__module__', '__firstlineno__', '__doc__', 'data_encoding', 'file_encoding', '__init__', 'read', 'readline', 'readlines', '__next__', '__iter__', 'write', 'writelines', 'reset', 'seek', '__getattr__', '__enter__', '__exit__', '__reduce_ex__', '__static_attributes__', '__dict__', '__weakref__']\ncodecs StreamRecoder 767 ('decode', 'encode', 'errors', 'reader', 'stream', 'writer') StreamRecoder instances translate data from one encoding to another.\n\nThey use the complete set of APIs returned by the\ncodecs.lookup() function to implement their task.\n\nData written to the StreamRecoder is first decoded into an\nintermediate format (depending on the \"decode\" codec) and then\nwritten to the underlying stream using an instance of the provided\nWriter class.\n\nIn the other direction, data is read from the underlying stream using\na Reader instance and then encoded and returned to the caller.\n\n\n__module__ str\n__firstlineno__ int\n__doc__ str\ndata_encoding str\nfile_encoding str\n__init__ function\n__init__ StreamRecoder.__init__ codecs Creates a StreamRecoder instance which implements a two-way\nconversion: encode and decode work on the frontend (the\ndata visible to .read() and .write()) while Reader and Writer\nwork on the backend (the data in stream).\n\nYou can use these objects to do transparent\ntranscodings from e.g. latin-1 to utf-8 and back.\n\nstream must be a file-like object.\n\nencode and decode must adhere to the Codec interface; Reader and\nWriter must be factory functions or classes providing the\nStreamReader and StreamWriter interfaces resp.\n\nError handling is done in the same way as defined for the\nStreamWriter/Readers.\n\n ('strict',) None {}\n7 0 0 ('self', 'stream', 'encode', 'decode', 'Reader', 'Writer', 'errors') 787 <frozen codecs> 201326595 None\nread function\nread StreamRecoder.read codecs None (-1,) None {}\n2 0 0 ('self', 'size', 'data', 'bytesencoded') 815 <frozen codecs> 134217731 None\nreadline function\nreadline StreamRecoder.readline codecs None (None,) None {}\n2 0 0 ('self', 'size', 'data', 'bytesencoded') 821 <frozen codecs> 134217731 None\nreadlines function\nreadlines StreamRecoder.readlines codecs None (None,) None {}\n2 0 0 ('self', 'sizehint', 'data', 'bytesencoded') 830 <frozen codecs> 134217731 None\n__next__ function\n__next__ StreamRecoder.__next__ codecs Return the next decoded line from the input stream. None None {}\n1 0 0 ('self', 'data', 'bytesencoded') 836 <frozen codecs> 201326595 None\n__iter__ function\n__iter__ StreamRecoder.__iter__ codecs None None None {}\n1 0 0 ('self',) 843 <frozen codecs> 134217731 None\nwrite function\nwrite StreamRecoder.write codecs None None None {}\n2 0 0 ('self', 'data', 'bytesdecoded') 846 <frozen codecs> 134217731 None\nwritelines function\nwritelines StreamRecoder.writelines codecs None None None {}\n2 0 0 ('self', 'list', 'data', 'bytesdecoded') 851 <frozen codecs> 134217731 None\nreset function\nreset StreamRecoder.reset codecs None None None {}\n1 0 0 ('self',) 857 <frozen codecs> 134217731 None\nseek function\nseek StreamRecoder.seek codecs None (0,) None {}\n3 0 0 ('self', 'offset', 'whence') 862 <frozen codecs> 134217731 None\n__getattr__ function\n__getattr__ StreamRecoder.__getattr__ codecs Inherit all other methods from the underlying stream.\n         (<built-in function getattr>,) None {}\n3 0 0 ('self', 'name', 'getattr') 868 <frozen codecs> 201326595 None\n__enter__ function\n__enter__ StreamRecoder.__enter__ codecs None None None {}\n1 0 0 ('self',) 875 <frozen codecs> 134217731 None\n__exit__ function\n__exit__ StreamRecoder.__exit__ codecs None None None {}\n4 0 0 ('self', 'type', 'value', 'tb') 878 <frozen codecs> 134217731 None\n__reduce_ex__ function\n__reduce_ex__ StreamRecoder.__reduce_ex__ codecs None None None {}\n2 0 0 ('self', 'proto') 881 <frozen codecs> 134217731 None\n__static_attributes__ tuple\n__dict__ getset_descriptor\n__dict__ StreamRecoder.__dict__ True dictionary for instance variables\n__weakref__ getset_descriptor\n__weakref__ StreamRecoder.__weakref__ True list of weak references to the object\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "encodings.ascii.Codec",
+      "sourceSha256": "3e4fb8f074a1d549aeb37cd51329f4980febde020b88a600fe4ccf5663c80ac3",
+      "input": "",
+      "result": {
+        "status": "ok"
+      },
+      "output": "['__module__', '__firstlineno__', 'encode', 'decode', '__static_attributes__', '__doc__']\nencodings.ascii Codec 13 () None\n__module__ str\n__firstlineno__ int\nencode builtin_function_or_method\ndecode builtin_function_or_method\n__static_attributes__ tuple\n__doc__ NoneType\n",
+      "reads": 0,
+      "writes": 36,
+      "flushes": 0,
+      "reference": {
+        "status": 0,
+        "stdout": "['__module__', '__firstlineno__', 'encode', 'decode', '__static_attributes__', '__doc__']\nencodings.ascii Codec 13 () None\n__module__ str\n__firstlineno__ int\nencode builtin_function_or_method\ndecode builtin_function_or_method\n__static_attributes__ tuple\n__doc__ NoneType\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "encodings.ascii.IncrementalEncoder",
+      "sourceSha256": "4dcb596fcbda3a6783ab38644b53b01dd80d4be66a1bb438cf21cef291d0f4a6",
+      "input": "",
+      "result": {
+        "status": "ok"
+      },
+      "output": "['__module__', '__firstlineno__', 'encode', '__static_attributes__', '__doc__']\nencodings.ascii IncrementalEncoder 20 () None\n__module__ str\n__firstlineno__ int\nencode function\nencode IncrementalEncoder.encode encodings.ascii None (False,) None {}\n3 0 0 ('self', 'input', 'final') 21 /opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/encodings/ascii.py 134217731 None\n__static_attributes__ tuple\n__doc__ NoneType\n",
+      "reads": 0,
+      "writes": 62,
+      "flushes": 0,
+      "reference": {
+        "status": 0,
+        "stdout": "['__module__', '__firstlineno__', 'encode', '__static_attributes__', '__doc__']\nencodings.ascii IncrementalEncoder 20 () None\n__module__ str\n__firstlineno__ int\nencode function\nencode IncrementalEncoder.encode encodings.ascii None (False,) None {}\n3 0 0 ('self', 'input', 'final') 21 /opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/encodings/ascii.py 134217731 None\n__static_attributes__ tuple\n__doc__ NoneType\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "encodings.ascii.IncrementalDecoder",
+      "sourceSha256": "3300513ec7600e9c55dc15c13a190e8a9674b3b92af87e1360418cfb971f17c6",
+      "input": "",
+      "result": {
+        "status": "ok"
+      },
+      "output": "['__module__', '__firstlineno__', 'decode', '__static_attributes__', '__doc__']\nencodings.ascii IncrementalDecoder 24 () None\n__module__ str\n__firstlineno__ int\ndecode function\ndecode IncrementalDecoder.decode encodings.ascii None (False,) None {}\n3 0 0 ('self', 'input', 'final') 25 /opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/encodings/ascii.py 134217731 None\n__static_attributes__ tuple\n__doc__ NoneType\n",
+      "reads": 0,
+      "writes": 62,
+      "flushes": 0,
+      "reference": {
+        "status": 0,
+        "stdout": "['__module__', '__firstlineno__', 'decode', '__static_attributes__', '__doc__']\nencodings.ascii IncrementalDecoder 24 () None\n__module__ str\n__firstlineno__ int\ndecode function\ndecode IncrementalDecoder.decode encodings.ascii None (False,) None {}\n3 0 0 ('self', 'input', 'final') 25 /opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/encodings/ascii.py 134217731 None\n__static_attributes__ tuple\n__doc__ NoneType\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "encodings.ascii.StreamReader",
+      "sourceSha256": "008a7d841a8003b7dd2f7979ccd3553c137eb8427c8f1973f89d220ccd04ba3c",
+      "input": "",
+      "result": {
+        "status": "ok"
+      },
+      "output": "['__module__', '__firstlineno__', '__static_attributes__', '__doc__']\nencodings.ascii StreamReader 31 () None\n__module__ str\n__firstlineno__ int\n__static_attributes__ tuple\n__doc__ NoneType\n",
+      "reads": 0,
+      "writes": 28,
+      "flushes": 0,
+      "reference": {
+        "status": 0,
+        "stdout": "['__module__', '__firstlineno__', '__static_attributes__', '__doc__']\nencodings.ascii StreamReader 31 () None\n__module__ str\n__firstlineno__ int\n__static_attributes__ tuple\n__doc__ NoneType\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "encodings.ascii.StreamWriter",
+      "sourceSha256": "ca350851381538b3e201cde33894aa8f6356e34d5ed7fa8734fbcbbf2481f317",
+      "input": "",
+      "result": {
+        "status": "ok"
+      },
+      "output": "['__module__', '__firstlineno__', '__static_attributes__', '__doc__']\nencodings.ascii StreamWriter 28 () None\n__module__ str\n__firstlineno__ int\n__static_attributes__ tuple\n__doc__ NoneType\n",
+      "reads": 0,
+      "writes": 28,
+      "flushes": 0,
+      "reference": {
+        "status": 0,
+        "stdout": "['__module__', '__firstlineno__', '__static_attributes__', '__doc__']\nencodings.ascii StreamWriter 28 () None\n__module__ str\n__firstlineno__ int\n__static_attributes__ tuple\n__doc__ NoneType\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "encodings.ascii.StreamConverter",
+      "sourceSha256": "3acca152dfee080aba2911c1000cab7df0f40b251af25cccc9a710111330560a",
+      "input": "",
+      "result": {
+        "status": "ok"
+      },
+      "output": "['__module__', '__firstlineno__', 'encode', 'decode', '__static_attributes__', '__doc__']\nencodings.ascii StreamConverter 34 () None\n__module__ str\n__firstlineno__ int\nencode builtin_function_or_method\ndecode builtin_function_or_method\n__static_attributes__ tuple\n__doc__ NoneType\n",
+      "reads": 0,
+      "writes": 36,
+      "flushes": 0,
+      "reference": {
+        "status": 0,
+        "stdout": "['__module__', '__firstlineno__', 'encode', 'decode', '__static_attributes__', '__doc__']\nencodings.ascii StreamConverter 34 () None\n__module__ str\n__firstlineno__ int\nencode builtin_function_or_method\ndecode builtin_function_or_method\n__static_attributes__ tuple\n__doc__ NoneType\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "encodings.latin_1.Codec",
+      "sourceSha256": "b6cf29b5130c950daa0f4e2378ff31782af2387fdd2d424d77cc2b5955f091ff",
+      "input": "",
+      "result": {
+        "status": "ok"
+      },
+      "output": "['__module__', '__firstlineno__', 'encode', 'decode', '__static_attributes__', '__doc__']\nencodings.latin_1 Codec 13 () None\n__module__ str\n__firstlineno__ int\nencode builtin_function_or_method\ndecode builtin_function_or_method\n__static_attributes__ tuple\n__doc__ NoneType\n",
+      "reads": 0,
+      "writes": 36,
+      "flushes": 0,
+      "reference": {
+        "status": 0,
+        "stdout": "['__module__', '__firstlineno__', 'encode', 'decode', '__static_attributes__', '__doc__']\nencodings.latin_1 Codec 13 () None\n__module__ str\n__firstlineno__ int\nencode builtin_function_or_method\ndecode builtin_function_or_method\n__static_attributes__ tuple\n__doc__ NoneType\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "encodings.latin_1.IncrementalEncoder",
+      "sourceSha256": "36227e4e8d3953b8cf3d44523c482c4fbfc21d3c4fa3fd67d07fc377fc23713a",
+      "input": "",
+      "result": {
+        "status": "ok"
+      },
+      "output": "['__module__', '__firstlineno__', 'encode', '__static_attributes__', '__doc__']\nencodings.latin_1 IncrementalEncoder 20 () None\n__module__ str\n__firstlineno__ int\nencode function\nencode IncrementalEncoder.encode encodings.latin_1 None (False,) None {}\n3 0 0 ('self', 'input', 'final') 21 /opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/encodings/latin_1.py 134217731 None\n__static_attributes__ tuple\n__doc__ NoneType\n",
+      "reads": 0,
+      "writes": 62,
+      "flushes": 0,
+      "reference": {
+        "status": 0,
+        "stdout": "['__module__', '__firstlineno__', 'encode', '__static_attributes__', '__doc__']\nencodings.latin_1 IncrementalEncoder 20 () None\n__module__ str\n__firstlineno__ int\nencode function\nencode IncrementalEncoder.encode encodings.latin_1 None (False,) None {}\n3 0 0 ('self', 'input', 'final') 21 /opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/encodings/latin_1.py 134217731 None\n__static_attributes__ tuple\n__doc__ NoneType\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "encodings.latin_1.IncrementalDecoder",
+      "sourceSha256": "f72b4f5bbd40ca3361bcc86d1c8089da11d360a20cd779e05d5b0de333276b05",
+      "input": "",
+      "result": {
+        "status": "ok"
+      },
+      "output": "['__module__', '__firstlineno__', 'decode', '__static_attributes__', '__doc__']\nencodings.latin_1 IncrementalDecoder 24 () None\n__module__ str\n__firstlineno__ int\ndecode function\ndecode IncrementalDecoder.decode encodings.latin_1 None (False,) None {}\n3 0 0 ('self', 'input', 'final') 25 /opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/encodings/latin_1.py 134217731 None\n__static_attributes__ tuple\n__doc__ NoneType\n",
+      "reads": 0,
+      "writes": 62,
+      "flushes": 0,
+      "reference": {
+        "status": 0,
+        "stdout": "['__module__', '__firstlineno__', 'decode', '__static_attributes__', '__doc__']\nencodings.latin_1 IncrementalDecoder 24 () None\n__module__ str\n__firstlineno__ int\ndecode function\ndecode IncrementalDecoder.decode encodings.latin_1 None (False,) None {}\n3 0 0 ('self', 'input', 'final') 25 /opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/encodings/latin_1.py 134217731 None\n__static_attributes__ tuple\n__doc__ NoneType\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "encodings.latin_1.StreamReader",
+      "sourceSha256": "84544e73a0fda2ecbdfdc0777b46aab7bf20d3e45cce2dcaa974bd9eab69ccdc",
+      "input": "",
+      "result": {
+        "status": "ok"
+      },
+      "output": "['__module__', '__firstlineno__', '__static_attributes__', '__doc__']\nencodings.latin_1 StreamReader 31 () None\n__module__ str\n__firstlineno__ int\n__static_attributes__ tuple\n__doc__ NoneType\n",
+      "reads": 0,
+      "writes": 28,
+      "flushes": 0,
+      "reference": {
+        "status": 0,
+        "stdout": "['__module__', '__firstlineno__', '__static_attributes__', '__doc__']\nencodings.latin_1 StreamReader 31 () None\n__module__ str\n__firstlineno__ int\n__static_attributes__ tuple\n__doc__ NoneType\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "encodings.latin_1.StreamWriter",
+      "sourceSha256": "061ace2dc2461da97d361e75752b638fef0669313f20ea9a95f8434c355edf97",
+      "input": "",
+      "result": {
+        "status": "ok"
+      },
+      "output": "['__module__', '__firstlineno__', '__static_attributes__', '__doc__']\nencodings.latin_1 StreamWriter 28 () None\n__module__ str\n__firstlineno__ int\n__static_attributes__ tuple\n__doc__ NoneType\n",
+      "reads": 0,
+      "writes": 28,
+      "flushes": 0,
+      "reference": {
+        "status": 0,
+        "stdout": "['__module__', '__firstlineno__', '__static_attributes__', '__doc__']\nencodings.latin_1 StreamWriter 28 () None\n__module__ str\n__firstlineno__ int\n__static_attributes__ tuple\n__doc__ NoneType\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "encodings.latin_1.StreamConverter",
+      "sourceSha256": "53fcc6675c09ac122f227e1a58ac783d18edb8d60c5f6122abd963ac432e42fa",
+      "input": "",
+      "result": {
+        "status": "ok"
+      },
+      "output": "['__module__', '__firstlineno__', 'encode', 'decode', '__static_attributes__', '__doc__']\nencodings.latin_1 StreamConverter 34 () None\n__module__ str\n__firstlineno__ int\nencode builtin_function_or_method\ndecode builtin_function_or_method\n__static_attributes__ tuple\n__doc__ NoneType\n",
+      "reads": 0,
+      "writes": 36,
+      "flushes": 0,
+      "reference": {
+        "status": 0,
+        "stdout": "['__module__', '__firstlineno__', 'encode', 'decode', '__static_attributes__', '__doc__']\nencodings.latin_1 StreamConverter 34 () None\n__module__ str\n__firstlineno__ int\nencode builtin_function_or_method\ndecode builtin_function_or_method\n__static_attributes__ tuple\n__doc__ NoneType\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "encodings.utf_8.IncrementalEncoder",
+      "sourceSha256": "03ae08c2cb5cbb8466585a8efb5f5fa1dba607582164ec39c6c3bead12a9513d",
+      "input": "",
+      "result": {
+        "status": "ok"
+      },
+      "output": "['__module__', '__firstlineno__', 'encode', '__static_attributes__', '__doc__']\nencodings.utf_8 IncrementalEncoder 18 () None\n__module__ str\n__firstlineno__ int\nencode function\nencode IncrementalEncoder.encode encodings.utf_8 None (False,) None {}\n3 0 0 ('self', 'input', 'final') 19 /opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/encodings/utf_8.py 134217731 None\n__static_attributes__ tuple\n__doc__ NoneType\n",
+      "reads": 0,
+      "writes": 62,
+      "flushes": 0,
+      "reference": {
+        "status": 0,
+        "stdout": "['__module__', '__firstlineno__', 'encode', '__static_attributes__', '__doc__']\nencodings.utf_8 IncrementalEncoder 18 () None\n__module__ str\n__firstlineno__ int\nencode function\nencode IncrementalEncoder.encode encodings.utf_8 None (False,) None {}\n3 0 0 ('self', 'input', 'final') 19 /opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/lib/python3.14/encodings/utf_8.py 134217731 None\n__static_attributes__ tuple\n__doc__ NoneType\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "encodings.utf_8.IncrementalDecoder",
+      "sourceSha256": "2161ed51c8a576e119604829e1d624651889071875d9621254b5d286460cf64e",
+      "input": "",
+      "result": {
+        "status": "ok"
+      },
+      "output": "['__module__', '__firstlineno__', '_buffer_decode', '__static_attributes__', '__doc__']\nencodings.utf_8 IncrementalDecoder 22 () None\n__module__ str\n__firstlineno__ int\n_buffer_decode builtin_function_or_method\n__static_attributes__ tuple\n__doc__ NoneType\n",
+      "reads": 0,
+      "writes": 32,
+      "flushes": 0,
+      "reference": {
+        "status": 0,
+        "stdout": "['__module__', '__firstlineno__', '_buffer_decode', '__static_attributes__', '__doc__']\nencodings.utf_8 IncrementalDecoder 22 () None\n__module__ str\n__firstlineno__ int\n_buffer_decode builtin_function_or_method\n__static_attributes__ tuple\n__doc__ NoneType\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "encodings.utf_8.StreamReader",
+      "sourceSha256": "1e90aaa07f3fca560ad2a499808e5e709f874b04c1ee2b00bd47f94621578799",
+      "input": "",
+      "result": {
+        "status": "ok"
+      },
+      "output": "['__module__', '__firstlineno__', 'decode', '__static_attributes__', '__doc__']\nencodings.utf_8 StreamReader 28 () None\n__module__ str\n__firstlineno__ int\ndecode builtin_function_or_method\n__static_attributes__ tuple\n__doc__ NoneType\n",
+      "reads": 0,
+      "writes": 32,
+      "flushes": 0,
+      "reference": {
+        "status": 0,
+        "stdout": "['__module__', '__firstlineno__', 'decode', '__static_attributes__', '__doc__']\nencodings.utf_8 StreamReader 28 () None\n__module__ str\n__firstlineno__ int\ndecode builtin_function_or_method\n__static_attributes__ tuple\n__doc__ NoneType\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "encodings.utf_8.StreamWriter",
+      "sourceSha256": "5a0c02ef7f8420e7fd108ec4d350b92c689e660d0b73ac41c3aab90da96eed39",
+      "input": "",
+      "result": {
+        "status": "ok"
+      },
+      "output": "['__module__', '__firstlineno__', 'encode', '__static_attributes__', '__doc__']\nencodings.utf_8 StreamWriter 25 () None\n__module__ str\n__firstlineno__ int\nencode builtin_function_or_method\n__static_attributes__ tuple\n__doc__ NoneType\n",
+      "reads": 0,
+      "writes": 32,
+      "flushes": 0,
+      "reference": {
+        "status": 0,
+        "stdout": "['__module__', '__firstlineno__', 'encode', '__static_attributes__', '__doc__']\nencodings.utf_8 StreamWriter 25 () None\n__module__ str\n__firstlineno__ int\nencode builtin_function_or_method\n__static_attributes__ tuple\n__doc__ NoneType\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "UTF-8 stream temporary EOF retains incomplete input and resumes",
+      "sourceSha256": "72b6bbf5da1d2a351682f57afb353528b5f4b4fd21098bcf665914cdcbb7ba57",
+      "input": "e2\n-\n82ac0d\n-\n0a5a\n-\n-\n-\n",
+      "result": {
+        "status": "ok"
+      },
+      "output": "read '' b'\\xe2' '' None 1 [-1, -1]\nreadline '€\\r\\n' b'' 'Z' None 6 [-1, -1, 72, 72, 1]\nreadline 'Z' b'' '' None 6 [-1, -1, 72, 72, 1, 72, 144]\nread '' b'' '' None 6 [-1, -1, 72, 72, 1, 72, 144, -1]\nNone b'' '' None 6\n",
+      "reads": 8,
+      "writes": 66,
+      "flushes": 8,
+      "reference": {
+        "status": 0,
+        "stdout": "read '' b'\\xe2' '' None 1 [-1, -1]\nreadline '€\\r\\n' b'' 'Z' None 6 [-1, -1, 72, 72, 1]\nreadline 'Z' b'' '' None 6 [-1, -1, 72, 72, 1, 72, 144]\nread '' b'' '' None 6 [-1, -1, 72, 72, 1, 72, 144, -1]\nNone b'' '' None 6\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "UTF-8 final failure preserves state for policy changes and retry",
+      "sourceSha256": "656af6ea2b5f15364dc9ec5d2b5291c184f1911b403fa935c329e92be6171d6b",
+      "input": "e282\n",
+      "result": {
+        "status": "ok"
+      },
+      "output": "'' (b'\\xe2\\x82', 0)\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data') True\nstrict ('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data') (b'\\xe2\\x82', 0)\n'€' (b'', 0)\nNone (b'', 0) 'A'\n'' (b'\\xe2\\x82', 0)\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data') True\nreplace '�' (b'', 0)\n'€' (b'', 0)\nNone (b'', 0) 'A'\n'' (b'\\xe2\\x82', 0)\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data') True\nignore '' (b'', 0)\n'€' (b'', 0)\nNone (b'', 0) 'A'\n'' (b'\\xe2\\x82', 0)\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data') True\nsurrogateescape '\\udce2\\udc82' (b'', 0)\n'€' (b'', 0)\nNone (b'', 0) 'A'\n'' (b'\\xe2\\x82', 0)\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data') True\nbackslashreplace '\\\\xe2\\\\x82' (b'', 0)\n'€' (b'', 0)\nNone (b'', 0) 'A'\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data')\n()\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data')\n()\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data')\n()\n",
+      "reads": 1,
+      "writes": 132,
+      "flushes": 1,
+      "reference": {
+        "status": 0,
+        "stdout": "'' (b'\\xe2\\x82', 0)\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data') True\nstrict ('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data') (b'\\xe2\\x82', 0)\n'€' (b'', 0)\nNone (b'', 0) 'A'\n'' (b'\\xe2\\x82', 0)\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data') True\nreplace '�' (b'', 0)\n'€' (b'', 0)\nNone (b'', 0) 'A'\n'' (b'\\xe2\\x82', 0)\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data') True\nignore '' (b'', 0)\n'€' (b'', 0)\nNone (b'', 0) 'A'\n'' (b'\\xe2\\x82', 0)\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data') True\nsurrogateescape '\\udce2\\udc82' (b'', 0)\n'€' (b'', 0)\nNone (b'', 0) 'A'\n'' (b'\\xe2\\x82', 0)\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data') True\nbackslashreplace '\\\\xe2\\\\x82' (b'', 0)\n'€' (b'', 0)\nNone (b'', 0) 'A'\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data')\n()\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data')\n()\n('utf-8', b'\\xe2\\x82', 0, 2, 'unexpected end of data')\n()\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "ascii stream retry after sink failure preserves writes and policy",
+      "sourceSha256": "25209243bc10a1ee4805fa21a32d6e5be67682ec5a07246ac8b84ebc93f7db55",
+      "input": "41\n",
+      "result": {
+        "status": "exception"
+      },
+      "diagnostic": "NameError: name 'OSError' is not defined",
+      "output": "",
+      "reads": 0,
+      "writes": 0,
+      "flushes": 0,
+      "reference": {
+        "status": 0,
+        "stdout": "sink 413f3f\nTrue ('sink failure',) replace\nsink 413f3f\nsink 413f3f5a\nNone None None\n['413f3f', '413f3f', '413f3f5a']\n",
+        "stderr": ""
+      },
+      "matches": false
+    },
+    {
+      "name": "latin-1 stream retry after sink failure preserves writes and policy",
+      "sourceSha256": "bf914539f3de867e787acce5231b7af5753c61be9b737b9b27bdf39f20a95ad2",
+      "input": "41\n",
+      "result": {
+        "status": "exception"
+      },
+      "diagnostic": "NameError: name 'OSError' is not defined",
+      "output": "",
+      "reads": 0,
+      "writes": 0,
+      "flushes": 0,
+      "reference": {
+        "status": 0,
+        "stdout": "sink 41e93f\nTrue ('sink failure',) replace\nsink 41e93f\nsink 41e93f5a\nNone None None\n['41e93f', '41e93f', '41e93f5a']\n",
+        "stderr": ""
+      },
+      "matches": false
+    },
+    {
+      "name": "utf-8 stream retry after sink failure preserves writes and policy",
+      "sourceSha256": "90e0e0a9df05fcce9950e31bd2d450bf614200af1cf97b8f9c00ccc57022eabb",
+      "input": "41\n",
+      "result": {
+        "status": "exception"
+      },
+      "diagnostic": "NameError: name 'OSError' is not defined",
+      "output": "",
+      "reads": 0,
+      "writes": 0,
+      "flushes": 0,
+      "reference": {
+        "status": 0,
+        "stdout": "sink 41c3a93f\nTrue ('sink failure',) replace\nsink 41c3a93f\nsink 41c3a93f5a\nNone None None\n['41c3a93f', '41c3a93f', '41c3a93f5a']\n",
+        "stderr": ""
+      },
+      "matches": false
+    },
+    {
+      "name": "UTF-8 stream temporary EOF retains incomplete input and resumes",
+      "sourceSha256": "72b6bbf5da1d2a351682f57afb353528b5f4b4fd21098bcf665914cdcbb7ba57",
+      "input": "e2\n-\n82ac0d\n-\n0a5a\n-\n-\n-\n",
+      "cancellation": {
+        "service": "input",
+        "call": 1
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled"
+      },
+      "output": "",
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "after": "terminated",
+      "matches": true
+    },
+    {
+      "name": "UTF-8 stream temporary EOF retains incomplete input and resumes",
+      "sourceSha256": "72b6bbf5da1d2a351682f57afb353528b5f4b4fd21098bcf665914cdcbb7ba57",
+      "input": "e2\n-\n82ac0d\n-\n0a5a\n-\n-\n-\n",
+      "cancellation": {
+        "service": "input",
+        "call": 2
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled"
+      },
+      "output": "",
+      "reads": 2,
+      "writes": 0,
+      "flushes": 2,
+      "after": "terminated",
+      "matches": true
+    },
+    {
+      "name": "UTF-8 stream temporary EOF retains incomplete input and resumes",
+      "sourceSha256": "72b6bbf5da1d2a351682f57afb353528b5f4b4fd21098bcf665914cdcbb7ba57",
+      "input": "e2\n-\n82ac0d\n-\n0a5a\n-\n-\n-\n",
+      "cancellation": {
+        "service": "input",
+        "call": 3
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled"
+      },
+      "output": "read '' b'\\xe2' '' None 1 [-1, -1]\n",
+      "reads": 3,
+      "writes": 14,
+      "flushes": 3,
+      "after": "terminated",
+      "matches": true
+    },
+    {
+      "name": "UTF-8 stream temporary EOF retains incomplete input and resumes",
+      "sourceSha256": "72b6bbf5da1d2a351682f57afb353528b5f4b4fd21098bcf665914cdcbb7ba57",
+      "input": "e2\n-\n82ac0d\n-\n0a5a\n-\n-\n-\n",
+      "cancellation": {
+        "service": "input",
+        "call": 4
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled"
+      },
+      "output": "read '' b'\\xe2' '' None 1 [-1, -1]\n",
+      "reads": 4,
+      "writes": 14,
+      "flushes": 4,
+      "after": "terminated",
+      "matches": true
+    },
+    {
+      "name": "UTF-8 stream temporary EOF retains incomplete input and resumes",
+      "sourceSha256": "72b6bbf5da1d2a351682f57afb353528b5f4b4fd21098bcf665914cdcbb7ba57",
+      "input": "e2\n-\n82ac0d\n-\n0a5a\n-\n-\n-\n",
+      "cancellation": {
+        "service": "input",
+        "call": 5
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled"
+      },
+      "output": "read '' b'\\xe2' '' None 1 [-1, -1]\n",
+      "reads": 5,
+      "writes": 14,
+      "flushes": 5,
+      "after": "terminated",
+      "matches": true
+    },
+    {
+      "name": "UTF-8 stream temporary EOF retains incomplete input and resumes",
+      "sourceSha256": "72b6bbf5da1d2a351682f57afb353528b5f4b4fd21098bcf665914cdcbb7ba57",
+      "input": "e2\n-\n82ac0d\n-\n0a5a\n-\n-\n-\n",
+      "cancellation": {
+        "service": "input",
+        "call": 6
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled"
+      },
+      "output": "read '' b'\\xe2' '' None 1 [-1, -1]\nreadline '€\\r\\n' b'' 'Z' None 6 [-1, -1, 72, 72, 1]\n",
+      "reads": 6,
+      "writes": 28,
+      "flushes": 6,
+      "after": "terminated",
+      "matches": true
+    },
+    {
+      "name": "UTF-8 stream temporary EOF retains incomplete input and resumes",
+      "sourceSha256": "72b6bbf5da1d2a351682f57afb353528b5f4b4fd21098bcf665914cdcbb7ba57",
+      "input": "e2\n-\n82ac0d\n-\n0a5a\n-\n-\n-\n",
+      "cancellation": {
+        "service": "input",
+        "call": 7
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled"
+      },
+      "output": "read '' b'\\xe2' '' None 1 [-1, -1]\nreadline '€\\r\\n' b'' 'Z' None 6 [-1, -1, 72, 72, 1]\n",
+      "reads": 7,
+      "writes": 28,
+      "flushes": 7,
+      "after": "terminated",
+      "matches": true
+    },
+    {
+      "name": "UTF-8 stream temporary EOF retains incomplete input and resumes",
+      "sourceSha256": "72b6bbf5da1d2a351682f57afb353528b5f4b4fd21098bcf665914cdcbb7ba57",
+      "input": "e2\n-\n82ac0d\n-\n0a5a\n-\n-\n-\n",
+      "cancellation": {
+        "service": "input",
+        "call": 8
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled"
+      },
+      "output": "read '' b'\\xe2' '' None 1 [-1, -1]\nreadline '€\\r\\n' b'' 'Z' None 6 [-1, -1, 72, 72, 1]\nreadline 'Z' b'' '' None 6 [-1, -1, 72, 72, 1, 72, 144]\n",
+      "reads": 8,
+      "writes": 42,
+      "flushes": 8,
+      "after": "terminated",
+      "matches": true
+    },
+    {
+      "name": "UTF-8 stream temporary EOF retains incomplete input and resumes",
+      "sourceSha256": "72b6bbf5da1d2a351682f57afb353528b5f4b4fd21098bcf665914cdcbb7ba57",
+      "input": "e2\n-\n82ac0d\n-\n0a5a\n-\n-\n-\n",
+      "cancellation": {
+        "service": "output",
+        "call": 1
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled"
+      },
+      "output": "read",
+      "reads": 2,
+      "writes": 1,
+      "flushes": 2,
+      "after": "terminated",
+      "matches": true
+    },
+    {
+      "name": "UTF-8 final failure preserves state for policy changes and retry",
+      "sourceSha256": "656af6ea2b5f15364dc9ec5d2b5291c184f1911b403fa935c329e92be6171d6b",
+      "input": "e282\n",
+      "cancellation": {
+        "service": "input",
+        "call": 1
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled"
+      },
+      "output": "",
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "after": "terminated",
+      "matches": true
+    },
+    {
+      "name": "UTF-8 final failure preserves state for policy changes and retry",
+      "sourceSha256": "656af6ea2b5f15364dc9ec5d2b5291c184f1911b403fa935c329e92be6171d6b",
+      "input": "e282\n",
+      "cancellation": {
+        "service": "output",
+        "call": 1
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled"
+      },
+      "output": "''",
+      "reads": 1,
+      "writes": 1,
+      "flushes": 1,
+      "after": "terminated",
+      "matches": true
+    }
+  ]
+}

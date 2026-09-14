@@ -8,7 +8,7 @@ import type { ClassMethodDescriptorValue, RuntimeValues, TypeValue } from "./run
  * encoding, independently of the JavaScript host's architecture. */
 export function createFloatGetformatDescriptor(owner:TypeValue,values:RuntimeValues,meter:ExecutionMeter):ClassMethodDescriptorValue {
   meter.checkpoint(0,96);
-  return values.classMethodDescriptor({owner,name:"__getformat__",doc:"You probably don't want to use this function.\n\n  typestr\n    Must be 'double' or 'float'.\n\nIt exists mainly to be used in Python's test suite.\n\nThis function returns whichever of 'unknown', 'IEEE, big-endian' or\n'IEEE, little-endian' best describes the format of floating-point\nnumbers used by the C type named by typestr.",
+  return values.classMethodDescriptor({textSignature: "($type, typestr, /)", owner,name:"__getformat__",doc:"You probably don't want to use this function.\n\n  typestr\n    Must be 'double' or 'float'.\n\nIt exists mainly to be used in Python's test suite.\n\nThis function returns whichever of 'unknown', 'IEEE, big-endian' or\n'IEEE, little-endian' best describes the format of floating-point\nnumbers used by the C type named by typestr.",
     accepts(receiver,meter) {
       if(receiver.kind!=="type")return false;
       for(const ancestor of receiver.value.mro){meter.checkpoint();if(ancestor===owner.value)return true;}

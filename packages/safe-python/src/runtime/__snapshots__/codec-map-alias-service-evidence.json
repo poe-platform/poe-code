@@ -1,0 +1,201 @@
+{
+  "reference": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0\nmacOS-26.4.1-arm64-arm-64bit-Mach-O\nlittle\n",
+  "cases": [
+    {
+      "name": "identity map retains first equal key and last value with iterator effects",
+      "source": "\nimport codecs\nevents = []\nclass Key:\n    def __init__(self, name):\n        self.name = name\n    def __hash__(self):\n        events.append(('hash', self.name))\n        return 19\n    def __eq__(self, other):\n        events.append(('equal', self.name, other.name))\n        return True\nfirst, second = Key('first'), Key('second')\ndef entries():\n    events.append('start')\n    yield first\n    events.append('between')\n    yield second\n    events.append('end')\nmapping = codecs.make_identity_dict(entries())\nassert type(mapping) is dict and len(mapping) == 1\nassert next(iter(mapping)) is first\nassert next(iter(mapping.values())) is second\nprint(events)\nprint(codecs.make_identity_dict(rng=range(3)))\n",
+      "sha256": "b91ab6f836c1870525be6554befa11f9fb2441130ceb9fb31d42f30413fcc954",
+      "oracle": {
+        "status": 0,
+        "stdout": "['start', ('hash', 'first'), 'between', ('hash', 'second'), ('equal', 'first', 'second'), 'end']\n{0: 0, 1: 1, 2: 2}\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "['start', ('hash', 'first'), 'between', ('hash', 'second'), ('equal', 'first', 'second'), 'end']\n{0: 0, 1: 1, 2: 2}\n",
+        "reads": 0,
+        "writes": 4
+      }
+    },
+    {
+      "name": "encoding map calls items once and preserves duplicate target identity",
+      "source": "\nimport codecs\nevents = []\nclass Key:\n    def __init__(self, name):\n        self.name = name\n    def __hash__(self):\n        events.append(('hash', self.name))\n        return 19\n    def __eq__(self, other):\n        events.append(('equal', self.name, other.name))\n        return True\nfirst, second = Key('first'), Key('second')\nclass Mapping:\n    def items(self):\n        events.append('items')\n        return [(1, first), (2, second), (3, first)]\nmapping = codecs.make_encoding_map(decoding_map=Mapping())\nassert type(mapping) is dict and len(mapping) == 1\nassert next(iter(mapping)) is first\nassert next(iter(mapping.values())) is None\nprint(events)\nprint(codecs.make_encoding_map({1: 10, 2: 11, 3: 10, 4: None, 5: None}))\n",
+      "sha256": "998b3a741bca31be8ab2f9071f921797bdcad67ebcfc89ba9ad6901b1dc6578d",
+      "oracle": {
+        "status": 0,
+        "stdout": "['items', ('hash', 'first'), ('hash', 'first'), ('hash', 'second'), ('equal', 'first', 'second'), ('hash', 'second'), ('equal', 'first', 'second'), ('hash', 'first'), ('hash', 'first')]\n{10: None, 11: 2, None: None}\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "['items', ('hash', 'first'), ('hash', 'first'), ('hash', 'second'), ('equal', 'first', 'second'), ('hash', 'second'), ('equal', 'first', 'second'), ('hash', 'first'), ('hash', 'first')]\n{10: None, 11: 2, None: None}\n",
+        "reads": 0,
+        "writes": 4
+      }
+    },
+    {
+      "name": "ascii aliases are published after entry caching and preserve collisions",
+      "source": "\nimport codecs\nimport encodings\nimport encodings.aliases\nimport encodings.ascii as module\nevents = []\nentry = module.getregentry()\nkey = 'owned_alias_ascii'\nalias = 'published_alias_ascii'\ncollision = 'collision_alias_ascii'\nencodings.aliases.aliases[key] = 'ascii'\nencodings.aliases.aliases[collision] = 'latin_1'\nassert encodings._aliases is encodings.aliases.aliases\ndef getregentry():\n    events.append('entry')\n    return entry\ndef getaliases():\n    events.append('aliases')\n    assert encodings._cache[key] is entry\n    assert codecs.lookup(key) is entry\n    yield alias\n    events.append('collision')\n    yield collision\n    events.append('end')\nmodule.getregentry = getregentry\nmodule.getaliases = getaliases\nassert codecs.lookup(key) is entry\nassert encodings.aliases.aliases[alias] == 'ascii'\nassert encodings.aliases.aliases[collision] == 'latin_1'\nassert codecs.lookup(key.upper()) is entry\nassert events == ['entry', 'aliases', 'collision', 'end']\nprint(events)\n",
+      "sha256": "518d16fd0b49c17d5d9c5aed4306705afe9c03921378300ce1031734231571ae",
+      "oracle": {
+        "status": 0,
+        "stdout": "['entry', 'aliases', 'collision', 'end']\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "['entry', 'aliases', 'collision', 'end']\n",
+        "reads": 0,
+        "writes": 2
+      }
+    },
+    {
+      "name": "latin_1 aliases are published after entry caching and preserve collisions",
+      "source": "\nimport codecs\nimport encodings\nimport encodings.aliases\nimport encodings.latin_1 as module\nevents = []\nentry = module.getregentry()\nkey = 'owned_alias_latin_1'\nalias = 'published_alias_latin_1'\ncollision = 'collision_alias_latin_1'\nencodings.aliases.aliases[key] = 'latin_1'\nencodings.aliases.aliases[collision] = 'latin_1'\nassert encodings._aliases is encodings.aliases.aliases\ndef getregentry():\n    events.append('entry')\n    return entry\ndef getaliases():\n    events.append('aliases')\n    assert encodings._cache[key] is entry\n    assert codecs.lookup(key) is entry\n    yield alias\n    events.append('collision')\n    yield collision\n    events.append('end')\nmodule.getregentry = getregentry\nmodule.getaliases = getaliases\nassert codecs.lookup(key) is entry\nassert encodings.aliases.aliases[alias] == 'latin_1'\nassert encodings.aliases.aliases[collision] == 'latin_1'\nassert codecs.lookup(key.upper()) is entry\nassert events == ['entry', 'aliases', 'collision', 'end']\nprint(events)\n",
+      "sha256": "c6dc88fd07dd03605f1dfd7f2e0bc46f2448c458ddd2677a0f3b321c458e5785",
+      "oracle": {
+        "status": 0,
+        "stdout": "['entry', 'aliases', 'collision', 'end']\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "['entry', 'aliases', 'collision', 'end']\n",
+        "reads": 0,
+        "writes": 2
+      }
+    },
+    {
+      "name": "utf_8 aliases are published after entry caching and preserve collisions",
+      "source": "\nimport codecs\nimport encodings\nimport encodings.aliases\nimport encodings.utf_8 as module\nevents = []\nentry = module.getregentry()\nkey = 'owned_alias_utf_8'\nalias = 'published_alias_utf_8'\ncollision = 'collision_alias_utf_8'\nencodings.aliases.aliases[key] = 'utf_8'\nencodings.aliases.aliases[collision] = 'latin_1'\nassert encodings._aliases is encodings.aliases.aliases\ndef getregentry():\n    events.append('entry')\n    return entry\ndef getaliases():\n    events.append('aliases')\n    assert encodings._cache[key] is entry\n    assert codecs.lookup(key) is entry\n    yield alias\n    events.append('collision')\n    yield collision\n    events.append('end')\nmodule.getregentry = getregentry\nmodule.getaliases = getaliases\nassert codecs.lookup(key) is entry\nassert encodings.aliases.aliases[alias] == 'utf_8'\nassert encodings.aliases.aliases[collision] == 'latin_1'\nassert codecs.lookup(key.upper()) is entry\nassert events == ['entry', 'aliases', 'collision', 'end']\nprint(events)\n",
+      "sha256": "0962efc450fa6f810ab4b27316cc000ed6fe5af564bd0581447b74f91cce85d6",
+      "oracle": {
+        "status": 0,
+        "stdout": "['entry', 'aliases', 'collision', 'end']\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "['entry', 'aliases', 'collision', 'end']\n",
+        "reads": 0,
+        "writes": 2
+      }
+    },
+    {
+      "name": "charmap aliases are published after entry caching and preserve collisions",
+      "source": "\nimport codecs\nimport encodings\nimport encodings.aliases\nimport encodings.charmap as module\nevents = []\nentry = module.getregentry()\nkey = 'owned_alias_charmap'\nalias = 'published_alias_charmap'\ncollision = 'collision_alias_charmap'\nencodings.aliases.aliases[key] = 'charmap'\nencodings.aliases.aliases[collision] = 'latin_1'\nassert encodings._aliases is encodings.aliases.aliases\ndef getregentry():\n    events.append('entry')\n    return entry\ndef getaliases():\n    events.append('aliases')\n    assert encodings._cache[key] is entry\n    assert codecs.lookup(key) is entry\n    yield alias\n    events.append('collision')\n    yield collision\n    events.append('end')\nmodule.getregentry = getregentry\nmodule.getaliases = getaliases\nassert codecs.lookup(key) is entry\nassert encodings.aliases.aliases[alias] == 'charmap'\nassert encodings.aliases.aliases[collision] == 'latin_1'\nassert codecs.lookup(key.upper()) is entry\nassert events == ['entry', 'aliases', 'collision', 'end']\nprint(events)\n",
+      "sha256": "79768a9cad00b81e7c3257fbe0131c04b460dfd7ea84a54a8898e9419e1b693d",
+      "oracle": {
+        "status": 0,
+        "stdout": "['entry', 'aliases', 'collision', 'end']\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "['entry', 'aliases', 'collision', 'end']\n",
+        "reads": 0,
+        "writes": 2
+      }
+    },
+    {
+      "name": "alias iteration failure retains partial aliases and the cached codec",
+      "source": "\nimport codecs\nimport encodings\nimport encodings.ascii as module\nevents = []\nentry = module.getregentry()\nfailure = ValueError('alias iteration failed')\nencodings._aliases['partial_alias_entry'] = 'ascii'\ndef getregentry():\n    events.append('entry')\n    return entry\ndef getaliases():\n    events.append('aliases')\n    yield 'partial_alias_published'\n    raise failure\nmodule.getregentry = getregentry\nmodule.getaliases = getaliases\ntry:\n    codecs.lookup('partial_alias_entry')\nexcept ValueError as error:\n    assert error is failure and error.args == ('alias iteration failed',)\nelse:\n    assert False\nassert encodings._cache['partial_alias_entry'] is entry\nassert encodings._aliases['partial_alias_published'] == 'ascii'\nassert codecs.lookup('partial_alias_entry') is entry\nassert events == ['entry', 'aliases']\nprint(events)\n",
+      "sha256": "ccd0c67d4e2d07b69d62ee947115150e6ce6ef41861eef746a2ab537c66dcf16",
+      "oracle": {
+        "status": 0,
+        "stdout": "['entry', 'aliases']\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "['entry', 'aliases']\n",
+        "reads": 0,
+        "writes": 2
+      }
+    },
+    {
+      "name": "getaliases AttributeError is swallowed but iterator AttributeError propagates",
+      "source": "\nimport codecs\nimport encodings\nimport encodings.ascii as module\nentry = module.getregentry()\nfailure = AttributeError('alias failure')\nmodule.getregentry = lambda: entry\ndef getaliases():\n    raise failure\nmodule.getaliases = getaliases\nencodings._aliases['alias_call_attribute'] = 'ascii'\nassert codecs.lookup('alias_call_attribute') is entry\ndef getaliases():\n    yield 'attribute_alias_published'\n    raise failure\nmodule.getaliases = getaliases\nencodings._aliases['alias_iter_attribute'] = 'ascii'\ntry:\n    codecs.lookup('alias_iter_attribute')\nexcept AttributeError as error:\n    assert error is failure\nelse:\n    assert False\nassert codecs.lookup('alias_iter_attribute') is entry\nprint(encodings._aliases['attribute_alias_published'])\n",
+      "sha256": "9852c425b81964b671f59559e4c96277d2988b7419541dcfb2b7656e986d101b",
+      "oracle": {
+        "status": 0,
+        "stdout": "ascii\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "ascii\n",
+        "reads": 0,
+        "writes": 2
+      }
+    },
+    {
+      "name": "alias callback reads from the explicit input service before publishing",
+      "source": "\nimport codecs\nimport encodings\nimport encodings.ascii as module\nentry = module.getregentry()\nencodings._aliases['service_alias_entry'] = 'ascii'\nmodule.getregentry = lambda: entry\ndef getaliases():\n    alias = input()\n    assert alias == 'service_alias_published'\n    print(alias)\n    return [alias]\nmodule.getaliases = getaliases\nassert codecs.lookup('service_alias_entry') is entry\nassert encodings._aliases['service_alias_published'] == 'ascii'\n",
+      "sha256": "a4c8b0e92006b5d75d51a85a2a0f6862ab92a4e5492b174070a8b9980b15a9a3",
+      "oracle": {
+        "status": 0,
+        "stdout": "service_alias_published\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "service_alias_published\n",
+        "reads": 1,
+        "writes": 2
+      }
+    },
+    {
+      "name": "encoding map does not consume later items after unhashable target",
+      "source": "\nimport codecs\nevents = []\nclass Mapping:\n    def items(self):\n        events.append('first')\n        yield (1, 65)\n        events.append('invalid')\n        yield (2, [])\n        raise AssertionError('consumed after unhashable target')\ntry:\n    codecs.make_encoding_map(Mapping())\nexcept TypeError as error:\n    assert error.args == (\"cannot use 'list' as a dict key (unhashable type: 'list')\",)\nelse:\n    assert False\nprint(events)\n",
+      "sha256": "dfe879ea5e1907da40aaaa1527b593f5165d7f7dc3b683be580e0e12e506f10e",
+      "oracle": {
+        "status": 0,
+        "stdout": "['first', 'invalid']\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "['first', 'invalid']\n",
+        "reads": 0,
+        "writes": 2
+      }
+    }
+  ],
+  "cancellation": [
+    {
+      "throws": false,
+      "source": "\nimport codecs\nimport encodings\nimport encodings.ascii as module\nentry = module.getregentry()\nencodings._aliases['service_alias_entry'] = 'ascii'\nmodule.getregentry = lambda: entry\ndef getaliases():\n    alias = input()\n    assert alias == 'service_alias_published'\n    print(alias)\n    return [alias]\nmodule.getaliases = getaliases\nassert codecs.lookup('service_alias_entry') is entry\nassert encodings._aliases['service_alias_published'] == 'ascii'\n",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "next": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "stdout": ""
+    },
+    {
+      "throws": true,
+      "source": "\nimport codecs\nimport encodings\nimport encodings.ascii as module\nentry = module.getregentry()\nencodings._aliases['service_alias_entry'] = 'ascii'\nmodule.getregentry = lambda: entry\ndef getaliases():\n    alias = input()\n    assert alias == 'service_alias_published'\n    print(alias)\n    return [alias]\nmodule.getaliases = getaliases\nassert codecs.lookup('service_alias_entry') is entry\nassert encodings._aliases['service_alias_published'] == 'ascii'\n",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "next": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "stdout": ""
+    }
+  ]
+}

@@ -16,7 +16,8 @@ export function createRuntimeStringClassificationMethod(receiver: Extract<Runtim
       meter.checkpoint();
       if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", `str.${name}() takes no keyword arguments`);
       if (positional.length !== 0) throw new PythonRuntimeError("TypeError", `str.${name}() takes no arguments (${positional.length} given)`);
-      if (receiver.value.length === 0) return values.boolean(name === "isascii" || name === "isprintable");
+      if (name === "isascii") return values.boolean(receiver.value.isAsciiStorage(meter));
+      if (receiver.value.length === 0) return values.boolean(name === "isprintable");
       if (name === "islower" || name === "isupper" || name === "istitle") {
         let cased = false, previousCased = false;
         for (const point of receiver.value) {
@@ -35,7 +36,7 @@ export function createRuntimeStringClassificationMethod(receiver: Extract<Runtim
       let first = true;
       for (const point of receiver.value) {
         meter.checkpoint();
-        const valid = name === "isascii" ? point < 128 : name === "isspace" ? isUnicodeWhitespace(point)
+        const valid = name === "isspace" ? isUnicodeWhitespace(point)
           : name === "isidentifier" ? (first ? isIdentifierStart(point) : isIdentifierContinue(point))
           : name === "isalnum" ? isUnicodeCharacter(point, "isalpha", meter) || isUnicodeCharacter(point, "isnumeric", meter)
           : isUnicodeCharacter(point, name, meter);

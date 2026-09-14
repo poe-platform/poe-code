@@ -1,0 +1,13 @@
+{
+  "fixture": "packages/safe-python/src/runtime/__snapshots__/utf-incremental-edges-3.14.7.json",
+  "source": "import codecs,json,sys,unicodedata\nrows=json.load(sys.stdin)\nresult=[]\nfor row in rows:\n    data=bytes(row['input'])\n    scenarios=[]\n    for split in range(len(data)+1):\n        decoder=codecs.getincrementaldecoder(row['encoding'])(row['errors'])\n        events=[]\n        for chunk,final in ((data[:split],False),(data[split:],True)):\n            try:\n                event={'text':list(map(ord,decoder.decode(chunk,final)))}\n            except UnicodeDecodeError as error:\n                event={'error':[error.encoding,list(error.object),error.start,error.end,error.reason]}\n            pending,flag=decoder.getstate()\n            event['state']=[list(pending),flag]\n            events.append(event)\n        scenarios.append(events)\n    result.append(dict(encoding=row['encoding'],errors=row['errors'],input=row['input'],scenarios=scenarios))\nprint(json.dumps(dict(oracle=dict(version=sys.version,unicode=unicodedata.unidata_version,byteorder=sys.byteorder),rows=result)))\n",
+  "oracle": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "byteorder": "little"
+  },
+  "rows": 96,
+  "splits": 900,
+  "events": 1800,
+  "exactMatch": true
+}

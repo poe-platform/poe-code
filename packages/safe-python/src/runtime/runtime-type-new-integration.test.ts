@@ -2023,7 +2023,7 @@ it("delegates native yield-from iteration and preserves the subgenerator return 
   state.run("correct=rest==[3,4]\n");expect(state.globals.get("correct")).toBe(v.true);
 });
 
-it.each([["[1]","list_iterator"],["(1,)","tuple_iterator"],["'a'","str_iterator"],["b'a'","bytes_iterator"],["{1:2}","dict_keyiterator"],["{1}","set_iterator"]])("reports the delegated %s iterator kind for missing send",(source,name)=>{
+it.each([["[1]","list_iterator"],["(1,)","tuple_iterator"],["'a'","str_ascii_iterator"],["'é'","str_iterator"],["b'a'","bytes_iterator"],["{1:2}","dict_keyiterator"],["{1}","set_iterator"]])("reports the delegated %s iterator kind for missing send",(source,name)=>{
   const state=exceptionFixture(),{v}=state;
   state.run(`def gen():\n yield from ${source}\ng=gen()\ng.__next__()\ntry:\n g.send(7)\nexcept BaseException as error:\n args=error.args\n`);
   expect(state.globals.get("args")).toEqual(v.tuple([v.string(`'${name}' object has no attribute 'send'`)]));
@@ -2501,10 +2501,15 @@ it("supports set probe fallback through explicit and inherited slots",()=>{
   }
 });
 
-it("preserves guest hash failures when set probe fallback does not apply",()=>{
+it("matches set hash failure identity and enriched insertion diagnostics",()=>{
   for(const [name,action] of [["TypeError","target.add(probe)"],["ValueError","result=probe in target"],["ValueError","target.remove(probe)"],["ValueError","target.discard(probe)"]]) {
     const state=exceptionFixture();state.globals.set("set",state.registry.setType("set"));
-    state.run(`original=${name}('hash')\nclass Probe(set):\n def __hash__(self):\n  raise original\nprobe=Probe([1])\ntarget=set()\ntry:\n ${action}\nexcept BaseException as error:\n correct=error is original and target==set()\n`);
+    // CPython 3.14.7 replaces an insertion TypeError with a contextual message;
+    // non-TypeError lookup failures retain the original exception object.
+    const expected=name==="TypeError"
+      ? `error is not original and type(error) is TypeError and error.args==("cannot use 'example.Probe' as a set element (hash)",) and error.__context__ is None and error.__cause__ is None and not error.__suppress_context__`
+      : `error is original and type(error) is ValueError and error.args==('hash',)`;
+    state.run(`original=${name}('hash')\nclass Probe(set):\n def __hash__(self):\n  raise original\nprobe=Probe([1])\ntarget=set()\ntry:\n ${action}\nexcept BaseException as error:\n correct=${expected} and target==set()\n`);
     expect(state.globals.get("correct")).toBe(state.v.true);
   }
 });
@@ -2931,8 +2936,18 @@ it("consumes guest StopIteration subclasses in native iteration",()=>{
   expect(state.globals.get("correct")).toBe(state.v.true);expect(state.exceptions!.active).toBe(null);
 });
 
-it("preserves unsupported native faults and rejects name-spoofed host errors",()=>{
-  for(const failure of [new PythonRuntimeError("MemoryError","unavailable"),Object.assign(Error("host"),{name:"ValueError"})]) {
+it.each(["MemoryError", "OSError"] as const)("normalizes native %s through its canonical guest type",name=>{
+  const state=exceptionFixture();
+  state.globals.set(name,state.registry.exceptionType(name));
+  state.builtins.set("fail",state.v.builtinFunction({name:"fail",invoke(){throw new PythonRuntimeError(name,"unavailable");}}));
+  state.run(`try:\n fail()\nexcept ${name} as error:\n correct=type(error) is ${name} and error.args==('unavailable',) and error.__context__ is None and error.__cause__ is None\n visit('caught')\n`);
+  expect(state.globals.get("correct")).toBe(state.v.true);
+  expect(state.events).toEqual(["caught"]);
+  expect(state.exceptions!.active).toBe(null);
+});
+
+it("preserves host faults including names that spoof supported guest exceptions",()=>{
+  for(const failure of [Error("host"),Object.assign(Error("host"),{name:"OSError"}),Object.assign(Error("host"),{name:"ValueError"})]) {
     const state=exceptionFixture();state.builtins.set("fail",state.v.builtinFunction({name:"fail",invoke(){throw failure;}}));
     let caught:unknown;try{state.run("try:\n fail()\nexcept BaseException:\n visit('wrong')\n");}catch(error){caught=error;}
     expect(caught).toBe(failure);expect(state.events).toEqual([]);

@@ -161,7 +161,7 @@ it("routes map strict truth through the frame", () => {
   delete context.map;
   const program = compileProgram<RuntimeValue>(analyzeModule("items=map(lambda a,b:a+b,[1],[2,3],strict=decision)\nfirst=next(items)\nlast=next(items,99)\n"), { stripDocstring: false }, v, meter);
   executeRuntimeProgram(program, {
-    values: v, globals, builtins: createRuntimeBuiltins(v, meter, context), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    values: v, globals, builtins: createRuntimeBuiltins(v, meter, context), keys: { hash: () => 1n, equal: (a,b) => a === b || (a.kind === "str" && b.kind === "str" && a.value.compare(b.value, meter) === 0) }, calls: new CallStack<object>(50, meter),
     hooks: { expressions: () => ({ warn() {}, truth(value) { expect(value).toBe(decision); conversions++; return false; } }), statements: () => ({ setAttribute: unused, deleteAttribute: unused, executeUnhandled: unused }), callable: () => false, name: () => "function()", keywordName: unused, invoke: unused }
   }, meter);
   expect(globals.get("first")).toEqual(v.integer(3)); expect(globals.get("last")).toEqual(v.integer(99)); expect(conversions).toBe(1);
@@ -254,7 +254,7 @@ it.each(["enumerate", "zip"])("routes %s constructor protocols through the frame
   const stop = Error("guest exhaustion"); let index = 0;
   const program = compileProgram<RuntimeValue>(analyzeModule(`def create(): return ${name === "enumerate" ? "enumerate(source,start=option)" : "zip(source,[9,8],strict=option)"}\nitems=create()\nfirst=next(items)\nlast=next(items,99)\n`), { stripDocstring: false }, v, meter);
   executeRuntimeProgram(program, {
-    values: v, globals, builtins: createRuntimeBuiltins(v, meter, context), keys: { hash: () => 1n, equal: (a,b) => a === b }, calls: new CallStack<object>(50, meter),
+    values: v, globals, builtins: createRuntimeBuiltins(v, meter, context), keys: { hash: () => 1n, equal: (a,b) => a === b || (a.kind === "str" && b.kind === "str" && a.value.compare(b.value, meter) === 0) }, calls: new CallStack<object>(50, meter),
     hooks: { expressions: () => ({ warn() {}, integerIndex: {
       integer: value => value.kind === "int" ? value.value : undefined, isExactInteger: value => value.kind === "int",
       lookupIndex(value) { expect(value).toBe(option); events.push("index"); return () => v.integer(7); }, typeName: () => "Guest", warn: unused

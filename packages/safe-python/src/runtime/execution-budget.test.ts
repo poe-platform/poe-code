@@ -158,12 +158,16 @@ describe("budgeted string storage operations", () => {
 
   it("checks comparison and indexing without charging new storage", () => {
     const source = new CodePointString(new Uint32Array([65, 66, 67]));
+    const equal = new CodePointString(new Uint32Array([65, 66, 67]));
     const allowed = new ExecutionBudget({ maxSteps: 5, maxAllocatedBytes: 0 });
-    expect(source.compare(source, allowed)).toBe(0);
+    expect(source.compare(equal, allowed)).toBe(0);
     expect(source.codePointAt(-1n, allowed)).toBe(67);
     expect(allowed.usage).toEqual({ steps: 5, allocatedBytes: 0 });
     const denied = new ExecutionBudget({ maxSteps: 2, maxAllocatedBytes: 0 });
-    expect(() => source.compare(source, denied)).toThrow(expect.objectContaining({ reason: "steps" }));
+    expect(() => source.compare(equal, denied)).toThrow(expect.objectContaining({ reason: "steps" }));
+    const identity = new ExecutionBudget({ maxSteps: 1, maxAllocatedBytes: 0 });
+    expect(source.compare(source, identity)).toBe(0);
+    expect(identity.usage).toEqual({ steps: 1, allocatedBytes: 0 });
   });
 
   it("checks cancellation on empty, reused, and invalid-index fast paths", () => {

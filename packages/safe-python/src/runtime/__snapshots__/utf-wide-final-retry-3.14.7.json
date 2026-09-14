@@ -1,0 +1,5075 @@
+{
+  "oracle": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "byteorder": "little"
+  },
+  "cases": [
+    {
+      "width": 16,
+      "order": "le",
+      "policy": "strict",
+      "actions": [
+        {
+          "input": [
+            255
+          ],
+          "final": false,
+          "policy": "strict",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              255
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "strict",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-16-le",
+              "object": [
+                255
+              ],
+              "start": 0,
+              "end": 1,
+              "reason": "truncated data",
+              "args": [
+                "utf-16-le",
+                [
+                  255
+                ],
+                0,
+                1,
+                "truncated data"
+              ]
+            }
+          },
+          "state": {
+            "pending": [
+              255
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": [
+              65533
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [
+            255,
+            254,
+            65,
+            0,
+            61,
+            216,
+            0,
+            222,
+            255,
+            254
+          ],
+          "final": true,
+          "policy": "strict",
+          "reset": false,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": false,
+          "policy": "strict",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              0
+            ],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            216
+          ],
+          "final": true,
+          "policy": "strict",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-16-le",
+              "object": [
+                0,
+                216
+              ],
+              "start": 0,
+              "end": 2,
+              "reason": "unexpected end of data",
+              "args": [
+                "utf-16-le",
+                [
+                  0,
+                  216
+                ],
+                0,
+                2,
+                "unexpected end of data"
+              ]
+            }
+          },
+          "state": {
+            "pending": [
+              0
+            ],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            216
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "points": [
+              55296
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            255,
+            254,
+            65,
+            0,
+            61,
+            216,
+            0,
+            222,
+            255,
+            254
+          ],
+          "final": true,
+          "policy": "strict",
+          "reset": true,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        }
+      ]
+    },
+    {
+      "width": 16,
+      "order": "le",
+      "policy": "ignore",
+      "actions": [
+        {
+          "input": [
+            255
+          ],
+          "final": false,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              255
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [
+            255,
+            254,
+            65,
+            0,
+            61,
+            216,
+            0,
+            222,
+            255,
+            254
+          ],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": false,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              0
+            ],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            216
+          ],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            216
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-16-le",
+              "object": [
+                216
+              ],
+              "start": 0,
+              "end": 1,
+              "reason": "truncated data",
+              "args": [
+                "utf-16-le",
+                [
+                  216
+                ],
+                0,
+                1,
+                "truncated data"
+              ]
+            }
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            255,
+            254,
+            65,
+            0,
+            61,
+            216,
+            0,
+            222,
+            255,
+            254
+          ],
+          "final": true,
+          "policy": "ignore",
+          "reset": true,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        }
+      ]
+    },
+    {
+      "width": 16,
+      "order": "le",
+      "policy": "replace",
+      "actions": [
+        {
+          "input": [
+            255
+          ],
+          "final": false,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              255
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": [
+              65533
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [
+            255,
+            254,
+            65,
+            0,
+            61,
+            216,
+            0,
+            222,
+            255,
+            254
+          ],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": false,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              0
+            ],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            216
+          ],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": [
+              65533
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            216
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-16-le",
+              "object": [
+                216
+              ],
+              "start": 0,
+              "end": 1,
+              "reason": "truncated data",
+              "args": [
+                "utf-16-le",
+                [
+                  216
+                ],
+                0,
+                1,
+                "truncated data"
+              ]
+            }
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            255,
+            254,
+            65,
+            0,
+            61,
+            216,
+            0,
+            222,
+            255,
+            254
+          ],
+          "final": true,
+          "policy": "replace",
+          "reset": true,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        }
+      ]
+    },
+    {
+      "width": 16,
+      "order": "le",
+      "policy": "backslashreplace",
+      "actions": [
+        {
+          "input": [
+            255
+          ],
+          "final": false,
+          "policy": "backslashreplace",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              255
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "backslashreplace",
+          "reset": false,
+          "result": {
+            "points": [
+              92,
+              120,
+              102,
+              102
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [
+            255,
+            254,
+            65,
+            0,
+            61,
+            216,
+            0,
+            222,
+            255,
+            254
+          ],
+          "final": true,
+          "policy": "backslashreplace",
+          "reset": false,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": false,
+          "policy": "backslashreplace",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              0
+            ],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            216
+          ],
+          "final": true,
+          "policy": "backslashreplace",
+          "reset": false,
+          "result": {
+            "points": [
+              92,
+              120,
+              48,
+              48,
+              92,
+              120,
+              100,
+              56
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            216
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-16-le",
+              "object": [
+                216
+              ],
+              "start": 0,
+              "end": 1,
+              "reason": "truncated data",
+              "args": [
+                "utf-16-le",
+                [
+                  216
+                ],
+                0,
+                1,
+                "truncated data"
+              ]
+            }
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            255,
+            254,
+            65,
+            0,
+            61,
+            216,
+            0,
+            222,
+            255,
+            254
+          ],
+          "final": true,
+          "policy": "backslashreplace",
+          "reset": true,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        }
+      ]
+    },
+    {
+      "width": 16,
+      "order": "le",
+      "policy": "surrogateescape",
+      "actions": [
+        {
+          "input": [
+            255
+          ],
+          "final": false,
+          "policy": "surrogateescape",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              255
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "surrogateescape",
+          "reset": false,
+          "result": {
+            "points": [
+              56575
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [
+            255,
+            254,
+            65,
+            0,
+            61,
+            216,
+            0,
+            222,
+            255,
+            254
+          ],
+          "final": true,
+          "policy": "surrogateescape",
+          "reset": false,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": false,
+          "policy": "surrogateescape",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              0
+            ],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            216
+          ],
+          "final": true,
+          "policy": "surrogateescape",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-16-le",
+              "object": [
+                0,
+                216
+              ],
+              "start": 0,
+              "end": 2,
+              "reason": "unexpected end of data",
+              "args": [
+                "utf-16-le",
+                [
+                  0,
+                  216
+                ],
+                0,
+                2,
+                "unexpected end of data"
+              ]
+            }
+          },
+          "state": {
+            "pending": [
+              0
+            ],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            216
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "points": [
+              55296
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            255,
+            254,
+            65,
+            0,
+            61,
+            216,
+            0,
+            222,
+            255,
+            254
+          ],
+          "final": true,
+          "policy": "surrogateescape",
+          "reset": true,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        }
+      ]
+    },
+    {
+      "width": 16,
+      "order": "le",
+      "policy": "surrogatepass",
+      "actions": [
+        {
+          "input": [
+            255
+          ],
+          "final": false,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              255
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-16-le",
+              "object": [
+                255
+              ],
+              "start": 0,
+              "end": 1,
+              "reason": "truncated data",
+              "args": [
+                "utf-16-le",
+                [
+                  255
+                ],
+                0,
+                1,
+                "truncated data"
+              ]
+            }
+          },
+          "state": {
+            "pending": [
+              255
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": [
+              65533
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [
+            255,
+            254,
+            65,
+            0,
+            61,
+            216,
+            0,
+            222,
+            255,
+            254
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": false,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              0
+            ],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            216
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "points": [
+              55296
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            216
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-16-le",
+              "object": [
+                216
+              ],
+              "start": 0,
+              "end": 1,
+              "reason": "truncated data",
+              "args": [
+                "utf-16-le",
+                [
+                  216
+                ],
+                0,
+                1,
+                "truncated data"
+              ]
+            }
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            255,
+            254,
+            65,
+            0,
+            61,
+            216,
+            0,
+            222,
+            255,
+            254
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": true,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        }
+      ]
+    },
+    {
+      "width": 16,
+      "order": "be",
+      "policy": "strict",
+      "actions": [
+        {
+          "input": [
+            254
+          ],
+          "final": false,
+          "policy": "strict",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              254
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "strict",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-16-le",
+              "object": [
+                254
+              ],
+              "start": 0,
+              "end": 1,
+              "reason": "truncated data",
+              "args": [
+                "utf-16-le",
+                [
+                  254
+                ],
+                0,
+                1,
+                "truncated data"
+              ]
+            }
+          },
+          "state": {
+            "pending": [
+              254
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": [
+              65533
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [
+            254,
+            255,
+            0,
+            65,
+            216,
+            61,
+            222,
+            0,
+            254,
+            255
+          ],
+          "final": true,
+          "policy": "strict",
+          "reset": false,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            216
+          ],
+          "final": false,
+          "policy": "strict",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              216
+            ],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "strict",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-16-be",
+              "object": [
+                216,
+                0
+              ],
+              "start": 0,
+              "end": 2,
+              "reason": "unexpected end of data",
+              "args": [
+                "utf-16-be",
+                [
+                  216,
+                  0
+                ],
+                0,
+                2,
+                "unexpected end of data"
+              ]
+            }
+          },
+          "state": {
+            "pending": [
+              216
+            ],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "points": [
+              55296
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            254,
+            255,
+            0,
+            65,
+            216,
+            61,
+            222,
+            0,
+            254,
+            255
+          ],
+          "final": true,
+          "policy": "strict",
+          "reset": true,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        }
+      ]
+    },
+    {
+      "width": 16,
+      "order": "be",
+      "policy": "ignore",
+      "actions": [
+        {
+          "input": [
+            254
+          ],
+          "final": false,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              254
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [
+            254,
+            255,
+            0,
+            65,
+            216,
+            61,
+            222,
+            0,
+            254,
+            255
+          ],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            216
+          ],
+          "final": false,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              216
+            ],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-16-be",
+              "object": [
+                0
+              ],
+              "start": 0,
+              "end": 1,
+              "reason": "truncated data",
+              "args": [
+                "utf-16-be",
+                [
+                  0
+                ],
+                0,
+                1,
+                "truncated data"
+              ]
+            }
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            254,
+            255,
+            0,
+            65,
+            216,
+            61,
+            222,
+            0,
+            254,
+            255
+          ],
+          "final": true,
+          "policy": "ignore",
+          "reset": true,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        }
+      ]
+    },
+    {
+      "width": 16,
+      "order": "be",
+      "policy": "replace",
+      "actions": [
+        {
+          "input": [
+            254
+          ],
+          "final": false,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              254
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": [
+              65533
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [
+            254,
+            255,
+            0,
+            65,
+            216,
+            61,
+            222,
+            0,
+            254,
+            255
+          ],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            216
+          ],
+          "final": false,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              216
+            ],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": [
+              65533
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-16-be",
+              "object": [
+                0
+              ],
+              "start": 0,
+              "end": 1,
+              "reason": "truncated data",
+              "args": [
+                "utf-16-be",
+                [
+                  0
+                ],
+                0,
+                1,
+                "truncated data"
+              ]
+            }
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            254,
+            255,
+            0,
+            65,
+            216,
+            61,
+            222,
+            0,
+            254,
+            255
+          ],
+          "final": true,
+          "policy": "replace",
+          "reset": true,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        }
+      ]
+    },
+    {
+      "width": 16,
+      "order": "be",
+      "policy": "backslashreplace",
+      "actions": [
+        {
+          "input": [
+            254
+          ],
+          "final": false,
+          "policy": "backslashreplace",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              254
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "backslashreplace",
+          "reset": false,
+          "result": {
+            "points": [
+              92,
+              120,
+              102,
+              101
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [
+            254,
+            255,
+            0,
+            65,
+            216,
+            61,
+            222,
+            0,
+            254,
+            255
+          ],
+          "final": true,
+          "policy": "backslashreplace",
+          "reset": false,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            216
+          ],
+          "final": false,
+          "policy": "backslashreplace",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              216
+            ],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "backslashreplace",
+          "reset": false,
+          "result": {
+            "points": [
+              92,
+              120,
+              100,
+              56,
+              92,
+              120,
+              48,
+              48
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-16-be",
+              "object": [
+                0
+              ],
+              "start": 0,
+              "end": 1,
+              "reason": "truncated data",
+              "args": [
+                "utf-16-be",
+                [
+                  0
+                ],
+                0,
+                1,
+                "truncated data"
+              ]
+            }
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            254,
+            255,
+            0,
+            65,
+            216,
+            61,
+            222,
+            0,
+            254,
+            255
+          ],
+          "final": true,
+          "policy": "backslashreplace",
+          "reset": true,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        }
+      ]
+    },
+    {
+      "width": 16,
+      "order": "be",
+      "policy": "surrogateescape",
+      "actions": [
+        {
+          "input": [
+            254
+          ],
+          "final": false,
+          "policy": "surrogateescape",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              254
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "surrogateescape",
+          "reset": false,
+          "result": {
+            "points": [
+              56574
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [
+            254,
+            255,
+            0,
+            65,
+            216,
+            61,
+            222,
+            0,
+            254,
+            255
+          ],
+          "final": true,
+          "policy": "surrogateescape",
+          "reset": false,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            216
+          ],
+          "final": false,
+          "policy": "surrogateescape",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              216
+            ],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "surrogateescape",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-16-be",
+              "object": [
+                216,
+                0
+              ],
+              "start": 1,
+              "end": 2,
+              "reason": "truncated data",
+              "args": [
+                "utf-16-be",
+                [
+                  216,
+                  0
+                ],
+                0,
+                2,
+                "unexpected end of data"
+              ]
+            }
+          },
+          "state": {
+            "pending": [
+              216
+            ],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "points": [
+              55296
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            254,
+            255,
+            0,
+            65,
+            216,
+            61,
+            222,
+            0,
+            254,
+            255
+          ],
+          "final": true,
+          "policy": "surrogateescape",
+          "reset": true,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        }
+      ]
+    },
+    {
+      "width": 16,
+      "order": "be",
+      "policy": "surrogatepass",
+      "actions": [
+        {
+          "input": [
+            254
+          ],
+          "final": false,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              254
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-16-le",
+              "object": [
+                254
+              ],
+              "start": 0,
+              "end": 1,
+              "reason": "truncated data",
+              "args": [
+                "utf-16-le",
+                [
+                  254
+                ],
+                0,
+                1,
+                "truncated data"
+              ]
+            }
+          },
+          "state": {
+            "pending": [
+              254
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": [
+              65533
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [
+            254,
+            255,
+            0,
+            65,
+            216,
+            61,
+            222,
+            0,
+            254,
+            255
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            216
+          ],
+          "final": false,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              216
+            ],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "points": [
+              55296
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-16-be",
+              "object": [
+                0
+              ],
+              "start": 0,
+              "end": 1,
+              "reason": "truncated data",
+              "args": [
+                "utf-16-be",
+                [
+                  0
+                ],
+                0,
+                1,
+                "truncated data"
+              ]
+            }
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            254,
+            255,
+            0,
+            65,
+            216,
+            61,
+            222,
+            0,
+            254,
+            255
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": true,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        }
+      ]
+    },
+    {
+      "width": 32,
+      "order": "le",
+      "policy": "strict",
+      "actions": [
+        {
+          "input": [
+            255,
+            254,
+            0
+          ],
+          "final": false,
+          "policy": "strict",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              255,
+              254,
+              0
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "strict",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-32-le",
+              "object": [
+                255,
+                254,
+                0
+              ],
+              "start": 0,
+              "end": 3,
+              "reason": "truncated data",
+              "args": [
+                "utf-32-le",
+                [
+                  255,
+                  254,
+                  0
+                ],
+                0,
+                3,
+                "truncated data"
+              ]
+            }
+          },
+          "state": {
+            "pending": [
+              255,
+              254,
+              0
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": [
+              65533
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [
+            255,
+            254,
+            0,
+            0,
+            65,
+            0,
+            0,
+            0,
+            0,
+            246,
+            1,
+            0,
+            255,
+            254,
+            0,
+            0
+          ],
+          "final": true,
+          "policy": "strict",
+          "reset": false,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            0,
+            216,
+            0
+          ],
+          "final": false,
+          "policy": "strict",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              0,
+              216,
+              0
+            ],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "strict",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-32-le",
+              "object": [
+                0,
+                216,
+                0,
+                0
+              ],
+              "start": 0,
+              "end": 4,
+              "reason": "code point in surrogate code point range(0xd800, 0xe000)",
+              "args": [
+                "utf-32-le",
+                [
+                  0,
+                  216,
+                  0,
+                  0
+                ],
+                0,
+                4,
+                "code point in surrogate code point range(0xd800, 0xe000)"
+              ]
+            }
+          },
+          "state": {
+            "pending": [
+              0,
+              216,
+              0
+            ],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "points": [
+              55296
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            255,
+            254,
+            0,
+            0,
+            65,
+            0,
+            0,
+            0,
+            0,
+            246,
+            1,
+            0,
+            255,
+            254,
+            0,
+            0
+          ],
+          "final": true,
+          "policy": "strict",
+          "reset": true,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        }
+      ]
+    },
+    {
+      "width": 32,
+      "order": "le",
+      "policy": "ignore",
+      "actions": [
+        {
+          "input": [
+            255,
+            254,
+            0
+          ],
+          "final": false,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              255,
+              254,
+              0
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [
+            255,
+            254,
+            0,
+            0,
+            65,
+            0,
+            0,
+            0,
+            0,
+            246,
+            1,
+            0,
+            255,
+            254,
+            0,
+            0
+          ],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            0,
+            216,
+            0
+          ],
+          "final": false,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              0,
+              216,
+              0
+            ],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-32-le",
+              "object": [
+                0
+              ],
+              "start": 0,
+              "end": 1,
+              "reason": "truncated data",
+              "args": [
+                "utf-32-le",
+                [
+                  0
+                ],
+                0,
+                1,
+                "truncated data"
+              ]
+            }
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            255,
+            254,
+            0,
+            0,
+            65,
+            0,
+            0,
+            0,
+            0,
+            246,
+            1,
+            0,
+            255,
+            254,
+            0,
+            0
+          ],
+          "final": true,
+          "policy": "ignore",
+          "reset": true,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        }
+      ]
+    },
+    {
+      "width": 32,
+      "order": "le",
+      "policy": "replace",
+      "actions": [
+        {
+          "input": [
+            255,
+            254,
+            0
+          ],
+          "final": false,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              255,
+              254,
+              0
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": [
+              65533
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [
+            255,
+            254,
+            0,
+            0,
+            65,
+            0,
+            0,
+            0,
+            0,
+            246,
+            1,
+            0,
+            255,
+            254,
+            0,
+            0
+          ],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            0,
+            216,
+            0
+          ],
+          "final": false,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              0,
+              216,
+              0
+            ],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": [
+              65533
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-32-le",
+              "object": [
+                0
+              ],
+              "start": 0,
+              "end": 1,
+              "reason": "truncated data",
+              "args": [
+                "utf-32-le",
+                [
+                  0
+                ],
+                0,
+                1,
+                "truncated data"
+              ]
+            }
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            255,
+            254,
+            0,
+            0,
+            65,
+            0,
+            0,
+            0,
+            0,
+            246,
+            1,
+            0,
+            255,
+            254,
+            0,
+            0
+          ],
+          "final": true,
+          "policy": "replace",
+          "reset": true,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        }
+      ]
+    },
+    {
+      "width": 32,
+      "order": "le",
+      "policy": "backslashreplace",
+      "actions": [
+        {
+          "input": [
+            255,
+            254,
+            0
+          ],
+          "final": false,
+          "policy": "backslashreplace",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              255,
+              254,
+              0
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "backslashreplace",
+          "reset": false,
+          "result": {
+            "points": [
+              92,
+              120,
+              102,
+              102,
+              92,
+              120,
+              102,
+              101,
+              92,
+              120,
+              48,
+              48
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [
+            255,
+            254,
+            0,
+            0,
+            65,
+            0,
+            0,
+            0,
+            0,
+            246,
+            1,
+            0,
+            255,
+            254,
+            0,
+            0
+          ],
+          "final": true,
+          "policy": "backslashreplace",
+          "reset": false,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            0,
+            216,
+            0
+          ],
+          "final": false,
+          "policy": "backslashreplace",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              0,
+              216,
+              0
+            ],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "backslashreplace",
+          "reset": false,
+          "result": {
+            "points": [
+              92,
+              120,
+              48,
+              48,
+              92,
+              120,
+              100,
+              56,
+              92,
+              120,
+              48,
+              48,
+              92,
+              120,
+              48,
+              48
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-32-le",
+              "object": [
+                0
+              ],
+              "start": 0,
+              "end": 1,
+              "reason": "truncated data",
+              "args": [
+                "utf-32-le",
+                [
+                  0
+                ],
+                0,
+                1,
+                "truncated data"
+              ]
+            }
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            255,
+            254,
+            0,
+            0,
+            65,
+            0,
+            0,
+            0,
+            0,
+            246,
+            1,
+            0,
+            255,
+            254,
+            0,
+            0
+          ],
+          "final": true,
+          "policy": "backslashreplace",
+          "reset": true,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        }
+      ]
+    },
+    {
+      "width": 32,
+      "order": "le",
+      "policy": "surrogateescape",
+      "actions": [
+        {
+          "input": [
+            255,
+            254,
+            0
+          ],
+          "final": false,
+          "policy": "surrogateescape",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              255,
+              254,
+              0
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "surrogateescape",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-32-le",
+              "object": [
+                255,
+                254,
+                0
+              ],
+              "start": 2,
+              "end": 3,
+              "reason": "truncated data",
+              "args": [
+                "utf-32-le",
+                [
+                  255,
+                  254,
+                  0
+                ],
+                0,
+                3,
+                "truncated data"
+              ]
+            }
+          },
+          "state": {
+            "pending": [
+              255,
+              254,
+              0
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": [
+              65533
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [
+            255,
+            254,
+            0,
+            0,
+            65,
+            0,
+            0,
+            0,
+            0,
+            246,
+            1,
+            0,
+            255,
+            254,
+            0,
+            0
+          ],
+          "final": true,
+          "policy": "surrogateescape",
+          "reset": false,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            0,
+            216,
+            0
+          ],
+          "final": false,
+          "policy": "surrogateescape",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              0,
+              216,
+              0
+            ],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "surrogateescape",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-32-le",
+              "object": [
+                0,
+                216,
+                0,
+                0
+              ],
+              "start": 0,
+              "end": 4,
+              "reason": "code point in surrogate code point range(0xd800, 0xe000)",
+              "args": [
+                "utf-32-le",
+                [
+                  0,
+                  216,
+                  0,
+                  0
+                ],
+                0,
+                4,
+                "code point in surrogate code point range(0xd800, 0xe000)"
+              ]
+            }
+          },
+          "state": {
+            "pending": [
+              0,
+              216,
+              0
+            ],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "points": [
+              55296
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            255,
+            254,
+            0,
+            0,
+            65,
+            0,
+            0,
+            0,
+            0,
+            246,
+            1,
+            0,
+            255,
+            254,
+            0,
+            0
+          ],
+          "final": true,
+          "policy": "surrogateescape",
+          "reset": true,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        }
+      ]
+    },
+    {
+      "width": 32,
+      "order": "le",
+      "policy": "surrogatepass",
+      "actions": [
+        {
+          "input": [
+            255,
+            254,
+            0
+          ],
+          "final": false,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              255,
+              254,
+              0
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-32-le",
+              "object": [
+                255,
+                254,
+                0
+              ],
+              "start": 0,
+              "end": 3,
+              "reason": "truncated data",
+              "args": [
+                "utf-32-le",
+                [
+                  255,
+                  254,
+                  0
+                ],
+                0,
+                3,
+                "truncated data"
+              ]
+            }
+          },
+          "state": {
+            "pending": [
+              255,
+              254,
+              0
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": [
+              65533
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [
+            255,
+            254,
+            0,
+            0,
+            65,
+            0,
+            0,
+            0,
+            0,
+            246,
+            1,
+            0,
+            255,
+            254,
+            0,
+            0
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            0,
+            216,
+            0
+          ],
+          "final": false,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              0,
+              216,
+              0
+            ],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "points": [
+              55296
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-32-le",
+              "object": [
+                0
+              ],
+              "start": 0,
+              "end": 1,
+              "reason": "truncated data",
+              "args": [
+                "utf-32-le",
+                [
+                  0
+                ],
+                0,
+                1,
+                "truncated data"
+              ]
+            }
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        },
+        {
+          "input": [
+            255,
+            254,
+            0,
+            0,
+            65,
+            0,
+            0,
+            0,
+            0,
+            246,
+            1,
+            0,
+            255,
+            254,
+            0,
+            0
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": true,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 0
+          }
+        }
+      ]
+    },
+    {
+      "width": 32,
+      "order": "be",
+      "policy": "strict",
+      "actions": [
+        {
+          "input": [
+            0,
+            0,
+            254
+          ],
+          "final": false,
+          "policy": "strict",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              0,
+              0,
+              254
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "strict",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-32-le",
+              "object": [
+                0,
+                0,
+                254
+              ],
+              "start": 0,
+              "end": 3,
+              "reason": "truncated data",
+              "args": [
+                "utf-32-le",
+                [
+                  0,
+                  0,
+                  254
+                ],
+                0,
+                3,
+                "truncated data"
+              ]
+            }
+          },
+          "state": {
+            "pending": [
+              0,
+              0,
+              254
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": [
+              65533
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [
+            0,
+            0,
+            254,
+            255,
+            0,
+            0,
+            0,
+            65,
+            0,
+            1,
+            246,
+            0,
+            0,
+            0,
+            254,
+            255
+          ],
+          "final": true,
+          "policy": "strict",
+          "reset": false,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0,
+            0,
+            216
+          ],
+          "final": false,
+          "policy": "strict",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              0,
+              0,
+              216
+            ],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "strict",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-32-be",
+              "object": [
+                0,
+                0,
+                216,
+                0
+              ],
+              "start": 0,
+              "end": 4,
+              "reason": "code point in surrogate code point range(0xd800, 0xe000)",
+              "args": [
+                "utf-32-be",
+                [
+                  0,
+                  0,
+                  216,
+                  0
+                ],
+                0,
+                4,
+                "code point in surrogate code point range(0xd800, 0xe000)"
+              ]
+            }
+          },
+          "state": {
+            "pending": [
+              0,
+              0,
+              216
+            ],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "points": [
+              55296
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0,
+            0,
+            254,
+            255,
+            0,
+            0,
+            0,
+            65,
+            0,
+            1,
+            246,
+            0,
+            0,
+            0,
+            254,
+            255
+          ],
+          "final": true,
+          "policy": "strict",
+          "reset": true,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        }
+      ]
+    },
+    {
+      "width": 32,
+      "order": "be",
+      "policy": "ignore",
+      "actions": [
+        {
+          "input": [
+            0,
+            0,
+            254
+          ],
+          "final": false,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              0,
+              0,
+              254
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [
+            0,
+            0,
+            254,
+            255,
+            0,
+            0,
+            0,
+            65,
+            0,
+            1,
+            246,
+            0,
+            0,
+            0,
+            254,
+            255
+          ],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0,
+            0,
+            216
+          ],
+          "final": false,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              0,
+              0,
+              216
+            ],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-32-be",
+              "object": [
+                0
+              ],
+              "start": 0,
+              "end": 1,
+              "reason": "truncated data",
+              "args": [
+                "utf-32-be",
+                [
+                  0
+                ],
+                0,
+                1,
+                "truncated data"
+              ]
+            }
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0,
+            0,
+            254,
+            255,
+            0,
+            0,
+            0,
+            65,
+            0,
+            1,
+            246,
+            0,
+            0,
+            0,
+            254,
+            255
+          ],
+          "final": true,
+          "policy": "ignore",
+          "reset": true,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        }
+      ]
+    },
+    {
+      "width": 32,
+      "order": "be",
+      "policy": "replace",
+      "actions": [
+        {
+          "input": [
+            0,
+            0,
+            254
+          ],
+          "final": false,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              0,
+              0,
+              254
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": [
+              65533
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [
+            0,
+            0,
+            254,
+            255,
+            0,
+            0,
+            0,
+            65,
+            0,
+            1,
+            246,
+            0,
+            0,
+            0,
+            254,
+            255
+          ],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0,
+            0,
+            216
+          ],
+          "final": false,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              0,
+              0,
+              216
+            ],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": [
+              65533
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-32-be",
+              "object": [
+                0
+              ],
+              "start": 0,
+              "end": 1,
+              "reason": "truncated data",
+              "args": [
+                "utf-32-be",
+                [
+                  0
+                ],
+                0,
+                1,
+                "truncated data"
+              ]
+            }
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0,
+            0,
+            254,
+            255,
+            0,
+            0,
+            0,
+            65,
+            0,
+            1,
+            246,
+            0,
+            0,
+            0,
+            254,
+            255
+          ],
+          "final": true,
+          "policy": "replace",
+          "reset": true,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        }
+      ]
+    },
+    {
+      "width": 32,
+      "order": "be",
+      "policy": "backslashreplace",
+      "actions": [
+        {
+          "input": [
+            0,
+            0,
+            254
+          ],
+          "final": false,
+          "policy": "backslashreplace",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              0,
+              0,
+              254
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "backslashreplace",
+          "reset": false,
+          "result": {
+            "points": [
+              92,
+              120,
+              48,
+              48,
+              92,
+              120,
+              48,
+              48,
+              92,
+              120,
+              102,
+              101
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [
+            0,
+            0,
+            254,
+            255,
+            0,
+            0,
+            0,
+            65,
+            0,
+            1,
+            246,
+            0,
+            0,
+            0,
+            254,
+            255
+          ],
+          "final": true,
+          "policy": "backslashreplace",
+          "reset": false,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0,
+            0,
+            216
+          ],
+          "final": false,
+          "policy": "backslashreplace",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              0,
+              0,
+              216
+            ],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "backslashreplace",
+          "reset": false,
+          "result": {
+            "points": [
+              92,
+              120,
+              48,
+              48,
+              92,
+              120,
+              48,
+              48,
+              92,
+              120,
+              100,
+              56,
+              92,
+              120,
+              48,
+              48
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-32-be",
+              "object": [
+                0
+              ],
+              "start": 0,
+              "end": 1,
+              "reason": "truncated data",
+              "args": [
+                "utf-32-be",
+                [
+                  0
+                ],
+                0,
+                1,
+                "truncated data"
+              ]
+            }
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0,
+            0,
+            254,
+            255,
+            0,
+            0,
+            0,
+            65,
+            0,
+            1,
+            246,
+            0,
+            0,
+            0,
+            254,
+            255
+          ],
+          "final": true,
+          "policy": "backslashreplace",
+          "reset": true,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        }
+      ]
+    },
+    {
+      "width": 32,
+      "order": "be",
+      "policy": "surrogateescape",
+      "actions": [
+        {
+          "input": [
+            0,
+            0,
+            254
+          ],
+          "final": false,
+          "policy": "surrogateescape",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              0,
+              0,
+              254
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "surrogateescape",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-32-le",
+              "object": [
+                0,
+                0,
+                254
+              ],
+              "start": 0,
+              "end": 3,
+              "reason": "truncated data",
+              "args": [
+                "utf-32-le",
+                [
+                  0,
+                  0,
+                  254
+                ],
+                0,
+                3,
+                "truncated data"
+              ]
+            }
+          },
+          "state": {
+            "pending": [
+              0,
+              0,
+              254
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": [
+              65533
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [
+            0,
+            0,
+            254,
+            255,
+            0,
+            0,
+            0,
+            65,
+            0,
+            1,
+            246,
+            0,
+            0,
+            0,
+            254,
+            255
+          ],
+          "final": true,
+          "policy": "surrogateescape",
+          "reset": false,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0,
+            0,
+            216
+          ],
+          "final": false,
+          "policy": "surrogateescape",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              0,
+              0,
+              216
+            ],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "surrogateescape",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-32-be",
+              "object": [
+                0,
+                0,
+                216,
+                0
+              ],
+              "start": 0,
+              "end": 4,
+              "reason": "code point in surrogate code point range(0xd800, 0xe000)",
+              "args": [
+                "utf-32-be",
+                [
+                  0,
+                  0,
+                  216,
+                  0
+                ],
+                0,
+                4,
+                "code point in surrogate code point range(0xd800, 0xe000)"
+              ]
+            }
+          },
+          "state": {
+            "pending": [
+              0,
+              0,
+              216
+            ],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "points": [
+              55296
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0,
+            0,
+            254,
+            255,
+            0,
+            0,
+            0,
+            65,
+            0,
+            1,
+            246,
+            0,
+            0,
+            0,
+            254,
+            255
+          ],
+          "final": true,
+          "policy": "surrogateescape",
+          "reset": true,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        }
+      ]
+    },
+    {
+      "width": 32,
+      "order": "be",
+      "policy": "surrogatepass",
+      "actions": [
+        {
+          "input": [
+            0,
+            0,
+            254
+          ],
+          "final": false,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              0,
+              0,
+              254
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-32-le",
+              "object": [
+                0,
+                0,
+                254
+              ],
+              "start": 0,
+              "end": 3,
+              "reason": "truncated data",
+              "args": [
+                "utf-32-le",
+                [
+                  0,
+                  0,
+                  254
+                ],
+                0,
+                3,
+                "truncated data"
+              ]
+            }
+          },
+          "state": {
+            "pending": [
+              0,
+              0,
+              254
+            ],
+            "order": 2
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "replace",
+          "reset": false,
+          "result": {
+            "points": [
+              65533
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 2
+          }
+        },
+        {
+          "input": [
+            0,
+            0,
+            254,
+            255,
+            0,
+            0,
+            0,
+            65,
+            0,
+            1,
+            246,
+            0,
+            0,
+            0,
+            254,
+            255
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0,
+            0,
+            216
+          ],
+          "final": false,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [
+              0,
+              0,
+              216
+            ],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "points": [
+              55296
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": false,
+          "result": {
+            "error": {
+              "encoding": "utf-32-be",
+              "object": [
+                0
+              ],
+              "start": 0,
+              "end": 1,
+              "reason": "truncated data",
+              "args": [
+                "utf-32-be",
+                [
+                  0
+                ],
+                0,
+                1,
+                "truncated data"
+              ]
+            }
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [],
+          "final": true,
+          "policy": "ignore",
+          "reset": false,
+          "result": {
+            "points": []
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        },
+        {
+          "input": [
+            0,
+            0,
+            254,
+            255,
+            0,
+            0,
+            0,
+            65,
+            0,
+            1,
+            246,
+            0,
+            0,
+            0,
+            254,
+            255
+          ],
+          "final": true,
+          "policy": "surrogatepass",
+          "reset": true,
+          "result": {
+            "points": [
+              65,
+              128512,
+              65279
+            ]
+          },
+          "state": {
+            "pending": [],
+            "order": 1
+          }
+        }
+      ]
+    }
+  ]
+}

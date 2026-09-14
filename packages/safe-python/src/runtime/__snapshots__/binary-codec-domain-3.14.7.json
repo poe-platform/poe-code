@@ -1,0 +1,443 @@
+{
+  "generator": "import binascii,json,sys,platform,unicodedata\nfrom pathlib import Path\nnames=['a2b_base64','b2a_base64','a2b_uu','b2a_uu','a2b_qp','b2a_qp','hexlify','b2a_hex','unhexlify','a2b_hex','crc32','crc_hqx']\ncases=[]\nfor name in names:\n for expression in ['NotImplemented','None','...','42','[]','len']:\n  source={'NotImplemented':NotImplemented,'None':None,'...':...,'42':42,'[]':[],'len':len}[expression]\n  args=[source]+([0] if name=='crc_hqx' else [])\n  try:\n   getattr(binascii,name)(*args)\n  except BaseException as error:\n   cases.append(dict(name=name,input=expression,error=type(error).__name__,message=str(error)))\n  else:raise AssertionError((name,expression))\nprint(json.dumps(dict(generator=Path(__file__).read_text(),reference=dict(version=sys.version,unicode=unicodedata.unidata_version,platform=platform.platform(),byteorder=sys.byteorder),cases=cases),indent=2))\n",
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "cases": [
+    {
+      "name": "a2b_base64",
+      "input": "NotImplemented",
+      "error": "TypeError",
+      "message": "argument should be bytes, buffer or ASCII string, not 'NotImplementedType'"
+    },
+    {
+      "name": "a2b_base64",
+      "input": "None",
+      "error": "TypeError",
+      "message": "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+    },
+    {
+      "name": "a2b_base64",
+      "input": "...",
+      "error": "TypeError",
+      "message": "argument should be bytes, buffer or ASCII string, not 'ellipsis'"
+    },
+    {
+      "name": "a2b_base64",
+      "input": "42",
+      "error": "TypeError",
+      "message": "argument should be bytes, buffer or ASCII string, not 'int'"
+    },
+    {
+      "name": "a2b_base64",
+      "input": "[]",
+      "error": "TypeError",
+      "message": "argument should be bytes, buffer or ASCII string, not 'list'"
+    },
+    {
+      "name": "a2b_base64",
+      "input": "len",
+      "error": "TypeError",
+      "message": "argument should be bytes, buffer or ASCII string, not 'builtin_function_or_method'"
+    },
+    {
+      "name": "b2a_base64",
+      "input": "NotImplemented",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'NotImplementedType'"
+    },
+    {
+      "name": "b2a_base64",
+      "input": "None",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'NoneType'"
+    },
+    {
+      "name": "b2a_base64",
+      "input": "...",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'ellipsis'"
+    },
+    {
+      "name": "b2a_base64",
+      "input": "42",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'int'"
+    },
+    {
+      "name": "b2a_base64",
+      "input": "[]",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'list'"
+    },
+    {
+      "name": "b2a_base64",
+      "input": "len",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'builtin_function_or_method'"
+    },
+    {
+      "name": "a2b_uu",
+      "input": "NotImplemented",
+      "error": "TypeError",
+      "message": "argument should be bytes, buffer or ASCII string, not 'NotImplementedType'"
+    },
+    {
+      "name": "a2b_uu",
+      "input": "None",
+      "error": "TypeError",
+      "message": "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+    },
+    {
+      "name": "a2b_uu",
+      "input": "...",
+      "error": "TypeError",
+      "message": "argument should be bytes, buffer or ASCII string, not 'ellipsis'"
+    },
+    {
+      "name": "a2b_uu",
+      "input": "42",
+      "error": "TypeError",
+      "message": "argument should be bytes, buffer or ASCII string, not 'int'"
+    },
+    {
+      "name": "a2b_uu",
+      "input": "[]",
+      "error": "TypeError",
+      "message": "argument should be bytes, buffer or ASCII string, not 'list'"
+    },
+    {
+      "name": "a2b_uu",
+      "input": "len",
+      "error": "TypeError",
+      "message": "argument should be bytes, buffer or ASCII string, not 'builtin_function_or_method'"
+    },
+    {
+      "name": "b2a_uu",
+      "input": "NotImplemented",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'NotImplementedType'"
+    },
+    {
+      "name": "b2a_uu",
+      "input": "None",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'NoneType'"
+    },
+    {
+      "name": "b2a_uu",
+      "input": "...",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'ellipsis'"
+    },
+    {
+      "name": "b2a_uu",
+      "input": "42",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'int'"
+    },
+    {
+      "name": "b2a_uu",
+      "input": "[]",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'list'"
+    },
+    {
+      "name": "b2a_uu",
+      "input": "len",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'builtin_function_or_method'"
+    },
+    {
+      "name": "a2b_qp",
+      "input": "NotImplemented",
+      "error": "TypeError",
+      "message": "argument should be bytes, buffer or ASCII string, not 'NotImplementedType'"
+    },
+    {
+      "name": "a2b_qp",
+      "input": "None",
+      "error": "TypeError",
+      "message": "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+    },
+    {
+      "name": "a2b_qp",
+      "input": "...",
+      "error": "TypeError",
+      "message": "argument should be bytes, buffer or ASCII string, not 'ellipsis'"
+    },
+    {
+      "name": "a2b_qp",
+      "input": "42",
+      "error": "TypeError",
+      "message": "argument should be bytes, buffer or ASCII string, not 'int'"
+    },
+    {
+      "name": "a2b_qp",
+      "input": "[]",
+      "error": "TypeError",
+      "message": "argument should be bytes, buffer or ASCII string, not 'list'"
+    },
+    {
+      "name": "a2b_qp",
+      "input": "len",
+      "error": "TypeError",
+      "message": "argument should be bytes, buffer or ASCII string, not 'builtin_function_or_method'"
+    },
+    {
+      "name": "b2a_qp",
+      "input": "NotImplemented",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'NotImplementedType'"
+    },
+    {
+      "name": "b2a_qp",
+      "input": "None",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'NoneType'"
+    },
+    {
+      "name": "b2a_qp",
+      "input": "...",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'ellipsis'"
+    },
+    {
+      "name": "b2a_qp",
+      "input": "42",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'int'"
+    },
+    {
+      "name": "b2a_qp",
+      "input": "[]",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'list'"
+    },
+    {
+      "name": "b2a_qp",
+      "input": "len",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'builtin_function_or_method'"
+    },
+    {
+      "name": "hexlify",
+      "input": "NotImplemented",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'NotImplementedType'"
+    },
+    {
+      "name": "hexlify",
+      "input": "None",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'NoneType'"
+    },
+    {
+      "name": "hexlify",
+      "input": "...",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'ellipsis'"
+    },
+    {
+      "name": "hexlify",
+      "input": "42",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'int'"
+    },
+    {
+      "name": "hexlify",
+      "input": "[]",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'list'"
+    },
+    {
+      "name": "hexlify",
+      "input": "len",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'builtin_function_or_method'"
+    },
+    {
+      "name": "b2a_hex",
+      "input": "NotImplemented",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'NotImplementedType'"
+    },
+    {
+      "name": "b2a_hex",
+      "input": "None",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'NoneType'"
+    },
+    {
+      "name": "b2a_hex",
+      "input": "...",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'ellipsis'"
+    },
+    {
+      "name": "b2a_hex",
+      "input": "42",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'int'"
+    },
+    {
+      "name": "b2a_hex",
+      "input": "[]",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'list'"
+    },
+    {
+      "name": "b2a_hex",
+      "input": "len",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'builtin_function_or_method'"
+    },
+    {
+      "name": "unhexlify",
+      "input": "NotImplemented",
+      "error": "TypeError",
+      "message": "argument should be bytes, buffer or ASCII string, not 'NotImplementedType'"
+    },
+    {
+      "name": "unhexlify",
+      "input": "None",
+      "error": "TypeError",
+      "message": "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+    },
+    {
+      "name": "unhexlify",
+      "input": "...",
+      "error": "TypeError",
+      "message": "argument should be bytes, buffer or ASCII string, not 'ellipsis'"
+    },
+    {
+      "name": "unhexlify",
+      "input": "42",
+      "error": "TypeError",
+      "message": "argument should be bytes, buffer or ASCII string, not 'int'"
+    },
+    {
+      "name": "unhexlify",
+      "input": "[]",
+      "error": "TypeError",
+      "message": "argument should be bytes, buffer or ASCII string, not 'list'"
+    },
+    {
+      "name": "unhexlify",
+      "input": "len",
+      "error": "TypeError",
+      "message": "argument should be bytes, buffer or ASCII string, not 'builtin_function_or_method'"
+    },
+    {
+      "name": "a2b_hex",
+      "input": "NotImplemented",
+      "error": "TypeError",
+      "message": "argument should be bytes, buffer or ASCII string, not 'NotImplementedType'"
+    },
+    {
+      "name": "a2b_hex",
+      "input": "None",
+      "error": "TypeError",
+      "message": "argument should be bytes, buffer or ASCII string, not 'NoneType'"
+    },
+    {
+      "name": "a2b_hex",
+      "input": "...",
+      "error": "TypeError",
+      "message": "argument should be bytes, buffer or ASCII string, not 'ellipsis'"
+    },
+    {
+      "name": "a2b_hex",
+      "input": "42",
+      "error": "TypeError",
+      "message": "argument should be bytes, buffer or ASCII string, not 'int'"
+    },
+    {
+      "name": "a2b_hex",
+      "input": "[]",
+      "error": "TypeError",
+      "message": "argument should be bytes, buffer or ASCII string, not 'list'"
+    },
+    {
+      "name": "a2b_hex",
+      "input": "len",
+      "error": "TypeError",
+      "message": "argument should be bytes, buffer or ASCII string, not 'builtin_function_or_method'"
+    },
+    {
+      "name": "crc32",
+      "input": "NotImplemented",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'NotImplementedType'"
+    },
+    {
+      "name": "crc32",
+      "input": "None",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'NoneType'"
+    },
+    {
+      "name": "crc32",
+      "input": "...",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'ellipsis'"
+    },
+    {
+      "name": "crc32",
+      "input": "42",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'int'"
+    },
+    {
+      "name": "crc32",
+      "input": "[]",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'list'"
+    },
+    {
+      "name": "crc32",
+      "input": "len",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'builtin_function_or_method'"
+    },
+    {
+      "name": "crc_hqx",
+      "input": "NotImplemented",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'NotImplementedType'"
+    },
+    {
+      "name": "crc_hqx",
+      "input": "None",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'NoneType'"
+    },
+    {
+      "name": "crc_hqx",
+      "input": "...",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'ellipsis'"
+    },
+    {
+      "name": "crc_hqx",
+      "input": "42",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'int'"
+    },
+    {
+      "name": "crc_hqx",
+      "input": "[]",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'list'"
+    },
+    {
+      "name": "crc_hqx",
+      "input": "len",
+      "error": "TypeError",
+      "message": "a bytes-like object is required, not 'builtin_function_or_method'"
+    }
+  ]
+}

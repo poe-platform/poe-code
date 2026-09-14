@@ -1,0 +1,2255 @@
+{
+  "limits": {
+    "maxSteps": 1000000,
+    "maxAllocatedBytes": 16000000,
+    "maxDepth": 1000
+  },
+  "cases": [
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 0",
+      "source": "\nimport codecs\nencoding = 'utf-8'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(0, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-8 15 24\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-8 15 24\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 1",
+      "source": "\nimport codecs\nencoding = 'utf-8'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(1, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-8 15 22\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-8 15 22\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 2",
+      "source": "\nimport codecs\nencoding = 'utf-8'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(2, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-8 15 20\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-8 15 20\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 3",
+      "source": "\nimport codecs\nencoding = 'utf-8'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(3, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-8 15 18\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-8 15 18\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 4",
+      "source": "\nimport codecs\nencoding = 'utf-8'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(4, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-8 15 16\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-8 15 16\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 5",
+      "source": "\nimport codecs\nencoding = 'utf-8'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(5, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-8 15 14\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-8 15 14\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 6",
+      "source": "\nimport codecs\nencoding = 'utf-8'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(6, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-8 15 12\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-8 15 12\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-8 three-chunk splits and state transfer, shard 7",
+      "source": "\nimport codecs\nencoding = 'utf-8'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(7, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-8 15 10\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-8 15 10\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 0",
+      "source": "\nimport codecs\nencoding = 'utf-8-sig'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(0, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-8-sig 18 33\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 1",
+      "source": "\nimport codecs\nencoding = 'utf-8-sig'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(1, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-8-sig 18 30\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 2",
+      "source": "\nimport codecs\nencoding = 'utf-8-sig'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(2, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-8-sig 18 27\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 3",
+      "source": "\nimport codecs\nencoding = 'utf-8-sig'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(3, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-8-sig 18 24\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-8-sig 18 24\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 4",
+      "source": "\nimport codecs\nencoding = 'utf-8-sig'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(4, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-8-sig 18 22\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-8-sig 18 22\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 5",
+      "source": "\nimport codecs\nencoding = 'utf-8-sig'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(5, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-8-sig 18 20\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-8-sig 18 20\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 6",
+      "source": "\nimport codecs\nencoding = 'utf-8-sig'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(6, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-8-sig 18 18\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-8-sig 18 18\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-8-sig three-chunk splits and state transfer, shard 7",
+      "source": "\nimport codecs\nencoding = 'utf-8-sig'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(7, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-8-sig 18 16\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-8-sig 18 16\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 0",
+      "source": "\nimport codecs\nencoding = 'utf-7'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(0, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-7 20 39\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-7 20 39\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 1",
+      "source": "\nimport codecs\nencoding = 'utf-7'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(1, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-7 20 36\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-7 20 36\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 2",
+      "source": "\nimport codecs\nencoding = 'utf-7'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(2, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-7 20 33\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-7 20 33\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 3",
+      "source": "\nimport codecs\nencoding = 'utf-7'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(3, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-7 20 30\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-7 20 30\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 4",
+      "source": "\nimport codecs\nencoding = 'utf-7'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(4, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-7 20 27\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-7 20 27\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 5",
+      "source": "\nimport codecs\nencoding = 'utf-7'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(5, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-7 20 24\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-7 20 24\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 6",
+      "source": "\nimport codecs\nencoding = 'utf-7'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(6, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-7 20 22\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-7 20 22\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-7 three-chunk splits and state transfer, shard 7",
+      "source": "\nimport codecs\nencoding = 'utf-7'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(7, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-7 20 20\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-7 20 20\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 0",
+      "source": "\nimport codecs\nencoding = 'utf-16-le'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(0, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-16-le 16 27\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-16-le 16 27\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 1",
+      "source": "\nimport codecs\nencoding = 'utf-16-le'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(1, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-16-le 16 24\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-16-le 16 24\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 2",
+      "source": "\nimport codecs\nencoding = 'utf-16-le'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(2, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-16-le 16 22\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-16-le 16 22\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 3",
+      "source": "\nimport codecs\nencoding = 'utf-16-le'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(3, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-16-le 16 20\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-16-le 16 20\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 4",
+      "source": "\nimport codecs\nencoding = 'utf-16-le'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(4, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-16-le 16 18\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-16-le 16 18\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 5",
+      "source": "\nimport codecs\nencoding = 'utf-16-le'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(5, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-16-le 16 16\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-16-le 16 16\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 6",
+      "source": "\nimport codecs\nencoding = 'utf-16-le'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(6, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-16-le 16 14\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-16-le 16 14\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-16-le three-chunk splits and state transfer, shard 7",
+      "source": "\nimport codecs\nencoding = 'utf-16-le'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(7, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-16-le 16 12\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-16-le 16 12\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 0",
+      "source": "\nimport codecs\nencoding = 'utf-16-be'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(0, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-16-be 16 27\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-16-be 16 27\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 1",
+      "source": "\nimport codecs\nencoding = 'utf-16-be'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(1, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-16-be 16 24\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-16-be 16 24\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 2",
+      "source": "\nimport codecs\nencoding = 'utf-16-be'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(2, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-16-be 16 22\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-16-be 16 22\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 3",
+      "source": "\nimport codecs\nencoding = 'utf-16-be'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(3, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-16-be 16 20\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-16-be 16 20\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 4",
+      "source": "\nimport codecs\nencoding = 'utf-16-be'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(4, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-16-be 16 18\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-16-be 16 18\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 5",
+      "source": "\nimport codecs\nencoding = 'utf-16-be'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(5, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-16-be 16 16\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-16-be 16 16\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 6",
+      "source": "\nimport codecs\nencoding = 'utf-16-be'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(6, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-16-be 16 14\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-16-be 16 14\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-16-be three-chunk splits and state transfer, shard 7",
+      "source": "\nimport codecs\nencoding = 'utf-16-be'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(7, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-16-be 16 12\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "utf-16-be 16 12\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 0",
+      "source": "\nimport codecs\nencoding = 'utf-32-le'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(0, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-32-le 28 68\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 1",
+      "source": "\nimport codecs\nencoding = 'utf-32-le'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(1, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-32-le 28 64\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 2",
+      "source": "\nimport codecs\nencoding = 'utf-32-le'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(2, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-32-le 28 60\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 3",
+      "source": "\nimport codecs\nencoding = 'utf-32-le'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(3, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-32-le 28 56\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 4",
+      "source": "\nimport codecs\nencoding = 'utf-32-le'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(4, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-32-le 28 52\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 5",
+      "source": "\nimport codecs\nencoding = 'utf-32-le'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(5, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-32-le 28 48\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 6",
+      "source": "\nimport codecs\nencoding = 'utf-32-le'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(6, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-32-le 28 45\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "utf-32-le three-chunk splits and state transfer, shard 7",
+      "source": "\nimport codecs\nencoding = 'utf-32-le'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(7, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-32-le 28 42\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 0",
+      "source": "\nimport codecs\nencoding = 'utf-32-be'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(0, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-32-be 28 68\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 1",
+      "source": "\nimport codecs\nencoding = 'utf-32-be'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(1, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-32-be 28 64\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 2",
+      "source": "\nimport codecs\nencoding = 'utf-32-be'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(2, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-32-be 28 60\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 3",
+      "source": "\nimport codecs\nencoding = 'utf-32-be'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(3, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-32-be 28 56\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 4",
+      "source": "\nimport codecs\nencoding = 'utf-32-be'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(4, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-32-be 28 52\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 5",
+      "source": "\nimport codecs\nencoding = 'utf-32-be'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(5, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-32-be 28 48\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 6",
+      "source": "\nimport codecs\nencoding = 'utf-32-be'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(6, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-32-be 28 45\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "utf-32-be three-chunk splits and state transfer, shard 7",
+      "source": "\nimport codecs\nencoding = 'utf-32-be'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(7, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "utf-32-be 28 42\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 0",
+      "source": "\nimport codecs\nencoding = 'unicode-escape'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(0, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "unicode-escape 29 72\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 1",
+      "source": "\nimport codecs\nencoding = 'unicode-escape'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(1, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "unicode-escape 29 68\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 2",
+      "source": "\nimport codecs\nencoding = 'unicode-escape'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(2, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "unicode-escape 29 64\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 3",
+      "source": "\nimport codecs\nencoding = 'unicode-escape'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(3, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "unicode-escape 29 60\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 4",
+      "source": "\nimport codecs\nencoding = 'unicode-escape'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(4, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "unicode-escape 29 56\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 5",
+      "source": "\nimport codecs\nencoding = 'unicode-escape'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(5, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "unicode-escape 29 52\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 6",
+      "source": "\nimport codecs\nencoding = 'unicode-escape'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(6, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "unicode-escape 29 48\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "unicode-escape three-chunk splits and state transfer, shard 7",
+      "source": "\nimport codecs\nencoding = 'unicode-escape'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(7, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "unicode-escape 29 45\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 0",
+      "source": "\nimport codecs\nencoding = 'raw-unicode-escape'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(0, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "raw-unicode-escape 26 60\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 1",
+      "source": "\nimport codecs\nencoding = 'raw-unicode-escape'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(1, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "raw-unicode-escape 26 56\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 2",
+      "source": "\nimport codecs\nencoding = 'raw-unicode-escape'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(2, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "raw-unicode-escape 26 52\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 3",
+      "source": "\nimport codecs\nencoding = 'raw-unicode-escape'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(3, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "raw-unicode-escape 26 48\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 4",
+      "source": "\nimport codecs\nencoding = 'raw-unicode-escape'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(4, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "raw-unicode-escape 26 45\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 5",
+      "source": "\nimport codecs\nencoding = 'raw-unicode-escape'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(5, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "raw-unicode-escape 26 42\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 6",
+      "source": "\nimport codecs\nencoding = 'raw-unicode-escape'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(6, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "raw-unicode-escape 26 39\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "terminated",
+          "reason": "allocation",
+          "message": "execution allocation limit exceeded"
+        },
+        "stdout": "",
+        "reads": 0
+      },
+      "matches": false
+    },
+    {
+      "name": "raw-unicode-escape three-chunk splits and state transfer, shard 7",
+      "source": "\nimport codecs\nencoding = 'raw-unicode-escape'\ntext = 'Aé🐍\\ud800.\\udc80Z'\ndata = codecs.encode(text, encoding, 'surrogatepass')\nexpected = codecs.decode(data, encoding, 'surrogatepass')\nfactory = codecs.getincrementaldecoder(encoding)\ncount = 0\nfor first in range(7, len(data) + 1, 8):\n    for second in range(first, len(data) + 1):\n        decoder = factory('surrogatepass')\n        prefix = decoder.decode(data[:first])\n        state = decoder.getstate()\n        restored = factory('surrogatepass')\n        assert restored.setstate(state) is None\n        middle = decoder.decode(data[first:second])\n        assert restored.decode(data[first:second]) == middle\n        assert restored.getstate() == decoder.getstate()\n        tail = decoder.decode(data[second:], True)\n        assert restored.decode(data[second:], True) == tail\n        assert type(prefix) is str and type(middle) is str and type(tail) is str\n        assert prefix + middle + tail == expected, (first, second)\n        assert restored.getstate() == decoder.getstate()\n        assert decoder.reset() is None\n        assert decoder.getstate() == factory('surrogatepass').getstate()\n        assert decoder.decode(data, True) == expected\n        count += 1\nprint(encoding, len(data), count)\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "raw-unicode-escape 26 36\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "raw-unicode-escape 26 36\n",
+        "reads": 0
+      },
+      "matches": true
+    },
+    {
+      "name": "UTF-8 callback state mutation, failure, negative resume and retry",
+      "source": "\nimport codecs\ndecoder = codecs.getincrementaldecoder('utf-8')('state_replay')\nfailure = ValueError('callback failed')\nevents = []\nfail = True\nclass Position:\n    def __index__(self):\n        events.append('index')\n        decoder.buffer = b'index mutation'\n        decoder.errors = 'strict'\n        return -1\ndef recover(error):\n    events.append((error.object, error.start, error.end, error.reason))\n    decoder.buffer = b'callback mutation'\n    assert input() == 'continue'\n    if fail:\n        raise failure\n    return ('!', Position())\ncodecs.register_error('state_replay', recover)\nassert decoder.decode(b'\\xe2') == ''\nsaved = decoder.getstate()\ntry:\n    decoder.decode(b'Z', True)\nexcept ValueError as caught:\n    assert caught is failure\nelse:\n    assert False\nassert decoder.getstate() == (b'callback mutation', 0)\nassert saved == (b'\\xe2', 0)\ndecoder.setstate(saved)\nfail = False\nassert decoder.decode(b'Z', True) == '!Z'\nassert decoder.getstate() == (b'', 0)\nassert decoder.errors == 'strict'\nassert events == [(b'\\xe2Z', 0, 1, 'invalid continuation byte'), (b'\\xe2Z', 0, 1, 'invalid continuation byte'), 'index']\nprint('callback retry verified')\n",
+      "stdin": "continue\ncontinue\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "callback retry verified\n",
+        "stderr": ""
+      },
+      "actual": {
+        "result": {
+          "status": "ok"
+        },
+        "stdout": "callback retry verified\n",
+        "reads": 2
+      },
+      "matches": true
+    }
+  ],
+  "matched": 39,
+  "maintainedReplay": {
+    "limits": {
+      "maxSteps": 8000000,
+      "maxAllocatedBytes": 64000000,
+      "maxDepth": 100
+    },
+    "rows": [
+      {
+        "name": "utf-8 three-chunk splits and state transfer, shard 0",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-8 15 24\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-8 three-chunk splits and state transfer, shard 1",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-8 15 22\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-8 three-chunk splits and state transfer, shard 2",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-8 15 20\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-8 three-chunk splits and state transfer, shard 3",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-8 15 18\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-8 three-chunk splits and state transfer, shard 4",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-8 15 16\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-8 three-chunk splits and state transfer, shard 5",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-8 15 14\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-8 three-chunk splits and state transfer, shard 6",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-8 15 12\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-8 three-chunk splits and state transfer, shard 7",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-8 15 10\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-8-sig three-chunk splits and state transfer, shard 0",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-8-sig 18 33\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-8-sig three-chunk splits and state transfer, shard 1",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-8-sig 18 30\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-8-sig three-chunk splits and state transfer, shard 2",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-8-sig 18 27\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-8-sig three-chunk splits and state transfer, shard 3",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-8-sig 18 24\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-8-sig three-chunk splits and state transfer, shard 4",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-8-sig 18 22\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-8-sig three-chunk splits and state transfer, shard 5",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-8-sig 18 20\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-8-sig three-chunk splits and state transfer, shard 6",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-8-sig 18 18\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-8-sig three-chunk splits and state transfer, shard 7",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-8-sig 18 16\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-7 three-chunk splits and state transfer, shard 0",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-7 20 39\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-7 three-chunk splits and state transfer, shard 1",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-7 20 36\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-7 three-chunk splits and state transfer, shard 2",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-7 20 33\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-7 three-chunk splits and state transfer, shard 3",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-7 20 30\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-7 three-chunk splits and state transfer, shard 4",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-7 20 27\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-7 three-chunk splits and state transfer, shard 5",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-7 20 24\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-7 three-chunk splits and state transfer, shard 6",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-7 20 22\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-7 three-chunk splits and state transfer, shard 7",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-7 20 20\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-16-le three-chunk splits and state transfer, shard 0",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-16-le 16 27\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-16-le three-chunk splits and state transfer, shard 1",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-16-le 16 24\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-16-le three-chunk splits and state transfer, shard 2",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-16-le 16 22\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-16-le three-chunk splits and state transfer, shard 3",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-16-le 16 20\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-16-le three-chunk splits and state transfer, shard 4",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-16-le 16 18\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-16-le three-chunk splits and state transfer, shard 5",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-16-le 16 16\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-16-le three-chunk splits and state transfer, shard 6",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-16-le 16 14\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-16-le three-chunk splits and state transfer, shard 7",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-16-le 16 12\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-16-be three-chunk splits and state transfer, shard 0",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-16-be 16 27\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-16-be three-chunk splits and state transfer, shard 1",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-16-be 16 24\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-16-be three-chunk splits and state transfer, shard 2",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-16-be 16 22\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-16-be three-chunk splits and state transfer, shard 3",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-16-be 16 20\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-16-be three-chunk splits and state transfer, shard 4",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-16-be 16 18\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-16-be three-chunk splits and state transfer, shard 5",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-16-be 16 16\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-16-be three-chunk splits and state transfer, shard 6",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-16-be 16 14\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-16-be three-chunk splits and state transfer, shard 7",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-16-be 16 12\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-32-le three-chunk splits and state transfer, shard 0",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-32-le 28 68\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-32-le three-chunk splits and state transfer, shard 1",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-32-le 28 64\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-32-le three-chunk splits and state transfer, shard 2",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-32-le 28 60\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-32-le three-chunk splits and state transfer, shard 3",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-32-le 28 56\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-32-le three-chunk splits and state transfer, shard 4",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-32-le 28 52\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-32-le three-chunk splits and state transfer, shard 5",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-32-le 28 48\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-32-le three-chunk splits and state transfer, shard 6",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-32-le 28 45\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-32-le three-chunk splits and state transfer, shard 7",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-32-le 28 42\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-32-be three-chunk splits and state transfer, shard 0",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-32-be 28 68\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-32-be three-chunk splits and state transfer, shard 1",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-32-be 28 64\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-32-be three-chunk splits and state transfer, shard 2",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-32-be 28 60\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-32-be three-chunk splits and state transfer, shard 3",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-32-be 28 56\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-32-be three-chunk splits and state transfer, shard 4",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-32-be 28 52\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-32-be three-chunk splits and state transfer, shard 5",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-32-be 28 48\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-32-be three-chunk splits and state transfer, shard 6",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-32-be 28 45\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "utf-32-be three-chunk splits and state transfer, shard 7",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "utf-32-be 28 42\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "unicode-escape three-chunk splits and state transfer, shard 0",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "unicode-escape 29 72\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "unicode-escape three-chunk splits and state transfer, shard 1",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "unicode-escape 29 68\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "unicode-escape three-chunk splits and state transfer, shard 2",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "unicode-escape 29 64\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "unicode-escape three-chunk splits and state transfer, shard 3",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "unicode-escape 29 60\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "unicode-escape three-chunk splits and state transfer, shard 4",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "unicode-escape 29 56\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "unicode-escape three-chunk splits and state transfer, shard 5",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "unicode-escape 29 52\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "unicode-escape three-chunk splits and state transfer, shard 6",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "unicode-escape 29 48\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "unicode-escape three-chunk splits and state transfer, shard 7",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "unicode-escape 29 45\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "raw-unicode-escape three-chunk splits and state transfer, shard 0",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "raw-unicode-escape 26 60\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "raw-unicode-escape three-chunk splits and state transfer, shard 1",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "raw-unicode-escape 26 56\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "raw-unicode-escape three-chunk splits and state transfer, shard 2",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "raw-unicode-escape 26 52\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "raw-unicode-escape three-chunk splits and state transfer, shard 3",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "raw-unicode-escape 26 48\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "raw-unicode-escape three-chunk splits and state transfer, shard 4",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "raw-unicode-escape 26 45\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "raw-unicode-escape three-chunk splits and state transfer, shard 5",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "raw-unicode-escape 26 42\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "raw-unicode-escape three-chunk splits and state transfer, shard 6",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "raw-unicode-escape 26 39\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "raw-unicode-escape three-chunk splits and state transfer, shard 7",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "raw-unicode-escape 26 36\n",
+          "reads": 0
+        },
+        "matches": true
+      },
+      {
+        "name": "UTF-8 callback state mutation, failure, negative resume and retry",
+        "actual": {
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "callback retry verified\n",
+          "reads": 2
+        },
+        "matches": true
+      }
+    ],
+    "matched": 73,
+    "cancellation": [
+      {
+        "throws": false,
+        "actual": {
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "stdout": "",
+          "reads": 1,
+          "later": {
+            "exec": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            "eval": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            }
+          }
+        }
+      },
+      {
+        "throws": true,
+        "actual": {
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "stdout": "",
+          "reads": 1,
+          "later": {
+            "exec": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            "eval": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            }
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,824 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "boundary": "Actual incremental state kernels with explicit file-descriptor input/output adapters; not public guest native module publication or final registry certification.",
+  "oracleSource": "import codecs,json,sys,unicodedata\nrows=[]\nfor name in ['gb2312','hz','gbk','big5','iso2022_jp','iso2022_kr']:\n for direction,invalid in [('encode',[-1,1<<136,9]),('decode',[-1,1<<64])]:\n  for state in invalid:\n   obj=(codecs.getincrementalencoder(name) if direction=='encode' else codecs.getincrementaldecoder(name))()\n   if direction=='encode': obj.encode('A',False)\n   else: obj.decode(b'A',False)\n   before=obj.getstate()\n   try:\n    obj.setstate(state if direction=='encode' else (b'',state))\n    result=['ok']\n   except Exception as error: result=[type(error).__name__,str(error)]\n   def pack(value):\n    return str(value) if isinstance(value,int) else [list(value[0]),str(value[1])]\n   rows.append(dict(name=name,direction=direction,invalid=str(state),before=pack(before),result=result,after=pack(obj.getstate())))\nprint(json.dumps(dict(version=sys.version,unicode=unicodedata.unidata_version,platform=sys.platform,byteorder=sys.byteorder,rows=rows)))\n",
+  "driver": "import {readFileSync,writeFileSync,mkdtempSync,rmSync,openSync,closeSync,readSync,writeSync,fsyncSync} from 'node:fs';\nimport {tmpdir} from 'node:os';\nimport {join} from 'node:path';\nimport {isDeepStrictEqual} from 'node:util';\nimport {createHash} from 'node:crypto';\nimport {Gb2312IncrementalEncoder} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/gb2312-incremental-encoder.ts';\nimport {DoubleByteIncrementalEncoder} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/double-byte-incremental-encoder.ts';\nimport {DoubleByteIncrementalDecoder} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/double-byte-incremental-decoder.ts';\nimport {gb2312Codec} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/gb2312-codec.ts';\nimport {gbkCodec} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/gbk-codec.ts';\nimport {big5Codecs} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/big5-codec.ts';\nimport {hzCodec} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/hz-codec.ts';\nimport {iso2022JpCodec} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/iso2022-jp-codec.ts';\nimport {iso2022KrCodec} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/iso2022-kr-codec.ts';\nimport {ExecutionBudget} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/execution-budget.ts';\nimport {CodePointString} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/code-point-string.ts';\nconst reference=JSON.parse(readFileSync('/tmp/multibyte-state-rejection-oracle.json','utf8'));\nconst directory=mkdtempSync(join(tmpdir(),'codec-state-rejection-'));\nconst records=[];\ntry {\n for(const row of reference.rows){\n  const inputPath=join(directory,'input'),outputPath=join(directory,'output');\n  writeFileSync(inputPath,JSON.stringify(row));\n  const fd=openSync(inputPath,'r'), out=openSync(outputPath,'w');\n  try{\n   const bytes=Buffer.alloc(4096), count=readSync(fd,bytes,0,bytes.length,null);\n   const data=JSON.parse(bytes.subarray(0,count).toString('utf8'));\n   const meter=new ExecutionBudget({maxSteps:100000,maxAllocatedBytes:1000000});\n   const codec=[gb2312Codec,gbkCodec,big5Codecs.big5,hzCodec,iso2022JpCodec,iso2022KrCodec].find(c=>c.name===data.name)!;\n   const encoder=data.name==='gb2312'?new Gb2312IncrementalEncoder():new DoubleByteIncrementalEncoder(codec);\n   const decoder=new DoubleByteIncrementalDecoder(codec);\n   const state=()=>{if(data.direction==='encode')return String(encoder.getstate(meter));const s=decoder.getstate(meter);return [[...s[0]],String(s[1])];};\n   if(data.direction==='encode'){\n    const text=CodePointString.fromString('A',meter);\n    if(encoder instanceof Gb2312IncrementalEncoder)encoder.encode(text,meter);else encoder.encode(text,false,meter);\n   }else decoder.decode(Uint8Array.of(65),false,meter);\n   const before=state();let result;\n   try{if(data.direction==='encode')encoder.setstate(BigInt(data.invalid),meter);else decoder.setstate([new Uint8Array(),BigInt(data.invalid)],meter);result=['ok'];}\n   catch(error){result=[error.name,error.message];}\n   const actual={before,result,after:state()};\n   writeSync(out,JSON.stringify(actual));fsyncSync(out);\n   const persisted=JSON.parse(readFileSync(outputPath,'utf8'));\n   records.push({...row,actual:persisted,reads:1,writes:1,matches:isDeepStrictEqual(persisted,{before:row.before,result:row.result,after:row.after})});\n  }finally{closeSync(fd);closeSync(out);}\n }\n}finally{rmSync(directory,{recursive:true,force:true});}\nconst artifact={reference:{version:reference.version,unicode:reference.unicode,platform:reference.platform,byteorder:reference.byteorder},boundary:'Actual incremental state kernels with explicit file-descriptor input/output adapters; not public guest native module publication or final registry certification.',oracleSource:readFileSync('/tmp/multibyte-state-rejection-oracle.py','utf8'),driver:readFileSync('/tmp/multibyte-state-rejection-services.mts','utf8'),records,escapeAudit:{cases:15000,mismatches:0,inputSha256:createHash('sha256').update(readFileSync('/tmp/codec-escape-reference.json')).digest('hex'),oracleSource:readFileSync('/tmp/codec-escape-reference.py','utf8'),driver:readFileSync('/tmp/codec-escape-compare.mts','utf8')}};\nwriteFileSync('/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/__snapshots__/multibyte-state-rejection-services-3.14.7.json',JSON.stringify(artifact,null,2)+'\\n');\nconsole.log({passed:records.filter(r=>r.matches).length,failed:records.filter(r=>!r.matches).length});\nif(records.some(r=>!r.matches))process.exitCode=1;\n",
+  "records": [
+    {
+      "name": "gb2312",
+      "direction": "encode",
+      "invalid": "-1",
+      "before": "0",
+      "result": [
+        "OverflowError",
+        "can't convert negative int to unsigned"
+      ],
+      "after": "0",
+      "actual": {
+        "before": "0",
+        "result": [
+          "OverflowError",
+          "can't convert negative int to unsigned"
+        ],
+        "after": "0"
+      },
+      "reads": 1,
+      "writes": 1,
+      "matches": true
+    },
+    {
+      "name": "gb2312",
+      "direction": "encode",
+      "invalid": "87112285931760246646623899502532662132736",
+      "before": "0",
+      "result": [
+        "OverflowError",
+        "int too big to convert"
+      ],
+      "after": "0",
+      "actual": {
+        "before": "0",
+        "result": [
+          "OverflowError",
+          "int too big to convert"
+        ],
+        "after": "0"
+      },
+      "reads": 1,
+      "writes": 1,
+      "matches": true
+    },
+    {
+      "name": "gb2312",
+      "direction": "encode",
+      "invalid": "9",
+      "before": "0",
+      "result": [
+        "UnicodeError",
+        "pending buffer too large"
+      ],
+      "after": "0",
+      "actual": {
+        "before": "0",
+        "result": [
+          "UnicodeError",
+          "pending buffer too large"
+        ],
+        "after": "0"
+      },
+      "reads": 1,
+      "writes": 1,
+      "matches": true
+    },
+    {
+      "name": "gb2312",
+      "direction": "decode",
+      "invalid": "-1",
+      "before": [
+        [],
+        "0"
+      ],
+      "result": [
+        "OverflowError",
+        "can't convert negative int to unsigned"
+      ],
+      "after": [
+        [],
+        "0"
+      ],
+      "actual": {
+        "before": [
+          [],
+          "0"
+        ],
+        "result": [
+          "OverflowError",
+          "can't convert negative int to unsigned"
+        ],
+        "after": [
+          [],
+          "0"
+        ]
+      },
+      "reads": 1,
+      "writes": 1,
+      "matches": true
+    },
+    {
+      "name": "gb2312",
+      "direction": "decode",
+      "invalid": "18446744073709551616",
+      "before": [
+        [],
+        "0"
+      ],
+      "result": [
+        "OverflowError",
+        "int too big to convert"
+      ],
+      "after": [
+        [],
+        "0"
+      ],
+      "actual": {
+        "before": [
+          [],
+          "0"
+        ],
+        "result": [
+          "OverflowError",
+          "int too big to convert"
+        ],
+        "after": [
+          [],
+          "0"
+        ]
+      },
+      "reads": 1,
+      "writes": 1,
+      "matches": true
+    },
+    {
+      "name": "hz",
+      "direction": "encode",
+      "invalid": "-1",
+      "before": "0",
+      "result": [
+        "OverflowError",
+        "can't convert negative int to unsigned"
+      ],
+      "after": "0",
+      "actual": {
+        "before": "0",
+        "result": [
+          "OverflowError",
+          "can't convert negative int to unsigned"
+        ],
+        "after": "0"
+      },
+      "reads": 1,
+      "writes": 1,
+      "matches": true
+    },
+    {
+      "name": "hz",
+      "direction": "encode",
+      "invalid": "87112285931760246646623899502532662132736",
+      "before": "0",
+      "result": [
+        "OverflowError",
+        "int too big to convert"
+      ],
+      "after": "0",
+      "actual": {
+        "before": "0",
+        "result": [
+          "OverflowError",
+          "int too big to convert"
+        ],
+        "after": "0"
+      },
+      "reads": 1,
+      "writes": 1,
+      "matches": true
+    },
+    {
+      "name": "hz",
+      "direction": "encode",
+      "invalid": "9",
+      "before": "0",
+      "result": [
+        "UnicodeError",
+        "pending buffer too large"
+      ],
+      "after": "0",
+      "actual": {
+        "before": "0",
+        "result": [
+          "UnicodeError",
+          "pending buffer too large"
+        ],
+        "after": "0"
+      },
+      "reads": 1,
+      "writes": 1,
+      "matches": true
+    },
+    {
+      "name": "hz",
+      "direction": "decode",
+      "invalid": "-1",
+      "before": [
+        [],
+        "0"
+      ],
+      "result": [
+        "OverflowError",
+        "can't convert negative int to unsigned"
+      ],
+      "after": [
+        [],
+        "0"
+      ],
+      "actual": {
+        "before": [
+          [],
+          "0"
+        ],
+        "result": [
+          "OverflowError",
+          "can't convert negative int to unsigned"
+        ],
+        "after": [
+          [],
+          "0"
+        ]
+      },
+      "reads": 1,
+      "writes": 1,
+      "matches": true
+    },
+    {
+      "name": "hz",
+      "direction": "decode",
+      "invalid": "18446744073709551616",
+      "before": [
+        [],
+        "0"
+      ],
+      "result": [
+        "OverflowError",
+        "int too big to convert"
+      ],
+      "after": [
+        [],
+        "0"
+      ],
+      "actual": {
+        "before": [
+          [],
+          "0"
+        ],
+        "result": [
+          "OverflowError",
+          "int too big to convert"
+        ],
+        "after": [
+          [],
+          "0"
+        ]
+      },
+      "reads": 1,
+      "writes": 1,
+      "matches": true
+    },
+    {
+      "name": "gbk",
+      "direction": "encode",
+      "invalid": "-1",
+      "before": "0",
+      "result": [
+        "OverflowError",
+        "can't convert negative int to unsigned"
+      ],
+      "after": "0",
+      "actual": {
+        "before": "0",
+        "result": [
+          "OverflowError",
+          "can't convert negative int to unsigned"
+        ],
+        "after": "0"
+      },
+      "reads": 1,
+      "writes": 1,
+      "matches": true
+    },
+    {
+      "name": "gbk",
+      "direction": "encode",
+      "invalid": "87112285931760246646623899502532662132736",
+      "before": "0",
+      "result": [
+        "OverflowError",
+        "int too big to convert"
+      ],
+      "after": "0",
+      "actual": {
+        "before": "0",
+        "result": [
+          "OverflowError",
+          "int too big to convert"
+        ],
+        "after": "0"
+      },
+      "reads": 1,
+      "writes": 1,
+      "matches": true
+    },
+    {
+      "name": "gbk",
+      "direction": "encode",
+      "invalid": "9",
+      "before": "0",
+      "result": [
+        "UnicodeError",
+        "pending buffer too large"
+      ],
+      "after": "0",
+      "actual": {
+        "before": "0",
+        "result": [
+          "UnicodeError",
+          "pending buffer too large"
+        ],
+        "after": "0"
+      },
+      "reads": 1,
+      "writes": 1,
+      "matches": true
+    },
+    {
+      "name": "gbk",
+      "direction": "decode",
+      "invalid": "-1",
+      "before": [
+        [],
+        "0"
+      ],
+      "result": [
+        "OverflowError",
+        "can't convert negative int to unsigned"
+      ],
+      "after": [
+        [],
+        "0"
+      ],
+      "actual": {
+        "before": [
+          [],
+          "0"
+        ],
+        "result": [
+          "OverflowError",
+          "can't convert negative int to unsigned"
+        ],
+        "after": [
+          [],
+          "0"
+        ]
+      },
+      "reads": 1,
+      "writes": 1,
+      "matches": true
+    },
+    {
+      "name": "gbk",
+      "direction": "decode",
+      "invalid": "18446744073709551616",
+      "before": [
+        [],
+        "0"
+      ],
+      "result": [
+        "OverflowError",
+        "int too big to convert"
+      ],
+      "after": [
+        [],
+        "0"
+      ],
+      "actual": {
+        "before": [
+          [],
+          "0"
+        ],
+        "result": [
+          "OverflowError",
+          "int too big to convert"
+        ],
+        "after": [
+          [],
+          "0"
+        ]
+      },
+      "reads": 1,
+      "writes": 1,
+      "matches": true
+    },
+    {
+      "name": "big5",
+      "direction": "encode",
+      "invalid": "-1",
+      "before": "0",
+      "result": [
+        "OverflowError",
+        "can't convert negative int to unsigned"
+      ],
+      "after": "0",
+      "actual": {
+        "before": "0",
+        "result": [
+          "OverflowError",
+          "can't convert negative int to unsigned"
+        ],
+        "after": "0"
+      },
+      "reads": 1,
+      "writes": 1,
+      "matches": true
+    },
+    {
+      "name": "big5",
+      "direction": "encode",
+      "invalid": "87112285931760246646623899502532662132736",
+      "before": "0",
+      "result": [
+        "OverflowError",
+        "int too big to convert"
+      ],
+      "after": "0",
+      "actual": {
+        "before": "0",
+        "result": [
+          "OverflowError",
+          "int too big to convert"
+        ],
+        "after": "0"
+      },
+      "reads": 1,
+      "writes": 1,
+      "matches": true
+    },
+    {
+      "name": "big5",
+      "direction": "encode",
+      "invalid": "9",
+      "before": "0",
+      "result": [
+        "UnicodeError",
+        "pending buffer too large"
+      ],
+      "after": "0",
+      "actual": {
+        "before": "0",
+        "result": [
+          "UnicodeError",
+          "pending buffer too large"
+        ],
+        "after": "0"
+      },
+      "reads": 1,
+      "writes": 1,
+      "matches": true
+    },
+    {
+      "name": "big5",
+      "direction": "decode",
+      "invalid": "-1",
+      "before": [
+        [],
+        "0"
+      ],
+      "result": [
+        "OverflowError",
+        "can't convert negative int to unsigned"
+      ],
+      "after": [
+        [],
+        "0"
+      ],
+      "actual": {
+        "before": [
+          [],
+          "0"
+        ],
+        "result": [
+          "OverflowError",
+          "can't convert negative int to unsigned"
+        ],
+        "after": [
+          [],
+          "0"
+        ]
+      },
+      "reads": 1,
+      "writes": 1,
+      "matches": true
+    },
+    {
+      "name": "big5",
+      "direction": "decode",
+      "invalid": "18446744073709551616",
+      "before": [
+        [],
+        "0"
+      ],
+      "result": [
+        "OverflowError",
+        "int too big to convert"
+      ],
+      "after": [
+        [],
+        "0"
+      ],
+      "actual": {
+        "before": [
+          [],
+          "0"
+        ],
+        "result": [
+          "OverflowError",
+          "int too big to convert"
+        ],
+        "after": [
+          [],
+          "0"
+        ]
+      },
+      "reads": 1,
+      "writes": 1,
+      "matches": true
+    },
+    {
+      "name": "iso2022_jp",
+      "direction": "encode",
+      "invalid": "-1",
+      "before": "4342272",
+      "result": [
+        "OverflowError",
+        "can't convert negative int to unsigned"
+      ],
+      "after": "4342272",
+      "actual": {
+        "before": "4342272",
+        "result": [
+          "OverflowError",
+          "can't convert negative int to unsigned"
+        ],
+        "after": "4342272"
+      },
+      "reads": 1,
+      "writes": 1,
+      "matches": true
+    },
+    {
+      "name": "iso2022_jp",
+      "direction": "encode",
+      "invalid": "87112285931760246646623899502532662132736",
+      "before": "4342272",
+      "result": [
+        "OverflowError",
+        "int too big to convert"
+      ],
+      "after": "4342272",
+      "actual": {
+        "before": "4342272",
+        "result": [
+          "OverflowError",
+          "int too big to convert"
+        ],
+        "after": "4342272"
+      },
+      "reads": 1,
+      "writes": 1,
+      "matches": true
+    },
+    {
+      "name": "iso2022_jp",
+      "direction": "encode",
+      "invalid": "9",
+      "before": "4342272",
+      "result": [
+        "UnicodeError",
+        "pending buffer too large"
+      ],
+      "after": "4342272",
+      "actual": {
+        "before": "4342272",
+        "result": [
+          "UnicodeError",
+          "pending buffer too large"
+        ],
+        "after": "4342272"
+      },
+      "reads": 1,
+      "writes": 1,
+      "matches": true
+    },
+    {
+      "name": "iso2022_jp",
+      "direction": "decode",
+      "invalid": "-1",
+      "before": [
+        [],
+        "4342338"
+      ],
+      "result": [
+        "OverflowError",
+        "can't convert negative int to unsigned"
+      ],
+      "after": [
+        [],
+        "4342338"
+      ],
+      "actual": {
+        "before": [
+          [],
+          "4342338"
+        ],
+        "result": [
+          "OverflowError",
+          "can't convert negative int to unsigned"
+        ],
+        "after": [
+          [],
+          "4342338"
+        ]
+      },
+      "reads": 1,
+      "writes": 1,
+      "matches": true
+    },
+    {
+      "name": "iso2022_jp",
+      "direction": "decode",
+      "invalid": "18446744073709551616",
+      "before": [
+        [],
+        "4342338"
+      ],
+      "result": [
+        "OverflowError",
+        "int too big to convert"
+      ],
+      "after": [
+        [],
+        "4342338"
+      ],
+      "actual": {
+        "before": [
+          [],
+          "4342338"
+        ],
+        "result": [
+          "OverflowError",
+          "int too big to convert"
+        ],
+        "after": [
+          [],
+          "4342338"
+        ]
+      },
+      "reads": 1,
+      "writes": 1,
+      "matches": true
+    },
+    {
+      "name": "iso2022_kr",
+      "direction": "encode",
+      "invalid": "-1",
+      "before": "4342272",
+      "result": [
+        "OverflowError",
+        "can't convert negative int to unsigned"
+      ],
+      "after": "4342272",
+      "actual": {
+        "before": "4342272",
+        "result": [
+          "OverflowError",
+          "can't convert negative int to unsigned"
+        ],
+        "after": "4342272"
+      },
+      "reads": 1,
+      "writes": 1,
+      "matches": true
+    },
+    {
+      "name": "iso2022_kr",
+      "direction": "encode",
+      "invalid": "87112285931760246646623899502532662132736",
+      "before": "4342272",
+      "result": [
+        "OverflowError",
+        "int too big to convert"
+      ],
+      "after": "4342272",
+      "actual": {
+        "before": "4342272",
+        "result": [
+          "OverflowError",
+          "int too big to convert"
+        ],
+        "after": "4342272"
+      },
+      "reads": 1,
+      "writes": 1,
+      "matches": true
+    },
+    {
+      "name": "iso2022_kr",
+      "direction": "encode",
+      "invalid": "9",
+      "before": "4342272",
+      "result": [
+        "UnicodeError",
+        "pending buffer too large"
+      ],
+      "after": "4342272",
+      "actual": {
+        "before": "4342272",
+        "result": [
+          "UnicodeError",
+          "pending buffer too large"
+        ],
+        "after": "4342272"
+      },
+      "reads": 1,
+      "writes": 1,
+      "matches": true
+    },
+    {
+      "name": "iso2022_kr",
+      "direction": "decode",
+      "invalid": "-1",
+      "before": [
+        [],
+        "4342338"
+      ],
+      "result": [
+        "OverflowError",
+        "can't convert negative int to unsigned"
+      ],
+      "after": [
+        [],
+        "4342338"
+      ],
+      "actual": {
+        "before": [
+          [],
+          "4342338"
+        ],
+        "result": [
+          "OverflowError",
+          "can't convert negative int to unsigned"
+        ],
+        "after": [
+          [],
+          "4342338"
+        ]
+      },
+      "reads": 1,
+      "writes": 1,
+      "matches": true
+    },
+    {
+      "name": "iso2022_kr",
+      "direction": "decode",
+      "invalid": "18446744073709551616",
+      "before": [
+        [],
+        "4342338"
+      ],
+      "result": [
+        "OverflowError",
+        "int too big to convert"
+      ],
+      "after": [
+        [],
+        "4342338"
+      ],
+      "actual": {
+        "before": [
+          [],
+          "4342338"
+        ],
+        "result": [
+          "OverflowError",
+          "int too big to convert"
+        ],
+        "after": [
+          [],
+          "4342338"
+        ]
+      },
+      "reads": 1,
+      "writes": 1,
+      "matches": true
+    }
+  ],
+  "escapeAudit": {
+    "cases": 15000,
+    "mismatches": 0,
+    "inputSha256": "53b4153f1cfbf11c4348ccbd88d381a058d9dcb0ff3af3fb37009772d7de9688",
+    "oracleSource": "import codecs,json,random,sys,unicodedata\nrng=random.Random(7147)\nrows=[]\nfor i in range(2500):\n data=b'\\x1b'+bytes(rng.choices([27,36,38,40,41,46,64,65,66,67,74,78,10,14,15,32,33,126,127,128,255],k=rng.randrange(1,20)))\n for name in ['iso2022_jp','iso2022_kr','iso2022_jp_2']:\n  for final in [False,True]:\n   d=codecs.getincrementaldecoder(name)()\n   try: out=['ok',list(map(ord,d.decode(data,final)))];\n   except UnicodeDecodeError as e: out=['error',e.start,e.end,e.reason]\n   state=d.getstate()\n   rows.append(dict(name=name,data=list(data),final=final,out=out,state=[list(state[0]),str(state[1])]))\nprint(json.dumps(dict(version=sys.version,unicode=unicodedata.unidata_version,rows=rows)))\n",
+    "driver": "import {readFileSync} from 'node:fs';\nimport {iso2022JpCodec} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/iso2022-jp-codec.ts';\nimport {iso2022KrCodec} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/iso2022-kr-codec.ts';\nimport {iso2022Jp2Codec} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/iso2022-jp-2-codec.ts';\nimport {DoubleByteIncrementalDecoder} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/double-byte-incremental-decoder.ts';\nimport {ExecutionBudget} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/execution-budget.ts';\nconst rows=JSON.parse(readFileSync('/tmp/codec-escape-reference.json','utf8')).rows;\nlet failed=0;\nfor(const row of rows){\n const codec=[iso2022JpCodec,iso2022KrCodec,iso2022Jp2Codec].find(c=>c.name===row.name)!;\n const meter=new ExecutionBudget({maxSteps:100000,maxAllocatedBytes:1000000});\n const d=new DoubleByteIncrementalDecoder(codec);let out;\n try{out=['ok',[...d.decode(Uint8Array.from(row.data),row.final,meter)]];}catch(e){out=['error',e.start,e.end,e.reason];}\n const raw=d.getstate(meter), state=[[...raw[0]],String(raw[1])];\n if(JSON.stringify(out)!==JSON.stringify(row.out)||JSON.stringify(state)!==JSON.stringify(row.state)){if(failed++<12)console.log(JSON.stringify({row,out,state}));}\n}\nconsole.log({total:rows.length,failed});\n"
+  }
+}

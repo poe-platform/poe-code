@@ -15,14 +15,15 @@ export function callRuntimeType(type: TypeValue, positional: readonly RuntimeVal
   meter.checkpoint(1, 512);
   const invoke = (callee: RuntimeValue, args: readonly RuntimeValue[], named?: DictionaryValue): RuntimeValue => {
     const call = beginCall(callee); meter.checkpoint();
-    for (const item of args) { meter.checkpoint(); call.positional(item); }
+    if(call.positionalArray!==undefined)call.positionalArray(args);
+    else for (const item of args) { meter.checkpoint(); call.positional(item); }
     if (named !== undefined) call.mapping(named);
     meter.checkpoint();
     const result = call.invoke(); meter.checkpoint(); return result;
   };
   if (mode === "dispatch") {
     if(type.directCall!==undefined)return invoke(type.directCall,positional,keywords);
-    const override = lookupRuntimeSpecialMethod(type, type.metaclass, values.string("__call__"), special, values, meter);
+    const override = lookupRuntimeSpecialMethod(type, type.metaclass, values.internString("__call__"), special, values, meter);
     meter.checkpoint();
     if (override !== undefined) return invoke(override, positional, keywords);
   }
@@ -38,18 +39,34 @@ export function callRuntimeType(type: TypeValue, positional: readonly RuntimeVal
   return instantiateType<RuntimeValue, DictionaryValue>(type, positional, keywords, {
     lookupNew(requested) {
       if (requested.kind !== "type") throw Error("allocator requires an actual type");
-      const name = values.string("__new__");
-      // Slot eligibility is separate from ordinary class attribute lookup:
-      // metaclass overrides/data descriptors may replace the allocator read.
-      const present = lookupMroAttribute(requested.value.mro, name, (owner, key) => owner.namespace.items.lookup(key), meter);
+      const name = values.internString("__new__");
+      // Native tp_new slots bypass metaclass lookup. Python-defined allocators
+      // use slot_tp_new, whose ordinary lookup can run metaclass overrides.
+      const slot = requested.value.nativeSlots.methods.get(name);
+      if (slot?.kind === "absent") return undefined;
+      const present = slot?.kind === "native" ? {value: slot.value}
+        : lookupMroAttribute(requested.value.mro, name, (owner, key) => owner.namespace.items.lookup(key), meter);
       if (present === undefined) return undefined;
       let allocator: RuntimeValue;
-      if (attribute !== undefined) allocator = attribute(requested, "__new__");
+      if (present.value.kind === "builtin_function_or_method" && present.value.value.name === "__new__" && present.value.value.owner !== undefined) allocator = present.value;
+      else if (attribute !== undefined) allocator = attribute(requested, "__new__");
       else allocator = runtimeTypeAttribute(requested, "__new__", values, meter, special, { call: invoke });
+      // A native tp_new wrapper selects allocation through the layout base. Its
+      // published __new__ descriptor still follows the MRO and keeps its own
+      // safety checks when called explicitly (e.g. mixed exception bases).
+      const nativeAllocator = requested.value.nativeAllocator;
+      if (allocator === present.value && allocator.kind === "builtin_function_or_method"
+        && allocator.value.name === "__new__" && allocator.value.owner !== undefined
+        && nativeAllocator !== undefined && allocator.value.owner.value.nativeAllocator !== nativeAllocator) {
+        const nativeNew = lookupMroAttribute(nativeAllocator.mro, name, (owner, key) => owner.namespace.items.lookup(key), meter);
+        if (nativeNew !== undefined) allocator = nativeNew.value;
+      }
       meter.checkpoint(0, 64);
       return (owner, args, named) => {
         meter.checkpoint(0, 32 + (args.length + 1) * 8);
-        return invoke(allocator, [owner, ...args], named);
+        const prefixed=[owner,...args],original=values.argumentTuples.get(args);
+        if(original!==undefined){meter.checkpoint(0,64);values.argumentTuples.set(prefixed,{tuple:original.tuple,offset:original.offset+1});}
+        return invoke(allocator, prefixed, named);
       };
     },
     typeOf(value) { return runtimeActualType(value, special, meter); },
@@ -60,7 +77,7 @@ export function callRuntimeType(type: TypeValue, positional: readonly RuntimeVal
     },
     lookupInit(instance, actual) {
       if (actual.kind !== "type") throw Error("initializer requires an actual type");
-      const initialize = lookupRuntimeSpecialMethod(instance, actual, values.string("__init__"), special, values, meter); meter.checkpoint();
+      const initialize = lookupRuntimeSpecialMethod(instance, actual, values.internString("__init__"), special, values, meter); meter.checkpoint();
       if (initialize === undefined) return undefined;
       meter.checkpoint(0, 64);
       return (args, named) => invoke(initialize, args, named);

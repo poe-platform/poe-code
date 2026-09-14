@@ -1,0 +1,1549 @@
+{
+  "oracle": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "driver": "import {openSync,closeSync,writeSync,fsyncSync,readFileSync,writeFileSync,mkdtempSync,rmSync} from 'node:fs';\nimport {tmpdir} from 'node:os';\nimport {join} from 'node:path';\nimport {createHash} from 'node:crypto';\nimport {PythonSession} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/index.ts';\nimport {sourceCodecTruncatedCases} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/source-codec-truncated-cases.ts';\nconst root='/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/__snapshots__/';\nconst reference=JSON.parse(readFileSync(root+'source-codec-truncated-3.14.7.json','utf8'));\nconst directory=mkdtempSync(join(tmpdir(),'source-truncated-'));\nconst records=[];\ntry {\n for(const row of sourceCodecTruncatedCases){\n  const path=join(directory,'output');\n  const fd=openSync(path,'w');\n  let writes=0,flushes=0;\n  let result;\n  try {\n   const session=new PythonSession({hashSeed:[1n,2n],limits:{maxSteps:1000000,maxAllocatedBytes:16000000,maxDepth:100},output:{write(text){writes++;writeSync(fd,text);},flush(){flushes++;fsyncSync(fd);}}});\n   result=session.exec(row.source);\n   fsyncSync(fd);\n  } finally {closeSync(fd);}\n  const output=readFileSync(path,'utf8');\n  const oracle=reference.cases.find(item=>item.name===row.name);\n  records.push({name:row.name,source:row.source,sourceSha256:createHash('sha256').update(row.source).digest('hex'),result,output,writes,flushes,matches:result.status==='ok'&&output===oracle.stdout});\n }\n} finally {rmSync(directory,{recursive:true,force:true});}\nconst phase=process.argv[2];\nif(phase!=='before'&&phase!=='after')throw Error('phase');\nwriteFileSync(root+'source-codec-truncated-services-'+phase+'.json',JSON.stringify({oracle:reference.oracle,driver:readFileSync('/tmp/safe-python-truncated-services.mts','utf8'),oracleDriver:readFileSync('/tmp/safe-python-truncated-reference.mts','utf8'),adapters:'Explicit Node writeSync/fsyncSync file descriptor adapter; filesystem accessed only in this external driver.',records},null,2)+'\\n');\nconsole.log({phase,matched:records.filter(row=>row.matches).length,failed:records.filter(row=>!row.matches).length,writes:records.reduce((sum,row)=>sum+row.writes,0)});\n",
+  "oracleDriver": "import {spawnSync} from 'node:child_process';\nimport {writeFileSync} from 'node:fs';\nimport {sourceCodecTruncatedCases} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/source-codec-truncated-cases.ts';\nconst python='/opt/homebrew/bin/python3.14';\nconst identity=spawnSync(python,['-I','-c','import json,sys,unicodedata,platform; print(json.dumps(dict(version=sys.version,unicode=unicodedata.unidata_version,platform=platform.platform(),byteorder=sys.byteorder)))'],{encoding:'utf8'});\nif(identity.status!==0)throw Error(identity.stderr);\nconst oracle=JSON.parse(identity.stdout);\nif(!oracle.version.startsWith('3.14.7 ')||oracle.unicode!=='16.0.0')throw Error('wrong reference');\nconst cases=sourceCodecTruncatedCases.map(row=>{\n const result=spawnSync(python,['-I','-c',row.source],{encoding:'utf8'});\n if(result.status!==0)throw Error(result.stderr);\n return {...row,stdout:result.stdout,stderr:result.stderr,status:result.status};\n});\nwriteFileSync('/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/__snapshots__/source-codec-truncated-3.14.7.json',JSON.stringify({oracle,cases},null,2)+'\\n');\nconsole.log(cases.length,oracle);\n",
+  "adapters": "Explicit Node writeSync/fsyncSync file descriptor adapter; filesystem accessed only in this external driver.",
+  "records": [
+    {
+      "name": "utf8 exec \\xc3 ending=none",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xc3\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "edbcc2330387b39bcf3ccc9d50b6a75227078f911c26eabfa1108144004f2db7",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": false
+    },
+    {
+      "name": "utf8 exec \\xc3 ending=\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xc3\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "fdeeddf6670fdbb3c03453befabd78fe1113c91b4052418bc130db73d474be93",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf8 exec \\xc3 ending=\\r",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xc3\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "6d80ae9bcf23440f8d84d154438a28ed8bdfa13a936b900af03a566a0288fcc8",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf8 exec \\xc3 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xc3\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "d70b302b278a0851e01bda33edc96cec7c104a6bfb01a415082cf12048bb0ae8",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf8 eval \\xc3 ending=none",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xc3\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "e001a363e6102ea47058cbb7d7e741f3f47ffab4cc6c316bb2c2a785f7347ef1",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf8 eval \\xc3 ending=\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xc3\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "d1fe4a14aa870abf3f5fd2493d7fe5e54c7c99bce55c6c729c2012a3d33a0d00",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf8 eval \\xc3 ending=\\r",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xc3\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "529e66d7bdcbd90d564ba58079ff2805fcf9aadfe1a923c78802b807225fc90a",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf8 eval \\xc3 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xc3\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "c40d880621e864848e9164ab4eafbabaa14881e72c7024daa8594d6a12e2834a",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf8 exec \\xe2 ending=none",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "3988880f3e3914fda2fe875877980c59d68093a58776581395a55494adc227fd",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": false
+    },
+    {
+      "name": "utf8 exec \\xe2 ending=\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "5af98279506e1611dac2ddcfca336159f47c0128f69175a646fd652c17c2d2f9",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf8 exec \\xe2 ending=\\r",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "6e549855fe33d2a472011c34c929797b3a3d516fdaab7dfa117d41a7c2dfbc71",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf8 exec \\xe2 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "3d7c9f904a5d09431652cb2d0a58b2eaa0f22dc39bf7881308b4fb6708d2b191",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf8 eval \\xe2 ending=none",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "72710af416d9fe5f98c45fda67879f7b4fbd360b546494206fbc7543ebab730c",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf8 eval \\xe2 ending=\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "89f346735d21c85071165021b94c5d1b6b3c795ba4c532789300c7d1cc9caf4d",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf8 eval \\xe2 ending=\\r",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "df31ea212096006c492d45ba5e277d3bd2ca5356355a33aca6d22556559fe497",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf8 eval \\xe2 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "af27aae4465caeeececd89d7499e441a023db6e8cb8cf182bc1ce11f1cddb554",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf8 exec \\xe2\\x82 ending=none",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\\x82\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "df10ce0858fb363c69e989a3e5217aba8a670c1159934bf52b75b6f8382b348f",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": false
+    },
+    {
+      "name": "utf8 exec \\xe2\\x82 ending=\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\\x82\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "193a60c61eba32c43ab63a645fbd51f1dab1eefab5f7da85a81b9468c50837b5",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf8 exec \\xe2\\x82 ending=\\r",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\\x82\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "dc97c2814c38e614dbceb22af50fba2b822f970285e3d79f54153a1903e9358a",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf8 exec \\xe2\\x82 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\\x82\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "ba26b0de887b063742c28bad96511347b4e37f5dbac97be8476e81ab33ef0188",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf8 eval \\xe2\\x82 ending=none",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\\x82\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "a3206cd75e5e0e9a879f0e154df10ddca520cdee8f239ac6b4f131f78426a0eb",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf8 eval \\xe2\\x82 ending=\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\\x82\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "b5ae4dfe5e24c3bbc92b170f5877d78d4ff7e3fccf89cd5b14fa74a93905eb0b",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf8 eval \\xe2\\x82 ending=\\r",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\\x82\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "d25f5ae36a2c555adfbaef3a8fddd342928d09ed9652d2e6412ccc0ddde39590",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf8 eval \\xe2\\x82 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xe2\\x82\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "205604c3d4b4df54c569acd929d8095248f562160b34205095a93145db3fa9b6",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf8 exec \\xf0\\x90\\x80 ending=none",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xf0\\x90\\x80\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "33582febc0f18ea2ce00afe117a54ae94c9c07103fad4301af10d217881037de",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": false
+    },
+    {
+      "name": "utf8 exec \\xf0\\x90\\x80 ending=\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xf0\\x90\\x80\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "28b6a398b0e8782e91013def2f864b0a1d258862a0464f4d91a506d880d71d9a",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf8 exec \\xf0\\x90\\x80 ending=\\r",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xf0\\x90\\x80\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "2e91729d496b6afa62c9c8e1667d96e7a83afc857e533b6c5d672d2b4d8fb785",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf8 exec \\xf0\\x90\\x80 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xf0\\x90\\x80\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "9703bd1994dd7f12a01637da7d3e1e66d5962a76affd601ce2d40f8dfbf34b34",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf8 eval \\xf0\\x90\\x80 ending=none",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xf0\\x90\\x80\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "be26a981d1fee1925f93124d135b967e8a3a62cd3b5185f57bdeadd145965c1a",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf8 eval \\xf0\\x90\\x80 ending=\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xf0\\x90\\x80\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "9c9cb0622562ab8df0ce5d74bbbeb6767917e268908ecee04e7290f8be8e4759",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf8 eval \\xf0\\x90\\x80 ending=\\r",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xf0\\x90\\x80\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "2a8523595ba567dc52243fbd7e7ed67f2f7ce74d77c309e8d081d7cd5e6bc3f9",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf8 eval \\xf0\\x90\\x80 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf8\\nx='\\xf0\\x90\\x80\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "d190ed409af7b06c1f26f410c813a2566a1df2a9f5bf23e1b998fd5d6b7c5e9d",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "UTF8 exec \\xc3 ending=none",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xc3\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "ed04f7d0fab27ae2ff53b0e405a73ca757f7f0f8285e21b02abb599cdeaa963a",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": false
+    },
+    {
+      "name": "UTF8 exec \\xc3 ending=\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xc3\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "d5243834561bc920a1061680f39cb8f7223a02d5624c961dcd3d200bcc67b68a",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "UTF8 exec \\xc3 ending=\\r",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xc3\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "a46fe73b21073af5d9c49099899a310f47c2958b7f386cc1a33a7d7d19a77a9a",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "UTF8 exec \\xc3 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xc3\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "5dc860b92760689b4ccc9b4e8db6d3cbbc2e3a93aea374c090b0bbdffc4164e2",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "UTF8 eval \\xc3 ending=none",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xc3\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "976bfe3ee7f4c461db9c3648d284a214549a6a88dd9697d586e90edc90195f7e",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "UTF8 eval \\xc3 ending=\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xc3\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "547086dc112bcd6301e30568563061a0b37db46c74e36f6aea9035b063423836",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "UTF8 eval \\xc3 ending=\\r",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xc3\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "d11089cc3ae0ffdde145f40fbb5ae2ef40473100ed6aafd4502e108c0cfc0616",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "UTF8 eval \\xc3 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xc3\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "78a8ca7d10f24e06f0509499fdf249350812791146643e6e62b6566bae1af42d",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "UTF8 exec \\xe2 ending=none",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "d415cdc649f8f39ee4a0be839a61fe9244f490913767c0b82e4b90bc5ac3566a",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": false
+    },
+    {
+      "name": "UTF8 exec \\xe2 ending=\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "2b75e2b1da59bd8470a36b70564987260641e56c61dcfcc464412af5f263e932",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "UTF8 exec \\xe2 ending=\\r",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "d6b4deb0808e6c2fe65e45cc300ae4c1606d11ed6631b44c196d8386969b0f85",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "UTF8 exec \\xe2 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "9fd3d0b38123d63d8219c770be285f74fc0724aa55153f72adc237d25ec3cfaa",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "UTF8 eval \\xe2 ending=none",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "92ec1de21fb5a7865cf651356a1a015da9b8a634c285f91d5417951b97f90e83",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "UTF8 eval \\xe2 ending=\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "d0f6b38488f21fbea2a8fbcba08f829ed10234e2ad34ddd3f26226f38ddac813",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "UTF8 eval \\xe2 ending=\\r",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "f880b4bc6a79e37ae3c1f5f4f698422efef0c2f6804c05871f149c38741cb22d",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "UTF8 eval \\xe2 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "04300cc84fab3350f9994849313a79540df96af08fe88b5e32658c920bed8493",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 18: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "UTF8 exec \\xe2\\x82 ending=none",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\\x82\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "d743b56736432fd29d0fe4b7ba8e555e578c3a67b0d6a8367b3b9c44da9cefd9",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": false
+    },
+    {
+      "name": "UTF8 exec \\xe2\\x82 ending=\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\\x82\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "aa53eae30dfd0014fe2d45fb37f737f68b6dcea69132d749b513387c51221ce9",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "UTF8 exec \\xe2\\x82 ending=\\r",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\\x82\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "1a560b65fe34e40ec7f291abc5348b2a2adbec1f3de2d916595cc68b6757944e",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "UTF8 exec \\xe2\\x82 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\\x82\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "2c5dcda4eef7209bb0a26b4f85c4be84b6d8f27fe62d9b8ecb4e7cb093225b73",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "UTF8 eval \\xe2\\x82 ending=none",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\\x82\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "6fcb156f610c7bd937bdc5121faa167a3b67c1c2f5c7d39df23a63e5e5b9d09f",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "UTF8 eval \\xe2\\x82 ending=\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\\x82\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "5aa0f68c6050dcac481f682b536013d4f88d44a1478859b4c3d0cde18f32bdd3",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "UTF8 eval \\xe2\\x82 ending=\\r",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\\x82\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "e9486d124c205a99897edcc0dc07ae8ae348960fc08332d7608940a8adc2fad1",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "UTF8 eval \\xe2\\x82 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xe2\\x82\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "b9af5cbffc130556160d51c426d6c7a21fc10f8a914a2b90c98f1cb5ae187832",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-19: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "UTF8 exec \\xf0\\x90\\x80 ending=none",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xf0\\x90\\x80\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "62fc5973346ce854825bc645295c3382e7d9c684720ed760f930b9bf86f1cffa",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": false
+    },
+    {
+      "name": "UTF8 exec \\xf0\\x90\\x80 ending=\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xf0\\x90\\x80\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "434759298720c6488b77556430bf66792903d48faed15a942bf48a1e6c8e0184",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "UTF8 exec \\xf0\\x90\\x80 ending=\\r",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xf0\\x90\\x80\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "78eab2d204f9a9a657e9d701eaf58f6d0cc87a0bc2bc8ea2d32bc6a405ddbb4f",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "UTF8 exec \\xf0\\x90\\x80 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xf0\\x90\\x80\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "a904caa50966351f56c0536856675da095bf25748835996c5126f23edafbfa28",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "UTF8 eval \\xf0\\x90\\x80 ending=none",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xf0\\x90\\x80\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "90716c7e8f8e8e5bd90eee58e5c829ee467f21e210b43ef654c930d67c68fe2a",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "UTF8 eval \\xf0\\x90\\x80 ending=\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xf0\\x90\\x80\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "d916d010e8aa72d3632f2f4a23202c4d27c4f23d9ad40e7d5d6b89dd7b2677f7",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "UTF8 eval \\xf0\\x90\\x80 ending=\\r",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xf0\\x90\\x80\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "a5e04f287c06aa42d8f3d556a76e3cc4b11d1d3bf261adca0b0c563c74672ad5",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "UTF8 eval \\xf0\\x90\\x80 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: UTF8\\nx='\\xf0\\x90\\x80\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "212273481e9a652de96fcbba512c4d01b530f6be3cffac93ab93aef31b546eb5",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 18-20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf--8 exec \\xc3 ending=none",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xc3\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "63541fe9fac0d212857476d603997bee7f2dde0647e27b91ddba314f8a86a390",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 20: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": false
+    },
+    {
+      "name": "utf--8 exec \\xc3 ending=\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xc3\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "ef84f6e10505329a7e445c2260cb4bf1d8297ccf618a08839c0103c91fd75f23",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf--8 exec \\xc3 ending=\\r",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xc3\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "157048b11186f88e47b804432b560528bb812a128c2791354229e96eab1861e0",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf--8 exec \\xc3 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xc3\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "9a2d6dd6507c6e8f510de395a45caf87a26ea691e869ee7822f25bb5989d6466",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf--8 eval \\xc3 ending=none",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xc3\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "1add88bf5c7b6d622e55d1bb05df6728487ac1ee98959b9e99eecbba70290e3b",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 20: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf--8 eval \\xc3 ending=\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xc3\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "ca592f3b01b269594e1f1f5ffeb9931650bf69ecc76020decc517a4f186d561c",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf--8 eval \\xc3 ending=\\r",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xc3\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "4db6e8ab1bfe07bbe1a956a1d6eadce55506cba1bea069e828fdc3e9942d09c0",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf--8 eval \\xc3 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xc3\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "2cd0d729c1a856dd0efe0751b1b26e0b19da1eb50804f69ea68588e819c6fec2",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xc3 in position 20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf--8 exec \\xe2 ending=none",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "48cfda649ad922845cd93e57f6fa0a4a767c2dc56572c102491f26173fa9d42f",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 20: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": false
+    },
+    {
+      "name": "utf--8 exec \\xe2 ending=\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "fad6bb6ca0822e9f9e8d63237653e7a0b18954b3eaf36ed5ec8997dda5351ce0",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf--8 exec \\xe2 ending=\\r",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "7ccee60b797f855e0438d7009a3da49d6e20aa6e9d5318b3a2664088dd4ed86a",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf--8 exec \\xe2 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "5615c2958feaddf826e9a0999b359ca06bda52a2b7086571abc94204b3b763dd",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf--8 eval \\xe2 ending=none",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "893fc4e99f5c058e529765526fd618086d62af220a4dea86cca95d30dba093af",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 20: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf--8 eval \\xe2 ending=\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "0c7c71190e279e1182918798c3bf867dff7c9edeaaa737ade4abb0005144d52e",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf--8 eval \\xe2 ending=\\r",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "4ce71cbace00ffd9a6fc4c0db5ddadbc20f3e044e76361abcd8770cfc7ded166",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf--8 eval \\xe2 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "3106abab5ccfed07965757769b83176b170f26dd3775b117001269e178608b31",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode byte 0xe2 in position 20: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf--8 exec \\xe2\\x82 ending=none",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\\x82\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "db47648f984bbc221a39632c493bc2f75df0ec40530a6e3225c371d1438a2bfb",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-21: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": false
+    },
+    {
+      "name": "utf--8 exec \\xe2\\x82 ending=\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\\x82\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "47a0d1e5b7a2b5e8d65a11581ea0b7adea86a49ee69940082b1396fefce93b82",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-21: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf--8 exec \\xe2\\x82 ending=\\r",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\\x82\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "d16b110256999bcdb2f2f4ec5313f2362d2005d6fce24795be26f63125493454",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-21: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf--8 exec \\xe2\\x82 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\\x82\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "47a1dd7ae55fcda806bdb3e01c90c24098fe69c91e8fce6efdf0e0478a45cbd9",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-21: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf--8 eval \\xe2\\x82 ending=none",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\\x82\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "28ecc6589375805c7b14e5876672212903c2e2b37f0f6462b9a49b340312718a",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-21: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf--8 eval \\xe2\\x82 ending=\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\\x82\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "8a8b1c9ee3b624ccc6a6595be2869d6b883894de6ba84debe68c75610d2e728e",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-21: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf--8 eval \\xe2\\x82 ending=\\r",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\\x82\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "4ebe946bfc45beba3e7aee2786e2e25ee2f4653cb107007823238a31e653cbd1",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-21: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf--8 eval \\xe2\\x82 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xe2\\x82\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "d9d3e7fc637ec712489fd3d9647633295dd9038828f7921aa989e988726810ff",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-21: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf--8 exec \\xf0\\x90\\x80 ending=none",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xf0\\x90\\x80\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "0287d7da3a8d8f4d8dbd45ae6e7899e9f403012185b1356343deea962a15e052",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-22: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": false
+    },
+    {
+      "name": "utf--8 exec \\xf0\\x90\\x80 ending=\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xf0\\x90\\x80\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "5da5178d1d171f7684192bed4db001106409a964f4859b09309d8d5ba3e980f0",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-22: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf--8 exec \\xf0\\x90\\x80 ending=\\r",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xf0\\x90\\x80\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "3d86d89921014ed4ced67aeda18ba8f6f7e5be58ad47d932a24d930ceafd0ae1",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-22: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf--8 exec \\xf0\\x90\\x80 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xf0\\x90\\x80\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "722c812d0440a049f1cd3bd3f7e77d5ff5c043550cedd0446e4830cb272480a7",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-22: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf--8 eval \\xf0\\x90\\x80 ending=none",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xf0\\x90\\x80\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "1905f556dccbc4cf305f8550af1ebdf098c7f76e29c71e76400b2f376f6e97e8",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-22: unexpected end of data\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf--8 eval \\xf0\\x90\\x80 ending=\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xf0\\x90\\x80\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "908b020e7125d140bc788684a731b644b30f5a590cd737e8814f2817f3f62887",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-22: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf--8 eval \\xf0\\x90\\x80 ending=\\r",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xf0\\x90\\x80\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "8ed89637a2293108086da3fd1fda0d651c546aa87b3a5194db701d0535abdda6",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-22: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf--8 eval \\xf0\\x90\\x80 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf--8\\nx='\\xf0\\x90\\x80\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "70bfde7a6b435b7ba0a4e881a71a27f31d79d02bbcd93a85871f6a8c0fd55cfa",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"'utf-8' codec can't decode bytes in position 20-22: invalid continuation byte\", ('truncated.py', 0, -1, None))\ntruncated.py 0 -1 None None None\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 exec \\xc3 ending=none",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xc3\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "3f3a1c8ef53b32ae12e553989b415dd928d94d12ac53f486368910b656666165",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xc3' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 exec \\xc3 ending=\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xc3\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "3c249b95e0ffef03e9eebd85b645bc114e1463146700f5de9e01c611fe7e0be5",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xc3' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 exec \\xc3 ending=\\r",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xc3\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "ccd2a3b5b6be0e893c81473bf88a42d46ecc4762c572b9b723b0d88012a19a68",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xc3' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 exec \\xc3 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xc3\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "b34146db307256962cc654799cc141c26c584b177678891bda3705c8c1f884c6",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xc3' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 eval \\xc3 ending=none",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xc3\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "bfe3f028553955672fa7faa488f2752aa1e3fdee43b1c88a835c1f1f865b7f36",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xc3' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 eval \\xc3 ending=\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xc3\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "ba6968d9fa2f78d7271f77265d0830685b114bae46b214b0d3aaffbaec6826d7",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xc3' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 eval \\xc3 ending=\\r",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xc3\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "ec900a874a870de444a8f8d57d3dc86e5d0d54fb619161307e3d72e0ab0995f3",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xc3' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 eval \\xc3 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xc3\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "3e501a6449b375d31043636de8a63b757d2d995193d3551d9d83257c37870a1f",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xc3' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 exec \\xe2 ending=none",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "fee2e9da7660406d3d5040284ac6808f79391ab7bf31d113ce23669434f10b13",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 exec \\xe2 ending=\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "3774c2be7425439be1fcc37435446e480ee46327df5e62549d654729e5428625",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 exec \\xe2 ending=\\r",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "58977b6a1218850c8ad7ee651be6ae3f99e4b391a438a6ea5fe4feef1beb06ea",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 exec \\xe2 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "3a29e2755ceefafa17f48115fc7fd57ddd414c904cf326d4dac578d86bb78e17",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 eval \\xe2 ending=none",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "ee26a1fcf3f967a02d7712727a2983613f2f2411a054751c2aa131f08cb9cd28",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 eval \\xe2 ending=\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "725a6ba7c7854e0feca61d8e1d6bf794c4bb756ea261fcd9d5aebb149e4d3451",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 eval \\xe2 ending=\\r",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "7564d191fd45c8c5815ed36ad6cb7743c34313ea2e5c45db986ccc310183c74e",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 eval \\xe2 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "eb2f70f12b54c8f728979bbb7e67759209270eb139b8f491ffcb76dd5db8985d",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 exec \\xe2\\x82 ending=none",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\\x82\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "179650dbc9b0df05b5c0bd0e95104e6cf3b4c164211532de1a294715170db9f0",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 exec \\xe2\\x82 ending=\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\\x82\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "8f7348e764224b104ea606f4d264917be0641aa6e384e4739e83982115c60970",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 exec \\xe2\\x82 ending=\\r",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\\x82\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "ecb5c0a5ecf0dae18b246d03cacc17d18d07f33aef417489b9331fdc88122397",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 exec \\xe2\\x82 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\\x82\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "0153894d291f4fe4e45f7d4c81548aee91ff291d9e9d53a21b3997a8d476edcd",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 eval \\xe2\\x82 ending=none",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\\x82\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "55e98ad0af3afcb6155bd53efe96a67339e95b31ac619dbeedf79a325799720a",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 eval \\xe2\\x82 ending=\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\\x82\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "ccfb61ab241c78f66db4a459863cbd61413a9713f44000f1eb94bdeafdddbd6f",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 eval \\xe2\\x82 ending=\\r",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\\x82\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "78746230a352e7cefd1b4834a9c75d706d28b723ec4fb1c88414fd1a86aa7678",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 eval \\xe2\\x82 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xe2\\x82\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "67e229ab5391078e17610df21af775adaee5d492581b1f4a9da65c871424685c",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xe2' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 exec \\xf0\\x90\\x80 ending=none",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xf0\\x90\\x80\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "68cbe6d7d452ad2be3183e0bc2651e3590da0b99efc06100990cc45570099c90",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xf0' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 exec \\xf0\\x90\\x80 ending=\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xf0\\x90\\x80\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "e3c5b7baf49a9ce4301ed348da122532541722331b72f6f127a1952fd68671e4",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xf0' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 exec \\xf0\\x90\\x80 ending=\\r",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xf0\\x90\\x80\\r\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "2e120cb6592d16a42f78be31e199b3c01ecf2f9e988e1693ab6978c98ca084c0",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xf0' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 exec \\xf0\\x90\\x80 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xf0\\x90\\x80\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'exec')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "7ad91a5e8832424077d9455c5e9c5d13405a5e62f2d6d08a6b703708c6ac4f4b",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xf0' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 eval \\xf0\\x90\\x80 ending=none",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xf0\\x90\\x80\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "24c88bcafbda8f971dcaa302a0e1a7ab6a890232a98473c8936f45e2c1a1ca76",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xf0' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 eval \\xf0\\x90\\x80 ending=\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xf0\\x90\\x80\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "3bdc1435c54e71ddbf297d0989bf1895b007d1312801cf8d876fb00432adf90b",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xf0' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 eval \\xf0\\x90\\x80 ending=\\r",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xf0\\x90\\x80\\r\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "7fe54b958b5d0a317db379387d21c40c4f7f9842b68fc0a14982fbd318a2a0a2",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xf0' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    },
+    {
+      "name": "utf-8 eval \\xf0\\x90\\x80 ending=\\r\\n",
+      "source": "\ndata = b\"# coding: utf-8\\nx='\\xf0\\x90\\x80\\r\\n\"\ntry:\n    compile(data, 'truncated.py', 'eval')\nexcept SyntaxError as error:\n    print(type(error).__name__, error.args)\n    print(error.filename, error.lineno, error.offset, error.end_lineno, error.end_offset, repr(error.text))\n    print(error.__cause__, error.__context__, getattr(error, '__notes__', None))\nelse:\n    raise AssertionError('truncated source must fail')\n",
+      "sourceSha256": "5c840bd7c6ed96c49f84834cbf974f976576e44b8a006185ff4cd7f8ae207eca",
+      "result": {
+        "status": "ok"
+      },
+      "output": "SyntaxError (\"Non-UTF-8 code starting with '\\\\xf0' on line 2, but no encoding declared; see https://peps.python.org/pep-0263/ for details\", (None, 2, 4, \"x='�\", 2, 4))\ntruncated.py 2 4 2 4 \"x='�\"\nNone None None\n",
+      "writes": 22,
+      "flushes": 0,
+      "matches": true
+    }
+  ]
+}

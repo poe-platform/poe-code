@@ -22,8 +22,34 @@ export class UniversalNewlineDecoder {
   decode(input: CodePointString, final = false, meter?: ExecutionMeter): CodePointString {
     meter?.checkpoint();
     if (input.length === 0 && (!this.#pendingCR || !final)) return input;
+    // CPython retains the decoded object when neither prefixing nor withholding
+    // CR changes it and the native scan needs no translation buffer. Its LF-only
+    // shortcut scans compact Unicode *bytes*, so U+010D/U+0D00/U+D0000 also leave
+    // that shortcut. Once CR/CRLF has been seen, translation keeps copying even
+    // later chunks without CR. Inspect pinned code-point bytes, never host text.
+    if (!this.#pendingCR && (final || input.codePointAt(BigInt(input.length - 1), meter) !== 13)
+      && (!this.translate || (this.#seen & 5) === 0)) {
+      let seen = this.#seen, reusable = true;
+      for (let index = 0; index < input.length; index++) {
+        const point = input.codePointAt(BigInt(index), meter);
+        if (this.translate && ((point & 255) === 13 || ((point >>> 8) & 255) === 13 || (point >>> 16) === 13)) {
+          reusable = false;
+          break;
+        }
+        if (point === 13) {
+          if (index + 1 < input.length && input.codePointAt(BigInt(index + 1), meter) === 10) {
+            seen |= 4;
+            index++;
+          } else seen |= 1;
+        } else if (point === 10) seen |= 2;
+      }
+      if (reusable) {
+        this.#seen = seen;
+        return input;
+      }
+    }
     const capacity = input.length + (this.#pendingCR ? 1 : 0);
-    meter?.checkpoint(0, capacity * Uint32Array.BYTES_PER_ELEMENT);
+    meter?.checkpoint(0, 64 + capacity * Uint32Array.BYTES_PER_ELEMENT);
     const output = new Uint32Array(capacity);
     let written = 0, index = 0, seen = this.#seen;
     let pendingCR = false;
@@ -53,14 +79,25 @@ export class UniversalNewlineDecoder {
       else output[written++] = point;
       index++;
     }
-    const text = new CodePointString(output.subarray(0, written), meter);
+    // The result owns a string record and copied typed-array storage, even
+    // when withholding a trailing CR produces an empty string. Admit that
+    // metadata before construction and before committing either state field.
+    meter?.checkpoint(0, 128);
+    // Prefixing CR uses PyUnicode_New with the decoded string's allocation
+    // maximum. Preserve that storage when returning the prefixed text directly.
+    // Substring extraction (withholding CR) and newline translation instead
+    // rebuild from code points and compact the result.
+    const maximum = this.#pendingCR && !this.translate && !pendingCR ? input.storageMaximum(meter) : 127;
+    const text = new CodePointString(output.subarray(0, written), meter, undefined, maximum);
     this.#pendingCR = pendingCR;
     this.#seen = seen;
     return text;
   }
 
   getstate(meter?: ExecutionMeter): NewlineState {
-    meter?.checkpoint();
+    // Each retained snapshot owns an immutable state record, even when no CR
+    // is pending. Charge before allocation without mutating decoder state.
+    meter?.checkpoint(1, 32);
     return Object.freeze({ pendingCR: this.#pendingCR });
   }
 

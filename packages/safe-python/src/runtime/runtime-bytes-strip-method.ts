@@ -1,4 +1,5 @@
 import { PythonRuntimeError } from "./error.js";
+import {unsupportedBuffer} from "./runtime-buffer-error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { RuntimeBufferContext, RuntimeBufferLease } from "./runtime-buffer-context.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
@@ -16,10 +17,7 @@ export function createRuntimeBytesStripMethod(receiver: Extract<RuntimeValue, { 
       try {
         if (chars !== undefined && chars.kind !== "none" && chars.kind !== "bytes") {
           lease = buffers?.acquireSimple(chars); meter.checkpoint();
-          if (lease === undefined) {
-            const type = chars.kind === "not-implemented" ? "NotImplementedType" : chars.kind;
-            throw new PythonRuntimeError("TypeError", `a bytes-like object is required, not '${type}'`);
-          }
+          if (lease === undefined) unsupportedBuffer(chars,meter,buffers);
         }
         const storage = chars?.kind === "bytes" ? chars.value : lease?.copy() ?? null;
         meter.checkpoint();

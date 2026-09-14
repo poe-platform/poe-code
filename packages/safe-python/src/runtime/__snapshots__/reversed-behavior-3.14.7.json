@@ -1,0 +1,506 @@
+{
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+  "cases": [
+    {
+      "name": "reversed()",
+      "source": "events = []\ntry:\n    value = reversed()\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', 'reversed expected 1 argument, got 0', ('reversed expected 1 argument, got 0',), [])"
+    },
+    {
+      "name": "reversed([], [])",
+      "source": "events = []\ntry:\n    value = reversed([], [])\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', 'reversed expected 1 argument, got 2', ('reversed expected 1 argument, got 2',), [])"
+    },
+    {
+      "name": "reversed(sequence=[])",
+      "source": "events = []\ntry:\n    value = reversed(sequence=[])\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', 'reversed() takes no keyword arguments', ('reversed() takes no keyword arguments',), [])"
+    },
+    {
+      "name": "reversed([], sequence=[])",
+      "source": "events = []\ntry:\n    value = reversed([], sequence=[])\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', 'reversed() takes no keyword arguments', ('reversed() takes no keyword arguments',), [])"
+    },
+    {
+      "name": "reversed(1, x=2)",
+      "source": "events = []\ntry:\n    value = reversed(1, x=2)\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', 'reversed() takes no keyword arguments', ('reversed() takes no keyword arguments',), [])"
+    },
+    {
+      "name": "reversed(None)",
+      "source": "events = []\ntry:\n    value = reversed(None)\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'NoneType' object is not reversible\", (\"'NoneType' object is not reversible\",), [])"
+    },
+    {
+      "name": "reversed(set())",
+      "source": "events = []\ntry:\n    value = reversed(set())\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'set' object is not reversible\", (\"'set' object is not reversible\",), [])"
+    },
+    {
+      "name": "list(reversed(\"a\ud800\udc00\\ud800\"))",
+      "source": "events = []\ntry:\n    value = list(reversed(\"a\ud800\udc00\\ud800\"))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', ['\\ud800', '\ud800\udc00', 'a'], [])"
+    },
+    {
+      "name": "list(reversed(b\"abc\"))",
+      "source": "events = []\ntry:\n    value = list(reversed(b\"abc\"))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', [99, 98, 97], [])"
+    },
+    {
+      "name": "list(reversed((1,2,3)))",
+      "source": "events = []\ntry:\n    value = list(reversed((1,2,3)))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', [3, 2, 1], [])"
+    },
+    {
+      "name": "object:inherited",
+      "source": "events = []\nclass C(object):\n    pass\ntry:\n    value = list(reversed(C()))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'C' object is not reversible\", (\"'C' object is not reversible\",), [])"
+    },
+    {
+      "name": "object:custom",
+      "source": "events = []\nclass C(object):\n    def __reversed__(self):\n        events.append(\"reversed\")\n        return 42\ntry:\n    value = reversed(C())\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', 42, ['reversed'])"
+    },
+    {
+      "name": "object:disabled",
+      "source": "events = []\nclass C(object):\n    __reversed__ = None\ntry:\n    value = reversed(C())\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'C' object is not reversible\", (\"'C' object is not reversible\",), [])"
+    },
+    {
+      "name": "object:not-callable",
+      "source": "events = []\nclass C(object):\n    __reversed__ = 3\ntry:\n    value = reversed(C())\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'int' object is not callable\", (\"'int' object is not callable\",), [])"
+    },
+    {
+      "name": "object:length",
+      "source": "events = []\nclass C(object):\n    def __len__(self):\n        events.append(\"len\")\n        return 2\ntry:\n    value = list(reversed(C()))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'C' object is not reversible\", (\"'C' object is not reversible\",), [])"
+    },
+    {
+      "name": "object:items",
+      "source": "events = []\nclass C(object):\n    def __getitem__(self, i):\n        events.append(i)\n        return i + 10\ntry:\n    value = list(reversed(C()))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"object of type 'C' has no len()\", (\"object of type 'C' has no len()\",), [])"
+    },
+    {
+      "name": "object:length-items",
+      "source": "events = []\nclass C(object):\n    def __len__(self):\n        events.append(\"len\")\n        return 2\n    def __getitem__(self, i):\n        events.append(i)\n        return i + 10\ntry:\n    value = list(reversed(C()))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', [11, 10], ['len', 'len', 1, 0])"
+    },
+    {
+      "name": "tuple:inherited",
+      "source": "events = []\nclass C(tuple):\n    pass\ntry:\n    value = list(reversed(C((1, 2, 3))))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', [3, 2, 1], [])"
+    },
+    {
+      "name": "tuple:custom",
+      "source": "events = []\nclass C(tuple):\n    def __reversed__(self):\n        events.append(\"reversed\")\n        return 42\ntry:\n    value = reversed(C((1, 2, 3)))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', 42, ['reversed'])"
+    },
+    {
+      "name": "tuple:disabled",
+      "source": "events = []\nclass C(tuple):\n    __reversed__ = None\ntry:\n    value = reversed(C((1, 2, 3)))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'C' object is not reversible\", (\"'C' object is not reversible\",), [])"
+    },
+    {
+      "name": "tuple:not-callable",
+      "source": "events = []\nclass C(tuple):\n    __reversed__ = 3\ntry:\n    value = reversed(C((1, 2, 3)))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'int' object is not callable\", (\"'int' object is not callable\",), [])"
+    },
+    {
+      "name": "tuple:length",
+      "source": "events = []\nclass C(tuple):\n    def __len__(self):\n        events.append(\"len\")\n        return 2\ntry:\n    value = list(reversed(C((1, 2, 3))))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', [2, 1], ['len', 'len'])"
+    },
+    {
+      "name": "tuple:items",
+      "source": "events = []\nclass C(tuple):\n    def __getitem__(self, i):\n        events.append(i)\n        return i + 10\ntry:\n    value = list(reversed(C((1, 2, 3))))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', [12, 11, 10], [2, 1, 0])"
+    },
+    {
+      "name": "tuple:length-items",
+      "source": "events = []\nclass C(tuple):\n    def __len__(self):\n        events.append(\"len\")\n        return 2\n    def __getitem__(self, i):\n        events.append(i)\n        return i + 10\ntry:\n    value = list(reversed(C((1, 2, 3))))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', [11, 10], ['len', 'len', 1, 0])"
+    },
+    {
+      "name": "str:inherited",
+      "source": "events = []\nclass C(str):\n    pass\ntry:\n    value = list(reversed(C(\"abc\")))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', ['c', 'b', 'a'], [])"
+    },
+    {
+      "name": "str:custom",
+      "source": "events = []\nclass C(str):\n    def __reversed__(self):\n        events.append(\"reversed\")\n        return 42\ntry:\n    value = reversed(C(\"abc\"))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', 42, ['reversed'])"
+    },
+    {
+      "name": "str:disabled",
+      "source": "events = []\nclass C(str):\n    __reversed__ = None\ntry:\n    value = reversed(C(\"abc\"))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'C' object is not reversible\", (\"'C' object is not reversible\",), [])"
+    },
+    {
+      "name": "str:not-callable",
+      "source": "events = []\nclass C(str):\n    __reversed__ = 3\ntry:\n    value = reversed(C(\"abc\"))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'int' object is not callable\", (\"'int' object is not callable\",), [])"
+    },
+    {
+      "name": "str:length",
+      "source": "events = []\nclass C(str):\n    def __len__(self):\n        events.append(\"len\")\n        return 2\ntry:\n    value = list(reversed(C(\"abc\")))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', ['b', 'a'], ['len', 'len'])"
+    },
+    {
+      "name": "str:items",
+      "source": "events = []\nclass C(str):\n    def __getitem__(self, i):\n        events.append(i)\n        return i + 10\ntry:\n    value = list(reversed(C(\"abc\")))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', [12, 11, 10], [2, 1, 0])"
+    },
+    {
+      "name": "str:length-items",
+      "source": "events = []\nclass C(str):\n    def __len__(self):\n        events.append(\"len\")\n        return 2\n    def __getitem__(self, i):\n        events.append(i)\n        return i + 10\ntry:\n    value = list(reversed(C(\"abc\")))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', [11, 10], ['len', 'len', 1, 0])"
+    },
+    {
+      "name": "bytes:inherited",
+      "source": "events = []\nclass C(bytes):\n    pass\ntry:\n    value = list(reversed(C(b\"abc\")))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', [99, 98, 97], [])"
+    },
+    {
+      "name": "bytes:custom",
+      "source": "events = []\nclass C(bytes):\n    def __reversed__(self):\n        events.append(\"reversed\")\n        return 42\ntry:\n    value = reversed(C(b\"abc\"))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', 42, ['reversed'])"
+    },
+    {
+      "name": "bytes:disabled",
+      "source": "events = []\nclass C(bytes):\n    __reversed__ = None\ntry:\n    value = reversed(C(b\"abc\"))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'C' object is not reversible\", (\"'C' object is not reversible\",), [])"
+    },
+    {
+      "name": "bytes:not-callable",
+      "source": "events = []\nclass C(bytes):\n    __reversed__ = 3\ntry:\n    value = reversed(C(b\"abc\"))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'int' object is not callable\", (\"'int' object is not callable\",), [])"
+    },
+    {
+      "name": "bytes:length",
+      "source": "events = []\nclass C(bytes):\n    def __len__(self):\n        events.append(\"len\")\n        return 2\ntry:\n    value = list(reversed(C(b\"abc\")))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', [98, 97], ['len', 'len'])"
+    },
+    {
+      "name": "bytes:items",
+      "source": "events = []\nclass C(bytes):\n    def __getitem__(self, i):\n        events.append(i)\n        return i + 10\ntry:\n    value = list(reversed(C(b\"abc\")))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', [12, 11, 10], [2, 1, 0])"
+    },
+    {
+      "name": "bytes:length-items",
+      "source": "events = []\nclass C(bytes):\n    def __len__(self):\n        events.append(\"len\")\n        return 2\n    def __getitem__(self, i):\n        events.append(i)\n        return i + 10\ntry:\n    value = list(reversed(C(b\"abc\")))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', [11, 10], ['len', 'len', 1, 0])"
+    },
+    {
+      "name": "list:inherited",
+      "source": "events = []\nclass C(list):\n    pass\ntry:\n    value = list(reversed(C([1, 2, 3])))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', [3, 2, 1], [])"
+    },
+    {
+      "name": "list:custom",
+      "source": "events = []\nclass C(list):\n    def __reversed__(self):\n        events.append(\"reversed\")\n        return 42\ntry:\n    value = reversed(C([1, 2, 3]))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', 42, ['reversed'])"
+    },
+    {
+      "name": "list:disabled",
+      "source": "events = []\nclass C(list):\n    __reversed__ = None\ntry:\n    value = reversed(C([1, 2, 3]))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'C' object is not reversible\", (\"'C' object is not reversible\",), [])"
+    },
+    {
+      "name": "list:not-callable",
+      "source": "events = []\nclass C(list):\n    __reversed__ = 3\ntry:\n    value = reversed(C([1, 2, 3]))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'int' object is not callable\", (\"'int' object is not callable\",), [])"
+    },
+    {
+      "name": "list:length",
+      "source": "events = []\nclass C(list):\n    def __len__(self):\n        events.append(\"len\")\n        return 2\ntry:\n    value = list(reversed(C([1, 2, 3])))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', [3, 2, 1], [])"
+    },
+    {
+      "name": "list:items",
+      "source": "events = []\nclass C(list):\n    def __getitem__(self, i):\n        events.append(i)\n        return i + 10\ntry:\n    value = list(reversed(C([1, 2, 3])))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', [3, 2, 1], [])"
+    },
+    {
+      "name": "list:length-items",
+      "source": "events = []\nclass C(list):\n    def __len__(self):\n        events.append(\"len\")\n        return 2\n    def __getitem__(self, i):\n        events.append(i)\n        return i + 10\ntry:\n    value = list(reversed(C([1, 2, 3])))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', [3, 2, 1], [])"
+    },
+    {
+      "name": "dict:inherited",
+      "source": "events = []\nclass C(dict):\n    pass\ntry:\n    value = list(reversed(C(a=1, b=2)))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', ['b', 'a'], [])"
+    },
+    {
+      "name": "dict:custom",
+      "source": "events = []\nclass C(dict):\n    def __reversed__(self):\n        events.append(\"reversed\")\n        return 42\ntry:\n    value = reversed(C(a=1, b=2))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', 42, ['reversed'])"
+    },
+    {
+      "name": "dict:disabled",
+      "source": "events = []\nclass C(dict):\n    __reversed__ = None\ntry:\n    value = reversed(C(a=1, b=2))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'C' object is not reversible\", (\"'C' object is not reversible\",), [])"
+    },
+    {
+      "name": "dict:not-callable",
+      "source": "events = []\nclass C(dict):\n    __reversed__ = 3\ntry:\n    value = reversed(C(a=1, b=2))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'int' object is not callable\", (\"'int' object is not callable\",), [])"
+    },
+    {
+      "name": "dict:length",
+      "source": "events = []\nclass C(dict):\n    def __len__(self):\n        events.append(\"len\")\n        return 2\ntry:\n    value = list(reversed(C(a=1, b=2)))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', ['b', 'a'], [])"
+    },
+    {
+      "name": "dict:items",
+      "source": "events = []\nclass C(dict):\n    def __getitem__(self, i):\n        events.append(i)\n        return i + 10\ntry:\n    value = list(reversed(C(a=1, b=2)))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', ['b', 'a'], [])"
+    },
+    {
+      "name": "dict:length-items",
+      "source": "events = []\nclass C(dict):\n    def __len__(self):\n        events.append(\"len\")\n        return 2\n    def __getitem__(self, i):\n        events.append(i)\n        return i + 10\ntry:\n    value = list(reversed(C(a=1, b=2)))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', ['b', 'a'], [])"
+    },
+    {
+      "name": "length:0",
+      "source": "events = []\nclass C:\n    def __len__(self):\n        events.append(\"len\")\n        return 0\n    def __getitem__(self, index):\n        events.append(index)\n        return index\ntry:\n    value = list(reversed(C()))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', [], ['len'])"
+    },
+    {
+      "name": "length:1",
+      "source": "events = []\nclass C:\n    def __len__(self):\n        events.append(\"len\")\n        return 1\n    def __getitem__(self, index):\n        events.append(index)\n        return index\ntry:\n    value = list(reversed(C()))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', [0], ['len', 'len', 0])"
+    },
+    {
+      "name": "length:-1",
+      "source": "events = []\nclass C:\n    def __len__(self):\n        events.append(\"len\")\n        return -1\n    def __getitem__(self, index):\n        events.append(index)\n        return index\ntry:\n    value = list(reversed(C()))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ValueError', '__len__() should return >= 0', ('__len__() should return >= 0',), ['len'])"
+    },
+    {
+      "name": "length:True",
+      "source": "events = []\nclass C:\n    def __len__(self):\n        events.append(\"len\")\n        return True\n    def __getitem__(self, index):\n        events.append(index)\n        return index\ntry:\n    value = list(reversed(C()))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', [0], ['len', 'len', 0])"
+    },
+    {
+      "name": "length:1.2",
+      "source": "events = []\nclass C:\n    def __len__(self):\n        events.append(\"len\")\n        return 1.2\n    def __getitem__(self, index):\n        events.append(index)\n        return index\ntry:\n    value = list(reversed(C()))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'float' object cannot be interpreted as an integer\", (\"'float' object cannot be interpreted as an integer\",), ['len'])"
+    },
+    {
+      "name": "length:None",
+      "source": "events = []\nclass C:\n    def __len__(self):\n        events.append(\"len\")\n        return None\n    def __getitem__(self, index):\n        events.append(index)\n        return index\ntry:\n    value = list(reversed(C()))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'NoneType' object cannot be interpreted as an integer\", (\"'NoneType' object cannot be interpreted as an integer\",), ['len'])"
+    },
+    {
+      "name": "length:2**100",
+      "source": "events = []\nclass C:\n    def __len__(self):\n        events.append(\"len\")\n        return 2**100\n    def __getitem__(self, index):\n        events.append(index)\n        return index\ntry:\n    value = list(reversed(C()))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('OverflowError', \"cannot fit 'int' into an index-sized integer\", (\"cannot fit 'int' into an index-sized integer\",), ['len'])"
+    },
+    {
+      "name": "item-error:IndexError",
+      "source": "events = []\nclass End(IndexError):\n    pass\nclass C:\n    def __len__(self): return 3\n    def __getitem__(self, index):\n        events.append(index)\n        raise End(\"stop\")\nit = reversed(C())\nresults = []\nfor step in range(3):\n    try:\n        results.append(next(it, \"default\"))\n    except Exception as error:\n        results.append((type(error).__name__, str(error), error.args))\nresult = (results, events)\n",
+      "expected": "(['default', 'default', 'default'], [2])"
+    },
+    {
+      "name": "item-error:StopIteration",
+      "source": "events = []\nclass End(StopIteration):\n    pass\nclass C:\n    def __len__(self): return 3\n    def __getitem__(self, index):\n        events.append(index)\n        raise End(\"stop\")\nit = reversed(C())\nresults = []\nfor step in range(3):\n    try:\n        results.append(next(it, \"default\"))\n    except Exception as error:\n        results.append((type(error).__name__, str(error), error.args))\nresult = (results, events)\n",
+      "expected": "(['default', 'default', 'default'], [2])"
+    },
+    {
+      "name": "item-error:ValueError",
+      "source": "events = []\nclass End(ValueError):\n    pass\nclass C:\n    def __len__(self): return 3\n    def __getitem__(self, index):\n        events.append(index)\n        raise End(\"stop\")\nit = reversed(C())\nresults = []\nfor step in range(3):\n    try:\n        results.append(next(it, \"default\"))\n    except Exception as error:\n        results.append((type(error).__name__, str(error), error.args))\nresult = (results, events)\n",
+      "expected": "([('End', 'stop', ('stop',)), 'default', 'default'], [2])"
+    },
+    {
+      "name": "item-error:KeyError",
+      "source": "events = []\nclass End(KeyError):\n    pass\nclass C:\n    def __len__(self): return 3\n    def __getitem__(self, index):\n        events.append(index)\n        raise End(\"stop\")\nit = reversed(C())\nresults = []\nfor step in range(3):\n    try:\n        results.append(next(it, \"default\"))\n    except Exception as error:\n        results.append((type(error).__name__, str(error), error.args))\nresult = (results, events)\n",
+      "expected": "([('End', \"'stop'\", ('stop',)), 'default', 'default'], [2])"
+    },
+    {
+      "name": "type-name:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "source": "events = []\nC = type('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA', (), {})\ntry:\n    value = reversed(C())\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' object is not reversible\", (\"'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' object is not reversible\",), [])"
+    },
+    {
+      "name": "type-name:\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9",
+      "source": "events = []\nC = type('\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9', (), {})\ntry:\n    value = reversed(C())\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9' object is not reversible\", (\"'\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9\u00e9' object is not reversible\",), [])"
+    },
+    {
+      "name": "type-name:\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d",
+      "source": "events = []\nC = type('\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d', (), {})\ntry:\n    value = reversed(C())\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d' object is not reversible\", (\"'\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d\ud83d\udc0d' object is not reversible\",), [])"
+    },
+    {
+      "name": "descriptor-error:AttributeError",
+      "source": "events = []\nclass Descriptor:\n    def __get__(self, instance, owner):\n        events.append(\"get\")\n        raise AttributeError(\"descriptor\")\nclass C:\n    __reversed__ = Descriptor()\n    def __len__(self):\n        events.append(\"len\")\n        return 2\n    def __getitem__(self, i):\n        events.append(i)\n        return i\ntry:\n    value = list(reversed(C()))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('AttributeError', 'descriptor', ('descriptor',), ['get'])"
+    },
+    {
+      "name": "descriptor-error:ValueError",
+      "source": "events = []\nclass Descriptor:\n    def __get__(self, instance, owner):\n        events.append(\"get\")\n        raise ValueError(\"descriptor\")\nclass C:\n    __reversed__ = Descriptor()\n    def __len__(self):\n        events.append(\"len\")\n        return 2\n    def __getitem__(self, i):\n        events.append(i)\n        return i\ntry:\n    value = list(reversed(C()))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ValueError', 'descriptor', ('descriptor',), ['get'])"
+    },
+    {
+      "name": "instance-shadow",
+      "source": "events = []\nclass C:\n    def __len__(self): return 2\n    def __getitem__(self, i): return i\nc = C()\nc.__reversed__ = lambda: 42\ntry:\n    value = list(reversed(c))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', [1, 0], [])"
+    },
+    {
+      "name": "object:descriptor:raise AttributeError(\"missing\")",
+      "source": "events = []\nclass Descriptor:\n    def __get__(self, instance, owner):\n        events.append((instance is c, owner is C))\n        raise AttributeError(\"missing\")\nclass C(object):\n    __reversed__ = Descriptor()\n    def __len__(self):\n        events.append(\"len\")\n        return 2\n    def __getitem__(self, index):\n        events.append(index)\n        return index\nc = C()\ntry:\n    value = list(reversed(c))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('AttributeError', 'missing', ('missing',), [(True, True)])"
+    },
+    {
+      "name": "object:descriptor:return None",
+      "source": "events = []\nclass Descriptor:\n    def __get__(self, instance, owner):\n        events.append((instance is c, owner is C))\n        return None\nclass C(object):\n    __reversed__ = Descriptor()\n    def __len__(self):\n        events.append(\"len\")\n        return 2\n    def __getitem__(self, index):\n        events.append(index)\n        return index\nc = C()\ntry:\n    value = reversed(c)\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'C' object is not reversible\", (\"'C' object is not reversible\",), [(True, True)])"
+    },
+    {
+      "name": "object:descriptor:return lambda: 42",
+      "source": "events = []\nclass Descriptor:\n    def __get__(self, instance, owner):\n        events.append((instance is c, owner is C))\n        return lambda: 42\nclass C(object):\n    __reversed__ = Descriptor()\n    def __len__(self):\n        events.append(\"len\")\n        return 2\n    def __getitem__(self, index):\n        events.append(index)\n        return index\nc = C()\ntry:\n    value = reversed(c)\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', 42, [(True, True)])"
+    },
+    {
+      "name": "dict:descriptor:raise AttributeError(\"missing\")",
+      "source": "events = []\nclass Descriptor:\n    def __get__(self, instance, owner):\n        events.append((instance is c, owner is C))\n        raise AttributeError(\"missing\")\nclass C(dict):\n    __reversed__ = Descriptor()\n    def __len__(self):\n        events.append(\"len\")\n        return 2\n    def __getitem__(self, index):\n        events.append(index)\n        return index\nc = C(a=1)\ntry:\n    value = list(reversed(c))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('AttributeError', 'missing', ('missing',), [(True, True)])"
+    },
+    {
+      "name": "dict:descriptor:return None",
+      "source": "events = []\nclass Descriptor:\n    def __get__(self, instance, owner):\n        events.append((instance is c, owner is C))\n        return None\nclass C(dict):\n    __reversed__ = Descriptor()\n    def __len__(self):\n        events.append(\"len\")\n        return 2\n    def __getitem__(self, index):\n        events.append(index)\n        return index\nc = C(a=1)\ntry:\n    value = reversed(c)\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'C' object is not reversible\", (\"'C' object is not reversible\",), [(True, True)])"
+    },
+    {
+      "name": "dict:descriptor:return lambda: 42",
+      "source": "events = []\nclass Descriptor:\n    def __get__(self, instance, owner):\n        events.append((instance is c, owner is C))\n        return lambda: 42\nclass C(dict):\n    __reversed__ = Descriptor()\n    def __len__(self):\n        events.append(\"len\")\n        return 2\n    def __getitem__(self, index):\n        events.append(index)\n        return index\nc = C(a=1)\ntry:\n    value = reversed(c)\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', 42, [(True, True)])"
+    },
+    {
+      "name": "list:descriptor:raise AttributeError(\"missing\")",
+      "source": "events = []\nclass Descriptor:\n    def __get__(self, instance, owner):\n        events.append((instance is c, owner is C))\n        raise AttributeError(\"missing\")\nclass C(list):\n    __reversed__ = Descriptor()\n    def __len__(self):\n        events.append(\"len\")\n        return 2\n    def __getitem__(self, index):\n        events.append(index)\n        return index\nc = C([1,2])\ntry:\n    value = list(reversed(c))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('AttributeError', 'missing', ('missing',), [(True, True)])"
+    },
+    {
+      "name": "list:descriptor:return None",
+      "source": "events = []\nclass Descriptor:\n    def __get__(self, instance, owner):\n        events.append((instance is c, owner is C))\n        return None\nclass C(list):\n    __reversed__ = Descriptor()\n    def __len__(self):\n        events.append(\"len\")\n        return 2\n    def __getitem__(self, index):\n        events.append(index)\n        return index\nc = C([1,2])\ntry:\n    value = reversed(c)\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'C' object is not reversible\", (\"'C' object is not reversible\",), [(True, True)])"
+    },
+    {
+      "name": "list:descriptor:return lambda: 42",
+      "source": "events = []\nclass Descriptor:\n    def __get__(self, instance, owner):\n        events.append((instance is c, owner is C))\n        return lambda: 42\nclass C(list):\n    __reversed__ = Descriptor()\n    def __len__(self):\n        events.append(\"len\")\n        return 2\n    def __getitem__(self, index):\n        events.append(index)\n        return index\nc = C([1,2])\ntry:\n    value = reversed(c)\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', 42, [(True, True)])"
+    },
+    {
+      "name": "tuple:descriptor:raise AttributeError(\"missing\")",
+      "source": "events = []\nclass Descriptor:\n    def __get__(self, instance, owner):\n        events.append((instance is c, owner is C))\n        raise AttributeError(\"missing\")\nclass C(tuple):\n    __reversed__ = Descriptor()\n    def __len__(self):\n        events.append(\"len\")\n        return 2\n    def __getitem__(self, index):\n        events.append(index)\n        return index\nc = C((1,2))\ntry:\n    value = list(reversed(c))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('AttributeError', 'missing', ('missing',), [(True, True)])"
+    },
+    {
+      "name": "tuple:descriptor:return None",
+      "source": "events = []\nclass Descriptor:\n    def __get__(self, instance, owner):\n        events.append((instance is c, owner is C))\n        return None\nclass C(tuple):\n    __reversed__ = Descriptor()\n    def __len__(self):\n        events.append(\"len\")\n        return 2\n    def __getitem__(self, index):\n        events.append(index)\n        return index\nc = C((1,2))\ntry:\n    value = reversed(c)\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'C' object is not reversible\", (\"'C' object is not reversible\",), [(True, True)])"
+    },
+    {
+      "name": "tuple:descriptor:return lambda: 42",
+      "source": "events = []\nclass Descriptor:\n    def __get__(self, instance, owner):\n        events.append((instance is c, owner is C))\n        return lambda: 42\nclass C(tuple):\n    __reversed__ = Descriptor()\n    def __len__(self):\n        events.append(\"len\")\n        return 2\n    def __getitem__(self, index):\n        events.append(index)\n        return index\nc = C((1,2))\ntry:\n    value = reversed(c)\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', 42, [(True, True)])"
+    },
+    {
+      "name": "str:descriptor:raise AttributeError(\"missing\")",
+      "source": "events = []\nclass Descriptor:\n    def __get__(self, instance, owner):\n        events.append((instance is c, owner is C))\n        raise AttributeError(\"missing\")\nclass C(str):\n    __reversed__ = Descriptor()\n    def __len__(self):\n        events.append(\"len\")\n        return 2\n    def __getitem__(self, index):\n        events.append(index)\n        return index\nc = C(\"ab\")\ntry:\n    value = list(reversed(c))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('AttributeError', 'missing', ('missing',), [(True, True)])"
+    },
+    {
+      "name": "str:descriptor:return None",
+      "source": "events = []\nclass Descriptor:\n    def __get__(self, instance, owner):\n        events.append((instance is c, owner is C))\n        return None\nclass C(str):\n    __reversed__ = Descriptor()\n    def __len__(self):\n        events.append(\"len\")\n        return 2\n    def __getitem__(self, index):\n        events.append(index)\n        return index\nc = C(\"ab\")\ntry:\n    value = reversed(c)\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'C' object is not reversible\", (\"'C' object is not reversible\",), [(True, True)])"
+    },
+    {
+      "name": "str:descriptor:return lambda: 42",
+      "source": "events = []\nclass Descriptor:\n    def __get__(self, instance, owner):\n        events.append((instance is c, owner is C))\n        return lambda: 42\nclass C(str):\n    __reversed__ = Descriptor()\n    def __len__(self):\n        events.append(\"len\")\n        return 2\n    def __getitem__(self, index):\n        events.append(index)\n        return index\nc = C(\"ab\")\ntry:\n    value = reversed(c)\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', 42, [(True, True)])"
+    },
+    {
+      "name": "bytes:descriptor:raise AttributeError(\"missing\")",
+      "source": "events = []\nclass Descriptor:\n    def __get__(self, instance, owner):\n        events.append((instance is c, owner is C))\n        raise AttributeError(\"missing\")\nclass C(bytes):\n    __reversed__ = Descriptor()\n    def __len__(self):\n        events.append(\"len\")\n        return 2\n    def __getitem__(self, index):\n        events.append(index)\n        return index\nc = C(b\"ab\")\ntry:\n    value = list(reversed(c))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('AttributeError', 'missing', ('missing',), [(True, True)])"
+    },
+    {
+      "name": "bytes:descriptor:return None",
+      "source": "events = []\nclass Descriptor:\n    def __get__(self, instance, owner):\n        events.append((instance is c, owner is C))\n        return None\nclass C(bytes):\n    __reversed__ = Descriptor()\n    def __len__(self):\n        events.append(\"len\")\n        return 2\n    def __getitem__(self, index):\n        events.append(index)\n        return index\nc = C(b\"ab\")\ntry:\n    value = reversed(c)\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'C' object is not reversible\", (\"'C' object is not reversible\",), [(True, True)])"
+    },
+    {
+      "name": "bytes:descriptor:return lambda: 42",
+      "source": "events = []\nclass Descriptor:\n    def __get__(self, instance, owner):\n        events.append((instance is c, owner is C))\n        return lambda: 42\nclass C(bytes):\n    __reversed__ = Descriptor()\n    def __len__(self):\n        events.append(\"len\")\n        return 2\n    def __getitem__(self, index):\n        events.append(index)\n        return index\nc = C(b\"ab\")\ntry:\n    value = reversed(c)\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', 42, [(True, True)])"
+    },
+    {
+      "name": "mutation:items.append(4)",
+      "source": "events = []\nitems = [1, 2, 3]\nclass C:\n    def __len__(self):\n        events.append(\"len\")\n        return len(items)\n    def __getitem__(self, index):\n        events.append(index)\n        return items[index]\nit = reversed(C())\nfirst = next(it)\nitems.append(4)\nresult = (first, list(it), next(it, \"end\"), events)\n",
+      "expected": "(3, [2, 1], 'end', ['len', 2, 'len', 1, 0])"
+    },
+    {
+      "name": "mutation:items.pop()",
+      "source": "events = []\nitems = [1, 2, 3]\nclass C:\n    def __len__(self):\n        events.append(\"len\")\n        return len(items)\n    def __getitem__(self, index):\n        events.append(index)\n        return items[index]\nit = reversed(C())\nfirst = next(it)\nitems.pop()\nresult = (first, list(it), next(it, \"end\"), events)\n",
+      "expected": "(3, [2, 1], 'end', ['len', 2, 'len', 1, 0])"
+    },
+    {
+      "name": "mutation:items.clear()",
+      "source": "events = []\nitems = [1, 2, 3]\nclass C:\n    def __len__(self):\n        events.append(\"len\")\n        return len(items)\n    def __getitem__(self, index):\n        events.append(index)\n        return items[index]\nit = reversed(C())\nfirst = next(it)\nitems.clear()\nresult = (first, list(it), next(it, \"end\"), events)\n",
+      "expected": "(3, [], 'end', ['len', 2, 'len', 1])"
+    },
+    {
+      "name": "mutation:items[1] = 8",
+      "source": "events = []\nitems = [1, 2, 3]\nclass C:\n    def __len__(self):\n        events.append(\"len\")\n        return len(items)\n    def __getitem__(self, index):\n        events.append(index)\n        return items[index]\nit = reversed(C())\nfirst = next(it)\nitems[1] = 8\nresult = (first, list(it), next(it, \"end\"), events)\n",
+      "expected": "(3, [8, 1], 'end', ['len', 2, 'len', 1, 0])"
+    },
+    {
+      "name": "mutation:items.insert(0, 9)",
+      "source": "events = []\nitems = [1, 2, 3]\nclass C:\n    def __len__(self):\n        events.append(\"len\")\n        return len(items)\n    def __getitem__(self, index):\n        events.append(index)\n        return items[index]\nit = reversed(C())\nfirst = next(it)\nitems.insert(0, 9)\nresult = (first, list(it), next(it, \"end\"), events)\n",
+      "expected": "(3, [1, 9], 'end', ['len', 2, 'len', 1, 0])"
+    },
+    {
+      "name": "proxy-override:return 42",
+      "source": "events = []\nProxy = type(type.__dict__)\nclass C(dict):\n    def __getattribute__(self, name):\n        events.append(name)\n        return dict.__getattribute__(self, name)\n    def __reversed__(self):\n        events.append(\"reverse\")\n        return 42\nc = C(a=1)\np = Proxy(c)\ntry:\n    value = reversed(p)\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', 42, ['__reversed__', 'reverse'])"
+    },
+    {
+      "name": "proxy-override:raise ValueError(\"reverse\")",
+      "source": "events = []\nProxy = type(type.__dict__)\nclass C(dict):\n    def __getattribute__(self, name):\n        events.append(name)\n        return dict.__getattribute__(self, name)\n    def __reversed__(self):\n        events.append(\"reverse\")\n        raise ValueError(\"reverse\")\nc = C(a=1)\np = Proxy(c)\ntry:\n    value = reversed(p)\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ValueError', 'reverse', ('reverse',), ['__reversed__', 'reverse'])"
+    },
+    {
+      "name": "proxy-instance-shadow:list(reversed(p))",
+      "source": "events = []\nProxy = type(type.__dict__)\nclass C(dict): pass\nc = C(a=1, b=2)\nc.__reversed__ = lambda: iter([9])\np = Proxy(c)\ntry:\n    value = list(reversed(p))\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', [9], [])"
+    },
+    {
+      "name": "proxy-instance-shadow:list(p.__reversed__())",
+      "source": "events = []\nProxy = type(type.__dict__)\nclass C(dict): pass\nc = C(a=1, b=2)\nc.__reversed__ = lambda: iter([9])\np = Proxy(c)\ntry:\n    value = list(p.__reversed__())\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('ok', [9], [])"
+    },
+    {
+      "name": "utf8-boundary:198",
+      "source": "events = []\nC = type('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\u20ac', (), {\"__reversed__\": None})\ntry:\n    value = reversed(C())\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' object is not reversible\", (\"'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' object is not reversible\",), [])"
+    },
+    {
+      "name": "utf8-boundary:199",
+      "source": "events = []\nC = type('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\u20ac', (), {\"__reversed__\": None})\ntry:\n    value = reversed(C())\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' object is not reversible\", (\"'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' object is not reversible\",), [])"
+    },
+    {
+      "name": "utf8-boundary:200",
+      "source": "events = []\nC = type('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\u20ac', (), {\"__reversed__\": None})\ntry:\n    value = reversed(C())\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' object is not reversible\", (\"'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' object is not reversible\",), [])"
+    },
+    {
+      "name": "utf8-boundary:201",
+      "source": "events = []\nC = type('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\u20ac', (), {\"__reversed__\": None})\ntry:\n    value = reversed(C())\n    result = ('ok', value, events)\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args, events)\n",
+      "expected": "('TypeError', \"'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' object is not reversible\", (\"'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA' object is not reversible\",), [])"
+    }
+  ]
+}

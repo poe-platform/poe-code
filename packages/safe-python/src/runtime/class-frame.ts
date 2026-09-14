@@ -5,7 +5,7 @@ import type {CompiledClassBody} from "./class-compilation.js";
 import {FrameLocals} from "./frame-locals.js";
 import {compileCodeLocalLayout} from "./code-local-layout.js";
 import { ExecutionLimitError, type ExecutionMeter } from "./execution-budget.js";
-import { PythonRuntimeError } from "./error.js";
+import { PythonNameError } from "./name-error.js";
 import type { LexicalCell, LexicalNamespaces } from "./lexical-frame.js";
 import type { LocalNamespace } from "./module-frame.js";
 import { lookupNamespace,storeNamespace } from "./namespace-lookup.js";
@@ -68,7 +68,7 @@ export class ClassFrame<Value> extends ExecutionFrame {
   }
 
   #missingFree(name: string): never {
-    throw new PythonRuntimeError("NameError", `cannot access free variable '${name}' where it is not associated with a value in enclosing scope`);
+    throw new PythonNameError(name, `cannot access free variable '${name}' where it is not associated with a value in enclosing scope`);
   }
 
   load(name: string): Value {
@@ -86,7 +86,7 @@ export class ClassFrame<Value> extends ExecutionFrame {
     this.meter.checkpoint();
     const builtin = lookupNamespace(this.namespaces.builtins, key);
     if (builtin !== undefined) return builtin.value;
-    throw new PythonRuntimeError("NameError", `name '${key}' is not defined`);
+    throw new PythonNameError(key, `name '${key}' is not defined`);
   }
 
   store(name: string, value: Value): void {
@@ -113,7 +113,7 @@ export class ClassFrame<Value> extends ExecutionFrame {
         if (error instanceof ExecutionLimitError || !this.namespaces.locals.isGuest(error)) throw error;
       }
     }
-    throw new PythonRuntimeError("NameError", `name '${key}' is not defined`);
+    throw new PythonNameError(key, `name '${key}' is not defined`);
   }
 
   /** Capture cell identities for a directly nested scope, never class attributes. */

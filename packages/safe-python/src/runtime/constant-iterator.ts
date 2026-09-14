@@ -13,6 +13,7 @@ export class ConstantIterator<Value = ConstantValue> implements IterableIterator
   #source: Sequence<Value> | undefined;
   #index = 0;
   readonly #length: number;
+  readonly typeName: string;
 
   constructor(source: PrimitiveConstant | TupleConstant<Value> | SliceConstant<Value>, private readonly values: ConstantValues, private readonly meter: ExecutionMeter) {
     meter.checkpoint();
@@ -22,6 +23,13 @@ export class ConstantIterator<Value = ConstantValue> implements IterableIterator
     }
     this.#source = source;
     this.#length = source.kind === "tuple" ? source.items.length : source.value.length;
+    this.typeName = source.kind === "tuple" ? "tuple_iterator" : source.kind === "bytes" ? "bytes_iterator" : "str_ascii_iterator";
+    if (source.kind === "str") {
+      for (const point of source.value) {
+        meter.checkpoint();
+        if (point > 127) { this.typeName = "str_iterator"; break; }
+      }
+    }
   }
 
   [Symbol.iterator](): IterableIterator<Value | PrimitiveConstant> { return this; }

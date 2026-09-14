@@ -2,12 +2,14 @@ import { installAttributeErrorStateDescriptors } from "./runtime-attribute-error
 import { installImportErrorStateDescriptor } from "./runtime-import-error-state.js";
 import { installSyntaxErrorState } from "./runtime-syntax-error-state.js";
 import { unicodeErrorState } from "./runtime-unicode-error-state.js";
+import {createOsErrorAllocator} from "./runtime-os-error.js";
 
 /** Builtin exceptions using BaseException's allocation family. Representation
  * policies share storage; argument-derived members introduce native layouts.
  * Specialized allocator families are still separate work. */
 export const standardExceptionCatalog = {
   Exception: {base:"BaseException",doc:"Common base class for all non-exit exceptions."},
+  MemoryError: {base:"Exception",doc:"Out of memory.",allocation:"empty"},
   GeneratorExit: {base:"BaseException",doc:"Request that a generator exit."},
   KeyboardInterrupt: {base:"BaseException",doc:"Program interrupted by user."},
   SystemExit: {base:"BaseException",doc:"Request to exit from the interpreter.",ownAllocator:false,member:{members:[{name:"code",doc:"exception code"}],arguments:"all"}},
@@ -18,10 +20,27 @@ export const standardExceptionCatalog = {
   ZeroDivisionError: {base:"ArithmeticError",doc:"Second argument to a division or modulo operation was zero."},
   AssertionError: {base:"Exception",doc:"Assertion failed."},
   SyntaxError: {base:"Exception",doc:"Invalid syntax.",ownAllocator:false,nativeMembers:true,install:installSyntaxErrorState},
+  _IncompleteInputError: {base:"SyntaxError",doc:"incomplete input.",ownAllocator:false},
   IndentationError: {base:"SyntaxError",doc:"Improper indentation.",ownAllocator:false},
   TabError: {base:"IndentationError",doc:"Improper mixture of spaces and tabs.",ownAllocator:false},
   BufferError: {base:"Exception",doc:"Buffer error."},
   EOFError: {base:"Exception",doc:"Read beyond end of file."},
+  OSError: {base:"Exception",doc:"Base class for I/O related errors.",nativeMembers:true,createAllocator:createOsErrorAllocator},
+  BlockingIOError: {base:"OSError",doc:"I/O operation would block.",ownAllocator:false},
+  ConnectionError: {base:"OSError",doc:"Connection error.",ownAllocator:false},
+  ChildProcessError: {base:"OSError",doc:"Child process error.",ownAllocator:false},
+  BrokenPipeError: {base:"ConnectionError",doc:"Broken pipe.",ownAllocator:false},
+  ConnectionAbortedError: {base:"ConnectionError",doc:"Connection aborted.",ownAllocator:false},
+  ConnectionRefusedError: {base:"ConnectionError",doc:"Connection refused.",ownAllocator:false},
+  ConnectionResetError: {base:"ConnectionError",doc:"Connection reset.",ownAllocator:false},
+  FileExistsError: {base:"OSError",doc:"File already exists.",ownAllocator:false},
+  FileNotFoundError: {base:"OSError",doc:"File not found.",ownAllocator:false},
+  IsADirectoryError: {base:"OSError",doc:"Operation doesn't work on directories.",ownAllocator:false},
+  NotADirectoryError: {base:"OSError",doc:"Operation only works on directories.",ownAllocator:false},
+  InterruptedError: {base:"OSError",doc:"Interrupted by signal.",ownAllocator:false},
+  PermissionError: {base:"OSError",doc:"Not enough permissions.",ownAllocator:false},
+  ProcessLookupError: {base:"OSError",doc:"Process not found.",ownAllocator:false},
+  TimeoutError: {base:"OSError",doc:"Timeout expired.",ownAllocator:false},
   LookupError: {base:"Exception",doc:"Base class for lookup errors."},
   IndexError: {base:"LookupError",doc:"Sequence index out of range."},
   KeyError: {base:"LookupError",doc:"Mapping key not found.",ownAllocator:false,stringArgument:"repr"},

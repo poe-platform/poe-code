@@ -2,9 +2,11 @@ import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { integerIndex, type IntegerIndexContext } from "./index-protocol.js";
+import { unexpectedBuiltinKeyword } from "./unexpected-builtin-keyword.js";
 import { floatRound } from "./rounding.js";
 import { roundRuntimeInteger } from "./runtime-integer-round.js";
 import { runtimeIntegerIndex } from "./runtime-integer-index.js";
+import { runtimeStringPayload } from "./runtime-string-payload.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 export interface RoundContext {
@@ -25,16 +27,19 @@ export function createRoundBuiltin(values: RuntimeValues, meter: ExecutionMeter,
     if (count > 2) throw new PythonRuntimeError("TypeError", `round() takes at most 2 ${positional.length === 0 ? "keyword " : ""}arguments (${count} given)`);
     let number: RuntimeValue | undefined = positional[0], digits: RuntimeValue | undefined = positional[1], unexpected: string | undefined;
     for (const [key, value] of keywords.items.snapshot()) {
-      if (key.kind !== "str") throw new PythonRuntimeError("TypeError", "keywords must be strings");
+      const payload = runtimeStringPayload(key);
+      if (payload === undefined) throw new PythonRuntimeError("TypeError", "keywords must be strings");
       let label = "";
-      for (const point of key.value) { meter.checkpoint(1, point > 0xffff ? 4 : 2); label += String.fromCodePoint(point); }
+      for (const point of payload.value) { meter.checkpoint(1, point > 0xffff ? 4 : 2); label += String.fromCodePoint(point); }
       if (label !== "number" && label !== "ndigits") { unexpected ??= label; continue; }
       const position = label === "number" ? 1 : 2;
       if (positional.length >= position) throw new PythonRuntimeError("TypeError", `argument for round() given by name ('${label}') and position (${position})`);
-      if (label === "number") number = value; else digits = value;
+      if (label === "number" && number === undefined) number = value;
+      else if (label === "ndigits" && digits === undefined) digits = value;
+      else unexpected ??= label;
     }
     if (number === undefined) throw new PythonRuntimeError("TypeError", "round() missing required argument 'number' (pos 1)");
-    if (unexpected !== undefined) throw new PythonRuntimeError("TypeError", `round() got an unexpected keyword argument '${unexpected}'`);
+    if (unexpected !== undefined) unexpectedBuiltinKeyword("round", keywords, ["number", "ndigits"], values, meter, invocation);
     if (digits?.kind === "none") digits = undefined;
     if (number.kind !== "int" && number.kind !== "bool" && number.kind !== "float") {
       const slot = context.lookupRound?.(number);

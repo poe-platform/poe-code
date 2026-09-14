@@ -1,0 +1,13 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "unicode": "16.0.0"
+  },
+  "adapter": "Explicit PythonSession output adapter owning an OS file descriptor, writeSync/fsyncSync; no mock, injected runtime components or host Python implementation.",
+  "cases": 704,
+  "outputBytes": 44461,
+  "sourceSha256": "99b91af368d170b5076e667c9403f002f9e51c96c3cba317550452c55703efc9",
+  "outputSha256": "fb73f7f79d663ec860097b82924c004eb0245f085443eca425b4fc6f9025afa1",
+  "matches": true
+}

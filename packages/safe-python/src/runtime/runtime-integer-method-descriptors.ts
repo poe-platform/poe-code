@@ -12,7 +12,7 @@ import type { RuntimeValues, TypeValue } from "./runtime-values.js";
 export function installRuntimeIntegerMethodDescriptors(owner: TypeValue, values: RuntimeValues, meter: ExecutionMeter): void {
   owner.value.namespace.items.set(values.string("__format__"), createIntegerFormatDescriptor(owner, values, meter));
   meter.checkpoint(0, 96);
-  owner.value.namespace.items.set(values.string("__round__"), values.methodDescriptor({ owner, name: "__round__", doc: "Rounding an Integral returns itself.\n\nRounding with an ndigits argument also returns an integer.", accepts: receiver => runtimeIntegerPayload(receiver) !== undefined,
+  owner.value.namespace.items.set(values.string("__round__"), values.methodDescriptor({textSignature: "($self, ndigits=None, /)",  owner, name: "__round__", doc: "Rounding an Integral returns itself.\n\nRounding with an ndigits argument also returns an integer.", accepts: receiver => runtimeIntegerPayload(receiver) !== undefined,
     invoke(receiver, positional, keywords, meter, invocation) {
       meter.checkpoint();
       if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", "int.__round__() takes no keyword arguments");
@@ -52,7 +52,7 @@ export function installRuntimeIntegerMethodDescriptors(owner: TypeValue, values:
     ["is_integer", "Returns True. Exists for duck type compatibility with float.is_integer."]
   ] as const) {
     meter.checkpoint(0, 96);
-    owner.value.namespace.items.set(values.string(name), values.methodDescriptor({ owner, name, doc, accepts: receiver => runtimeIntegerPayload(receiver) !== undefined,
+    owner.value.namespace.items.set(values.string(name), values.methodDescriptor({textSignature: "($self, /)",  owner, name, doc, accepts: receiver => runtimeIntegerPayload(receiver) !== undefined,
       invoke(receiver, positional, keywords, meter) {
         meter.checkpoint();
         if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", `int.${name}() takes no keyword arguments`);

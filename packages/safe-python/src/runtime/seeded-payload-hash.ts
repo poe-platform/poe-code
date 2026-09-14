@@ -17,12 +17,15 @@ function* compactBytes(value: CodePointString, width: number): IterableIterator<
 /** SipHash-1-3 payload policy. The host must supply an unpredictable 128-bit key
  * once per runtime (or an explicit deterministic test key); no fixed default is
  * provided. This is container hashing, not a message authentication API.
- * Traversal/rounds and 32 bytes of logical working state are charged. Full host
+ * Completed hashes are weakly cached by immutable payload identity within this
+ * key policy; caches are never shared between interpreter seeds. Traversal,
+ * rounds, cache entries and 32 bytes of logical working state are charged. Full host
  * bigint/iterator temporary allocation accounting remains unfinished.
  */
 export class SeededPayloadHash {
   readonly #key0: bigint;
   readonly #key1: bigint;
+  #hashes: WeakMap<CodePointString | ImmutableBytes, bigint> | undefined;
 
   constructor(key0: bigint, key1: bigint) {
     if (BigInt.asUintN(64, key0) !== key0 || BigInt.asUintN(64, key1) !== key1) throw new RangeError("hash key words must be unsigned 64-bit integers");
@@ -33,16 +36,31 @@ export class SeededPayloadHash {
 
   bytes(value: ImmutableBytes, meter: ExecutionMeter): bigint {
     meter.checkpoint();
-    return value.length === 0 ? 0n : this.#hash(value, meter);
+    if (value.length === 0) return 0n;
+    const cached = this.#hashes?.get(value);
+    if (cached !== undefined) return cached;
+    const hash = this.#hash(value, meter);
+    this.#remember(value, hash, meter);
+    return hash;
   }
 
   string(value: CodePointString, meter: ExecutionMeter): bigint {
     meter.checkpoint();
     if (value.length === 0) return 0n;
-    let maximum = 0;
-    for (const point of value) { meter.checkpoint(); if (point > maximum) maximum = point; }
-    const width = maximum <= 255 ? 1 : maximum <= 65535 ? 2 : 4;
-    return this.#hash(compactBytes(value, width), meter);
+    const cached = this.#hashes?.get(value);
+    if (cached !== undefined) return cached;
+    const width = value.compactWidth(meter);
+    const hash = this.#hash(compactBytes(value, width), meter);
+    this.#remember(value, hash, meter);
+    return hash;
+  }
+
+  #remember(value: CodePointString | ImmutableBytes, hash: bigint, meter: ExecutionMeter): void {
+    // Reserve before publication so cancellation or allocation failure cannot
+    // warm a cache that a subsequent call could use to bypass traversal.
+    meter.checkpoint(1, 32 + (this.#hashes === undefined ? 64 : 0));
+    this.#hashes ??= new WeakMap();
+    this.#hashes.set(value, hash);
   }
 
   #hash(bytes: Iterable<number>, meter: ExecutionMeter): bigint {

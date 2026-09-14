@@ -26,7 +26,15 @@ export function createObjectClassDescriptor(values: RuntimeValues, meter: Execut
       }
       const current = actualClass(receiver, meter, invocation);
       if (registry.resolve(current.value) !== current || registry.resolve(next.value) !== next) throw Error("class assignment requires types owned by this registry");
-      if (current.immutable || next.immutable) throw new PythonRuntimeError("TypeError", "__class__ assignment only supported for mutable types or ModuleType subclasses");
+      if (current.immutable || next.immutable) {
+        // ModuleType is the native exception to the heap-type restriction.
+        // Layout compatibility still applies in both reassignment directions.
+        const module = registry.moduleType().value;
+        meter.checkpoint(current.value.mro.length + next.value.mro.length);
+        if (!current.value.mro.includes(module) || !next.value.mro.includes(module)) {
+          throw new PythonRuntimeError("TypeError", "__class__ assignment only supported for mutable types or ModuleType subclasses");
+        }
+      }
       if (!compatibleRuntimeLayouts(current.value, next.value, meter)) {
         meter.checkpoint(0, 128 + 2 * (current.value.name.length + next.value.name.length));
         throw new PythonRuntimeError("TypeError", `__class__ assignment: '${next.value.name}' object layout differs from '${current.value.name}'`);

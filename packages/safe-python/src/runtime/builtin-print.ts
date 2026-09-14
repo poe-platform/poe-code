@@ -4,7 +4,8 @@ import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import { representationObject, type RepresentationContext } from "./representation-protocol.js";
 import { createRuntimeRepresentationContext } from "./runtime-representation.js";
 import { runtimeTruth } from "./runtime-truth.js";
-import { suggestName } from "./name-suggestion.js";
+import { runtimeStringPayload } from "./runtime-string-payload.js";
+import { unexpectedBuiltinKeyword } from "./unexpected-builtin-keyword.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 export interface PrintContext {
@@ -29,20 +30,23 @@ export function createPrintBuiltin(values: RuntimeValues, meter: ExecutionMeter,
   return values.builtinFunction({ name: "print", invoke(positional, keywords, meter, invocation) {
     meter.checkpoint();
     let sep: RuntimeValue = values.none, end: RuntimeValue = values.none, file: RuntimeValue = values.none, flush: RuntimeValue | undefined;
+    meter.checkpoint(0, 64 + keywords.items.size * 32);
+    const bound = new Set<string>();
+    let unexpected = false;
     for (const [key, value] of keywords.items.snapshot()) {
-      if (key.kind !== "str") throw new PythonRuntimeError("TypeError", "keywords must be strings");
+      const payload = runtimeStringPayload(key);
+      if (payload === undefined) throw new PythonRuntimeError("TypeError", "keywords must be strings");
       let name = "";
-      for (const point of key.value) { meter.checkpoint(1, point > 0xffff ? 4 : 2); name += String.fromCodePoint(point); }
+      for (const point of payload.value) { meter.checkpoint(1, point > 0xffff ? 4 : 2); name += String.fromCodePoint(point); }
+      if (bound.has(name)) { unexpected = true; continue; }
+      bound.add(name);
       if (name === "sep") sep = value;
       else if (name === "end") end = value;
       else if (name === "file") file = value;
       else if (name === "flush") flush = value;
-      else {
-        const suggestion = suggestName(name, ["sep", "end", "file", "flush"], meter);
-        const hint = suggestion === undefined ? "" : `. Did you mean '${suggestion}'?`;
-        throw new PythonRuntimeError("TypeError", `print() got an unexpected keyword argument '${name}'${hint}`);
-      }
+      else unexpected = true;
     }
+    if (unexpected) unexpectedBuiltinKeyword("print", keywords, ["sep", "end", "file", "flush"], values, meter, invocation);
     const shouldFlush = flush === undefined ? false : context.truth !== undefined ? context.truth(flush) : invocation?.truth !== undefined ? invocation.truth(flush) : runtimeTruth(flush, meter);
     meter.checkpoint();
     if (file.kind === "none") { file = context.stdout(); meter.checkpoint(); }

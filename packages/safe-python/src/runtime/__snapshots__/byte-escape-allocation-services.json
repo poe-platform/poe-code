@@ -1,0 +1,687 @@
+{
+  "recordedAt": "2026-09-14T07:46:16.753Z",
+  "node": "v22.23.2",
+  "oracleDriver": "import sys, unicodedata, platform, warnings, io, contextlib, json\nsource = sys.stdin.read()\noutput = io.StringIO()\nwith warnings.catch_warnings(record=True) as caught, contextlib.redirect_stdout(output):\n    warnings.simplefilter('always')\n    exec(compile(source, 'escape-warning.py', 'exec'), {'__name__':'__main__'})\nprint(json.dumps({'reference': {'version':sys.version,'unicode':unicodedata.unidata_version,'platform':platform.platform(),'byteorder':sys.byteorder},'stdout':output.getvalue(),'warnings':[{'category':w.category.__name__,'message':str(w.message),'filename':w.filename,'line':w.lineno} for w in caught]}))\n",
+  "adapter": "Explicit fs.writeSync complete writes and fs.fsyncSync output/warning adapters. Temporary descriptors closed and files removed in finally. Guest receives no filesystem capability.",
+  "driver": "import {readFileSync, writeFileSync, openSync, closeSync, writeSync, fsyncSync, mkdtempSync, rmSync} from 'node:fs';\nimport {tmpdir} from 'node:os';\nimport {join} from 'node:path';\nimport {spawnSync} from 'node:child_process';\nimport assert from 'node:assert/strict';\nimport {PythonSession} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/index.ts';\nconst root='/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/__snapshots__/';\nconst reference=JSON.parse(readFileSync(root+'byte-escape-warning-services.json','utf8'));\nconst cases=[];\nfor(const row of reference.cases){\n const response=spawnSync('/opt/homebrew/bin/python3.14',['-I','-c',reference.oracleDriver],{input:row.source,encoding:'utf8'});\n assert.equal(response.status,0);assert.equal(response.stderr,'');\n const oracle=JSON.parse(response.stdout);assert.deepEqual(oracle,row.oracle);\n const runs=[];\n for(const mode of ['normal','cancel-return','cancel-throw']){\n  const directory=mkdtempSync(join(tmpdir(),'codec-byte-adapter-'));\n  const outputPath=join(directory,'output'),warningPath=join(directory,'warning');\n  const output=openSync(outputPath,'w'),warning=openSync(warningPath,'w');\n  const controller=new AbortController();let writes=0,warnings=0,flushes=0;\n  const write=(fd:number,text:string)=>{const data=Buffer.from(text);let offset=0;while(offset<data.length){const count=writeSync(fd,data,offset,data.length-offset);assert.ok(count>0);offset+=count;}};\n  try{\n   const session=new PythonSession({hashSeed:[1n,2n],signal:controller.signal,\n    limits:{maxSteps:1000000,maxAllocatedBytes:16000000,maxDepth:100},\n    warning(value){warnings++;write(warning,JSON.stringify({category:value.category,message:value.message,filename:value.filename,line:value.position?.line})+'\\n');fsyncSync(warning);\n     if(mode!=='normal'){controller.abort();if(mode==='cancel-throw')throw Error('warning adapter cancelled');}},\n    output:{write(text){writes++;write(output,text);},flush(){flushes++;fsyncSync(output);}}\n   });\n   const result=session.exec(row.source,{filename:'escape-warning.py'});\n   const counts={writes,warnings,flushes};\n   let retries;\n   if(mode==='normal')assert.deepEqual(result,{status:'ok'});\n   else{\n    assert.equal(result.status,'terminated');assert.equal((result as any).reason,'cancelled');\n    const exec=session.exec(\"print('resumed')\"),evaluation=session.eval('1');\n    assert.equal(exec,result);assert.equal(evaluation,result);\n    assert.deepEqual({writes,warnings,flushes},counts);\n    assert.equal(warnings,1);assert.equal(writes,0);\n    retries={exec,evaluation,identical:true};\n   }\n   fsyncSync(output);\n   const stdout=readFileSync(outputPath,'utf8');\n   const recordedWarnings=readFileSync(warningPath,'utf8').trim().split('\\n').filter(Boolean).map(line=>JSON.parse(line));\n   if(mode==='normal'){assert.equal(stdout,oracle.stdout);assert.deepEqual(recordedWarnings,oracle.warnings);}\n   runs.push({mode,result,stdout,warnings:recordedWarnings,counts,retries});\n  }finally{closeSync(output);closeSync(warning);rmSync(directory,{recursive:true});}\n }\n cases.push({...row,oracle,runs});\n}\nwriteFileSync(root+'byte-escape-allocation-services.json',JSON.stringify({recordedAt:new Date().toISOString(),node:process.version,oracleDriver:reference.oracleDriver,adapter:'Explicit fs.writeSync complete writes and fs.fsyncSync output/warning adapters. Temporary descriptors closed and files removed in finally. Guest receives no filesystem capability.',driver:readFileSync('/tmp/codec-byte-allocation-services.ts','utf8'),cases},null,2)+'\\n');\nconsole.log(JSON.stringify({cases:cases.length,runs:cases.reduce((n,row)=>n+row.runs.length,0)}));\n",
+  "cases": [
+    {
+      "name": "byte codec unknown",
+      "source": "import codecs\nprint(codecs.escape_decode(bytes([92,113])))\n",
+      "oracle": {
+        "reference": {
+          "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+          "unicode": "16.0.0",
+          "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+          "byteorder": "little"
+        },
+        "stdout": "(b'\\\\q', 2)\n",
+        "warnings": [
+          {
+            "category": "DeprecationWarning",
+            "message": "b\"\\q\" is an invalid escape sequence. Such sequences will not work in the future. ",
+            "filename": "escape-warning.py",
+            "line": 2
+          }
+        ]
+      },
+      "runs": [
+        {
+          "mode": "normal",
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "(b'\\\\q', 2)\n",
+          "warnings": [
+            {
+              "category": "DeprecationWarning",
+              "message": "b\"\\q\" is an invalid escape sequence. Such sequences will not work in the future. ",
+              "filename": "escape-warning.py",
+              "line": 2
+            }
+          ],
+          "counts": {
+            "writes": 2,
+            "warnings": 1,
+            "flushes": 0
+          }
+        },
+        {
+          "mode": "cancel-return",
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "stdout": "",
+          "warnings": [
+            {
+              "category": "DeprecationWarning",
+              "message": "b\"\\q\" is an invalid escape sequence. Such sequences will not work in the future. ",
+              "filename": "escape-warning.py",
+              "line": 2
+            }
+          ],
+          "counts": {
+            "writes": 0,
+            "warnings": 1,
+            "flushes": 0
+          },
+          "retries": {
+            "exec": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            "evaluation": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            "identical": true
+          }
+        },
+        {
+          "mode": "cancel-throw",
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "stdout": "",
+          "warnings": [
+            {
+              "category": "DeprecationWarning",
+              "message": "b\"\\q\" is an invalid escape sequence. Such sequences will not work in the future. ",
+              "filename": "escape-warning.py",
+              "line": 2
+            }
+          ],
+          "counts": {
+            "writes": 0,
+            "warnings": 1,
+            "flushes": 0
+          },
+          "retries": {
+            "exec": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            "evaluation": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            "identical": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Unicode codec unknown",
+      "source": "import codecs\nprint(repr(codecs.decode(bytes([92,113]), 'unicode_escape')))\n",
+      "oracle": {
+        "reference": {
+          "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+          "unicode": "16.0.0",
+          "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+          "byteorder": "little"
+        },
+        "stdout": "'\\\\q'\n",
+        "warnings": [
+          {
+            "category": "DeprecationWarning",
+            "message": "\"\\q\" is an invalid escape sequence. Such sequences will not work in the future. ",
+            "filename": "escape-warning.py",
+            "line": 2
+          }
+        ]
+      },
+      "runs": [
+        {
+          "mode": "normal",
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "'\\\\q'\n",
+          "warnings": [
+            {
+              "category": "DeprecationWarning",
+              "message": "\"\\q\" is an invalid escape sequence. Such sequences will not work in the future. ",
+              "filename": "escape-warning.py",
+              "line": 2
+            }
+          ],
+          "counts": {
+            "writes": 2,
+            "warnings": 1,
+            "flushes": 0
+          }
+        },
+        {
+          "mode": "cancel-return",
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "stdout": "",
+          "warnings": [
+            {
+              "category": "DeprecationWarning",
+              "message": "\"\\q\" is an invalid escape sequence. Such sequences will not work in the future. ",
+              "filename": "escape-warning.py",
+              "line": 2
+            }
+          ],
+          "counts": {
+            "writes": 0,
+            "warnings": 1,
+            "flushes": 0
+          },
+          "retries": {
+            "exec": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            "evaluation": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            "identical": true
+          }
+        },
+        {
+          "mode": "cancel-throw",
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "stdout": "",
+          "warnings": [
+            {
+              "category": "DeprecationWarning",
+              "message": "\"\\q\" is an invalid escape sequence. Such sequences will not work in the future. ",
+              "filename": "escape-warning.py",
+              "line": 2
+            }
+          ],
+          "counts": {
+            "writes": 0,
+            "warnings": 1,
+            "flushes": 0
+          },
+          "retries": {
+            "exec": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            "evaluation": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            "identical": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "byte literal unknown",
+      "source": "print(b'\\q')\n",
+      "oracle": {
+        "reference": {
+          "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+          "unicode": "16.0.0",
+          "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+          "byteorder": "little"
+        },
+        "stdout": "b'\\\\q'\n",
+        "warnings": [
+          {
+            "category": "SyntaxWarning",
+            "message": "\"\\q\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\q\"? A raw string is also an option.",
+            "filename": "escape-warning.py",
+            "line": 1
+          }
+        ]
+      },
+      "runs": [
+        {
+          "mode": "normal",
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "b'\\\\q'\n",
+          "warnings": [
+            {
+              "category": "SyntaxWarning",
+              "message": "\"\\q\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\q\"? A raw string is also an option.",
+              "filename": "escape-warning.py",
+              "line": 1
+            }
+          ],
+          "counts": {
+            "writes": 2,
+            "warnings": 1,
+            "flushes": 0
+          }
+        },
+        {
+          "mode": "cancel-return",
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "stdout": "",
+          "warnings": [
+            {
+              "category": "SyntaxWarning",
+              "message": "\"\\q\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\q\"? A raw string is also an option.",
+              "filename": "escape-warning.py",
+              "line": 1
+            }
+          ],
+          "counts": {
+            "writes": 0,
+            "warnings": 1,
+            "flushes": 0
+          },
+          "retries": {
+            "exec": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            "evaluation": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            "identical": true
+          }
+        },
+        {
+          "mode": "cancel-throw",
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "stdout": "",
+          "warnings": [
+            {
+              "category": "SyntaxWarning",
+              "message": "\"\\q\" is an invalid escape sequence. Such sequences will not work in the future. Did you mean \"\\\\q\"? A raw string is also an option.",
+              "filename": "escape-warning.py",
+              "line": 1
+            }
+          ],
+          "counts": {
+            "writes": 0,
+            "warnings": 1,
+            "flushes": 0
+          },
+          "retries": {
+            "exec": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            "evaluation": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            "identical": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "byte codec octal",
+      "source": "import codecs\nprint(codecs.escape_decode(bytes([92,55,55,55])))\n",
+      "oracle": {
+        "reference": {
+          "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+          "unicode": "16.0.0",
+          "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+          "byteorder": "little"
+        },
+        "stdout": "(b'\\xff', 4)\n",
+        "warnings": [
+          {
+            "category": "DeprecationWarning",
+            "message": "b\"\\777\" is an invalid octal escape sequence. Such sequences will not work in the future. ",
+            "filename": "escape-warning.py",
+            "line": 2
+          }
+        ]
+      },
+      "runs": [
+        {
+          "mode": "normal",
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "(b'\\xff', 4)\n",
+          "warnings": [
+            {
+              "category": "DeprecationWarning",
+              "message": "b\"\\777\" is an invalid octal escape sequence. Such sequences will not work in the future. ",
+              "filename": "escape-warning.py",
+              "line": 2
+            }
+          ],
+          "counts": {
+            "writes": 2,
+            "warnings": 1,
+            "flushes": 0
+          }
+        },
+        {
+          "mode": "cancel-return",
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "stdout": "",
+          "warnings": [
+            {
+              "category": "DeprecationWarning",
+              "message": "b\"\\777\" is an invalid octal escape sequence. Such sequences will not work in the future. ",
+              "filename": "escape-warning.py",
+              "line": 2
+            }
+          ],
+          "counts": {
+            "writes": 0,
+            "warnings": 1,
+            "flushes": 0
+          },
+          "retries": {
+            "exec": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            "evaluation": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            "identical": true
+          }
+        },
+        {
+          "mode": "cancel-throw",
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "stdout": "",
+          "warnings": [
+            {
+              "category": "DeprecationWarning",
+              "message": "b\"\\777\" is an invalid octal escape sequence. Such sequences will not work in the future. ",
+              "filename": "escape-warning.py",
+              "line": 2
+            }
+          ],
+          "counts": {
+            "writes": 0,
+            "warnings": 1,
+            "flushes": 0
+          },
+          "retries": {
+            "exec": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            "evaluation": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            "identical": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "Unicode codec octal",
+      "source": "import codecs\nprint(repr(codecs.decode(bytes([92,55,55,55]), 'unicode_escape')))\n",
+      "oracle": {
+        "reference": {
+          "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+          "unicode": "16.0.0",
+          "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+          "byteorder": "little"
+        },
+        "stdout": "'ǿ'\n",
+        "warnings": [
+          {
+            "category": "DeprecationWarning",
+            "message": "\"\\777\" is an invalid octal escape sequence. Such sequences will not work in the future. ",
+            "filename": "escape-warning.py",
+            "line": 2
+          }
+        ]
+      },
+      "runs": [
+        {
+          "mode": "normal",
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "'ǿ'\n",
+          "warnings": [
+            {
+              "category": "DeprecationWarning",
+              "message": "\"\\777\" is an invalid octal escape sequence. Such sequences will not work in the future. ",
+              "filename": "escape-warning.py",
+              "line": 2
+            }
+          ],
+          "counts": {
+            "writes": 2,
+            "warnings": 1,
+            "flushes": 0
+          }
+        },
+        {
+          "mode": "cancel-return",
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "stdout": "",
+          "warnings": [
+            {
+              "category": "DeprecationWarning",
+              "message": "\"\\777\" is an invalid octal escape sequence. Such sequences will not work in the future. ",
+              "filename": "escape-warning.py",
+              "line": 2
+            }
+          ],
+          "counts": {
+            "writes": 0,
+            "warnings": 1,
+            "flushes": 0
+          },
+          "retries": {
+            "exec": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            "evaluation": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            "identical": true
+          }
+        },
+        {
+          "mode": "cancel-throw",
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "stdout": "",
+          "warnings": [
+            {
+              "category": "DeprecationWarning",
+              "message": "\"\\777\" is an invalid octal escape sequence. Such sequences will not work in the future. ",
+              "filename": "escape-warning.py",
+              "line": 2
+            }
+          ],
+          "counts": {
+            "writes": 0,
+            "warnings": 1,
+            "flushes": 0
+          },
+          "retries": {
+            "exec": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            "evaluation": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            "identical": true
+          }
+        }
+      ]
+    },
+    {
+      "name": "byte literal octal",
+      "source": "print(b'\\777')\n",
+      "oracle": {
+        "reference": {
+          "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+          "unicode": "16.0.0",
+          "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+          "byteorder": "little"
+        },
+        "stdout": "b'\\xff'\n",
+        "warnings": [
+          {
+            "category": "SyntaxWarning",
+            "message": "\"\\777\" is an invalid octal escape sequence. Such sequences will not work in the future. Did you mean \"\\\\777\"? A raw string is also an option.",
+            "filename": "escape-warning.py",
+            "line": 1
+          }
+        ]
+      },
+      "runs": [
+        {
+          "mode": "normal",
+          "result": {
+            "status": "ok"
+          },
+          "stdout": "b'\\xff'\n",
+          "warnings": [
+            {
+              "category": "SyntaxWarning",
+              "message": "\"\\777\" is an invalid octal escape sequence. Such sequences will not work in the future. Did you mean \"\\\\777\"? A raw string is also an option.",
+              "filename": "escape-warning.py",
+              "line": 1
+            }
+          ],
+          "counts": {
+            "writes": 2,
+            "warnings": 1,
+            "flushes": 0
+          }
+        },
+        {
+          "mode": "cancel-return",
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "stdout": "",
+          "warnings": [
+            {
+              "category": "SyntaxWarning",
+              "message": "\"\\777\" is an invalid octal escape sequence. Such sequences will not work in the future. Did you mean \"\\\\777\"? A raw string is also an option.",
+              "filename": "escape-warning.py",
+              "line": 1
+            }
+          ],
+          "counts": {
+            "writes": 0,
+            "warnings": 1,
+            "flushes": 0
+          },
+          "retries": {
+            "exec": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            "evaluation": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            "identical": true
+          }
+        },
+        {
+          "mode": "cancel-throw",
+          "result": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "stdout": "",
+          "warnings": [
+            {
+              "category": "SyntaxWarning",
+              "message": "\"\\777\" is an invalid octal escape sequence. Such sequences will not work in the future. Did you mean \"\\\\777\"? A raw string is also an option.",
+              "filename": "escape-warning.py",
+              "line": 1
+            }
+          ],
+          "counts": {
+            "writes": 0,
+            "warnings": 1,
+            "flushes": 0
+          },
+          "retries": {
+            "exec": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            "evaluation": {
+              "status": "terminated",
+              "reason": "cancelled",
+              "message": "execution cancelled"
+            },
+            "identical": true
+          }
+        }
+      ]
+    }
+  ]
+}

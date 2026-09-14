@@ -78,7 +78,7 @@ export function createTypeNewBuiltin(values: RuntimeValues, meter: ExecutionMete
       for (const base of bases.items) { meter.checkpoint(1, 8); if (base.kind !== "type") throw Error("native class bases require concrete type records"); concreteBases.push(base); }
       if (invocation?.finalizeType === undefined) throw Error("native type allocation requires class finalization");
       const type = allocateRuntimeType(name, concreteBases, namespace, winner, registry, values, meter, {
-        module: invocation.moduleName, get iteration() { return invocation.iteration; }
+        module: invocation.moduleName, prepareException: invocation.prepareException, isException: invocation.isException, nativeHash: invocation.nativeHash, get iteration() { return invocation.iteration; }
       });
       invocation.finalizeType(type, keywords); meter.checkpoint(); return type;
     }

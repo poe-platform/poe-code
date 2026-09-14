@@ -1,4 +1,6 @@
+import {bindRuntimeClinicArguments} from "./runtime-clinic-arguments.js";
 import { PythonRuntimeError } from "./error.js";
+import {unsupportedBuffer} from "./runtime-buffer-error.js";
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import { runtimeStringPayload } from "./runtime-string-payload.js";
 import type { CodePointString } from "./code-point-string.js";
@@ -17,27 +19,19 @@ export function createRuntimeSplitMethod(receiver: RuntimeValue, name: "split" |
   if (source === undefined) throw Error("splitting requires native string or bytes storage");
   return values.builtinFunction({
     name,
-    invoke(positional, keywords, meter) {
+    invoke(positional, keywords, meter, invocation) {
       meter.checkpoint();
       const count = positional.length + keywords.items.size;
       if (count > 2) throw new PythonRuntimeError("TypeError", `${name}() takes at most 2 ${positional.length === 0 ? "keyword " : ""}arguments (${count} given)`);
-      let separator = positional[0] ?? values.none, limit = positional[1];
-      for (const [key, value] of keywords.items.snapshot()) {
-        if (key.kind !== "str") throw new PythonRuntimeError("TypeError", "keywords must be strings");
-        let label = "";
-        for (const point of key.value) { meter.checkpoint(1, point > 0xffff ? 4 : 2); label += String.fromCodePoint(point); }
-        if (label !== "sep" && label !== "maxsplit") throw new PythonRuntimeError("TypeError", `${name}() got an unexpected keyword argument '${label}'`);
-        const position = label === "sep" ? 1 : 2;
-        if (positional.length >= position) throw new PythonRuntimeError("TypeError", `argument for ${name}() given by name ('${label}') and position (${position})`);
-        if (label === "sep") separator = value; else limit = value;
-      }
+      const args=bindRuntimeClinicArguments(name,["sep","maxsplit"],positional,keywords,values,meter,invocation);
+      const separator=args[0]??values.none,limit=args[1];
       const maxsplit = limit === undefined ? -1n : runtimeSizeIndex(limit, meter, context);
       if (source.kind === "bytes") {
         let lease: RuntimeBufferLease | undefined;
         try {
           if (separator.kind !== "none" && separator.kind !== "bytes") {
             lease = buffers?.acquireSimple(separator); meter.checkpoint();
-            if (lease === undefined) throw new PythonRuntimeError("TypeError", `a bytes-like object is required, not '${separator.kind === "not-implemented" ? "NotImplementedType" : separator.kind}'`);
+            if (lease === undefined) unsupportedBuffer(separator,meter,buffers);
           }
           const storage = separator.kind === "none" ? null : separator.kind === "bytes" ? separator.value : lease!.copy();
           meter.checkpoint();

@@ -2,7 +2,7 @@ import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { searchRange } from "./range-search.js";
 import { createRuntimeSearchEquality } from "./runtime-search-equality.js";
-import { createRuntimeRangeIterator } from "./runtime-range-iterator.js";
+import { RuntimeRangeIterator } from "./runtime-range-iterator.js";
 import type { BuiltinInvocationContext, DictionaryValue, RangeValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 /** Exact range members retain arbitrary-precision progression bounds. */
@@ -25,7 +25,7 @@ export function callRuntimeRangeMethod(receiver: RangeValue, name: "count" | "in
   if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", `range.${name}() takes no keyword arguments`);
   if (name === "__reversed__") {
     if (positional.length !== 0) throw new PythonRuntimeError("TypeError", `range.__reversed__() takes no arguments (${positional.length} given)`);
-    return values.iterator(createRuntimeRangeIterator(receiver.value, true, values, meter));
+    return values.iterator(new RuntimeRangeIterator(receiver, true, values, meter));
   }
   if (positional.length !== 1) throw new PythonRuntimeError("TypeError", `range.${name}() takes exactly one argument (${positional.length} given)`);
   const result = searchRange(name, receiver.value, positional[0], {

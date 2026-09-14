@@ -1,0 +1,94 @@
+{
+  "target": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "cases": [
+    {
+      "name": "native final=false tail=+AOQ",
+      "source": "\nimport codecs\nseen = []\nretained = []\nobjects = [b'\\xff+IKw-\\xff', b'\\xff+2D3eAA-\\xff', b'\\xff+AOQ']\nclass Position:\n    def __index__(self):\n        retained[0].object = objects[len(seen) - 1]\n        return 1 - len(retained[0].object)\ndef handler(error):\n    if retained:\n        assert error is retained[0]\n    else:\n        retained.append(error)\n    seen.append((error.args, error.object, error.start, error.end, error.reason))\n    if len(seen) <= 3:\n        return (str(len(seen)), Position())\n    assert len(seen) == 4\n    return ('4', len(error.object))\ncodecs.register_error('chained_input', handler)\nprint(ascii(codecs.utf_7_decode(b'\\xfforiginal', 'chained_input', False)))\nprint(ascii(seen))\n",
+      "stdout": "('1\\u20ac2\\U0001f6003', 1)\n[(('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xfforiginal', 0, 1, 'unexpected special character'), (('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xff+IKw-\\xff', 6, 7, 'unexpected special character'), (('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xff+2D3eAA-\\xff', 9, 10, 'unexpected special character')]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "incremental final=false tail=+AOQ",
+      "source": "\nimport codecs\nseen = []\nretained = []\nobjects = [b'\\xff+IKw-\\xff', b'\\xff+2D3eAA-\\xff', b'\\xff+AOQ']\nclass Position:\n    def __index__(self):\n        retained[0].object = objects[len(seen) - 1]\n        return 1 - len(retained[0].object)\ndef handler(error):\n    if retained:\n        assert error is retained[0]\n    else:\n        retained.append(error)\n    seen.append((error.args, error.object, error.start, error.end, error.reason))\n    if len(seen) <= 3:\n        return (str(len(seen)), Position())\n    assert len(seen) == 4\n    return ('4', len(error.object))\ncodecs.register_error('chained_input', handler)\ndecoder = codecs.getincrementaldecoder('utf-7')('chained_input')\nresult = decoder.decode(b'\\xfforiginal', False)\nprint(ascii((result, decoder.getstate())))\nprint(ascii((decoder.decode(b'w-', True), decoder.getstate())))\nprint(ascii(seen))\n",
+      "stdout": "('1\\u20ac2\\U0001f6003', (b'original', 0))\n('originalw-', (b'', 0))\n[(('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xfforiginal', 0, 1, 'unexpected special character'), (('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xff+IKw-\\xff', 6, 7, 'unexpected special character'), (('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xff+2D3eAA-\\xff', 9, 10, 'unexpected special character')]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "native final=true tail=+AOQ",
+      "source": "\nimport codecs\nseen = []\nretained = []\nobjects = [b'\\xff+IKw-\\xff', b'\\xff+2D3eAA-\\xff', b'\\xff+AOQ']\nclass Position:\n    def __index__(self):\n        retained[0].object = objects[len(seen) - 1]\n        return 1 - len(retained[0].object)\ndef handler(error):\n    if retained:\n        assert error is retained[0]\n    else:\n        retained.append(error)\n    seen.append((error.args, error.object, error.start, error.end, error.reason))\n    if len(seen) <= 3:\n        return (str(len(seen)), Position())\n    assert len(seen) == 4\n    return ('4', len(error.object))\ncodecs.register_error('chained_input', handler)\nprint(ascii(codecs.utf_7_decode(b'\\xfforiginal', 'chained_input', True)))\nprint(ascii(seen))\n",
+      "stdout": "('1\\u20ac2\\U0001f6003\\xe4', 9)\n[(('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xfforiginal', 0, 1, 'unexpected special character'), (('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xff+IKw-\\xff', 6, 7, 'unexpected special character'), (('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xff+2D3eAA-\\xff', 9, 10, 'unexpected special character')]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "incremental final=true tail=+AOQ",
+      "source": "\nimport codecs\nseen = []\nretained = []\nobjects = [b'\\xff+IKw-\\xff', b'\\xff+2D3eAA-\\xff', b'\\xff+AOQ']\nclass Position:\n    def __index__(self):\n        retained[0].object = objects[len(seen) - 1]\n        return 1 - len(retained[0].object)\ndef handler(error):\n    if retained:\n        assert error is retained[0]\n    else:\n        retained.append(error)\n    seen.append((error.args, error.object, error.start, error.end, error.reason))\n    if len(seen) <= 3:\n        return (str(len(seen)), Position())\n    assert len(seen) == 4\n    return ('4', len(error.object))\ncodecs.register_error('chained_input', handler)\ndecoder = codecs.getincrementaldecoder('utf-7')('chained_input')\nresult = decoder.decode(b'\\xfforiginal', True)\nprint(ascii((result, decoder.getstate())))\nprint(ascii((decoder.decode(b'w-', True), decoder.getstate())))\nprint(ascii(seen))\n",
+      "stdout": "('1\\u20ac2\\U0001f6003\\xe4', (b'', 0))\n('w-', (b'', 0))\n[(('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xfforiginal', 0, 1, 'unexpected special character'), (('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xff+IKw-\\xff', 6, 7, 'unexpected special character'), (('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xff+2D3eAA-\\xff', 9, 10, 'unexpected special character')]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "native final=false tail=+AOR",
+      "source": "\nimport codecs\nseen = []\nretained = []\nobjects = [b'\\xff+IKw-\\xff', b'\\xff+2D3eAA-\\xff', b'\\xff+AOR']\nclass Position:\n    def __index__(self):\n        retained[0].object = objects[len(seen) - 1]\n        return 1 - len(retained[0].object)\ndef handler(error):\n    if retained:\n        assert error is retained[0]\n    else:\n        retained.append(error)\n    seen.append((error.args, error.object, error.start, error.end, error.reason))\n    if len(seen) <= 3:\n        return (str(len(seen)), Position())\n    assert len(seen) == 4\n    return ('4', len(error.object))\ncodecs.register_error('chained_input', handler)\nprint(ascii(codecs.utf_7_decode(b'\\xfforiginal', 'chained_input', False)))\nprint(ascii(seen))\n",
+      "stdout": "('1\\u20ac2\\U0001f6003', 1)\n[(('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xfforiginal', 0, 1, 'unexpected special character'), (('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xff+IKw-\\xff', 6, 7, 'unexpected special character'), (('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xff+2D3eAA-\\xff', 9, 10, 'unexpected special character')]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "incremental final=false tail=+AOR",
+      "source": "\nimport codecs\nseen = []\nretained = []\nobjects = [b'\\xff+IKw-\\xff', b'\\xff+2D3eAA-\\xff', b'\\xff+AOR']\nclass Position:\n    def __index__(self):\n        retained[0].object = objects[len(seen) - 1]\n        return 1 - len(retained[0].object)\ndef handler(error):\n    if retained:\n        assert error is retained[0]\n    else:\n        retained.append(error)\n    seen.append((error.args, error.object, error.start, error.end, error.reason))\n    if len(seen) <= 3:\n        return (str(len(seen)), Position())\n    assert len(seen) == 4\n    return ('4', len(error.object))\ncodecs.register_error('chained_input', handler)\ndecoder = codecs.getincrementaldecoder('utf-7')('chained_input')\nresult = decoder.decode(b'\\xfforiginal', False)\nprint(ascii((result, decoder.getstate())))\nprint(ascii((decoder.decode(b'w-', True), decoder.getstate())))\nprint(ascii(seen))\n",
+      "stdout": "('1\\u20ac2\\U0001f6003', (b'original', 0))\n('originalw-', (b'', 0))\n[(('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xfforiginal', 0, 1, 'unexpected special character'), (('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xff+IKw-\\xff', 6, 7, 'unexpected special character'), (('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xff+2D3eAA-\\xff', 9, 10, 'unexpected special character')]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "native final=true tail=+AOR",
+      "source": "\nimport codecs\nseen = []\nretained = []\nobjects = [b'\\xff+IKw-\\xff', b'\\xff+2D3eAA-\\xff', b'\\xff+AOR']\nclass Position:\n    def __index__(self):\n        retained[0].object = objects[len(seen) - 1]\n        return 1 - len(retained[0].object)\ndef handler(error):\n    if retained:\n        assert error is retained[0]\n    else:\n        retained.append(error)\n    seen.append((error.args, error.object, error.start, error.end, error.reason))\n    if len(seen) <= 3:\n        return (str(len(seen)), Position())\n    assert len(seen) == 4\n    return ('4', len(error.object))\ncodecs.register_error('chained_input', handler)\nprint(ascii(codecs.utf_7_decode(b'\\xfforiginal', 'chained_input', True)))\nprint(ascii(seen))\n",
+      "stdout": "('1\\u20ac2\\U0001f6003\\xe44', 9)\n[(('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xfforiginal', 0, 1, 'unexpected special character'), (('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xff+IKw-\\xff', 6, 7, 'unexpected special character'), (('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xff+2D3eAA-\\xff', 9, 10, 'unexpected special character'), (('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xff+AOR', 1, 9, 'unterminated shift sequence')]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "incremental final=true tail=+AOR",
+      "source": "\nimport codecs\nseen = []\nretained = []\nobjects = [b'\\xff+IKw-\\xff', b'\\xff+2D3eAA-\\xff', b'\\xff+AOR']\nclass Position:\n    def __index__(self):\n        retained[0].object = objects[len(seen) - 1]\n        return 1 - len(retained[0].object)\ndef handler(error):\n    if retained:\n        assert error is retained[0]\n    else:\n        retained.append(error)\n    seen.append((error.args, error.object, error.start, error.end, error.reason))\n    if len(seen) <= 3:\n        return (str(len(seen)), Position())\n    assert len(seen) == 4\n    return ('4', len(error.object))\ncodecs.register_error('chained_input', handler)\ndecoder = codecs.getincrementaldecoder('utf-7')('chained_input')\nresult = decoder.decode(b'\\xfforiginal', True)\nprint(ascii((result, decoder.getstate())))\nprint(ascii((decoder.decode(b'w-', True), decoder.getstate())))\nprint(ascii(seen))\n",
+      "stdout": "('1\\u20ac2\\U0001f6003\\xe44', (b'', 0))\n('w-', (b'', 0))\n[(('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xfforiginal', 0, 1, 'unexpected special character'), (('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xff+IKw-\\xff', 6, 7, 'unexpected special character'), (('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xff+2D3eAA-\\xff', 9, 10, 'unexpected special character'), (('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xff+AOR', 1, 9, 'unterminated shift sequence')]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "native final=false tail=+2AA",
+      "source": "\nimport codecs\nseen = []\nretained = []\nobjects = [b'\\xff+IKw-\\xff', b'\\xff+2D3eAA-\\xff', b'\\xff+2AA']\nclass Position:\n    def __index__(self):\n        retained[0].object = objects[len(seen) - 1]\n        return 1 - len(retained[0].object)\ndef handler(error):\n    if retained:\n        assert error is retained[0]\n    else:\n        retained.append(error)\n    seen.append((error.args, error.object, error.start, error.end, error.reason))\n    if len(seen) <= 3:\n        return (str(len(seen)), Position())\n    assert len(seen) == 4\n    return ('4', len(error.object))\ncodecs.register_error('chained_input', handler)\nprint(ascii(codecs.utf_7_decode(b'\\xfforiginal', 'chained_input', False)))\nprint(ascii(seen))\n",
+      "stdout": "('1\\u20ac2\\U0001f6003', 1)\n[(('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xfforiginal', 0, 1, 'unexpected special character'), (('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xff+IKw-\\xff', 6, 7, 'unexpected special character'), (('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xff+2D3eAA-\\xff', 9, 10, 'unexpected special character')]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "incremental final=false tail=+2AA",
+      "source": "\nimport codecs\nseen = []\nretained = []\nobjects = [b'\\xff+IKw-\\xff', b'\\xff+2D3eAA-\\xff', b'\\xff+2AA']\nclass Position:\n    def __index__(self):\n        retained[0].object = objects[len(seen) - 1]\n        return 1 - len(retained[0].object)\ndef handler(error):\n    if retained:\n        assert error is retained[0]\n    else:\n        retained.append(error)\n    seen.append((error.args, error.object, error.start, error.end, error.reason))\n    if len(seen) <= 3:\n        return (str(len(seen)), Position())\n    assert len(seen) == 4\n    return ('4', len(error.object))\ncodecs.register_error('chained_input', handler)\ndecoder = codecs.getincrementaldecoder('utf-7')('chained_input')\nresult = decoder.decode(b'\\xfforiginal', False)\nprint(ascii((result, decoder.getstate())))\nprint(ascii((decoder.decode(b'w-', True), decoder.getstate())))\nprint(ascii(seen))\n",
+      "stdout": "('1\\u20ac2\\U0001f6003', (b'original', 0))\n('originalw-', (b'', 0))\n[(('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xfforiginal', 0, 1, 'unexpected special character'), (('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xff+IKw-\\xff', 6, 7, 'unexpected special character'), (('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xff+2D3eAA-\\xff', 9, 10, 'unexpected special character')]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "native final=true tail=+2AA",
+      "source": "\nimport codecs\nseen = []\nretained = []\nobjects = [b'\\xff+IKw-\\xff', b'\\xff+2D3eAA-\\xff', b'\\xff+2AA']\nclass Position:\n    def __index__(self):\n        retained[0].object = objects[len(seen) - 1]\n        return 1 - len(retained[0].object)\ndef handler(error):\n    if retained:\n        assert error is retained[0]\n    else:\n        retained.append(error)\n    seen.append((error.args, error.object, error.start, error.end, error.reason))\n    if len(seen) <= 3:\n        return (str(len(seen)), Position())\n    assert len(seen) == 4\n    return ('4', len(error.object))\ncodecs.register_error('chained_input', handler)\nprint(ascii(codecs.utf_7_decode(b'\\xfforiginal', 'chained_input', True)))\nprint(ascii(seen))\n",
+      "stdout": "('1\\u20ac2\\U0001f60034', 9)\n[(('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xfforiginal', 0, 1, 'unexpected special character'), (('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xff+IKw-\\xff', 6, 7, 'unexpected special character'), (('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xff+2D3eAA-\\xff', 9, 10, 'unexpected special character'), (('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xff+2AA', 1, 9, 'unterminated shift sequence')]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "incremental final=true tail=+2AA",
+      "source": "\nimport codecs\nseen = []\nretained = []\nobjects = [b'\\xff+IKw-\\xff', b'\\xff+2D3eAA-\\xff', b'\\xff+2AA']\nclass Position:\n    def __index__(self):\n        retained[0].object = objects[len(seen) - 1]\n        return 1 - len(retained[0].object)\ndef handler(error):\n    if retained:\n        assert error is retained[0]\n    else:\n        retained.append(error)\n    seen.append((error.args, error.object, error.start, error.end, error.reason))\n    if len(seen) <= 3:\n        return (str(len(seen)), Position())\n    assert len(seen) == 4\n    return ('4', len(error.object))\ncodecs.register_error('chained_input', handler)\ndecoder = codecs.getincrementaldecoder('utf-7')('chained_input')\nresult = decoder.decode(b'\\xfforiginal', True)\nprint(ascii((result, decoder.getstate())))\nprint(ascii((decoder.decode(b'w-', True), decoder.getstate())))\nprint(ascii(seen))\n",
+      "stdout": "('1\\u20ac2\\U0001f60034', (b'', 0))\n('w-', (b'', 0))\n[(('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xfforiginal', 0, 1, 'unexpected special character'), (('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xff+IKw-\\xff', 6, 7, 'unexpected special character'), (('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xff+2D3eAA-\\xff', 9, 10, 'unexpected special character'), (('utf7', b'\\xfforiginal', 0, 1, 'unexpected special character'), b'\\xff+2AA', 1, 9, 'unterminated shift sequence')]\n",
+      "stderr": "",
+      "exitCode": 0
+    }
+  ]
+}

@@ -1,0 +1,3141 @@
+{
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "unicode": "16.0.0",
+  "cases": [
+    {
+      "name": "cp037",
+      "spelling": "037",
+      "canonical": "cp037"
+    },
+    {
+      "name": "cp037",
+      "spelling": "037",
+      "canonical": "cp037"
+    },
+    {
+      "name": "cp037",
+      "spelling": "037",
+      "canonical": "cp037"
+    },
+    {
+      "name": "cp037",
+      "spelling": "csibm037",
+      "canonical": "cp037"
+    },
+    {
+      "name": "cp037",
+      "spelling": "CSIBM037",
+      "canonical": "cp037"
+    },
+    {
+      "name": "cp037",
+      "spelling": "csibm037",
+      "canonical": "cp037"
+    },
+    {
+      "name": "cp037",
+      "spelling": "ebcdic_cp_ca",
+      "canonical": "cp037"
+    },
+    {
+      "name": "cp037",
+      "spelling": "EBCDIC-CP-CA",
+      "canonical": "cp037"
+    },
+    {
+      "name": "cp037",
+      "spelling": "ebcdic.cp.ca",
+      "canonical": "cp037"
+    },
+    {
+      "name": "cp037",
+      "spelling": "ebcdic_cp_nl",
+      "canonical": "cp037"
+    },
+    {
+      "name": "cp037",
+      "spelling": "EBCDIC-CP-NL",
+      "canonical": "cp037"
+    },
+    {
+      "name": "cp037",
+      "spelling": "ebcdic.cp.nl",
+      "canonical": "cp037"
+    },
+    {
+      "name": "cp037",
+      "spelling": "ebcdic_cp_us",
+      "canonical": "cp037"
+    },
+    {
+      "name": "cp037",
+      "spelling": "EBCDIC-CP-US",
+      "canonical": "cp037"
+    },
+    {
+      "name": "cp037",
+      "spelling": "ebcdic.cp.us",
+      "canonical": "cp037"
+    },
+    {
+      "name": "cp037",
+      "spelling": "ebcdic_cp_wt",
+      "canonical": "cp037"
+    },
+    {
+      "name": "cp037",
+      "spelling": "EBCDIC-CP-WT",
+      "canonical": "cp037"
+    },
+    {
+      "name": "cp037",
+      "spelling": "ebcdic.cp.wt",
+      "canonical": "cp037"
+    },
+    {
+      "name": "cp037",
+      "spelling": "ibm037",
+      "canonical": "cp037"
+    },
+    {
+      "name": "cp037",
+      "spelling": "IBM037",
+      "canonical": "cp037"
+    },
+    {
+      "name": "cp037",
+      "spelling": "ibm037",
+      "canonical": "cp037"
+    },
+    {
+      "name": "cp037",
+      "spelling": "ibm039",
+      "canonical": "cp037"
+    },
+    {
+      "name": "cp037",
+      "spelling": "IBM039",
+      "canonical": "cp037"
+    },
+    {
+      "name": "cp037",
+      "spelling": "ibm039",
+      "canonical": "cp037"
+    },
+    {
+      "name": "cp1026",
+      "spelling": "1026",
+      "canonical": "cp1026"
+    },
+    {
+      "name": "cp1026",
+      "spelling": "1026",
+      "canonical": "cp1026"
+    },
+    {
+      "name": "cp1026",
+      "spelling": "1026",
+      "canonical": "cp1026"
+    },
+    {
+      "name": "cp1026",
+      "spelling": "csibm1026",
+      "canonical": "cp1026"
+    },
+    {
+      "name": "cp1026",
+      "spelling": "CSIBM1026",
+      "canonical": "cp1026"
+    },
+    {
+      "name": "cp1026",
+      "spelling": "csibm1026",
+      "canonical": "cp1026"
+    },
+    {
+      "name": "cp1026",
+      "spelling": "ibm1026",
+      "canonical": "cp1026"
+    },
+    {
+      "name": "cp1026",
+      "spelling": "IBM1026",
+      "canonical": "cp1026"
+    },
+    {
+      "name": "cp1026",
+      "spelling": "ibm1026",
+      "canonical": "cp1026"
+    },
+    {
+      "name": "cp1125",
+      "spelling": "1125",
+      "canonical": "cp1125"
+    },
+    {
+      "name": "cp1125",
+      "spelling": "1125",
+      "canonical": "cp1125"
+    },
+    {
+      "name": "cp1125",
+      "spelling": "1125",
+      "canonical": "cp1125"
+    },
+    {
+      "name": "cp1125",
+      "spelling": "cp866u",
+      "canonical": "cp1125"
+    },
+    {
+      "name": "cp1125",
+      "spelling": "CP866U",
+      "canonical": "cp1125"
+    },
+    {
+      "name": "cp1125",
+      "spelling": "cp866u",
+      "canonical": "cp1125"
+    },
+    {
+      "name": "cp1125",
+      "spelling": "ibm1125",
+      "canonical": "cp1125"
+    },
+    {
+      "name": "cp1125",
+      "spelling": "IBM1125",
+      "canonical": "cp1125"
+    },
+    {
+      "name": "cp1125",
+      "spelling": "ibm1125",
+      "canonical": "cp1125"
+    },
+    {
+      "name": "cp1125",
+      "spelling": "ruscii",
+      "canonical": "cp1125"
+    },
+    {
+      "name": "cp1125",
+      "spelling": "RUSCII",
+      "canonical": "cp1125"
+    },
+    {
+      "name": "cp1125",
+      "spelling": "ruscii",
+      "canonical": "cp1125"
+    },
+    {
+      "name": "cp1140",
+      "spelling": "1140",
+      "canonical": "cp1140"
+    },
+    {
+      "name": "cp1140",
+      "spelling": "1140",
+      "canonical": "cp1140"
+    },
+    {
+      "name": "cp1140",
+      "spelling": "1140",
+      "canonical": "cp1140"
+    },
+    {
+      "name": "cp1140",
+      "spelling": "cp01140",
+      "canonical": "cp1140"
+    },
+    {
+      "name": "cp1140",
+      "spelling": "CP01140",
+      "canonical": "cp1140"
+    },
+    {
+      "name": "cp1140",
+      "spelling": "cp01140",
+      "canonical": "cp1140"
+    },
+    {
+      "name": "cp1140",
+      "spelling": "csibm01140",
+      "canonical": "cp1140"
+    },
+    {
+      "name": "cp1140",
+      "spelling": "CSIBM01140",
+      "canonical": "cp1140"
+    },
+    {
+      "name": "cp1140",
+      "spelling": "csibm01140",
+      "canonical": "cp1140"
+    },
+    {
+      "name": "cp1140",
+      "spelling": "ebcdic_us_37_euro",
+      "canonical": "cp1140"
+    },
+    {
+      "name": "cp1140",
+      "spelling": "EBCDIC-US-37-EURO",
+      "canonical": "cp1140"
+    },
+    {
+      "name": "cp1140",
+      "spelling": "ebcdic.us.37.euro",
+      "canonical": "cp1140"
+    },
+    {
+      "name": "cp1140",
+      "spelling": "ibm01140",
+      "canonical": "cp1140"
+    },
+    {
+      "name": "cp1140",
+      "spelling": "IBM01140",
+      "canonical": "cp1140"
+    },
+    {
+      "name": "cp1140",
+      "spelling": "ibm01140",
+      "canonical": "cp1140"
+    },
+    {
+      "name": "cp1140",
+      "spelling": "ibm1140",
+      "canonical": "cp1140"
+    },
+    {
+      "name": "cp1140",
+      "spelling": "IBM1140",
+      "canonical": "cp1140"
+    },
+    {
+      "name": "cp1140",
+      "spelling": "ibm1140",
+      "canonical": "cp1140"
+    },
+    {
+      "name": "cp1250",
+      "spelling": "1250",
+      "canonical": "cp1250"
+    },
+    {
+      "name": "cp1250",
+      "spelling": "1250",
+      "canonical": "cp1250"
+    },
+    {
+      "name": "cp1250",
+      "spelling": "1250",
+      "canonical": "cp1250"
+    },
+    {
+      "name": "cp1250",
+      "spelling": "windows_1250",
+      "canonical": "cp1250"
+    },
+    {
+      "name": "cp1250",
+      "spelling": "WINDOWS-1250",
+      "canonical": "cp1250"
+    },
+    {
+      "name": "cp1250",
+      "spelling": "windows.1250",
+      "canonical": "cp1250"
+    },
+    {
+      "name": "cp1251",
+      "spelling": "1251",
+      "canonical": "cp1251"
+    },
+    {
+      "name": "cp1251",
+      "spelling": "1251",
+      "canonical": "cp1251"
+    },
+    {
+      "name": "cp1251",
+      "spelling": "1251",
+      "canonical": "cp1251"
+    },
+    {
+      "name": "cp1251",
+      "spelling": "windows_1251",
+      "canonical": "cp1251"
+    },
+    {
+      "name": "cp1251",
+      "spelling": "WINDOWS-1251",
+      "canonical": "cp1251"
+    },
+    {
+      "name": "cp1251",
+      "spelling": "windows.1251",
+      "canonical": "cp1251"
+    },
+    {
+      "name": "cp1252",
+      "spelling": "1252",
+      "canonical": "cp1252"
+    },
+    {
+      "name": "cp1252",
+      "spelling": "1252",
+      "canonical": "cp1252"
+    },
+    {
+      "name": "cp1252",
+      "spelling": "1252",
+      "canonical": "cp1252"
+    },
+    {
+      "name": "cp1252",
+      "spelling": "windows_1252",
+      "canonical": "cp1252"
+    },
+    {
+      "name": "cp1252",
+      "spelling": "WINDOWS-1252",
+      "canonical": "cp1252"
+    },
+    {
+      "name": "cp1252",
+      "spelling": "windows.1252",
+      "canonical": "cp1252"
+    },
+    {
+      "name": "cp1253",
+      "spelling": "1253",
+      "canonical": "cp1253"
+    },
+    {
+      "name": "cp1253",
+      "spelling": "1253",
+      "canonical": "cp1253"
+    },
+    {
+      "name": "cp1253",
+      "spelling": "1253",
+      "canonical": "cp1253"
+    },
+    {
+      "name": "cp1253",
+      "spelling": "windows_1253",
+      "canonical": "cp1253"
+    },
+    {
+      "name": "cp1253",
+      "spelling": "WINDOWS-1253",
+      "canonical": "cp1253"
+    },
+    {
+      "name": "cp1253",
+      "spelling": "windows.1253",
+      "canonical": "cp1253"
+    },
+    {
+      "name": "cp1254",
+      "spelling": "1254",
+      "canonical": "cp1254"
+    },
+    {
+      "name": "cp1254",
+      "spelling": "1254",
+      "canonical": "cp1254"
+    },
+    {
+      "name": "cp1254",
+      "spelling": "1254",
+      "canonical": "cp1254"
+    },
+    {
+      "name": "cp1254",
+      "spelling": "windows_1254",
+      "canonical": "cp1254"
+    },
+    {
+      "name": "cp1254",
+      "spelling": "WINDOWS-1254",
+      "canonical": "cp1254"
+    },
+    {
+      "name": "cp1254",
+      "spelling": "windows.1254",
+      "canonical": "cp1254"
+    },
+    {
+      "name": "cp1255",
+      "spelling": "1255",
+      "canonical": "cp1255"
+    },
+    {
+      "name": "cp1255",
+      "spelling": "1255",
+      "canonical": "cp1255"
+    },
+    {
+      "name": "cp1255",
+      "spelling": "1255",
+      "canonical": "cp1255"
+    },
+    {
+      "name": "cp1255",
+      "spelling": "windows_1255",
+      "canonical": "cp1255"
+    },
+    {
+      "name": "cp1255",
+      "spelling": "WINDOWS-1255",
+      "canonical": "cp1255"
+    },
+    {
+      "name": "cp1255",
+      "spelling": "windows.1255",
+      "canonical": "cp1255"
+    },
+    {
+      "name": "cp1256",
+      "spelling": "1256",
+      "canonical": "cp1256"
+    },
+    {
+      "name": "cp1256",
+      "spelling": "1256",
+      "canonical": "cp1256"
+    },
+    {
+      "name": "cp1256",
+      "spelling": "1256",
+      "canonical": "cp1256"
+    },
+    {
+      "name": "cp1256",
+      "spelling": "windows_1256",
+      "canonical": "cp1256"
+    },
+    {
+      "name": "cp1256",
+      "spelling": "WINDOWS-1256",
+      "canonical": "cp1256"
+    },
+    {
+      "name": "cp1256",
+      "spelling": "windows.1256",
+      "canonical": "cp1256"
+    },
+    {
+      "name": "cp1257",
+      "spelling": "1257",
+      "canonical": "cp1257"
+    },
+    {
+      "name": "cp1257",
+      "spelling": "1257",
+      "canonical": "cp1257"
+    },
+    {
+      "name": "cp1257",
+      "spelling": "1257",
+      "canonical": "cp1257"
+    },
+    {
+      "name": "cp1257",
+      "spelling": "windows_1257",
+      "canonical": "cp1257"
+    },
+    {
+      "name": "cp1257",
+      "spelling": "WINDOWS-1257",
+      "canonical": "cp1257"
+    },
+    {
+      "name": "cp1257",
+      "spelling": "windows.1257",
+      "canonical": "cp1257"
+    },
+    {
+      "name": "cp1258",
+      "spelling": "1258",
+      "canonical": "cp1258"
+    },
+    {
+      "name": "cp1258",
+      "spelling": "1258",
+      "canonical": "cp1258"
+    },
+    {
+      "name": "cp1258",
+      "spelling": "1258",
+      "canonical": "cp1258"
+    },
+    {
+      "name": "cp1258",
+      "spelling": "windows_1258",
+      "canonical": "cp1258"
+    },
+    {
+      "name": "cp1258",
+      "spelling": "WINDOWS-1258",
+      "canonical": "cp1258"
+    },
+    {
+      "name": "cp1258",
+      "spelling": "windows.1258",
+      "canonical": "cp1258"
+    },
+    {
+      "name": "cp273",
+      "spelling": "273",
+      "canonical": "cp273"
+    },
+    {
+      "name": "cp273",
+      "spelling": "273",
+      "canonical": "cp273"
+    },
+    {
+      "name": "cp273",
+      "spelling": "273",
+      "canonical": "cp273"
+    },
+    {
+      "name": "cp273",
+      "spelling": "csibm273",
+      "canonical": "cp273"
+    },
+    {
+      "name": "cp273",
+      "spelling": "CSIBM273",
+      "canonical": "cp273"
+    },
+    {
+      "name": "cp273",
+      "spelling": "csibm273",
+      "canonical": "cp273"
+    },
+    {
+      "name": "cp273",
+      "spelling": "ibm273",
+      "canonical": "cp273"
+    },
+    {
+      "name": "cp273",
+      "spelling": "IBM273",
+      "canonical": "cp273"
+    },
+    {
+      "name": "cp273",
+      "spelling": "ibm273",
+      "canonical": "cp273"
+    },
+    {
+      "name": "cp424",
+      "spelling": "424",
+      "canonical": "cp424"
+    },
+    {
+      "name": "cp424",
+      "spelling": "424",
+      "canonical": "cp424"
+    },
+    {
+      "name": "cp424",
+      "spelling": "424",
+      "canonical": "cp424"
+    },
+    {
+      "name": "cp424",
+      "spelling": "csibm424",
+      "canonical": "cp424"
+    },
+    {
+      "name": "cp424",
+      "spelling": "CSIBM424",
+      "canonical": "cp424"
+    },
+    {
+      "name": "cp424",
+      "spelling": "csibm424",
+      "canonical": "cp424"
+    },
+    {
+      "name": "cp424",
+      "spelling": "ebcdic_cp_he",
+      "canonical": "cp424"
+    },
+    {
+      "name": "cp424",
+      "spelling": "EBCDIC-CP-HE",
+      "canonical": "cp424"
+    },
+    {
+      "name": "cp424",
+      "spelling": "ebcdic.cp.he",
+      "canonical": "cp424"
+    },
+    {
+      "name": "cp424",
+      "spelling": "ibm424",
+      "canonical": "cp424"
+    },
+    {
+      "name": "cp424",
+      "spelling": "IBM424",
+      "canonical": "cp424"
+    },
+    {
+      "name": "cp424",
+      "spelling": "ibm424",
+      "canonical": "cp424"
+    },
+    {
+      "name": "cp437",
+      "spelling": "437",
+      "canonical": "cp437"
+    },
+    {
+      "name": "cp437",
+      "spelling": "437",
+      "canonical": "cp437"
+    },
+    {
+      "name": "cp437",
+      "spelling": "437",
+      "canonical": "cp437"
+    },
+    {
+      "name": "cp437",
+      "spelling": "cspc8codepage437",
+      "canonical": "cp437"
+    },
+    {
+      "name": "cp437",
+      "spelling": "CSPC8CODEPAGE437",
+      "canonical": "cp437"
+    },
+    {
+      "name": "cp437",
+      "spelling": "cspc8codepage437",
+      "canonical": "cp437"
+    },
+    {
+      "name": "cp437",
+      "spelling": "ibm437",
+      "canonical": "cp437"
+    },
+    {
+      "name": "cp437",
+      "spelling": "IBM437",
+      "canonical": "cp437"
+    },
+    {
+      "name": "cp437",
+      "spelling": "ibm437",
+      "canonical": "cp437"
+    },
+    {
+      "name": "cp500",
+      "spelling": "500",
+      "canonical": "cp500"
+    },
+    {
+      "name": "cp500",
+      "spelling": "500",
+      "canonical": "cp500"
+    },
+    {
+      "name": "cp500",
+      "spelling": "500",
+      "canonical": "cp500"
+    },
+    {
+      "name": "cp500",
+      "spelling": "csibm500",
+      "canonical": "cp500"
+    },
+    {
+      "name": "cp500",
+      "spelling": "CSIBM500",
+      "canonical": "cp500"
+    },
+    {
+      "name": "cp500",
+      "spelling": "csibm500",
+      "canonical": "cp500"
+    },
+    {
+      "name": "cp500",
+      "spelling": "ebcdic_cp_be",
+      "canonical": "cp500"
+    },
+    {
+      "name": "cp500",
+      "spelling": "EBCDIC-CP-BE",
+      "canonical": "cp500"
+    },
+    {
+      "name": "cp500",
+      "spelling": "ebcdic.cp.be",
+      "canonical": "cp500"
+    },
+    {
+      "name": "cp500",
+      "spelling": "ebcdic_cp_ch",
+      "canonical": "cp500"
+    },
+    {
+      "name": "cp500",
+      "spelling": "EBCDIC-CP-CH",
+      "canonical": "cp500"
+    },
+    {
+      "name": "cp500",
+      "spelling": "ebcdic.cp.ch",
+      "canonical": "cp500"
+    },
+    {
+      "name": "cp500",
+      "spelling": "ibm500",
+      "canonical": "cp500"
+    },
+    {
+      "name": "cp500",
+      "spelling": "IBM500",
+      "canonical": "cp500"
+    },
+    {
+      "name": "cp500",
+      "spelling": "ibm500",
+      "canonical": "cp500"
+    },
+    {
+      "name": "cp775",
+      "spelling": "775",
+      "canonical": "cp775"
+    },
+    {
+      "name": "cp775",
+      "spelling": "775",
+      "canonical": "cp775"
+    },
+    {
+      "name": "cp775",
+      "spelling": "775",
+      "canonical": "cp775"
+    },
+    {
+      "name": "cp775",
+      "spelling": "cspc775baltic",
+      "canonical": "cp775"
+    },
+    {
+      "name": "cp775",
+      "spelling": "CSPC775BALTIC",
+      "canonical": "cp775"
+    },
+    {
+      "name": "cp775",
+      "spelling": "cspc775baltic",
+      "canonical": "cp775"
+    },
+    {
+      "name": "cp775",
+      "spelling": "ibm775",
+      "canonical": "cp775"
+    },
+    {
+      "name": "cp775",
+      "spelling": "IBM775",
+      "canonical": "cp775"
+    },
+    {
+      "name": "cp775",
+      "spelling": "ibm775",
+      "canonical": "cp775"
+    },
+    {
+      "name": "cp850",
+      "spelling": "850",
+      "canonical": "cp850"
+    },
+    {
+      "name": "cp850",
+      "spelling": "850",
+      "canonical": "cp850"
+    },
+    {
+      "name": "cp850",
+      "spelling": "850",
+      "canonical": "cp850"
+    },
+    {
+      "name": "cp850",
+      "spelling": "cspc850multilingual",
+      "canonical": "cp850"
+    },
+    {
+      "name": "cp850",
+      "spelling": "CSPC850MULTILINGUAL",
+      "canonical": "cp850"
+    },
+    {
+      "name": "cp850",
+      "spelling": "cspc850multilingual",
+      "canonical": "cp850"
+    },
+    {
+      "name": "cp850",
+      "spelling": "ibm850",
+      "canonical": "cp850"
+    },
+    {
+      "name": "cp850",
+      "spelling": "IBM850",
+      "canonical": "cp850"
+    },
+    {
+      "name": "cp850",
+      "spelling": "ibm850",
+      "canonical": "cp850"
+    },
+    {
+      "name": "cp852",
+      "spelling": "852",
+      "canonical": "cp852"
+    },
+    {
+      "name": "cp852",
+      "spelling": "852",
+      "canonical": "cp852"
+    },
+    {
+      "name": "cp852",
+      "spelling": "852",
+      "canonical": "cp852"
+    },
+    {
+      "name": "cp852",
+      "spelling": "cspcp852",
+      "canonical": "cp852"
+    },
+    {
+      "name": "cp852",
+      "spelling": "CSPCP852",
+      "canonical": "cp852"
+    },
+    {
+      "name": "cp852",
+      "spelling": "cspcp852",
+      "canonical": "cp852"
+    },
+    {
+      "name": "cp852",
+      "spelling": "ibm852",
+      "canonical": "cp852"
+    },
+    {
+      "name": "cp852",
+      "spelling": "IBM852",
+      "canonical": "cp852"
+    },
+    {
+      "name": "cp852",
+      "spelling": "ibm852",
+      "canonical": "cp852"
+    },
+    {
+      "name": "cp855",
+      "spelling": "855",
+      "canonical": "cp855"
+    },
+    {
+      "name": "cp855",
+      "spelling": "855",
+      "canonical": "cp855"
+    },
+    {
+      "name": "cp855",
+      "spelling": "855",
+      "canonical": "cp855"
+    },
+    {
+      "name": "cp855",
+      "spelling": "csibm855",
+      "canonical": "cp855"
+    },
+    {
+      "name": "cp855",
+      "spelling": "CSIBM855",
+      "canonical": "cp855"
+    },
+    {
+      "name": "cp855",
+      "spelling": "csibm855",
+      "canonical": "cp855"
+    },
+    {
+      "name": "cp855",
+      "spelling": "ibm855",
+      "canonical": "cp855"
+    },
+    {
+      "name": "cp855",
+      "spelling": "IBM855",
+      "canonical": "cp855"
+    },
+    {
+      "name": "cp855",
+      "spelling": "ibm855",
+      "canonical": "cp855"
+    },
+    {
+      "name": "cp857",
+      "spelling": "857",
+      "canonical": "cp857"
+    },
+    {
+      "name": "cp857",
+      "spelling": "857",
+      "canonical": "cp857"
+    },
+    {
+      "name": "cp857",
+      "spelling": "857",
+      "canonical": "cp857"
+    },
+    {
+      "name": "cp857",
+      "spelling": "csibm857",
+      "canonical": "cp857"
+    },
+    {
+      "name": "cp857",
+      "spelling": "CSIBM857",
+      "canonical": "cp857"
+    },
+    {
+      "name": "cp857",
+      "spelling": "csibm857",
+      "canonical": "cp857"
+    },
+    {
+      "name": "cp857",
+      "spelling": "ibm857",
+      "canonical": "cp857"
+    },
+    {
+      "name": "cp857",
+      "spelling": "IBM857",
+      "canonical": "cp857"
+    },
+    {
+      "name": "cp857",
+      "spelling": "ibm857",
+      "canonical": "cp857"
+    },
+    {
+      "name": "cp858",
+      "spelling": "858",
+      "canonical": "cp858"
+    },
+    {
+      "name": "cp858",
+      "spelling": "858",
+      "canonical": "cp858"
+    },
+    {
+      "name": "cp858",
+      "spelling": "858",
+      "canonical": "cp858"
+    },
+    {
+      "name": "cp858",
+      "spelling": "cp00858",
+      "canonical": "cp858"
+    },
+    {
+      "name": "cp858",
+      "spelling": "CP00858",
+      "canonical": "cp858"
+    },
+    {
+      "name": "cp858",
+      "spelling": "cp00858",
+      "canonical": "cp858"
+    },
+    {
+      "name": "cp858",
+      "spelling": "csibm00858",
+      "canonical": "cp858"
+    },
+    {
+      "name": "cp858",
+      "spelling": "CSIBM00858",
+      "canonical": "cp858"
+    },
+    {
+      "name": "cp858",
+      "spelling": "csibm00858",
+      "canonical": "cp858"
+    },
+    {
+      "name": "cp858",
+      "spelling": "csibm858",
+      "canonical": "cp858"
+    },
+    {
+      "name": "cp858",
+      "spelling": "CSIBM858",
+      "canonical": "cp858"
+    },
+    {
+      "name": "cp858",
+      "spelling": "csibm858",
+      "canonical": "cp858"
+    },
+    {
+      "name": "cp858",
+      "spelling": "ibm00858",
+      "canonical": "cp858"
+    },
+    {
+      "name": "cp858",
+      "spelling": "IBM00858",
+      "canonical": "cp858"
+    },
+    {
+      "name": "cp858",
+      "spelling": "ibm00858",
+      "canonical": "cp858"
+    },
+    {
+      "name": "cp858",
+      "spelling": "ibm858",
+      "canonical": "cp858"
+    },
+    {
+      "name": "cp858",
+      "spelling": "IBM858",
+      "canonical": "cp858"
+    },
+    {
+      "name": "cp858",
+      "spelling": "ibm858",
+      "canonical": "cp858"
+    },
+    {
+      "name": "cp858",
+      "spelling": "pc_multilingual_850_euro",
+      "canonical": "cp858"
+    },
+    {
+      "name": "cp858",
+      "spelling": "PC-MULTILINGUAL-850-EURO",
+      "canonical": "cp858"
+    },
+    {
+      "name": "cp858",
+      "spelling": "pc.multilingual.850.euro",
+      "canonical": "cp858"
+    },
+    {
+      "name": "cp860",
+      "spelling": "860",
+      "canonical": "cp860"
+    },
+    {
+      "name": "cp860",
+      "spelling": "860",
+      "canonical": "cp860"
+    },
+    {
+      "name": "cp860",
+      "spelling": "860",
+      "canonical": "cp860"
+    },
+    {
+      "name": "cp860",
+      "spelling": "csibm860",
+      "canonical": "cp860"
+    },
+    {
+      "name": "cp860",
+      "spelling": "CSIBM860",
+      "canonical": "cp860"
+    },
+    {
+      "name": "cp860",
+      "spelling": "csibm860",
+      "canonical": "cp860"
+    },
+    {
+      "name": "cp860",
+      "spelling": "ibm860",
+      "canonical": "cp860"
+    },
+    {
+      "name": "cp860",
+      "spelling": "IBM860",
+      "canonical": "cp860"
+    },
+    {
+      "name": "cp860",
+      "spelling": "ibm860",
+      "canonical": "cp860"
+    },
+    {
+      "name": "cp861",
+      "spelling": "861",
+      "canonical": "cp861"
+    },
+    {
+      "name": "cp861",
+      "spelling": "861",
+      "canonical": "cp861"
+    },
+    {
+      "name": "cp861",
+      "spelling": "861",
+      "canonical": "cp861"
+    },
+    {
+      "name": "cp861",
+      "spelling": "cp_is",
+      "canonical": "cp861"
+    },
+    {
+      "name": "cp861",
+      "spelling": "CP-IS",
+      "canonical": "cp861"
+    },
+    {
+      "name": "cp861",
+      "spelling": "cp.is",
+      "canonical": "cp861"
+    },
+    {
+      "name": "cp861",
+      "spelling": "csibm861",
+      "canonical": "cp861"
+    },
+    {
+      "name": "cp861",
+      "spelling": "CSIBM861",
+      "canonical": "cp861"
+    },
+    {
+      "name": "cp861",
+      "spelling": "csibm861",
+      "canonical": "cp861"
+    },
+    {
+      "name": "cp861",
+      "spelling": "ibm861",
+      "canonical": "cp861"
+    },
+    {
+      "name": "cp861",
+      "spelling": "IBM861",
+      "canonical": "cp861"
+    },
+    {
+      "name": "cp861",
+      "spelling": "ibm861",
+      "canonical": "cp861"
+    },
+    {
+      "name": "cp862",
+      "spelling": "862",
+      "canonical": "cp862"
+    },
+    {
+      "name": "cp862",
+      "spelling": "862",
+      "canonical": "cp862"
+    },
+    {
+      "name": "cp862",
+      "spelling": "862",
+      "canonical": "cp862"
+    },
+    {
+      "name": "cp862",
+      "spelling": "cspc862latinhebrew",
+      "canonical": "cp862"
+    },
+    {
+      "name": "cp862",
+      "spelling": "CSPC862LATINHEBREW",
+      "canonical": "cp862"
+    },
+    {
+      "name": "cp862",
+      "spelling": "cspc862latinhebrew",
+      "canonical": "cp862"
+    },
+    {
+      "name": "cp862",
+      "spelling": "ibm862",
+      "canonical": "cp862"
+    },
+    {
+      "name": "cp862",
+      "spelling": "IBM862",
+      "canonical": "cp862"
+    },
+    {
+      "name": "cp862",
+      "spelling": "ibm862",
+      "canonical": "cp862"
+    },
+    {
+      "name": "cp863",
+      "spelling": "863",
+      "canonical": "cp863"
+    },
+    {
+      "name": "cp863",
+      "spelling": "863",
+      "canonical": "cp863"
+    },
+    {
+      "name": "cp863",
+      "spelling": "863",
+      "canonical": "cp863"
+    },
+    {
+      "name": "cp863",
+      "spelling": "csibm863",
+      "canonical": "cp863"
+    },
+    {
+      "name": "cp863",
+      "spelling": "CSIBM863",
+      "canonical": "cp863"
+    },
+    {
+      "name": "cp863",
+      "spelling": "csibm863",
+      "canonical": "cp863"
+    },
+    {
+      "name": "cp863",
+      "spelling": "ibm863",
+      "canonical": "cp863"
+    },
+    {
+      "name": "cp863",
+      "spelling": "IBM863",
+      "canonical": "cp863"
+    },
+    {
+      "name": "cp863",
+      "spelling": "ibm863",
+      "canonical": "cp863"
+    },
+    {
+      "name": "cp864",
+      "spelling": "864",
+      "canonical": "cp864"
+    },
+    {
+      "name": "cp864",
+      "spelling": "864",
+      "canonical": "cp864"
+    },
+    {
+      "name": "cp864",
+      "spelling": "864",
+      "canonical": "cp864"
+    },
+    {
+      "name": "cp864",
+      "spelling": "csibm864",
+      "canonical": "cp864"
+    },
+    {
+      "name": "cp864",
+      "spelling": "CSIBM864",
+      "canonical": "cp864"
+    },
+    {
+      "name": "cp864",
+      "spelling": "csibm864",
+      "canonical": "cp864"
+    },
+    {
+      "name": "cp864",
+      "spelling": "ibm864",
+      "canonical": "cp864"
+    },
+    {
+      "name": "cp864",
+      "spelling": "IBM864",
+      "canonical": "cp864"
+    },
+    {
+      "name": "cp864",
+      "spelling": "ibm864",
+      "canonical": "cp864"
+    },
+    {
+      "name": "cp865",
+      "spelling": "865",
+      "canonical": "cp865"
+    },
+    {
+      "name": "cp865",
+      "spelling": "865",
+      "canonical": "cp865"
+    },
+    {
+      "name": "cp865",
+      "spelling": "865",
+      "canonical": "cp865"
+    },
+    {
+      "name": "cp865",
+      "spelling": "csibm865",
+      "canonical": "cp865"
+    },
+    {
+      "name": "cp865",
+      "spelling": "CSIBM865",
+      "canonical": "cp865"
+    },
+    {
+      "name": "cp865",
+      "spelling": "csibm865",
+      "canonical": "cp865"
+    },
+    {
+      "name": "cp865",
+      "spelling": "ibm865",
+      "canonical": "cp865"
+    },
+    {
+      "name": "cp865",
+      "spelling": "IBM865",
+      "canonical": "cp865"
+    },
+    {
+      "name": "cp865",
+      "spelling": "ibm865",
+      "canonical": "cp865"
+    },
+    {
+      "name": "cp866",
+      "spelling": "866",
+      "canonical": "cp866"
+    },
+    {
+      "name": "cp866",
+      "spelling": "866",
+      "canonical": "cp866"
+    },
+    {
+      "name": "cp866",
+      "spelling": "866",
+      "canonical": "cp866"
+    },
+    {
+      "name": "cp866",
+      "spelling": "csibm866",
+      "canonical": "cp866"
+    },
+    {
+      "name": "cp866",
+      "spelling": "CSIBM866",
+      "canonical": "cp866"
+    },
+    {
+      "name": "cp866",
+      "spelling": "csibm866",
+      "canonical": "cp866"
+    },
+    {
+      "name": "cp866",
+      "spelling": "ibm866",
+      "canonical": "cp866"
+    },
+    {
+      "name": "cp866",
+      "spelling": "IBM866",
+      "canonical": "cp866"
+    },
+    {
+      "name": "cp866",
+      "spelling": "ibm866",
+      "canonical": "cp866"
+    },
+    {
+      "name": "cp869",
+      "spelling": "869",
+      "canonical": "cp869"
+    },
+    {
+      "name": "cp869",
+      "spelling": "869",
+      "canonical": "cp869"
+    },
+    {
+      "name": "cp869",
+      "spelling": "869",
+      "canonical": "cp869"
+    },
+    {
+      "name": "cp869",
+      "spelling": "cp_gr",
+      "canonical": "cp869"
+    },
+    {
+      "name": "cp869",
+      "spelling": "CP-GR",
+      "canonical": "cp869"
+    },
+    {
+      "name": "cp869",
+      "spelling": "cp.gr",
+      "canonical": "cp869"
+    },
+    {
+      "name": "cp869",
+      "spelling": "csibm869",
+      "canonical": "cp869"
+    },
+    {
+      "name": "cp869",
+      "spelling": "CSIBM869",
+      "canonical": "cp869"
+    },
+    {
+      "name": "cp869",
+      "spelling": "csibm869",
+      "canonical": "cp869"
+    },
+    {
+      "name": "cp869",
+      "spelling": "ibm869",
+      "canonical": "cp869"
+    },
+    {
+      "name": "cp869",
+      "spelling": "IBM869",
+      "canonical": "cp869"
+    },
+    {
+      "name": "cp869",
+      "spelling": "ibm869",
+      "canonical": "cp869"
+    },
+    {
+      "name": "cp874",
+      "spelling": "874",
+      "canonical": "cp874"
+    },
+    {
+      "name": "cp874",
+      "spelling": "874",
+      "canonical": "cp874"
+    },
+    {
+      "name": "cp874",
+      "spelling": "874",
+      "canonical": "cp874"
+    },
+    {
+      "name": "cp874",
+      "spelling": "ms874",
+      "canonical": "cp874"
+    },
+    {
+      "name": "cp874",
+      "spelling": "MS874",
+      "canonical": "cp874"
+    },
+    {
+      "name": "cp874",
+      "spelling": "ms874",
+      "canonical": "cp874"
+    },
+    {
+      "name": "cp874",
+      "spelling": "windows_874",
+      "canonical": "cp874"
+    },
+    {
+      "name": "cp874",
+      "spelling": "WINDOWS-874",
+      "canonical": "cp874"
+    },
+    {
+      "name": "cp874",
+      "spelling": "windows.874",
+      "canonical": "cp874"
+    },
+    {
+      "name": "hp_roman8",
+      "spelling": "cp1051",
+      "canonical": "hp-roman8"
+    },
+    {
+      "name": "hp_roman8",
+      "spelling": "CP1051",
+      "canonical": "hp-roman8"
+    },
+    {
+      "name": "hp_roman8",
+      "spelling": "cp1051",
+      "canonical": "hp-roman8"
+    },
+    {
+      "name": "hp_roman8",
+      "spelling": "csHPRoman8",
+      "error": "unknown encoding: csHPRoman8"
+    },
+    {
+      "name": "hp_roman8",
+      "spelling": "CSHPROMAN8",
+      "error": "unknown encoding: CSHPROMAN8"
+    },
+    {
+      "name": "hp_roman8",
+      "spelling": "csHPRoman8",
+      "error": "unknown encoding: csHPRoman8"
+    },
+    {
+      "name": "hp_roman8",
+      "spelling": "ibm1051",
+      "canonical": "hp-roman8"
+    },
+    {
+      "name": "hp_roman8",
+      "spelling": "IBM1051",
+      "canonical": "hp-roman8"
+    },
+    {
+      "name": "hp_roman8",
+      "spelling": "ibm1051",
+      "canonical": "hp-roman8"
+    },
+    {
+      "name": "hp_roman8",
+      "spelling": "r8",
+      "canonical": "hp-roman8"
+    },
+    {
+      "name": "hp_roman8",
+      "spelling": "R8",
+      "canonical": "hp-roman8"
+    },
+    {
+      "name": "hp_roman8",
+      "spelling": "r8",
+      "canonical": "hp-roman8"
+    },
+    {
+      "name": "hp_roman8",
+      "spelling": "roman8",
+      "canonical": "hp-roman8"
+    },
+    {
+      "name": "hp_roman8",
+      "spelling": "ROMAN8",
+      "canonical": "hp-roman8"
+    },
+    {
+      "name": "hp_roman8",
+      "spelling": "roman8",
+      "canonical": "hp-roman8"
+    },
+    {
+      "name": "iso8859_10",
+      "spelling": "csisolatin6",
+      "canonical": "iso8859-10"
+    },
+    {
+      "name": "iso8859_10",
+      "spelling": "CSISOLATIN6",
+      "canonical": "iso8859-10"
+    },
+    {
+      "name": "iso8859_10",
+      "spelling": "csisolatin6",
+      "canonical": "iso8859-10"
+    },
+    {
+      "name": "iso8859_10",
+      "spelling": "iso_8859_10",
+      "canonical": "iso8859-10"
+    },
+    {
+      "name": "iso8859_10",
+      "spelling": "ISO-8859-10",
+      "canonical": "iso8859-10"
+    },
+    {
+      "name": "iso8859_10",
+      "spelling": "iso.8859.10",
+      "canonical": "iso8859-10"
+    },
+    {
+      "name": "iso8859_10",
+      "spelling": "iso_8859_10_1992",
+      "canonical": "iso8859-10"
+    },
+    {
+      "name": "iso8859_10",
+      "spelling": "ISO-8859-10-1992",
+      "canonical": "iso8859-10"
+    },
+    {
+      "name": "iso8859_10",
+      "spelling": "iso.8859.10.1992",
+      "canonical": "iso8859-10"
+    },
+    {
+      "name": "iso8859_10",
+      "spelling": "iso_ir_157",
+      "canonical": "iso8859-10"
+    },
+    {
+      "name": "iso8859_10",
+      "spelling": "ISO-IR-157",
+      "canonical": "iso8859-10"
+    },
+    {
+      "name": "iso8859_10",
+      "spelling": "iso.ir.157",
+      "canonical": "iso8859-10"
+    },
+    {
+      "name": "iso8859_10",
+      "spelling": "l6",
+      "canonical": "iso8859-10"
+    },
+    {
+      "name": "iso8859_10",
+      "spelling": "L6",
+      "canonical": "iso8859-10"
+    },
+    {
+      "name": "iso8859_10",
+      "spelling": "l6",
+      "canonical": "iso8859-10"
+    },
+    {
+      "name": "iso8859_10",
+      "spelling": "latin6",
+      "canonical": "iso8859-10"
+    },
+    {
+      "name": "iso8859_10",
+      "spelling": "LATIN6",
+      "canonical": "iso8859-10"
+    },
+    {
+      "name": "iso8859_10",
+      "spelling": "latin6",
+      "canonical": "iso8859-10"
+    },
+    {
+      "name": "iso8859_11",
+      "spelling": "iso_8859_11",
+      "canonical": "iso8859-11"
+    },
+    {
+      "name": "iso8859_11",
+      "spelling": "ISO-8859-11",
+      "canonical": "iso8859-11"
+    },
+    {
+      "name": "iso8859_11",
+      "spelling": "iso.8859.11",
+      "canonical": "iso8859-11"
+    },
+    {
+      "name": "iso8859_11",
+      "spelling": "iso_8859_11_2001",
+      "canonical": "iso8859-11"
+    },
+    {
+      "name": "iso8859_11",
+      "spelling": "ISO-8859-11-2001",
+      "canonical": "iso8859-11"
+    },
+    {
+      "name": "iso8859_11",
+      "spelling": "iso.8859.11.2001",
+      "canonical": "iso8859-11"
+    },
+    {
+      "name": "iso8859_11",
+      "spelling": "thai",
+      "canonical": "iso8859-11"
+    },
+    {
+      "name": "iso8859_11",
+      "spelling": "THAI",
+      "canonical": "iso8859-11"
+    },
+    {
+      "name": "iso8859_11",
+      "spelling": "thai",
+      "canonical": "iso8859-11"
+    },
+    {
+      "name": "iso8859_13",
+      "spelling": "iso_8859_13",
+      "canonical": "iso8859-13"
+    },
+    {
+      "name": "iso8859_13",
+      "spelling": "ISO-8859-13",
+      "canonical": "iso8859-13"
+    },
+    {
+      "name": "iso8859_13",
+      "spelling": "iso.8859.13",
+      "canonical": "iso8859-13"
+    },
+    {
+      "name": "iso8859_13",
+      "spelling": "l7",
+      "canonical": "iso8859-13"
+    },
+    {
+      "name": "iso8859_13",
+      "spelling": "L7",
+      "canonical": "iso8859-13"
+    },
+    {
+      "name": "iso8859_13",
+      "spelling": "l7",
+      "canonical": "iso8859-13"
+    },
+    {
+      "name": "iso8859_13",
+      "spelling": "latin7",
+      "canonical": "iso8859-13"
+    },
+    {
+      "name": "iso8859_13",
+      "spelling": "LATIN7",
+      "canonical": "iso8859-13"
+    },
+    {
+      "name": "iso8859_13",
+      "spelling": "latin7",
+      "canonical": "iso8859-13"
+    },
+    {
+      "name": "iso8859_14",
+      "spelling": "iso_8859_14",
+      "canonical": "iso8859-14"
+    },
+    {
+      "name": "iso8859_14",
+      "spelling": "ISO-8859-14",
+      "canonical": "iso8859-14"
+    },
+    {
+      "name": "iso8859_14",
+      "spelling": "iso.8859.14",
+      "canonical": "iso8859-14"
+    },
+    {
+      "name": "iso8859_14",
+      "spelling": "iso_8859_14_1998",
+      "canonical": "iso8859-14"
+    },
+    {
+      "name": "iso8859_14",
+      "spelling": "ISO-8859-14-1998",
+      "canonical": "iso8859-14"
+    },
+    {
+      "name": "iso8859_14",
+      "spelling": "iso.8859.14.1998",
+      "canonical": "iso8859-14"
+    },
+    {
+      "name": "iso8859_14",
+      "spelling": "iso_celtic",
+      "canonical": "iso8859-14"
+    },
+    {
+      "name": "iso8859_14",
+      "spelling": "ISO-CELTIC",
+      "canonical": "iso8859-14"
+    },
+    {
+      "name": "iso8859_14",
+      "spelling": "iso.celtic",
+      "canonical": "iso8859-14"
+    },
+    {
+      "name": "iso8859_14",
+      "spelling": "iso_ir_199",
+      "canonical": "iso8859-14"
+    },
+    {
+      "name": "iso8859_14",
+      "spelling": "ISO-IR-199",
+      "canonical": "iso8859-14"
+    },
+    {
+      "name": "iso8859_14",
+      "spelling": "iso.ir.199",
+      "canonical": "iso8859-14"
+    },
+    {
+      "name": "iso8859_14",
+      "spelling": "l8",
+      "canonical": "iso8859-14"
+    },
+    {
+      "name": "iso8859_14",
+      "spelling": "L8",
+      "canonical": "iso8859-14"
+    },
+    {
+      "name": "iso8859_14",
+      "spelling": "l8",
+      "canonical": "iso8859-14"
+    },
+    {
+      "name": "iso8859_14",
+      "spelling": "latin8",
+      "canonical": "iso8859-14"
+    },
+    {
+      "name": "iso8859_14",
+      "spelling": "LATIN8",
+      "canonical": "iso8859-14"
+    },
+    {
+      "name": "iso8859_14",
+      "spelling": "latin8",
+      "canonical": "iso8859-14"
+    },
+    {
+      "name": "iso8859_15",
+      "spelling": "iso_8859_15",
+      "canonical": "iso8859-15"
+    },
+    {
+      "name": "iso8859_15",
+      "spelling": "ISO-8859-15",
+      "canonical": "iso8859-15"
+    },
+    {
+      "name": "iso8859_15",
+      "spelling": "iso.8859.15",
+      "canonical": "iso8859-15"
+    },
+    {
+      "name": "iso8859_15",
+      "spelling": "l9",
+      "canonical": "iso8859-15"
+    },
+    {
+      "name": "iso8859_15",
+      "spelling": "L9",
+      "canonical": "iso8859-15"
+    },
+    {
+      "name": "iso8859_15",
+      "spelling": "l9",
+      "canonical": "iso8859-15"
+    },
+    {
+      "name": "iso8859_15",
+      "spelling": "latin9",
+      "canonical": "iso8859-15"
+    },
+    {
+      "name": "iso8859_15",
+      "spelling": "LATIN9",
+      "canonical": "iso8859-15"
+    },
+    {
+      "name": "iso8859_15",
+      "spelling": "latin9",
+      "canonical": "iso8859-15"
+    },
+    {
+      "name": "iso8859_16",
+      "spelling": "iso_8859_16",
+      "canonical": "iso8859-16"
+    },
+    {
+      "name": "iso8859_16",
+      "spelling": "ISO-8859-16",
+      "canonical": "iso8859-16"
+    },
+    {
+      "name": "iso8859_16",
+      "spelling": "iso.8859.16",
+      "canonical": "iso8859-16"
+    },
+    {
+      "name": "iso8859_16",
+      "spelling": "iso_8859_16_2001",
+      "canonical": "iso8859-16"
+    },
+    {
+      "name": "iso8859_16",
+      "spelling": "ISO-8859-16-2001",
+      "canonical": "iso8859-16"
+    },
+    {
+      "name": "iso8859_16",
+      "spelling": "iso.8859.16.2001",
+      "canonical": "iso8859-16"
+    },
+    {
+      "name": "iso8859_16",
+      "spelling": "iso_ir_226",
+      "canonical": "iso8859-16"
+    },
+    {
+      "name": "iso8859_16",
+      "spelling": "ISO-IR-226",
+      "canonical": "iso8859-16"
+    },
+    {
+      "name": "iso8859_16",
+      "spelling": "iso.ir.226",
+      "canonical": "iso8859-16"
+    },
+    {
+      "name": "iso8859_16",
+      "spelling": "l10",
+      "canonical": "iso8859-16"
+    },
+    {
+      "name": "iso8859_16",
+      "spelling": "L10",
+      "canonical": "iso8859-16"
+    },
+    {
+      "name": "iso8859_16",
+      "spelling": "l10",
+      "canonical": "iso8859-16"
+    },
+    {
+      "name": "iso8859_16",
+      "spelling": "latin10",
+      "canonical": "iso8859-16"
+    },
+    {
+      "name": "iso8859_16",
+      "spelling": "LATIN10",
+      "canonical": "iso8859-16"
+    },
+    {
+      "name": "iso8859_16",
+      "spelling": "latin10",
+      "canonical": "iso8859-16"
+    },
+    {
+      "name": "iso8859_2",
+      "spelling": "csisolatin2",
+      "canonical": "iso8859-2"
+    },
+    {
+      "name": "iso8859_2",
+      "spelling": "CSISOLATIN2",
+      "canonical": "iso8859-2"
+    },
+    {
+      "name": "iso8859_2",
+      "spelling": "csisolatin2",
+      "canonical": "iso8859-2"
+    },
+    {
+      "name": "iso8859_2",
+      "spelling": "iso_8859_2",
+      "canonical": "iso8859-2"
+    },
+    {
+      "name": "iso8859_2",
+      "spelling": "ISO-8859-2",
+      "canonical": "iso8859-2"
+    },
+    {
+      "name": "iso8859_2",
+      "spelling": "iso.8859.2",
+      "canonical": "iso8859-2"
+    },
+    {
+      "name": "iso8859_2",
+      "spelling": "iso_8859_2_1987",
+      "canonical": "iso8859-2"
+    },
+    {
+      "name": "iso8859_2",
+      "spelling": "ISO-8859-2-1987",
+      "canonical": "iso8859-2"
+    },
+    {
+      "name": "iso8859_2",
+      "spelling": "iso.8859.2.1987",
+      "canonical": "iso8859-2"
+    },
+    {
+      "name": "iso8859_2",
+      "spelling": "iso_ir_101",
+      "canonical": "iso8859-2"
+    },
+    {
+      "name": "iso8859_2",
+      "spelling": "ISO-IR-101",
+      "canonical": "iso8859-2"
+    },
+    {
+      "name": "iso8859_2",
+      "spelling": "iso.ir.101",
+      "canonical": "iso8859-2"
+    },
+    {
+      "name": "iso8859_2",
+      "spelling": "l2",
+      "canonical": "iso8859-2"
+    },
+    {
+      "name": "iso8859_2",
+      "spelling": "L2",
+      "canonical": "iso8859-2"
+    },
+    {
+      "name": "iso8859_2",
+      "spelling": "l2",
+      "canonical": "iso8859-2"
+    },
+    {
+      "name": "iso8859_2",
+      "spelling": "latin2",
+      "canonical": "iso8859-2"
+    },
+    {
+      "name": "iso8859_2",
+      "spelling": "LATIN2",
+      "canonical": "iso8859-2"
+    },
+    {
+      "name": "iso8859_2",
+      "spelling": "latin2",
+      "canonical": "iso8859-2"
+    },
+    {
+      "name": "iso8859_3",
+      "spelling": "csisolatin3",
+      "canonical": "iso8859-3"
+    },
+    {
+      "name": "iso8859_3",
+      "spelling": "CSISOLATIN3",
+      "canonical": "iso8859-3"
+    },
+    {
+      "name": "iso8859_3",
+      "spelling": "csisolatin3",
+      "canonical": "iso8859-3"
+    },
+    {
+      "name": "iso8859_3",
+      "spelling": "iso_8859_3",
+      "canonical": "iso8859-3"
+    },
+    {
+      "name": "iso8859_3",
+      "spelling": "ISO-8859-3",
+      "canonical": "iso8859-3"
+    },
+    {
+      "name": "iso8859_3",
+      "spelling": "iso.8859.3",
+      "canonical": "iso8859-3"
+    },
+    {
+      "name": "iso8859_3",
+      "spelling": "iso_8859_3_1988",
+      "canonical": "iso8859-3"
+    },
+    {
+      "name": "iso8859_3",
+      "spelling": "ISO-8859-3-1988",
+      "canonical": "iso8859-3"
+    },
+    {
+      "name": "iso8859_3",
+      "spelling": "iso.8859.3.1988",
+      "canonical": "iso8859-3"
+    },
+    {
+      "name": "iso8859_3",
+      "spelling": "iso_ir_109",
+      "canonical": "iso8859-3"
+    },
+    {
+      "name": "iso8859_3",
+      "spelling": "ISO-IR-109",
+      "canonical": "iso8859-3"
+    },
+    {
+      "name": "iso8859_3",
+      "spelling": "iso.ir.109",
+      "canonical": "iso8859-3"
+    },
+    {
+      "name": "iso8859_3",
+      "spelling": "l3",
+      "canonical": "iso8859-3"
+    },
+    {
+      "name": "iso8859_3",
+      "spelling": "L3",
+      "canonical": "iso8859-3"
+    },
+    {
+      "name": "iso8859_3",
+      "spelling": "l3",
+      "canonical": "iso8859-3"
+    },
+    {
+      "name": "iso8859_3",
+      "spelling": "latin3",
+      "canonical": "iso8859-3"
+    },
+    {
+      "name": "iso8859_3",
+      "spelling": "LATIN3",
+      "canonical": "iso8859-3"
+    },
+    {
+      "name": "iso8859_3",
+      "spelling": "latin3",
+      "canonical": "iso8859-3"
+    },
+    {
+      "name": "iso8859_4",
+      "spelling": "csisolatin4",
+      "canonical": "iso8859-4"
+    },
+    {
+      "name": "iso8859_4",
+      "spelling": "CSISOLATIN4",
+      "canonical": "iso8859-4"
+    },
+    {
+      "name": "iso8859_4",
+      "spelling": "csisolatin4",
+      "canonical": "iso8859-4"
+    },
+    {
+      "name": "iso8859_4",
+      "spelling": "iso_8859_4",
+      "canonical": "iso8859-4"
+    },
+    {
+      "name": "iso8859_4",
+      "spelling": "ISO-8859-4",
+      "canonical": "iso8859-4"
+    },
+    {
+      "name": "iso8859_4",
+      "spelling": "iso.8859.4",
+      "canonical": "iso8859-4"
+    },
+    {
+      "name": "iso8859_4",
+      "spelling": "iso_8859_4_1988",
+      "canonical": "iso8859-4"
+    },
+    {
+      "name": "iso8859_4",
+      "spelling": "ISO-8859-4-1988",
+      "canonical": "iso8859-4"
+    },
+    {
+      "name": "iso8859_4",
+      "spelling": "iso.8859.4.1988",
+      "canonical": "iso8859-4"
+    },
+    {
+      "name": "iso8859_4",
+      "spelling": "iso_ir_110",
+      "canonical": "iso8859-4"
+    },
+    {
+      "name": "iso8859_4",
+      "spelling": "ISO-IR-110",
+      "canonical": "iso8859-4"
+    },
+    {
+      "name": "iso8859_4",
+      "spelling": "iso.ir.110",
+      "canonical": "iso8859-4"
+    },
+    {
+      "name": "iso8859_4",
+      "spelling": "l4",
+      "canonical": "iso8859-4"
+    },
+    {
+      "name": "iso8859_4",
+      "spelling": "L4",
+      "canonical": "iso8859-4"
+    },
+    {
+      "name": "iso8859_4",
+      "spelling": "l4",
+      "canonical": "iso8859-4"
+    },
+    {
+      "name": "iso8859_4",
+      "spelling": "latin4",
+      "canonical": "iso8859-4"
+    },
+    {
+      "name": "iso8859_4",
+      "spelling": "LATIN4",
+      "canonical": "iso8859-4"
+    },
+    {
+      "name": "iso8859_4",
+      "spelling": "latin4",
+      "canonical": "iso8859-4"
+    },
+    {
+      "name": "iso8859_5",
+      "spelling": "csisolatincyrillic",
+      "canonical": "iso8859-5"
+    },
+    {
+      "name": "iso8859_5",
+      "spelling": "CSISOLATINCYRILLIC",
+      "canonical": "iso8859-5"
+    },
+    {
+      "name": "iso8859_5",
+      "spelling": "csisolatincyrillic",
+      "canonical": "iso8859-5"
+    },
+    {
+      "name": "iso8859_5",
+      "spelling": "cyrillic",
+      "canonical": "iso8859-5"
+    },
+    {
+      "name": "iso8859_5",
+      "spelling": "CYRILLIC",
+      "canonical": "iso8859-5"
+    },
+    {
+      "name": "iso8859_5",
+      "spelling": "cyrillic",
+      "canonical": "iso8859-5"
+    },
+    {
+      "name": "iso8859_5",
+      "spelling": "iso_8859_5",
+      "canonical": "iso8859-5"
+    },
+    {
+      "name": "iso8859_5",
+      "spelling": "ISO-8859-5",
+      "canonical": "iso8859-5"
+    },
+    {
+      "name": "iso8859_5",
+      "spelling": "iso.8859.5",
+      "canonical": "iso8859-5"
+    },
+    {
+      "name": "iso8859_5",
+      "spelling": "iso_8859_5_1988",
+      "canonical": "iso8859-5"
+    },
+    {
+      "name": "iso8859_5",
+      "spelling": "ISO-8859-5-1988",
+      "canonical": "iso8859-5"
+    },
+    {
+      "name": "iso8859_5",
+      "spelling": "iso.8859.5.1988",
+      "canonical": "iso8859-5"
+    },
+    {
+      "name": "iso8859_5",
+      "spelling": "iso_ir_144",
+      "canonical": "iso8859-5"
+    },
+    {
+      "name": "iso8859_5",
+      "spelling": "ISO-IR-144",
+      "canonical": "iso8859-5"
+    },
+    {
+      "name": "iso8859_5",
+      "spelling": "iso.ir.144",
+      "canonical": "iso8859-5"
+    },
+    {
+      "name": "iso8859_6",
+      "spelling": "arabic",
+      "canonical": "iso8859-6"
+    },
+    {
+      "name": "iso8859_6",
+      "spelling": "ARABIC",
+      "canonical": "iso8859-6"
+    },
+    {
+      "name": "iso8859_6",
+      "spelling": "arabic",
+      "canonical": "iso8859-6"
+    },
+    {
+      "name": "iso8859_6",
+      "spelling": "asmo_708",
+      "canonical": "iso8859-6"
+    },
+    {
+      "name": "iso8859_6",
+      "spelling": "ASMO-708",
+      "canonical": "iso8859-6"
+    },
+    {
+      "name": "iso8859_6",
+      "spelling": "asmo.708",
+      "canonical": "iso8859-6"
+    },
+    {
+      "name": "iso8859_6",
+      "spelling": "csisolatinarabic",
+      "canonical": "iso8859-6"
+    },
+    {
+      "name": "iso8859_6",
+      "spelling": "CSISOLATINARABIC",
+      "canonical": "iso8859-6"
+    },
+    {
+      "name": "iso8859_6",
+      "spelling": "csisolatinarabic",
+      "canonical": "iso8859-6"
+    },
+    {
+      "name": "iso8859_6",
+      "spelling": "ecma_114",
+      "canonical": "iso8859-6"
+    },
+    {
+      "name": "iso8859_6",
+      "spelling": "ECMA-114",
+      "canonical": "iso8859-6"
+    },
+    {
+      "name": "iso8859_6",
+      "spelling": "ecma.114",
+      "canonical": "iso8859-6"
+    },
+    {
+      "name": "iso8859_6",
+      "spelling": "iso_8859_6",
+      "canonical": "iso8859-6"
+    },
+    {
+      "name": "iso8859_6",
+      "spelling": "ISO-8859-6",
+      "canonical": "iso8859-6"
+    },
+    {
+      "name": "iso8859_6",
+      "spelling": "iso.8859.6",
+      "canonical": "iso8859-6"
+    },
+    {
+      "name": "iso8859_6",
+      "spelling": "iso_8859_6_1987",
+      "canonical": "iso8859-6"
+    },
+    {
+      "name": "iso8859_6",
+      "spelling": "ISO-8859-6-1987",
+      "canonical": "iso8859-6"
+    },
+    {
+      "name": "iso8859_6",
+      "spelling": "iso.8859.6.1987",
+      "canonical": "iso8859-6"
+    },
+    {
+      "name": "iso8859_6",
+      "spelling": "iso_ir_127",
+      "canonical": "iso8859-6"
+    },
+    {
+      "name": "iso8859_6",
+      "spelling": "ISO-IR-127",
+      "canonical": "iso8859-6"
+    },
+    {
+      "name": "iso8859_6",
+      "spelling": "iso.ir.127",
+      "canonical": "iso8859-6"
+    },
+    {
+      "name": "iso8859_7",
+      "spelling": "csisolatingreek",
+      "canonical": "iso8859-7"
+    },
+    {
+      "name": "iso8859_7",
+      "spelling": "CSISOLATINGREEK",
+      "canonical": "iso8859-7"
+    },
+    {
+      "name": "iso8859_7",
+      "spelling": "csisolatingreek",
+      "canonical": "iso8859-7"
+    },
+    {
+      "name": "iso8859_7",
+      "spelling": "ecma_118",
+      "canonical": "iso8859-7"
+    },
+    {
+      "name": "iso8859_7",
+      "spelling": "ECMA-118",
+      "canonical": "iso8859-7"
+    },
+    {
+      "name": "iso8859_7",
+      "spelling": "ecma.118",
+      "canonical": "iso8859-7"
+    },
+    {
+      "name": "iso8859_7",
+      "spelling": "elot_928",
+      "canonical": "iso8859-7"
+    },
+    {
+      "name": "iso8859_7",
+      "spelling": "ELOT-928",
+      "canonical": "iso8859-7"
+    },
+    {
+      "name": "iso8859_7",
+      "spelling": "elot.928",
+      "canonical": "iso8859-7"
+    },
+    {
+      "name": "iso8859_7",
+      "spelling": "greek",
+      "canonical": "iso8859-7"
+    },
+    {
+      "name": "iso8859_7",
+      "spelling": "GREEK",
+      "canonical": "iso8859-7"
+    },
+    {
+      "name": "iso8859_7",
+      "spelling": "greek",
+      "canonical": "iso8859-7"
+    },
+    {
+      "name": "iso8859_7",
+      "spelling": "greek8",
+      "canonical": "iso8859-7"
+    },
+    {
+      "name": "iso8859_7",
+      "spelling": "GREEK8",
+      "canonical": "iso8859-7"
+    },
+    {
+      "name": "iso8859_7",
+      "spelling": "greek8",
+      "canonical": "iso8859-7"
+    },
+    {
+      "name": "iso8859_7",
+      "spelling": "iso_8859_7",
+      "canonical": "iso8859-7"
+    },
+    {
+      "name": "iso8859_7",
+      "spelling": "ISO-8859-7",
+      "canonical": "iso8859-7"
+    },
+    {
+      "name": "iso8859_7",
+      "spelling": "iso.8859.7",
+      "canonical": "iso8859-7"
+    },
+    {
+      "name": "iso8859_7",
+      "spelling": "iso_8859_7_1987",
+      "canonical": "iso8859-7"
+    },
+    {
+      "name": "iso8859_7",
+      "spelling": "ISO-8859-7-1987",
+      "canonical": "iso8859-7"
+    },
+    {
+      "name": "iso8859_7",
+      "spelling": "iso.8859.7.1987",
+      "canonical": "iso8859-7"
+    },
+    {
+      "name": "iso8859_7",
+      "spelling": "iso_ir_126",
+      "canonical": "iso8859-7"
+    },
+    {
+      "name": "iso8859_7",
+      "spelling": "ISO-IR-126",
+      "canonical": "iso8859-7"
+    },
+    {
+      "name": "iso8859_7",
+      "spelling": "iso.ir.126",
+      "canonical": "iso8859-7"
+    },
+    {
+      "name": "iso8859_8",
+      "spelling": "csisolatinhebrew",
+      "canonical": "iso8859-8"
+    },
+    {
+      "name": "iso8859_8",
+      "spelling": "CSISOLATINHEBREW",
+      "canonical": "iso8859-8"
+    },
+    {
+      "name": "iso8859_8",
+      "spelling": "csisolatinhebrew",
+      "canonical": "iso8859-8"
+    },
+    {
+      "name": "iso8859_8",
+      "spelling": "hebrew",
+      "canonical": "iso8859-8"
+    },
+    {
+      "name": "iso8859_8",
+      "spelling": "HEBREW",
+      "canonical": "iso8859-8"
+    },
+    {
+      "name": "iso8859_8",
+      "spelling": "hebrew",
+      "canonical": "iso8859-8"
+    },
+    {
+      "name": "iso8859_8",
+      "spelling": "iso_8859_8",
+      "canonical": "iso8859-8"
+    },
+    {
+      "name": "iso8859_8",
+      "spelling": "ISO-8859-8",
+      "canonical": "iso8859-8"
+    },
+    {
+      "name": "iso8859_8",
+      "spelling": "iso.8859.8",
+      "canonical": "iso8859-8"
+    },
+    {
+      "name": "iso8859_8",
+      "spelling": "iso_8859_8_1988",
+      "canonical": "iso8859-8"
+    },
+    {
+      "name": "iso8859_8",
+      "spelling": "ISO-8859-8-1988",
+      "canonical": "iso8859-8"
+    },
+    {
+      "name": "iso8859_8",
+      "spelling": "iso.8859.8.1988",
+      "canonical": "iso8859-8"
+    },
+    {
+      "name": "iso8859_8",
+      "spelling": "iso_8859_8_e",
+      "canonical": "iso8859-8"
+    },
+    {
+      "name": "iso8859_8",
+      "spelling": "ISO-8859-8-E",
+      "canonical": "iso8859-8"
+    },
+    {
+      "name": "iso8859_8",
+      "spelling": "iso.8859.8.e",
+      "canonical": "iso8859-8"
+    },
+    {
+      "name": "iso8859_8",
+      "spelling": "iso_8859_8_i",
+      "canonical": "iso8859-8"
+    },
+    {
+      "name": "iso8859_8",
+      "spelling": "ISO-8859-8-I",
+      "canonical": "iso8859-8"
+    },
+    {
+      "name": "iso8859_8",
+      "spelling": "iso.8859.8.i",
+      "canonical": "iso8859-8"
+    },
+    {
+      "name": "iso8859_8",
+      "spelling": "iso_ir_138",
+      "canonical": "iso8859-8"
+    },
+    {
+      "name": "iso8859_8",
+      "spelling": "ISO-IR-138",
+      "canonical": "iso8859-8"
+    },
+    {
+      "name": "iso8859_8",
+      "spelling": "iso.ir.138",
+      "canonical": "iso8859-8"
+    },
+    {
+      "name": "iso8859_9",
+      "spelling": "csisolatin5",
+      "canonical": "iso8859-9"
+    },
+    {
+      "name": "iso8859_9",
+      "spelling": "CSISOLATIN5",
+      "canonical": "iso8859-9"
+    },
+    {
+      "name": "iso8859_9",
+      "spelling": "csisolatin5",
+      "canonical": "iso8859-9"
+    },
+    {
+      "name": "iso8859_9",
+      "spelling": "iso_8859_9",
+      "canonical": "iso8859-9"
+    },
+    {
+      "name": "iso8859_9",
+      "spelling": "ISO-8859-9",
+      "canonical": "iso8859-9"
+    },
+    {
+      "name": "iso8859_9",
+      "spelling": "iso.8859.9",
+      "canonical": "iso8859-9"
+    },
+    {
+      "name": "iso8859_9",
+      "spelling": "iso_8859_9_1989",
+      "canonical": "iso8859-9"
+    },
+    {
+      "name": "iso8859_9",
+      "spelling": "ISO-8859-9-1989",
+      "canonical": "iso8859-9"
+    },
+    {
+      "name": "iso8859_9",
+      "spelling": "iso.8859.9.1989",
+      "canonical": "iso8859-9"
+    },
+    {
+      "name": "iso8859_9",
+      "spelling": "iso_ir_148",
+      "canonical": "iso8859-9"
+    },
+    {
+      "name": "iso8859_9",
+      "spelling": "ISO-IR-148",
+      "canonical": "iso8859-9"
+    },
+    {
+      "name": "iso8859_9",
+      "spelling": "iso.ir.148",
+      "canonical": "iso8859-9"
+    },
+    {
+      "name": "iso8859_9",
+      "spelling": "l5",
+      "canonical": "iso8859-9"
+    },
+    {
+      "name": "iso8859_9",
+      "spelling": "L5",
+      "canonical": "iso8859-9"
+    },
+    {
+      "name": "iso8859_9",
+      "spelling": "l5",
+      "canonical": "iso8859-9"
+    },
+    {
+      "name": "iso8859_9",
+      "spelling": "latin5",
+      "canonical": "iso8859-9"
+    },
+    {
+      "name": "iso8859_9",
+      "spelling": "LATIN5",
+      "canonical": "iso8859-9"
+    },
+    {
+      "name": "iso8859_9",
+      "spelling": "latin5",
+      "canonical": "iso8859-9"
+    },
+    {
+      "name": "koi8_r",
+      "spelling": "cskoi8r",
+      "canonical": "koi8-r"
+    },
+    {
+      "name": "koi8_r",
+      "spelling": "CSKOI8R",
+      "canonical": "koi8-r"
+    },
+    {
+      "name": "koi8_r",
+      "spelling": "cskoi8r",
+      "canonical": "koi8-r"
+    },
+    {
+      "name": "kz1048",
+      "spelling": "kz_1048",
+      "canonical": "kz1048"
+    },
+    {
+      "name": "kz1048",
+      "spelling": "KZ-1048",
+      "canonical": "kz1048"
+    },
+    {
+      "name": "kz1048",
+      "spelling": "kz.1048",
+      "canonical": "kz1048"
+    },
+    {
+      "name": "kz1048",
+      "spelling": "rk1048",
+      "canonical": "kz1048"
+    },
+    {
+      "name": "kz1048",
+      "spelling": "RK1048",
+      "canonical": "kz1048"
+    },
+    {
+      "name": "kz1048",
+      "spelling": "rk1048",
+      "canonical": "kz1048"
+    },
+    {
+      "name": "kz1048",
+      "spelling": "strk1048_2002",
+      "canonical": "kz1048"
+    },
+    {
+      "name": "kz1048",
+      "spelling": "STRK1048-2002",
+      "canonical": "kz1048"
+    },
+    {
+      "name": "kz1048",
+      "spelling": "strk1048.2002",
+      "canonical": "kz1048"
+    },
+    {
+      "name": "mac_cyrillic",
+      "spelling": "maccyrillic",
+      "canonical": "mac-cyrillic"
+    },
+    {
+      "name": "mac_cyrillic",
+      "spelling": "MACCYRILLIC",
+      "canonical": "mac-cyrillic"
+    },
+    {
+      "name": "mac_cyrillic",
+      "spelling": "maccyrillic",
+      "canonical": "mac-cyrillic"
+    },
+    {
+      "name": "mac_greek",
+      "spelling": "macgreek",
+      "canonical": "mac-greek"
+    },
+    {
+      "name": "mac_greek",
+      "spelling": "MACGREEK",
+      "canonical": "mac-greek"
+    },
+    {
+      "name": "mac_greek",
+      "spelling": "macgreek",
+      "canonical": "mac-greek"
+    },
+    {
+      "name": "mac_iceland",
+      "spelling": "maciceland",
+      "canonical": "mac-iceland"
+    },
+    {
+      "name": "mac_iceland",
+      "spelling": "MACICELAND",
+      "canonical": "mac-iceland"
+    },
+    {
+      "name": "mac_iceland",
+      "spelling": "maciceland",
+      "canonical": "mac-iceland"
+    },
+    {
+      "name": "mac_latin2",
+      "spelling": "mac_centeuro",
+      "canonical": "mac-latin2"
+    },
+    {
+      "name": "mac_latin2",
+      "spelling": "MAC-CENTEURO",
+      "canonical": "mac-latin2"
+    },
+    {
+      "name": "mac_latin2",
+      "spelling": "mac.centeuro",
+      "canonical": "mac-latin2"
+    },
+    {
+      "name": "mac_latin2",
+      "spelling": "maccentraleurope",
+      "canonical": "mac-latin2"
+    },
+    {
+      "name": "mac_latin2",
+      "spelling": "MACCENTRALEUROPE",
+      "canonical": "mac-latin2"
+    },
+    {
+      "name": "mac_latin2",
+      "spelling": "maccentraleurope",
+      "canonical": "mac-latin2"
+    },
+    {
+      "name": "mac_latin2",
+      "spelling": "maclatin2",
+      "canonical": "mac-latin2"
+    },
+    {
+      "name": "mac_latin2",
+      "spelling": "MACLATIN2",
+      "canonical": "mac-latin2"
+    },
+    {
+      "name": "mac_latin2",
+      "spelling": "maclatin2",
+      "canonical": "mac-latin2"
+    },
+    {
+      "name": "mac_roman",
+      "spelling": "macintosh",
+      "canonical": "mac-roman"
+    },
+    {
+      "name": "mac_roman",
+      "spelling": "MACINTOSH",
+      "canonical": "mac-roman"
+    },
+    {
+      "name": "mac_roman",
+      "spelling": "macintosh",
+      "canonical": "mac-roman"
+    },
+    {
+      "name": "mac_roman",
+      "spelling": "macroman",
+      "canonical": "mac-roman"
+    },
+    {
+      "name": "mac_roman",
+      "spelling": "MACROMAN",
+      "canonical": "mac-roman"
+    },
+    {
+      "name": "mac_roman",
+      "spelling": "macroman",
+      "canonical": "mac-roman"
+    },
+    {
+      "name": "mac_turkish",
+      "spelling": "macturkish",
+      "canonical": "mac-turkish"
+    },
+    {
+      "name": "mac_turkish",
+      "spelling": "MACTURKISH",
+      "canonical": "mac-turkish"
+    },
+    {
+      "name": "mac_turkish",
+      "spelling": "macturkish",
+      "canonical": "mac-turkish"
+    },
+    {
+      "name": "ptcp154",
+      "spelling": "cp154",
+      "canonical": "ptcp154"
+    },
+    {
+      "name": "ptcp154",
+      "spelling": "CP154",
+      "canonical": "ptcp154"
+    },
+    {
+      "name": "ptcp154",
+      "spelling": "cp154",
+      "canonical": "ptcp154"
+    },
+    {
+      "name": "ptcp154",
+      "spelling": "csptcp154",
+      "canonical": "ptcp154"
+    },
+    {
+      "name": "ptcp154",
+      "spelling": "CSPTCP154",
+      "canonical": "ptcp154"
+    },
+    {
+      "name": "ptcp154",
+      "spelling": "csptcp154",
+      "canonical": "ptcp154"
+    },
+    {
+      "name": "ptcp154",
+      "spelling": "cyrillic_asian",
+      "canonical": "ptcp154"
+    },
+    {
+      "name": "ptcp154",
+      "spelling": "CYRILLIC-ASIAN",
+      "canonical": "ptcp154"
+    },
+    {
+      "name": "ptcp154",
+      "spelling": "cyrillic.asian",
+      "canonical": "ptcp154"
+    },
+    {
+      "name": "ptcp154",
+      "spelling": "pt154",
+      "canonical": "ptcp154"
+    },
+    {
+      "name": "ptcp154",
+      "spelling": "PT154",
+      "canonical": "ptcp154"
+    },
+    {
+      "name": "ptcp154",
+      "spelling": "pt154",
+      "canonical": "ptcp154"
+    },
+    {
+      "name": "tis_620",
+      "spelling": "iso_ir_166",
+      "canonical": "tis-620"
+    },
+    {
+      "name": "tis_620",
+      "spelling": "ISO-IR-166",
+      "canonical": "tis-620"
+    },
+    {
+      "name": "tis_620",
+      "spelling": "iso.ir.166",
+      "canonical": "tis-620"
+    },
+    {
+      "name": "tis_620",
+      "spelling": "tis620",
+      "canonical": "tis-620"
+    },
+    {
+      "name": "tis_620",
+      "spelling": "TIS620",
+      "canonical": "tis-620"
+    },
+    {
+      "name": "tis_620",
+      "spelling": "tis620",
+      "canonical": "tis-620"
+    },
+    {
+      "name": "tis_620",
+      "spelling": "tis_620_0",
+      "canonical": "tis-620"
+    },
+    {
+      "name": "tis_620",
+      "spelling": "TIS-620-0",
+      "canonical": "tis-620"
+    },
+    {
+      "name": "tis_620",
+      "spelling": "tis.620.0",
+      "canonical": "tis-620"
+    },
+    {
+      "name": "tis_620",
+      "spelling": "tis_620_2529_0",
+      "canonical": "tis-620"
+    },
+    {
+      "name": "tis_620",
+      "spelling": "TIS-620-2529-0",
+      "canonical": "tis-620"
+    },
+    {
+      "name": "tis_620",
+      "spelling": "tis.620.2529.0",
+      "canonical": "tis-620"
+    },
+    {
+      "name": "tis_620",
+      "spelling": "tis_620_2529_1",
+      "canonical": "tis-620"
+    },
+    {
+      "name": "tis_620",
+      "spelling": "TIS-620-2529-1",
+      "canonical": "tis-620"
+    },
+    {
+      "name": "tis_620",
+      "spelling": "tis.620.2529.1",
+      "canonical": "tis-620"
+    }
+  ]
+}

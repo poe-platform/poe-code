@@ -33,7 +33,7 @@ export function installRuntimeDictionarySlots(owner: TypeValue, values: RuntimeV
   }
   for (const [name, doc] of [["__contains__", "True if the dictionary has the specified key, else False."], ["__getitem__", "Return self[key]."]] as const) {
     meter.checkpoint(0, 96);
-    owner.value.namespace.items.set(values.string(name), values.methodDescriptor({ owner, name, doc, accepts: receiver => runtimeDictionaryPayload(receiver) !== undefined,
+    owner.value.namespace.items.set(values.string(name), values.methodDescriptor({ owner, name, doc, textSignature: "($self, key, /)", accepts: receiver => runtimeDictionaryPayload(receiver) !== undefined,
       invoke(receiver, positional, keywords, meter, invocation, bound) {
         meter.checkpoint();
         const typeName = bound && receiver.kind === "instance" ? receiver.type.value.name : "dict";

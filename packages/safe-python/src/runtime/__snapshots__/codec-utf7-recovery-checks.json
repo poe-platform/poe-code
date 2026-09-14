@@ -1,0 +1,236 @@
+{
+  "commands": {
+    "oracle": "npx tsx /tmp/codec-utf7-recovery-review.mts",
+    "focused": "npm run test:unit --workspace=@poe-code/safe-python -- codec-utf7-recovery-review utf7 runtime-codec-registry runtime-codec-handler-guest runtime-codec-registration-cancellation runtime-codec-preparation-cancellation session-codec-replaced-input-matrix utf8-incremental utf-wide-incremental session-codec-stream-state --maxWorkers=2 --reporter=json --outputFile=/tmp/codec-utf7-recovery-focused.json",
+    "typecheck": "npm run typecheck --workspace=@poe-code/safe-python",
+    "eslint": "npx eslint packages/safe-python/src/runtime/codec-utf7-recovery-review.test.ts",
+    "services": "npx tsx /tmp/codec-utf7-recovery-services.mts"
+  },
+  "exitCodes": {
+    "oracle": 0,
+    "focused": 1,
+    "typecheck": 0,
+    "eslint": 0,
+    "initialServices": 1,
+    "services": 0
+  },
+  "focused": {
+    "reportSha256": "86a379a9578b3b4c6e680dd72e74839737c087d9dcd91eb63e6d695dc67a8013",
+    "passed": 937,
+    "failed": 1,
+    "pending": 0,
+    "files": [
+      {
+        "name": "packages/safe-python/src/session-codec-replaced-input-matrix.test.ts",
+        "passed": 25,
+        "failed": 0,
+        "pending": 0,
+        "slowestMs": 94.56824999999992,
+        "caseStatusSha256": "972e910825011ba45e04c48632e5e6e3ada82d0d4d0b5c49506da42e380185d7",
+        "failures": []
+      },
+      {
+        "name": "packages/safe-python/src/session-codec-stream-state.test.ts",
+        "passed": 9,
+        "failed": 0,
+        "pending": 0,
+        "slowestMs": 61.89979200000005,
+        "caseStatusSha256": "584247716042c63dbae0ba28ad430ab992b2fb6a4c46bb5a9fb3aa6ef9d82783",
+        "failures": []
+      },
+      {
+        "name": "packages/safe-python/src/session-codec-utf7-replacement.test.ts",
+        "passed": 5,
+        "failed": 0,
+        "pending": 0,
+        "slowestMs": 50.798167000000035,
+        "caseStatusSha256": "beab750a4eb81209bf0d31911e959021305dd7a19b5c695310c6e78c3e4c06a2",
+        "failures": []
+      },
+      {
+        "name": "packages/safe-python/src/session-codec-utf7-user-audit.test.ts",
+        "passed": 343,
+        "failed": 0,
+        "pending": 0,
+        "slowestMs": 233.03200000000015,
+        "caseStatusSha256": "022a9b0ad18c5432683197e30a3ac463229aa589b6a3b6a30fbf39b917ff2685",
+        "failures": []
+      },
+      {
+        "name": "packages/safe-python/src/session-utf7-codec-api.test.ts",
+        "passed": 17,
+        "failed": 1,
+        "pending": 0,
+        "slowestMs": 32.12791600000037,
+        "caseStatusSha256": "1520ea03c92e649154bbd23575c8888820577b21d239bfe06b29994df3fef78f",
+        "failures": [
+          {
+            "name": "preserves decoder guest failures, traceback and native-call note behavior",
+            "messages": [
+              "AssertionError: UTF-7 callback traceback: expected 'exception' to be 'ok' // Object.is equality\n    at run (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-utf7-codec-api.test.ts:13:32)\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-utf7-codec-api.test.ts:194:3\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+            ]
+          }
+        ]
+      },
+      {
+        "name": "packages/safe-python/src/session-utf7-codec-oracle.test.ts",
+        "passed": 93,
+        "failed": 0,
+        "pending": 0,
+        "slowestMs": 82.96154200000001,
+        "caseStatusSha256": "75ea1635aadf4f1c8d4a7d34850ff38acc8d1b85f0b343b657b5a3ba2fec856f",
+        "failures": []
+      },
+      {
+        "name": "packages/safe-python/src/session-utf7-shift-boundaries.test.ts",
+        "passed": 72,
+        "failed": 0,
+        "pending": 0,
+        "slowestMs": 174.37275,
+        "caseStatusSha256": "b1d2c3f793bae7fe52390d0d0c4072baca4acac79cce421790fe525b4cb3e411",
+        "failures": []
+      },
+      {
+        "name": "packages/safe-python/src/runtime/codec-utf7-recovery-review.test.ts",
+        "passed": 201,
+        "failed": 0,
+        "pending": 0,
+        "slowestMs": 6.746999999999957,
+        "caseStatusSha256": "903dbb7f3cfa529e3d2113b999592af0034596bc794d86764b50992ec58c3e77",
+        "failures": []
+      },
+      {
+        "name": "packages/safe-python/src/runtime/runtime-codec-handler-guest.test.ts",
+        "passed": 29,
+        "failed": 0,
+        "pending": 0,
+        "slowestMs": 30.37816600000002,
+        "caseStatusSha256": "da072e7fcedbc9a9d75cbf85befaaccfbe9a4b7c9b4171f7054b7843a4aaba22",
+        "failures": []
+      },
+      {
+        "name": "packages/safe-python/src/runtime/runtime-codec-preparation-cancellation.test.ts",
+        "passed": 16,
+        "failed": 0,
+        "pending": 0,
+        "slowestMs": 7.347791000000029,
+        "caseStatusSha256": "e62b06668dc2a49cd595a8886ecd814f5966cc558aee9a8aa22b4bdedb044f04",
+        "failures": []
+      },
+      {
+        "name": "packages/safe-python/src/runtime/runtime-codec-registration-cancellation.test.ts",
+        "passed": 4,
+        "failed": 0,
+        "pending": 0,
+        "slowestMs": 1.8845829999999921,
+        "caseStatusSha256": "0eff6323668c20795425bb51c81a5c0fac60d763f845d179eaa010f5ece2fb89",
+        "failures": []
+      },
+      {
+        "name": "packages/safe-python/src/runtime/runtime-codec-registry-functions.test.ts",
+        "passed": 15,
+        "failed": 0,
+        "pending": 0,
+        "slowestMs": 37.07349999999997,
+        "caseStatusSha256": "dd9741a5f48bf915f90f216a221972c15ff155483307aaff19b70de57b545244",
+        "failures": []
+      },
+      {
+        "name": "packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+        "passed": 43,
+        "failed": 0,
+        "pending": 0,
+        "slowestMs": 1.6529999999999916,
+        "caseStatusSha256": "a4229bcdfe3f584bbdc22179d15fbca8cf8a806ae390875b1145ca779302da54",
+        "failures": []
+      },
+      {
+        "name": "packages/safe-python/src/runtime/runtime-utf7-codec-buffer.test.ts",
+        "passed": 8,
+        "failed": 0,
+        "pending": 0,
+        "slowestMs": 3.0950829999999883,
+        "caseStatusSha256": "71ceccb5f01a32665f21806f3aa78807ba17814069f21c37b1138235a604c8c1",
+        "failures": []
+      },
+      {
+        "name": "packages/safe-python/src/runtime/utf-wide-incremental-commit.test.ts",
+        "passed": 12,
+        "failed": 0,
+        "pending": 0,
+        "slowestMs": 2.292625000000001,
+        "caseStatusSha256": "2ca8c06e1e2bc96bb5a20fde4e7327537e45713c6d55d724e3b609910ff607f5",
+        "failures": []
+      },
+      {
+        "name": "packages/safe-python/src/runtime/utf-wide-incremental.test.ts",
+        "passed": 18,
+        "failed": 0,
+        "pending": 0,
+        "slowestMs": 2.829332999999991,
+        "caseStatusSha256": "58045e03505b42f47b3c3846079e107099e420884120d8da0e06479d740a1d58",
+        "failures": []
+      },
+      {
+        "name": "packages/safe-python/src/runtime/utf7-shift-boundaries.test.ts",
+        "passed": 1,
+        "failed": 0,
+        "pending": 0,
+        "slowestMs": 93.88929100000001,
+        "caseStatusSha256": "b1a67b7f2e0f4b7c8deebf128f8cb628aa2619373a7e0327a2dd0844dfe4d059",
+        "failures": []
+      },
+      {
+        "name": "packages/safe-python/src/runtime/utf7.test.ts",
+        "passed": 10,
+        "failed": 0,
+        "pending": 0,
+        "slowestMs": 25.918750000000003,
+        "caseStatusSha256": "b23c72b6efa815ad9179ea9432f60f90830e7204defd6183888296c5117c4ea8",
+        "failures": []
+      },
+      {
+        "name": "packages/safe-python/src/runtime/utf8-incremental.test.ts",
+        "passed": 16,
+        "failed": 0,
+        "pending": 0,
+        "slowestMs": 1.4564160000000044,
+        "caseStatusSha256": "7de11222b90c6c612e5fdd05dd28f354bf9880782cb5a31180a0e3c952ba4e61",
+        "failures": []
+      }
+    ]
+  },
+  "corpus": {
+    "count": 10000,
+    "negativePositions": 4096,
+    "final": 5000,
+    "nonfinal": 5000,
+    "secondFault": 4139,
+    "oneFault": 3707,
+    "noFault": 2154
+  },
+  "files": [
+    {
+      "path": "packages/safe-python/src/runtime/codec-utf7-recovery-review.test.ts",
+      "sha256": "0545ff8fcad2ec1c4353a1ff47742f27e62fc3cba5b977ca4934ab15904bf6e8"
+    },
+    {
+      "path": "packages/safe-python/src/runtime/utf7.ts",
+      "sha256": "f6884328072cf3a76a5c745399b51eb8fd1296bfab6c77eae11418e4bb83942a"
+    },
+    {
+      "path": "packages/safe-python/src/runtime/runtime-codec-registry.ts",
+      "sha256": "af09c087ce814069fca48abc800fadb1870d47d8f0dc298d3614aa8dc3af4704"
+    },
+    {
+      "path": "packages/safe-python/src/runtime/runtime-function-call.ts",
+      "sha256": "dd53c8c53bc91d7ef278a23d499d03ef8ff2155908321cdee39f60e7913854a9"
+    },
+    {
+      "path": "packages/safe-python/src/runtime/runtime-exception-execution.ts",
+      "sha256": "04b81dc2010572001d040f59d93c4a2ee4ce90ee7abefde1597ae28a1347d056"
+    }
+  ],
+  "runtimeChanged": false,
+  "complete": false
+}

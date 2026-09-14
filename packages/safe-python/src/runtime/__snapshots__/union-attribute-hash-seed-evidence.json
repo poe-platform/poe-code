@@ -1,0 +1,421 @@
+{
+  "oracle": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "scope": "External oracle only. Exact callback traces retained; no hash-table compatibility certification. Guest uses independent hash seed [1,2].",
+  "runs": [
+    {
+      "seed": 0,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 1,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 2,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 3,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 4,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 5,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 6,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 7,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 8,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 9,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 10,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 11,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 12,
+      "cases": 77,
+      "differences": [
+        {
+          "index": 64,
+          "name": "def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__: __module__",
+          "source": "events = []\nclass Name(str):\n    def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('__module__')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+          "seedZero": "(('AttributeError', \"type object 'typing.Union' has no attribute '__module__'\", (\"type object 'typing.Union' has no attribute '__module__'\",)), ['eq'])",
+          "observed": "(('AttributeError', \"type object 'typing.Union' has no attribute '__module__'\", (\"type object 'typing.Union' has no attribute '__module__'\",)), ['eq', 'eq'])"
+        }
+      ]
+    },
+    {
+      "seed": 13,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 14,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 15,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 16,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 17,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 18,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 19,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 20,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 21,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 22,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 23,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 24,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 25,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 26,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 27,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 28,
+      "cases": 77,
+      "differences": [
+        {
+          "index": 64,
+          "name": "def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__: __module__",
+          "source": "events = []\nclass Name(str):\n    def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('__module__')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+          "seedZero": "(('AttributeError', \"type object 'typing.Union' has no attribute '__module__'\", (\"type object 'typing.Union' has no attribute '__module__'\",)), ['eq'])",
+          "observed": "(('AttributeError', \"type object 'typing.Union' has no attribute '__module__'\", (\"type object 'typing.Union' has no attribute '__module__'\",)), ['eq', 'eq'])"
+        }
+      ]
+    },
+    {
+      "seed": 29,
+      "cases": 77,
+      "differences": [
+        {
+          "index": 65,
+          "name": "def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__: __args__",
+          "source": "events = []\nclass Name(str):\n    def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('__args__')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+          "seedZero": "(('AttributeError', \"'typing.Union' object has no attribute '__args__'\", (\"'typing.Union' object has no attribute '__args__'\",)), ['eq'])",
+          "observed": "(('AttributeError', \"'typing.Union' object has no attribute '__args__'\", (\"'typing.Union' object has no attribute '__args__'\",)), ['eq', 'eq'])"
+        }
+      ]
+    },
+    {
+      "seed": 30,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 31,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 32,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 33,
+      "cases": 77,
+      "differences": [
+        {
+          "index": 64,
+          "name": "def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__: __module__",
+          "source": "events = []\nclass Name(str):\n    def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('__module__')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+          "seedZero": "(('AttributeError', \"type object 'typing.Union' has no attribute '__module__'\", (\"type object 'typing.Union' has no attribute '__module__'\",)), ['eq'])",
+          "observed": "(('AttributeError', \"type object 'typing.Union' has no attribute '__module__'\", (\"type object 'typing.Union' has no attribute '__module__'\",)), ['eq', 'eq'])"
+        }
+      ]
+    },
+    {
+      "seed": 34,
+      "cases": 77,
+      "differences": [
+        {
+          "index": 65,
+          "name": "def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__: __args__",
+          "source": "events = []\nclass Name(str):\n    def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('__args__')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+          "seedZero": "(('AttributeError', \"'typing.Union' object has no attribute '__args__'\", (\"'typing.Union' object has no attribute '__args__'\",)), ['eq'])",
+          "observed": "(('AttributeError', \"'typing.Union' object has no attribute '__args__'\", (\"'typing.Union' object has no attribute '__args__'\",)), ['eq', 'eq'])"
+        }
+      ]
+    },
+    {
+      "seed": 35,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 36,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 37,
+      "cases": 77,
+      "differences": [
+        {
+          "index": 65,
+          "name": "def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__: __args__",
+          "source": "events = []\nclass Name(str):\n    def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('__args__')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+          "seedZero": "(('AttributeError', \"'typing.Union' object has no attribute '__args__'\", (\"'typing.Union' object has no attribute '__args__'\",)), ['eq'])",
+          "observed": "(('AttributeError', \"'typing.Union' object has no attribute '__args__'\", (\"'typing.Union' object has no attribute '__args__'\",)), ['eq', 'eq'])"
+        }
+      ]
+    },
+    {
+      "seed": 38,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 39,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 40,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 41,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 42,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 43,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 44,
+      "cases": 77,
+      "differences": [
+        {
+          "index": 65,
+          "name": "def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__: __args__",
+          "source": "events = []\nclass Name(str):\n    def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('__args__')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+          "seedZero": "(('AttributeError', \"'typing.Union' object has no attribute '__args__'\", (\"'typing.Union' object has no attribute '__args__'\",)), ['eq'])",
+          "observed": "(('AttributeError', \"'typing.Union' object has no attribute '__args__'\", (\"'typing.Union' object has no attribute '__args__'\",)), ['eq', 'eq', 'eq'])"
+        }
+      ]
+    },
+    {
+      "seed": 45,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 46,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 47,
+      "cases": 77,
+      "differences": [
+        {
+          "index": 65,
+          "name": "def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__: __args__",
+          "source": "events = []\nclass Name(str):\n    def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('__args__')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+          "seedZero": "(('AttributeError', \"'typing.Union' object has no attribute '__args__'\", (\"'typing.Union' object has no attribute '__args__'\",)), ['eq'])",
+          "observed": "(('AttributeError', \"'typing.Union' object has no attribute '__args__'\", (\"'typing.Union' object has no attribute '__args__'\",)), ['eq', 'eq'])"
+        }
+      ]
+    },
+    {
+      "seed": 48,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 49,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 50,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 51,
+      "cases": 77,
+      "differences": [
+        {
+          "index": 64,
+          "name": "def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__: __module__",
+          "source": "events = []\nclass Name(str):\n    def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('__module__')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+          "seedZero": "(('AttributeError', \"type object 'typing.Union' has no attribute '__module__'\", (\"type object 'typing.Union' has no attribute '__module__'\",)), ['eq'])",
+          "observed": "(('AttributeError', \"type object 'typing.Union' has no attribute '__module__'\", (\"type object 'typing.Union' has no attribute '__module__'\",)), ['eq', 'eq'])"
+        }
+      ]
+    },
+    {
+      "seed": 52,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 53,
+      "cases": 77,
+      "differences": [
+        {
+          "index": 64,
+          "name": "def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__: __module__",
+          "source": "events = []\nclass Name(str):\n    def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('__module__')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+          "seedZero": "(('AttributeError', \"type object 'typing.Union' has no attribute '__module__'\", (\"type object 'typing.Union' has no attribute '__module__'\",)), ['eq'])",
+          "observed": "(('AttributeError', \"type object 'typing.Union' has no attribute '__module__'\", (\"type object 'typing.Union' has no attribute '__module__'\",)), ['eq', 'eq'])"
+        },
+        {
+          "index": 65,
+          "name": "def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__: __args__",
+          "source": "events = []\nclass Name(str):\n    def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('__args__')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+          "seedZero": "(('AttributeError', \"'typing.Union' object has no attribute '__args__'\", (\"'typing.Union' object has no attribute '__args__'\",)), ['eq'])",
+          "observed": "(('AttributeError', \"'typing.Union' object has no attribute '__args__'\", (\"'typing.Union' object has no attribute '__args__'\",)), ['eq', 'eq'])"
+        }
+      ]
+    },
+    {
+      "seed": 54,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 55,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 56,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 57,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 58,
+      "cases": 77,
+      "differences": [
+        {
+          "index": 65,
+          "name": "def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__: __args__",
+          "source": "events = []\nclass Name(str):\n    def __eq__(self, other):\n        events.append('eq')\n        return False\n    __hash__ = str.__hash__\nu = int | str\ntry:\n    result = ('ok', type(u).__getattribute__(u, Name('__args__')))\nexcept Exception as error:\n    result = (type(error).__name__, str(error), error.args)\nresult = (result, events)\n",
+          "seedZero": "(('AttributeError', \"'typing.Union' object has no attribute '__args__'\", (\"'typing.Union' object has no attribute '__args__'\",)), ['eq'])",
+          "observed": "(('AttributeError', \"'typing.Union' object has no attribute '__args__'\", (\"'typing.Union' object has no attribute '__args__'\",)), ['eq', 'eq'])"
+        }
+      ]
+    },
+    {
+      "seed": 59,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 60,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 61,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 62,
+      "cases": 77,
+      "differences": []
+    },
+    {
+      "seed": 63,
+      "cases": 77,
+      "differences": []
+    }
+  ]
+}

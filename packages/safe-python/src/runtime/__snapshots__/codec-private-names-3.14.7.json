@@ -1,0 +1,6185 @@
+{
+  "oracle": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "machine": "arm64",
+    "byteorder": "little"
+  },
+  "rows": [
+    {
+      "point": 983039,
+      "replacement": "\\U000effff",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983040,
+      "replacement": "\\N{NULL}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983041,
+      "replacement": "\\N{NUL}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983042,
+      "replacement": "\\N{START OF HEADING}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983043,
+      "replacement": "\\N{SOH}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983044,
+      "replacement": "\\N{START OF TEXT}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983045,
+      "replacement": "\\N{STX}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983046,
+      "replacement": "\\N{END OF TEXT}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983047,
+      "replacement": "\\N{ETX}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983048,
+      "replacement": "\\N{END OF TRANSMISSION}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983049,
+      "replacement": "\\N{EOT}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983050,
+      "replacement": "\\N{ENQUIRY}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983051,
+      "replacement": "\\N{ENQ}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983052,
+      "replacement": "\\N{ACKNOWLEDGE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983053,
+      "replacement": "\\N{ACK}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983054,
+      "replacement": "\\N{ALERT}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983055,
+      "replacement": "\\N{BEL}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983056,
+      "replacement": "\\N{BACKSPACE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983057,
+      "replacement": "\\N{BS}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983058,
+      "replacement": "\\N{CHARACTER TABULATION}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983059,
+      "replacement": "\\N{HORIZONTAL TABULATION}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983060,
+      "replacement": "\\N{HT}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983061,
+      "replacement": "\\N{TAB}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983062,
+      "replacement": "\\N{LINE FEED}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983063,
+      "replacement": "\\N{NEW LINE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983064,
+      "replacement": "\\N{END OF LINE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983065,
+      "replacement": "\\N{LF}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983066,
+      "replacement": "\\N{NL}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983067,
+      "replacement": "\\N{EOL}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983068,
+      "replacement": "\\N{LINE TABULATION}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983069,
+      "replacement": "\\N{VERTICAL TABULATION}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983070,
+      "replacement": "\\N{VT}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983071,
+      "replacement": "\\N{FORM FEED}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983072,
+      "replacement": "\\N{FF}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983073,
+      "replacement": "\\N{CARRIAGE RETURN}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983074,
+      "replacement": "\\N{CR}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983075,
+      "replacement": "\\N{SHIFT OUT}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983076,
+      "replacement": "\\N{LOCKING-SHIFT ONE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983077,
+      "replacement": "\\N{SO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983078,
+      "replacement": "\\N{SHIFT IN}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983079,
+      "replacement": "\\N{LOCKING-SHIFT ZERO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983080,
+      "replacement": "\\N{SI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983081,
+      "replacement": "\\N{DATA LINK ESCAPE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983082,
+      "replacement": "\\N{DLE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983083,
+      "replacement": "\\N{DEVICE CONTROL ONE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983084,
+      "replacement": "\\N{DC1}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983085,
+      "replacement": "\\N{DEVICE CONTROL TWO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983086,
+      "replacement": "\\N{DC2}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983087,
+      "replacement": "\\N{DEVICE CONTROL THREE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983088,
+      "replacement": "\\N{DC3}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983089,
+      "replacement": "\\N{DEVICE CONTROL FOUR}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983090,
+      "replacement": "\\N{DC4}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983091,
+      "replacement": "\\N{NEGATIVE ACKNOWLEDGE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983092,
+      "replacement": "\\N{NAK}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983093,
+      "replacement": "\\N{SYNCHRONOUS IDLE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983094,
+      "replacement": "\\N{SYN}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983095,
+      "replacement": "\\N{END OF TRANSMISSION BLOCK}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983096,
+      "replacement": "\\N{ETB}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983097,
+      "replacement": "\\N{CANCEL}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983098,
+      "replacement": "\\N{CAN}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983099,
+      "replacement": "\\N{END OF MEDIUM}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983100,
+      "replacement": "\\N{EOM}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983101,
+      "replacement": "\\N{EM}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983102,
+      "replacement": "\\N{SUBSTITUTE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983103,
+      "replacement": "\\N{SUB}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983104,
+      "replacement": "\\N{ESCAPE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983105,
+      "replacement": "\\N{ESC}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983106,
+      "replacement": "\\N{INFORMATION SEPARATOR FOUR}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983107,
+      "replacement": "\\N{FILE SEPARATOR}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983108,
+      "replacement": "\\N{FS}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983109,
+      "replacement": "\\N{INFORMATION SEPARATOR THREE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983110,
+      "replacement": "\\N{GROUP SEPARATOR}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983111,
+      "replacement": "\\N{GS}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983112,
+      "replacement": "\\N{INFORMATION SEPARATOR TWO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983113,
+      "replacement": "\\N{RECORD SEPARATOR}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983114,
+      "replacement": "\\N{RS}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983115,
+      "replacement": "\\N{INFORMATION SEPARATOR ONE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983116,
+      "replacement": "\\N{UNIT SEPARATOR}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983117,
+      "replacement": "\\N{US}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983118,
+      "replacement": "\\N{SP}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983119,
+      "replacement": "\\N{DELETE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983120,
+      "replacement": "\\N{DEL}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983121,
+      "replacement": "\\N{PADDING CHARACTER}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983122,
+      "replacement": "\\N{PAD}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983123,
+      "replacement": "\\N{HIGH OCTET PRESET}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983124,
+      "replacement": "\\N{HOP}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983125,
+      "replacement": "\\N{BREAK PERMITTED HERE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983126,
+      "replacement": "\\N{BPH}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983127,
+      "replacement": "\\N{NO BREAK HERE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983128,
+      "replacement": "\\N{NBH}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983129,
+      "replacement": "\\N{INDEX}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983130,
+      "replacement": "\\N{IND}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983131,
+      "replacement": "\\N{NEXT LINE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983132,
+      "replacement": "\\N{NEL}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983133,
+      "replacement": "\\N{START OF SELECTED AREA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983134,
+      "replacement": "\\N{SSA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983135,
+      "replacement": "\\N{END OF SELECTED AREA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983136,
+      "replacement": "\\N{ESA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983137,
+      "replacement": "\\N{CHARACTER TABULATION SET}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983138,
+      "replacement": "\\N{HORIZONTAL TABULATION SET}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983139,
+      "replacement": "\\N{HTS}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983140,
+      "replacement": "\\N{CHARACTER TABULATION WITH JUSTIFICATION}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983141,
+      "replacement": "\\N{HORIZONTAL TABULATION WITH JUSTIFICATION}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983142,
+      "replacement": "\\N{HTJ}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983143,
+      "replacement": "\\N{LINE TABULATION SET}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983144,
+      "replacement": "\\N{VERTICAL TABULATION SET}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983145,
+      "replacement": "\\N{VTS}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983146,
+      "replacement": "\\N{PARTIAL LINE FORWARD}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983147,
+      "replacement": "\\N{PARTIAL LINE DOWN}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983148,
+      "replacement": "\\N{PLD}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983149,
+      "replacement": "\\N{PARTIAL LINE BACKWARD}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983150,
+      "replacement": "\\N{PARTIAL LINE UP}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983151,
+      "replacement": "\\N{PLU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983152,
+      "replacement": "\\N{REVERSE LINE FEED}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983153,
+      "replacement": "\\N{REVERSE INDEX}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983154,
+      "replacement": "\\N{RI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983155,
+      "replacement": "\\N{SINGLE SHIFT TWO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983156,
+      "replacement": "\\N{SINGLE-SHIFT-2}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983157,
+      "replacement": "\\N{SS2}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983158,
+      "replacement": "\\N{SINGLE SHIFT THREE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983159,
+      "replacement": "\\N{SINGLE-SHIFT-3}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983160,
+      "replacement": "\\N{SS3}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983161,
+      "replacement": "\\N{DEVICE CONTROL STRING}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983162,
+      "replacement": "\\N{DCS}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983163,
+      "replacement": "\\N{PRIVATE USE ONE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983164,
+      "replacement": "\\N{PRIVATE USE-1}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983165,
+      "replacement": "\\N{PU1}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983166,
+      "replacement": "\\N{PRIVATE USE TWO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983167,
+      "replacement": "\\N{PRIVATE USE-2}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983168,
+      "replacement": "\\N{PU2}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983169,
+      "replacement": "\\N{SET TRANSMIT STATE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983170,
+      "replacement": "\\N{STS}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983171,
+      "replacement": "\\N{CANCEL CHARACTER}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983172,
+      "replacement": "\\N{CCH}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983173,
+      "replacement": "\\N{MESSAGE WAITING}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983174,
+      "replacement": "\\N{MW}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983175,
+      "replacement": "\\N{START OF GUARDED AREA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983176,
+      "replacement": "\\N{START OF PROTECTED AREA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983177,
+      "replacement": "\\N{SPA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983178,
+      "replacement": "\\N{END OF GUARDED AREA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983179,
+      "replacement": "\\N{END OF PROTECTED AREA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983180,
+      "replacement": "\\N{EPA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983181,
+      "replacement": "\\N{START OF STRING}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983182,
+      "replacement": "\\N{SOS}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983183,
+      "replacement": "\\N{SINGLE GRAPHIC CHARACTER INTRODUCER}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983184,
+      "replacement": "\\N{SGC}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983185,
+      "replacement": "\\N{SINGLE CHARACTER INTRODUCER}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983186,
+      "replacement": "\\N{SCI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983187,
+      "replacement": "\\N{CONTROL SEQUENCE INTRODUCER}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983188,
+      "replacement": "\\N{CSI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983189,
+      "replacement": "\\N{STRING TERMINATOR}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983190,
+      "replacement": "\\N{ST}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983191,
+      "replacement": "\\N{OPERATING SYSTEM COMMAND}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983192,
+      "replacement": "\\N{OSC}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983193,
+      "replacement": "\\N{PRIVACY MESSAGE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983194,
+      "replacement": "\\N{PM}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983195,
+      "replacement": "\\N{APPLICATION PROGRAM COMMAND}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983196,
+      "replacement": "\\N{APC}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983197,
+      "replacement": "\\N{NBSP}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983198,
+      "replacement": "\\N{SHY}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983199,
+      "replacement": "\\N{LATIN CAPITAL LETTER GHA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983200,
+      "replacement": "\\N{LATIN SMALL LETTER GHA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983201,
+      "replacement": "\\N{CGJ}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983202,
+      "replacement": "\\N{ARABIC SMALL HIGH LIGATURE ALEF WITH YEH BARREE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983203,
+      "replacement": "\\N{ALM}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983204,
+      "replacement": "\\N{SYRIAC SUBLINEAR COLON SKEWED LEFT}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983205,
+      "replacement": "\\N{KANNADA LETTER LLLA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983206,
+      "replacement": "\\N{LAO LETTER FO FON}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983207,
+      "replacement": "\\N{LAO LETTER FO FAY}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983208,
+      "replacement": "\\N{LAO LETTER RO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983209,
+      "replacement": "\\N{LAO LETTER LO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983210,
+      "replacement": "\\N{TIBETAN MARK BKA- SHOG GI MGO RGYAN}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983211,
+      "replacement": "\\N{HANGUL JONGSEONG YESIEUNG-KIYEOK}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983212,
+      "replacement": "\\N{HANGUL JONGSEONG YESIEUNG-SSANGKIYEOK}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983213,
+      "replacement": "\\N{HANGUL JONGSEONG SSANGYESIEUNG}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983214,
+      "replacement": "\\N{HANGUL JONGSEONG YESIEUNG-KHIEUKH}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983215,
+      "replacement": "\\N{FVS1}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983216,
+      "replacement": "\\N{FVS2}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983217,
+      "replacement": "\\N{FVS3}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983218,
+      "replacement": "\\N{MVS}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983219,
+      "replacement": "\\N{FVS4}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983220,
+      "replacement": "\\N{SUNDANESE LETTER ARCHAIC I}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983221,
+      "replacement": "\\N{ZWSP}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983222,
+      "replacement": "\\N{ZWNJ}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983223,
+      "replacement": "\\N{ZWJ}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983224,
+      "replacement": "\\N{LRM}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983225,
+      "replacement": "\\N{RLM}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983226,
+      "replacement": "\\N{LRE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983227,
+      "replacement": "\\N{RLE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983228,
+      "replacement": "\\N{PDF}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983229,
+      "replacement": "\\N{LRO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983230,
+      "replacement": "\\N{RLO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983231,
+      "replacement": "\\N{NNBSP}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983232,
+      "replacement": "\\N{MMSP}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983233,
+      "replacement": "\\N{WJ}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983234,
+      "replacement": "\\N{LRI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983235,
+      "replacement": "\\N{RLI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983236,
+      "replacement": "\\N{FSI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983237,
+      "replacement": "\\N{PDI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983238,
+      "replacement": "\\N{WEIERSTRASS ELLIPTIC FUNCTION}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983239,
+      "replacement": "\\N{MICR ON US SYMBOL}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983240,
+      "replacement": "\\N{MICR DASH SYMBOL}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983241,
+      "replacement": "\\N{LEFTWARDS TRIANGLE-HEADED ARROW WITH DOUBLE VERTICAL STROKE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983242,
+      "replacement": "\\N{RIGHTWARDS TRIANGLE-HEADED ARROW WITH DOUBLE VERTICAL STROKE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983243,
+      "replacement": "\\N{YI SYLLABLE ITERATION MARK}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983244,
+      "replacement": "\\N{MYANMAR LETTER KHAMTI LLA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983245,
+      "replacement": "\\N{VS1}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983246,
+      "replacement": "\\N{VS2}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983247,
+      "replacement": "\\N{VS3}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983248,
+      "replacement": "\\N{VS4}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983249,
+      "replacement": "\\N{VS5}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983250,
+      "replacement": "\\N{VS6}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983251,
+      "replacement": "\\N{VS7}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983252,
+      "replacement": "\\N{VS8}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983253,
+      "replacement": "\\N{VS9}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983254,
+      "replacement": "\\N{VS10}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983255,
+      "replacement": "\\N{VS11}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983256,
+      "replacement": "\\N{VS12}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983257,
+      "replacement": "\\N{VS13}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983258,
+      "replacement": "\\N{VS14}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983259,
+      "replacement": "\\N{VS15}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983260,
+      "replacement": "\\N{VS16}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983261,
+      "replacement": "\\N{PRESENTATION FORM FOR VERTICAL RIGHT WHITE LENTICULAR BRACKET}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983262,
+      "replacement": "\\N{BYTE ORDER MARK}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983263,
+      "replacement": "\\N{BOM}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983264,
+      "replacement": "\\N{ZWNBSP}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983265,
+      "replacement": "\\N{CUNEIFORM SIGN NU11 TENU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983266,
+      "replacement": "\\N{CUNEIFORM SIGN NU11 OVER NU11 BUR OVER BUR}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983267,
+      "replacement": "\\N{CUNEIFORM SIGN KALAM}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983268,
+      "replacement": "\\N{BAMUM LETTER PHASE-A MAEMGBIEE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983269,
+      "replacement": "\\N{MEDEFAIDRIN CAPITAL LETTER H}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983270,
+      "replacement": "\\N{MEDEFAIDRIN CAPITAL LETTER NG}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983271,
+      "replacement": "\\N{MEDEFAIDRIN SMALL LETTER H}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983272,
+      "replacement": "\\N{MEDEFAIDRIN SMALL LETTER NG}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983273,
+      "replacement": "\\N{HENTAIGANA LETTER E-1}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983274,
+      "replacement": "\\N{BYZANTINE MUSICAL SYMBOL FTHORA SKLIRON CHROMA VASIS}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983275,
+      "replacement": "\\N{MENDE KIKAKUI SYLLABLE M172 MBO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983276,
+      "replacement": "\\N{MENDE KIKAKUI SYLLABLE M174 MBOO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983277,
+      "replacement": "\\N{VS17}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983278,
+      "replacement": "\\N{VS18}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983279,
+      "replacement": "\\N{VS19}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983280,
+      "replacement": "\\N{VS20}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983281,
+      "replacement": "\\N{VS21}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983282,
+      "replacement": "\\N{VS22}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983283,
+      "replacement": "\\N{VS23}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983284,
+      "replacement": "\\N{VS24}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983285,
+      "replacement": "\\N{VS25}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983286,
+      "replacement": "\\N{VS26}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983287,
+      "replacement": "\\N{VS27}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983288,
+      "replacement": "\\N{VS28}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983289,
+      "replacement": "\\N{VS29}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983290,
+      "replacement": "\\N{VS30}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983291,
+      "replacement": "\\N{VS31}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983292,
+      "replacement": "\\N{VS32}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983293,
+      "replacement": "\\N{VS33}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983294,
+      "replacement": "\\N{VS34}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983295,
+      "replacement": "\\N{VS35}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983296,
+      "replacement": "\\N{VS36}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983297,
+      "replacement": "\\N{VS37}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983298,
+      "replacement": "\\N{VS38}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983299,
+      "replacement": "\\N{VS39}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983300,
+      "replacement": "\\N{VS40}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983301,
+      "replacement": "\\N{VS41}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983302,
+      "replacement": "\\N{VS42}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983303,
+      "replacement": "\\N{VS43}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983304,
+      "replacement": "\\N{VS44}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983305,
+      "replacement": "\\N{VS45}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983306,
+      "replacement": "\\N{VS46}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983307,
+      "replacement": "\\N{VS47}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983308,
+      "replacement": "\\N{VS48}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983309,
+      "replacement": "\\N{VS49}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983310,
+      "replacement": "\\N{VS50}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983311,
+      "replacement": "\\N{VS51}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983312,
+      "replacement": "\\N{VS52}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983313,
+      "replacement": "\\N{VS53}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983314,
+      "replacement": "\\N{VS54}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983315,
+      "replacement": "\\N{VS55}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983316,
+      "replacement": "\\N{VS56}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983317,
+      "replacement": "\\N{VS57}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983318,
+      "replacement": "\\N{VS58}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983319,
+      "replacement": "\\N{VS59}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983320,
+      "replacement": "\\N{VS60}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983321,
+      "replacement": "\\N{VS61}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983322,
+      "replacement": "\\N{VS62}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983323,
+      "replacement": "\\N{VS63}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983324,
+      "replacement": "\\N{VS64}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983325,
+      "replacement": "\\N{VS65}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983326,
+      "replacement": "\\N{VS66}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983327,
+      "replacement": "\\N{VS67}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983328,
+      "replacement": "\\N{VS68}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983329,
+      "replacement": "\\N{VS69}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983330,
+      "replacement": "\\N{VS70}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983331,
+      "replacement": "\\N{VS71}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983332,
+      "replacement": "\\N{VS72}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983333,
+      "replacement": "\\N{VS73}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983334,
+      "replacement": "\\N{VS74}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983335,
+      "replacement": "\\N{VS75}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983336,
+      "replacement": "\\N{VS76}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983337,
+      "replacement": "\\N{VS77}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983338,
+      "replacement": "\\N{VS78}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983339,
+      "replacement": "\\N{VS79}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983340,
+      "replacement": "\\N{VS80}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983341,
+      "replacement": "\\N{VS81}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983342,
+      "replacement": "\\N{VS82}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983343,
+      "replacement": "\\N{VS83}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983344,
+      "replacement": "\\N{VS84}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983345,
+      "replacement": "\\N{VS85}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983346,
+      "replacement": "\\N{VS86}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983347,
+      "replacement": "\\N{VS87}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983348,
+      "replacement": "\\N{VS88}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983349,
+      "replacement": "\\N{VS89}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983350,
+      "replacement": "\\N{VS90}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983351,
+      "replacement": "\\N{VS91}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983352,
+      "replacement": "\\N{VS92}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983353,
+      "replacement": "\\N{VS93}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983354,
+      "replacement": "\\N{VS94}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983355,
+      "replacement": "\\N{VS95}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983356,
+      "replacement": "\\N{VS96}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983357,
+      "replacement": "\\N{VS97}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983358,
+      "replacement": "\\N{VS98}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983359,
+      "replacement": "\\N{VS99}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983360,
+      "replacement": "\\N{VS100}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983361,
+      "replacement": "\\N{VS101}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983362,
+      "replacement": "\\N{VS102}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983363,
+      "replacement": "\\N{VS103}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983364,
+      "replacement": "\\N{VS104}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983365,
+      "replacement": "\\N{VS105}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983366,
+      "replacement": "\\N{VS106}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983367,
+      "replacement": "\\N{VS107}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983368,
+      "replacement": "\\N{VS108}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983369,
+      "replacement": "\\N{VS109}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983370,
+      "replacement": "\\N{VS110}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983371,
+      "replacement": "\\N{VS111}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983372,
+      "replacement": "\\N{VS112}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983373,
+      "replacement": "\\N{VS113}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983374,
+      "replacement": "\\N{VS114}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983375,
+      "replacement": "\\N{VS115}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983376,
+      "replacement": "\\N{VS116}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983377,
+      "replacement": "\\N{VS117}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983378,
+      "replacement": "\\N{VS118}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983379,
+      "replacement": "\\N{VS119}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983380,
+      "replacement": "\\N{VS120}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983381,
+      "replacement": "\\N{VS121}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983382,
+      "replacement": "\\N{VS122}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983383,
+      "replacement": "\\N{VS123}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983384,
+      "replacement": "\\N{VS124}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983385,
+      "replacement": "\\N{VS125}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983386,
+      "replacement": "\\N{VS126}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983387,
+      "replacement": "\\N{VS127}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983388,
+      "replacement": "\\N{VS128}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983389,
+      "replacement": "\\N{VS129}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983390,
+      "replacement": "\\N{VS130}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983391,
+      "replacement": "\\N{VS131}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983392,
+      "replacement": "\\N{VS132}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983393,
+      "replacement": "\\N{VS133}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983394,
+      "replacement": "\\N{VS134}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983395,
+      "replacement": "\\N{VS135}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983396,
+      "replacement": "\\N{VS136}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983397,
+      "replacement": "\\N{VS137}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983398,
+      "replacement": "\\N{VS138}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983399,
+      "replacement": "\\N{VS139}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983400,
+      "replacement": "\\N{VS140}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983401,
+      "replacement": "\\N{VS141}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983402,
+      "replacement": "\\N{VS142}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983403,
+      "replacement": "\\N{VS143}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983404,
+      "replacement": "\\N{VS144}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983405,
+      "replacement": "\\N{VS145}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983406,
+      "replacement": "\\N{VS146}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983407,
+      "replacement": "\\N{VS147}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983408,
+      "replacement": "\\N{VS148}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983409,
+      "replacement": "\\N{VS149}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983410,
+      "replacement": "\\N{VS150}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983411,
+      "replacement": "\\N{VS151}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983412,
+      "replacement": "\\N{VS152}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983413,
+      "replacement": "\\N{VS153}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983414,
+      "replacement": "\\N{VS154}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983415,
+      "replacement": "\\N{VS155}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983416,
+      "replacement": "\\N{VS156}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983417,
+      "replacement": "\\N{VS157}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983418,
+      "replacement": "\\N{VS158}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983419,
+      "replacement": "\\N{VS159}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983420,
+      "replacement": "\\N{VS160}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983421,
+      "replacement": "\\N{VS161}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983422,
+      "replacement": "\\N{VS162}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983423,
+      "replacement": "\\N{VS163}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983424,
+      "replacement": "\\N{VS164}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983425,
+      "replacement": "\\N{VS165}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983426,
+      "replacement": "\\N{VS166}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983427,
+      "replacement": "\\N{VS167}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983428,
+      "replacement": "\\N{VS168}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983429,
+      "replacement": "\\N{VS169}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983430,
+      "replacement": "\\N{VS170}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983431,
+      "replacement": "\\N{VS171}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983432,
+      "replacement": "\\N{VS172}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983433,
+      "replacement": "\\N{VS173}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983434,
+      "replacement": "\\N{VS174}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983435,
+      "replacement": "\\N{VS175}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983436,
+      "replacement": "\\N{VS176}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983437,
+      "replacement": "\\N{VS177}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983438,
+      "replacement": "\\N{VS178}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983439,
+      "replacement": "\\N{VS179}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983440,
+      "replacement": "\\N{VS180}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983441,
+      "replacement": "\\N{VS181}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983442,
+      "replacement": "\\N{VS182}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983443,
+      "replacement": "\\N{VS183}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983444,
+      "replacement": "\\N{VS184}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983445,
+      "replacement": "\\N{VS185}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983446,
+      "replacement": "\\N{VS186}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983447,
+      "replacement": "\\N{VS187}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983448,
+      "replacement": "\\N{VS188}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983449,
+      "replacement": "\\N{VS189}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983450,
+      "replacement": "\\N{VS190}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983451,
+      "replacement": "\\N{VS191}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983452,
+      "replacement": "\\N{VS192}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983453,
+      "replacement": "\\N{VS193}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983454,
+      "replacement": "\\N{VS194}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983455,
+      "replacement": "\\N{VS195}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983456,
+      "replacement": "\\N{VS196}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983457,
+      "replacement": "\\N{VS197}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983458,
+      "replacement": "\\N{VS198}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983459,
+      "replacement": "\\N{VS199}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983460,
+      "replacement": "\\N{VS200}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983461,
+      "replacement": "\\N{VS201}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983462,
+      "replacement": "\\N{VS202}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983463,
+      "replacement": "\\N{VS203}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983464,
+      "replacement": "\\N{VS204}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983465,
+      "replacement": "\\N{VS205}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983466,
+      "replacement": "\\N{VS206}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983467,
+      "replacement": "\\N{VS207}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983468,
+      "replacement": "\\N{VS208}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983469,
+      "replacement": "\\N{VS209}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983470,
+      "replacement": "\\N{VS210}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983471,
+      "replacement": "\\N{VS211}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983472,
+      "replacement": "\\N{VS212}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983473,
+      "replacement": "\\N{VS213}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983474,
+      "replacement": "\\N{VS214}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983475,
+      "replacement": "\\N{VS215}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983476,
+      "replacement": "\\N{VS216}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983477,
+      "replacement": "\\N{VS217}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983478,
+      "replacement": "\\N{VS218}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983479,
+      "replacement": "\\N{VS219}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983480,
+      "replacement": "\\N{VS220}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983481,
+      "replacement": "\\N{VS221}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983482,
+      "replacement": "\\N{VS222}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983483,
+      "replacement": "\\N{VS223}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983484,
+      "replacement": "\\N{VS224}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983485,
+      "replacement": "\\N{VS225}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983486,
+      "replacement": "\\N{VS226}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983487,
+      "replacement": "\\N{VS227}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983488,
+      "replacement": "\\N{VS228}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983489,
+      "replacement": "\\N{VS229}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983490,
+      "replacement": "\\N{VS230}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983491,
+      "replacement": "\\N{VS231}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983492,
+      "replacement": "\\N{VS232}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983493,
+      "replacement": "\\N{VS233}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983494,
+      "replacement": "\\N{VS234}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983495,
+      "replacement": "\\N{VS235}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983496,
+      "replacement": "\\N{VS236}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983497,
+      "replacement": "\\N{VS237}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983498,
+      "replacement": "\\N{VS238}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983499,
+      "replacement": "\\N{VS239}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983500,
+      "replacement": "\\N{VS240}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983501,
+      "replacement": "\\N{VS241}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983502,
+      "replacement": "\\N{VS242}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983503,
+      "replacement": "\\N{VS243}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983504,
+      "replacement": "\\N{VS244}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983505,
+      "replacement": "\\N{VS245}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983506,
+      "replacement": "\\N{VS246}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983507,
+      "replacement": "\\N{VS247}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983508,
+      "replacement": "\\N{VS248}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983509,
+      "replacement": "\\N{VS249}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983510,
+      "replacement": "\\N{VS250}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983511,
+      "replacement": "\\N{VS251}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983512,
+      "replacement": "\\N{VS252}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983513,
+      "replacement": "\\N{VS253}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983514,
+      "replacement": "\\N{VS254}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983515,
+      "replacement": "\\N{VS255}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983516,
+      "replacement": "\\N{VS256}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983517,
+      "replacement": "\\U000f01dd",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983518,
+      "replacement": "\\U000f01de",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983519,
+      "replacement": "\\U000f01df",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983520,
+      "replacement": "\\U000f01e0",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983521,
+      "replacement": "\\U000f01e1",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983522,
+      "replacement": "\\U000f01e2",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983523,
+      "replacement": "\\U000f01e3",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983524,
+      "replacement": "\\U000f01e4",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983525,
+      "replacement": "\\U000f01e5",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983526,
+      "replacement": "\\U000f01e6",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983527,
+      "replacement": "\\U000f01e7",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983528,
+      "replacement": "\\U000f01e8",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983529,
+      "replacement": "\\U000f01e9",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983530,
+      "replacement": "\\U000f01ea",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983531,
+      "replacement": "\\U000f01eb",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983532,
+      "replacement": "\\U000f01ec",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983533,
+      "replacement": "\\U000f01ed",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983534,
+      "replacement": "\\U000f01ee",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983535,
+      "replacement": "\\U000f01ef",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983536,
+      "replacement": "\\U000f01f0",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983537,
+      "replacement": "\\U000f01f1",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983538,
+      "replacement": "\\U000f01f2",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983539,
+      "replacement": "\\U000f01f3",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983540,
+      "replacement": "\\U000f01f4",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983541,
+      "replacement": "\\U000f01f5",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983542,
+      "replacement": "\\U000f01f6",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983543,
+      "replacement": "\\U000f01f7",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983544,
+      "replacement": "\\U000f01f8",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983545,
+      "replacement": "\\U000f01f9",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983546,
+      "replacement": "\\U000f01fa",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983547,
+      "replacement": "\\U000f01fb",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983548,
+      "replacement": "\\U000f01fc",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983549,
+      "replacement": "\\U000f01fd",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983550,
+      "replacement": "\\U000f01fe",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983551,
+      "replacement": "\\U000f01ff",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983552,
+      "replacement": "\\N{KEYCAP NUMBER SIGN}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983553,
+      "replacement": "\\N{KEYCAP ASTERISK}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983554,
+      "replacement": "\\N{KEYCAP DIGIT ZERO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983555,
+      "replacement": "\\N{KEYCAP DIGIT ONE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983556,
+      "replacement": "\\N{KEYCAP DIGIT TWO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983557,
+      "replacement": "\\N{KEYCAP DIGIT THREE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983558,
+      "replacement": "\\N{KEYCAP DIGIT FOUR}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983559,
+      "replacement": "\\N{KEYCAP DIGIT FIVE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983560,
+      "replacement": "\\N{KEYCAP DIGIT SIX}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983561,
+      "replacement": "\\N{KEYCAP DIGIT SEVEN}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983562,
+      "replacement": "\\N{KEYCAP DIGIT EIGHT}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983563,
+      "replacement": "\\N{KEYCAP DIGIT NINE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983564,
+      "replacement": "\\N{LATIN CAPITAL LETTER A WITH MACRON AND GRAVE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983565,
+      "replacement": "\\N{LATIN SMALL LETTER A WITH MACRON AND GRAVE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983566,
+      "replacement": "\\N{LATIN CAPITAL LETTER I WITH MACRON AND GRAVE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983567,
+      "replacement": "\\N{LATIN SMALL LETTER I WITH MACRON AND GRAVE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983568,
+      "replacement": "\\N{LATIN CAPITAL LETTER U WITH MACRON AND GRAVE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983569,
+      "replacement": "\\N{LATIN SMALL LETTER U WITH MACRON AND GRAVE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983570,
+      "replacement": "\\N{LATIN CAPITAL LETTER E WITH VERTICAL LINE BELOW}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983571,
+      "replacement": "\\N{LATIN SMALL LETTER E WITH VERTICAL LINE BELOW}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983572,
+      "replacement": "\\N{LATIN CAPITAL LETTER E WITH VERTICAL LINE BELOW AND GRAVE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983573,
+      "replacement": "\\N{LATIN SMALL LETTER E WITH VERTICAL LINE BELOW AND GRAVE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983574,
+      "replacement": "\\N{LATIN CAPITAL LETTER E WITH VERTICAL LINE BELOW AND ACUTE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983575,
+      "replacement": "\\N{LATIN SMALL LETTER E WITH VERTICAL LINE BELOW AND ACUTE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983576,
+      "replacement": "\\N{LATIN CAPITAL LETTER O WITH VERTICAL LINE BELOW}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983577,
+      "replacement": "\\N{LATIN SMALL LETTER O WITH VERTICAL LINE BELOW}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983578,
+      "replacement": "\\N{LATIN CAPITAL LETTER O WITH VERTICAL LINE BELOW AND GRAVE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983579,
+      "replacement": "\\N{LATIN SMALL LETTER O WITH VERTICAL LINE BELOW AND GRAVE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983580,
+      "replacement": "\\N{LATIN CAPITAL LETTER O WITH VERTICAL LINE BELOW AND ACUTE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983581,
+      "replacement": "\\N{LATIN SMALL LETTER O WITH VERTICAL LINE BELOW AND ACUTE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983582,
+      "replacement": "\\N{LATIN CAPITAL LETTER S WITH VERTICAL LINE BELOW}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983583,
+      "replacement": "\\N{LATIN SMALL LETTER S WITH VERTICAL LINE BELOW}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983584,
+      "replacement": "\\N{LATIN CAPITAL LETTER E WITH CIRCUMFLEX AND MACRON}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983585,
+      "replacement": "\\N{LATIN SMALL LETTER E WITH CIRCUMFLEX AND MACRON}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983586,
+      "replacement": "\\N{LATIN CAPITAL LETTER E WITH CIRCUMFLEX AND CARON}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983587,
+      "replacement": "\\N{LATIN SMALL LETTER E WITH CIRCUMFLEX AND CARON}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983588,
+      "replacement": "\\N{LATIN SMALL LETTER I WITH DOT ABOVE AND ACUTE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983589,
+      "replacement": "\\N{LATIN SMALL LETTER NG WITH TILDE ABOVE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983590,
+      "replacement": "\\N{LATIN CAPITAL LETTER A WITH OGONEK AND ACUTE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983591,
+      "replacement": "\\N{LATIN SMALL LETTER A WITH OGONEK AND ACUTE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983592,
+      "replacement": "\\N{LATIN CAPITAL LETTER A WITH OGONEK AND TILDE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983593,
+      "replacement": "\\N{LATIN SMALL LETTER A WITH OGONEK AND TILDE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983594,
+      "replacement": "\\N{LATIN CAPITAL LETTER E WITH OGONEK AND ACUTE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983595,
+      "replacement": "\\N{LATIN SMALL LETTER E WITH OGONEK AND ACUTE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983596,
+      "replacement": "\\N{LATIN CAPITAL LETTER E WITH OGONEK AND TILDE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983597,
+      "replacement": "\\N{LATIN SMALL LETTER E WITH OGONEK AND TILDE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983598,
+      "replacement": "\\N{LATIN CAPITAL LETTER E WITH DOT ABOVE AND ACUTE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983599,
+      "replacement": "\\N{LATIN SMALL LETTER E WITH DOT ABOVE AND ACUTE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983600,
+      "replacement": "\\N{LATIN CAPITAL LETTER E WITH DOT ABOVE AND TILDE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983601,
+      "replacement": "\\N{LATIN SMALL LETTER E WITH DOT ABOVE AND TILDE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983602,
+      "replacement": "\\N{LATIN SMALL LETTER I WITH DOT ABOVE AND GRAVE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983603,
+      "replacement": "\\N{LATIN SMALL LETTER I WITH DOT ABOVE AND TILDE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983604,
+      "replacement": "\\N{LATIN CAPITAL LETTER I WITH OGONEK AND ACUTE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983605,
+      "replacement": "\\N{LATIN SMALL LETTER I WITH OGONEK AND DOT ABOVE AND ACUTE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983606,
+      "replacement": "\\N{LATIN CAPITAL LETTER I WITH OGONEK AND TILDE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983607,
+      "replacement": "\\N{LATIN SMALL LETTER I WITH OGONEK AND DOT ABOVE AND TILDE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983608,
+      "replacement": "\\N{LATIN CAPITAL LETTER J WITH TILDE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983609,
+      "replacement": "\\N{LATIN SMALL LETTER J WITH DOT ABOVE AND TILDE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983610,
+      "replacement": "\\N{LATIN CAPITAL LETTER L WITH TILDE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983611,
+      "replacement": "\\N{LATIN SMALL LETTER L WITH TILDE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983612,
+      "replacement": "\\N{LATIN CAPITAL LETTER M WITH TILDE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983613,
+      "replacement": "\\N{LATIN SMALL LETTER M WITH TILDE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983614,
+      "replacement": "\\N{LATIN CAPITAL LETTER R WITH TILDE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983615,
+      "replacement": "\\N{LATIN SMALL LETTER R WITH TILDE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983616,
+      "replacement": "\\N{LATIN CAPITAL LETTER U WITH OGONEK AND ACUTE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983617,
+      "replacement": "\\N{LATIN SMALL LETTER U WITH OGONEK AND ACUTE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983618,
+      "replacement": "\\N{LATIN CAPITAL LETTER U WITH OGONEK AND TILDE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983619,
+      "replacement": "\\N{LATIN SMALL LETTER U WITH OGONEK AND TILDE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983620,
+      "replacement": "\\N{LATIN CAPITAL LETTER U WITH MACRON AND ACUTE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983621,
+      "replacement": "\\N{LATIN SMALL LETTER U WITH MACRON AND ACUTE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983622,
+      "replacement": "\\N{LATIN CAPITAL LETTER U WITH MACRON AND TILDE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983623,
+      "replacement": "\\N{LATIN SMALL LETTER U WITH MACRON AND TILDE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983624,
+      "replacement": "\\N{LATIN SMALL LETTER AE WITH GRAVE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983625,
+      "replacement": "\\N{LATIN SMALL LETTER OPEN O WITH GRAVE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983626,
+      "replacement": "\\N{LATIN SMALL LETTER OPEN O WITH ACUTE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983627,
+      "replacement": "\\N{LATIN SMALL LETTER TURNED V WITH GRAVE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983628,
+      "replacement": "\\N{LATIN SMALL LETTER TURNED V WITH ACUTE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983629,
+      "replacement": "\\N{LATIN SMALL LETTER SCHWA WITH GRAVE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983630,
+      "replacement": "\\N{LATIN SMALL LETTER SCHWA WITH ACUTE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983631,
+      "replacement": "\\N{LATIN SMALL LETTER HOOKED SCHWA WITH GRAVE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983632,
+      "replacement": "\\N{LATIN SMALL LETTER HOOKED SCHWA WITH ACUTE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983633,
+      "replacement": "\\N{ARABIC SEQUENCE YEH WITH HAMZA ABOVE WITH ALEF}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983634,
+      "replacement": "\\N{ARABIC SEQUENCE YEH WITH HAMZA ABOVE WITH WAW}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983635,
+      "replacement": "\\N{ARABIC SEQUENCE YEH WITH HAMZA ABOVE WITH ALEF MAKSURA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983636,
+      "replacement": "\\N{ARABIC SEQUENCE YEH WITH HAMZA ABOVE WITH OE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983637,
+      "replacement": "\\N{ARABIC SEQUENCE YEH WITH HAMZA ABOVE WITH U}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983638,
+      "replacement": "\\N{ARABIC SEQUENCE YEH WITH HAMZA ABOVE WITH YU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983639,
+      "replacement": "\\N{ARABIC SEQUENCE YEH WITH HAMZA ABOVE WITH E}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983640,
+      "replacement": "\\N{ARABIC SEQUENCE YEH WITH HAMZA ABOVE WITH AE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983641,
+      "replacement": "\\N{ARABIC SEQUENCE NOON WITH KEHEH}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983642,
+      "replacement": "\\N{DEVANAGARI SEQUENCE FOR LETTER QA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983643,
+      "replacement": "\\N{DEVANAGARI SEQUENCE FOR LETTER KHHA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983644,
+      "replacement": "\\N{DEVANAGARI SEQUENCE FOR LETTER GHHA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983645,
+      "replacement": "\\N{DEVANAGARI SEQUENCE FOR LETTER ZA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983646,
+      "replacement": "\\N{DEVANAGARI SEQUENCE FOR LETTER DDDHA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983647,
+      "replacement": "\\N{DEVANAGARI SEQUENCE FOR LETTER RHA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983648,
+      "replacement": "\\N{DEVANAGARI SEQUENCE FOR LETTER FA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983649,
+      "replacement": "\\N{DEVANAGARI SEQUENCE FOR LETTER YYA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983650,
+      "replacement": "\\N{BENGALI SEQUENCE FOR LETTER RRA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983651,
+      "replacement": "\\N{BENGALI SEQUENCE FOR LETTER RHA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983652,
+      "replacement": "\\N{BENGALI SEQUENCE FOR LETTER YYA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983653,
+      "replacement": "\\N{GURMUKHI SEQUENCE FOR LETTER LLA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983654,
+      "replacement": "\\N{GURMUKHI SEQUENCE FOR LETTER SHA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983655,
+      "replacement": "\\N{GURMUKHI SEQUENCE FOR LETTER KHHA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983656,
+      "replacement": "\\N{GURMUKHI SEQUENCE FOR LETTER GHHA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983657,
+      "replacement": "\\N{GURMUKHI SEQUENCE FOR LETTER ZA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983658,
+      "replacement": "\\N{GURMUKHI SEQUENCE FOR LETTER FA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983659,
+      "replacement": "\\N{ORIYA SEQUENCE FOR LETTER RRA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983660,
+      "replacement": "\\N{ORIYA SEQUENCE FOR LETTER RHA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983661,
+      "replacement": "\\N{BENGALI LETTER KHINYA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983662,
+      "replacement": "\\N{TAMIL CONSONANT K}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983663,
+      "replacement": "\\N{TAMIL CONSONANT NG}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983664,
+      "replacement": "\\N{TAMIL CONSONANT C}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983665,
+      "replacement": "\\N{TAMIL CONSONANT NY}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983666,
+      "replacement": "\\N{TAMIL CONSONANT TT}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983667,
+      "replacement": "\\N{TAMIL CONSONANT NN}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983668,
+      "replacement": "\\N{TAMIL CONSONANT T}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983669,
+      "replacement": "\\N{TAMIL CONSONANT N}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983670,
+      "replacement": "\\N{TAMIL CONSONANT P}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983671,
+      "replacement": "\\N{TAMIL CONSONANT M}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983672,
+      "replacement": "\\N{TAMIL CONSONANT Y}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983673,
+      "replacement": "\\N{TAMIL CONSONANT R}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983674,
+      "replacement": "\\N{TAMIL CONSONANT L}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983675,
+      "replacement": "\\N{TAMIL CONSONANT V}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983676,
+      "replacement": "\\N{TAMIL CONSONANT LLL}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983677,
+      "replacement": "\\N{TAMIL CONSONANT LL}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983678,
+      "replacement": "\\N{TAMIL CONSONANT RR}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983679,
+      "replacement": "\\N{TAMIL CONSONANT NNN}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983680,
+      "replacement": "\\N{TAMIL CONSONANT J}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983681,
+      "replacement": "\\N{TAMIL CONSONANT SH}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983682,
+      "replacement": "\\N{TAMIL CONSONANT SS}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983683,
+      "replacement": "\\N{TAMIL CONSONANT S}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983684,
+      "replacement": "\\N{TAMIL CONSONANT H}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983685,
+      "replacement": "\\N{TAMIL CONSONANT KSS}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983686,
+      "replacement": "\\N{TAMIL SYLLABLE KAA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983687,
+      "replacement": "\\N{TAMIL SYLLABLE KI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983688,
+      "replacement": "\\N{TAMIL SYLLABLE KII}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983689,
+      "replacement": "\\N{TAMIL SYLLABLE KU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983690,
+      "replacement": "\\N{TAMIL SYLLABLE KUU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983691,
+      "replacement": "\\N{TAMIL SYLLABLE KE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983692,
+      "replacement": "\\N{TAMIL SYLLABLE KEE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983693,
+      "replacement": "\\N{TAMIL SYLLABLE KAI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983694,
+      "replacement": "\\N{TAMIL SYLLABLE KO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983695,
+      "replacement": "\\N{TAMIL SYLLABLE KOO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983696,
+      "replacement": "\\N{TAMIL SYLLABLE KAU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983697,
+      "replacement": "\\N{TAMIL SYLLABLE NGAA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983698,
+      "replacement": "\\N{TAMIL SYLLABLE NGI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983699,
+      "replacement": "\\N{TAMIL SYLLABLE NGII}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983700,
+      "replacement": "\\N{TAMIL SYLLABLE NGU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983701,
+      "replacement": "\\N{TAMIL SYLLABLE NGUU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983702,
+      "replacement": "\\N{TAMIL SYLLABLE NGE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983703,
+      "replacement": "\\N{TAMIL SYLLABLE NGEE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983704,
+      "replacement": "\\N{TAMIL SYLLABLE NGAI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983705,
+      "replacement": "\\N{TAMIL SYLLABLE NGO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983706,
+      "replacement": "\\N{TAMIL SYLLABLE NGOO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983707,
+      "replacement": "\\N{TAMIL SYLLABLE NGAU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983708,
+      "replacement": "\\N{TAMIL SYLLABLE CAA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983709,
+      "replacement": "\\N{TAMIL SYLLABLE CI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983710,
+      "replacement": "\\N{TAMIL SYLLABLE CII}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983711,
+      "replacement": "\\N{TAMIL SYLLABLE CU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983712,
+      "replacement": "\\N{TAMIL SYLLABLE CUU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983713,
+      "replacement": "\\N{TAMIL SYLLABLE CE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983714,
+      "replacement": "\\N{TAMIL SYLLABLE CEE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983715,
+      "replacement": "\\N{TAMIL SYLLABLE CAI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983716,
+      "replacement": "\\N{TAMIL SYLLABLE CO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983717,
+      "replacement": "\\N{TAMIL SYLLABLE COO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983718,
+      "replacement": "\\N{TAMIL SYLLABLE CAU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983719,
+      "replacement": "\\N{TAMIL SYLLABLE NYAA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983720,
+      "replacement": "\\N{TAMIL SYLLABLE NYI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983721,
+      "replacement": "\\N{TAMIL SYLLABLE NYII}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983722,
+      "replacement": "\\N{TAMIL SYLLABLE NYU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983723,
+      "replacement": "\\N{TAMIL SYLLABLE NYUU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983724,
+      "replacement": "\\N{TAMIL SYLLABLE NYE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983725,
+      "replacement": "\\N{TAMIL SYLLABLE NYEE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983726,
+      "replacement": "\\N{TAMIL SYLLABLE NYAI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983727,
+      "replacement": "\\N{TAMIL SYLLABLE NYO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983728,
+      "replacement": "\\N{TAMIL SYLLABLE NYOO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983729,
+      "replacement": "\\N{TAMIL SYLLABLE NYAU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983730,
+      "replacement": "\\N{TAMIL SYLLABLE TTAA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983731,
+      "replacement": "\\N{TAMIL SYLLABLE TTI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983732,
+      "replacement": "\\N{TAMIL SYLLABLE TTII}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983733,
+      "replacement": "\\N{TAMIL SYLLABLE TTU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983734,
+      "replacement": "\\N{TAMIL SYLLABLE TTUU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983735,
+      "replacement": "\\N{TAMIL SYLLABLE TTE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983736,
+      "replacement": "\\N{TAMIL SYLLABLE TTEE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983737,
+      "replacement": "\\N{TAMIL SYLLABLE TTAI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983738,
+      "replacement": "\\N{TAMIL SYLLABLE TTO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983739,
+      "replacement": "\\N{TAMIL SYLLABLE TTOO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983740,
+      "replacement": "\\N{TAMIL SYLLABLE TTAU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983741,
+      "replacement": "\\N{TAMIL SYLLABLE NNAA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983742,
+      "replacement": "\\N{TAMIL SYLLABLE NNI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983743,
+      "replacement": "\\N{TAMIL SYLLABLE NNII}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983744,
+      "replacement": "\\N{TAMIL SYLLABLE NNU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983745,
+      "replacement": "\\N{TAMIL SYLLABLE NNUU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983746,
+      "replacement": "\\N{TAMIL SYLLABLE NNE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983747,
+      "replacement": "\\N{TAMIL SYLLABLE NNEE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983748,
+      "replacement": "\\N{TAMIL SYLLABLE NNAI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983749,
+      "replacement": "\\N{TAMIL SYLLABLE NNO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983750,
+      "replacement": "\\N{TAMIL SYLLABLE NNOO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983751,
+      "replacement": "\\N{TAMIL SYLLABLE NNAU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983752,
+      "replacement": "\\N{TAMIL SYLLABLE TAA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983753,
+      "replacement": "\\N{TAMIL SYLLABLE TI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983754,
+      "replacement": "\\N{TAMIL SYLLABLE TII}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983755,
+      "replacement": "\\N{TAMIL SYLLABLE TU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983756,
+      "replacement": "\\N{TAMIL SYLLABLE TUU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983757,
+      "replacement": "\\N{TAMIL SYLLABLE TE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983758,
+      "replacement": "\\N{TAMIL SYLLABLE TEE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983759,
+      "replacement": "\\N{TAMIL SYLLABLE TAI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983760,
+      "replacement": "\\N{TAMIL SYLLABLE TO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983761,
+      "replacement": "\\N{TAMIL SYLLABLE TOO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983762,
+      "replacement": "\\N{TAMIL SYLLABLE TAU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983763,
+      "replacement": "\\N{TAMIL SYLLABLE NAA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983764,
+      "replacement": "\\N{TAMIL SYLLABLE NI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983765,
+      "replacement": "\\N{TAMIL SYLLABLE NII}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983766,
+      "replacement": "\\N{TAMIL SYLLABLE NU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983767,
+      "replacement": "\\N{TAMIL SYLLABLE NUU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983768,
+      "replacement": "\\N{TAMIL SYLLABLE NE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983769,
+      "replacement": "\\N{TAMIL SYLLABLE NEE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983770,
+      "replacement": "\\N{TAMIL SYLLABLE NAI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983771,
+      "replacement": "\\N{TAMIL SYLLABLE NO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983772,
+      "replacement": "\\N{TAMIL SYLLABLE NOO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983773,
+      "replacement": "\\N{TAMIL SYLLABLE NAU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983774,
+      "replacement": "\\N{TAMIL SYLLABLE PAA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983775,
+      "replacement": "\\N{TAMIL SYLLABLE PI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983776,
+      "replacement": "\\N{TAMIL SYLLABLE PII}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983777,
+      "replacement": "\\N{TAMIL SYLLABLE PU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983778,
+      "replacement": "\\N{TAMIL SYLLABLE PUU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983779,
+      "replacement": "\\N{TAMIL SYLLABLE PE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983780,
+      "replacement": "\\N{TAMIL SYLLABLE PEE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983781,
+      "replacement": "\\N{TAMIL SYLLABLE PAI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983782,
+      "replacement": "\\N{TAMIL SYLLABLE PO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983783,
+      "replacement": "\\N{TAMIL SYLLABLE POO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983784,
+      "replacement": "\\N{TAMIL SYLLABLE PAU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983785,
+      "replacement": "\\N{TAMIL SYLLABLE MAA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983786,
+      "replacement": "\\N{TAMIL SYLLABLE MI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983787,
+      "replacement": "\\N{TAMIL SYLLABLE MII}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983788,
+      "replacement": "\\N{TAMIL SYLLABLE MU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983789,
+      "replacement": "\\N{TAMIL SYLLABLE MUU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983790,
+      "replacement": "\\N{TAMIL SYLLABLE ME}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983791,
+      "replacement": "\\N{TAMIL SYLLABLE MEE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983792,
+      "replacement": "\\N{TAMIL SYLLABLE MAI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983793,
+      "replacement": "\\N{TAMIL SYLLABLE MO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983794,
+      "replacement": "\\N{TAMIL SYLLABLE MOO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983795,
+      "replacement": "\\N{TAMIL SYLLABLE MAU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983796,
+      "replacement": "\\N{TAMIL SYLLABLE YAA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983797,
+      "replacement": "\\N{TAMIL SYLLABLE YI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983798,
+      "replacement": "\\N{TAMIL SYLLABLE YII}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983799,
+      "replacement": "\\N{TAMIL SYLLABLE YU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983800,
+      "replacement": "\\N{TAMIL SYLLABLE YUU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983801,
+      "replacement": "\\N{TAMIL SYLLABLE YE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983802,
+      "replacement": "\\N{TAMIL SYLLABLE YEE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983803,
+      "replacement": "\\N{TAMIL SYLLABLE YAI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983804,
+      "replacement": "\\N{TAMIL SYLLABLE YO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983805,
+      "replacement": "\\N{TAMIL SYLLABLE YOO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983806,
+      "replacement": "\\N{TAMIL SYLLABLE YAU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983807,
+      "replacement": "\\N{TAMIL SYLLABLE RAA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983808,
+      "replacement": "\\N{TAMIL SYLLABLE RI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983809,
+      "replacement": "\\N{TAMIL SYLLABLE RII}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983810,
+      "replacement": "\\N{TAMIL SYLLABLE RU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983811,
+      "replacement": "\\N{TAMIL SYLLABLE RUU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983812,
+      "replacement": "\\N{TAMIL SYLLABLE RE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983813,
+      "replacement": "\\N{TAMIL SYLLABLE REE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983814,
+      "replacement": "\\N{TAMIL SYLLABLE RAI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983815,
+      "replacement": "\\N{TAMIL SYLLABLE RO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983816,
+      "replacement": "\\N{TAMIL SYLLABLE ROO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983817,
+      "replacement": "\\N{TAMIL SYLLABLE RAU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983818,
+      "replacement": "\\N{TAMIL SYLLABLE LAA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983819,
+      "replacement": "\\N{TAMIL SYLLABLE LI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983820,
+      "replacement": "\\N{TAMIL SYLLABLE LII}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983821,
+      "replacement": "\\N{TAMIL SYLLABLE LU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983822,
+      "replacement": "\\N{TAMIL SYLLABLE LUU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983823,
+      "replacement": "\\N{TAMIL SYLLABLE LE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983824,
+      "replacement": "\\N{TAMIL SYLLABLE LEE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983825,
+      "replacement": "\\N{TAMIL SYLLABLE LAI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983826,
+      "replacement": "\\N{TAMIL SYLLABLE LO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983827,
+      "replacement": "\\N{TAMIL SYLLABLE LOO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983828,
+      "replacement": "\\N{TAMIL SYLLABLE LAU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983829,
+      "replacement": "\\N{TAMIL SYLLABLE VAA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983830,
+      "replacement": "\\N{TAMIL SYLLABLE VI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983831,
+      "replacement": "\\N{TAMIL SYLLABLE VII}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983832,
+      "replacement": "\\N{TAMIL SYLLABLE VU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983833,
+      "replacement": "\\N{TAMIL SYLLABLE VUU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983834,
+      "replacement": "\\N{TAMIL SYLLABLE VE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983835,
+      "replacement": "\\N{TAMIL SYLLABLE VEE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983836,
+      "replacement": "\\N{TAMIL SYLLABLE VAI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983837,
+      "replacement": "\\N{TAMIL SYLLABLE VO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983838,
+      "replacement": "\\N{TAMIL SYLLABLE VOO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983839,
+      "replacement": "\\N{TAMIL SYLLABLE VAU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983840,
+      "replacement": "\\N{TAMIL SYLLABLE LLLAA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983841,
+      "replacement": "\\N{TAMIL SYLLABLE LLLI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983842,
+      "replacement": "\\N{TAMIL SYLLABLE LLLII}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983843,
+      "replacement": "\\N{TAMIL SYLLABLE LLLU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983844,
+      "replacement": "\\N{TAMIL SYLLABLE LLLUU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983845,
+      "replacement": "\\N{TAMIL SYLLABLE LLLE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983846,
+      "replacement": "\\N{TAMIL SYLLABLE LLLEE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983847,
+      "replacement": "\\N{TAMIL SYLLABLE LLLAI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983848,
+      "replacement": "\\N{TAMIL SYLLABLE LLLO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983849,
+      "replacement": "\\N{TAMIL SYLLABLE LLLOO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983850,
+      "replacement": "\\N{TAMIL SYLLABLE LLLAU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983851,
+      "replacement": "\\N{TAMIL SYLLABLE LLAA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983852,
+      "replacement": "\\N{TAMIL SYLLABLE LLI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983853,
+      "replacement": "\\N{TAMIL SYLLABLE LLII}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983854,
+      "replacement": "\\N{TAMIL SYLLABLE LLU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983855,
+      "replacement": "\\N{TAMIL SYLLABLE LLUU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983856,
+      "replacement": "\\N{TAMIL SYLLABLE LLE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983857,
+      "replacement": "\\N{TAMIL SYLLABLE LLEE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983858,
+      "replacement": "\\N{TAMIL SYLLABLE LLAI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983859,
+      "replacement": "\\N{TAMIL SYLLABLE LLO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983860,
+      "replacement": "\\N{TAMIL SYLLABLE LLOO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983861,
+      "replacement": "\\N{TAMIL SYLLABLE LLAU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983862,
+      "replacement": "\\N{TAMIL SYLLABLE RRAA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983863,
+      "replacement": "\\N{TAMIL SYLLABLE RRI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983864,
+      "replacement": "\\N{TAMIL SYLLABLE RRII}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983865,
+      "replacement": "\\N{TAMIL SYLLABLE RRU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983866,
+      "replacement": "\\N{TAMIL SYLLABLE RRUU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983867,
+      "replacement": "\\N{TAMIL SYLLABLE RRE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983868,
+      "replacement": "\\N{TAMIL SYLLABLE RREE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983869,
+      "replacement": "\\N{TAMIL SYLLABLE RRAI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983870,
+      "replacement": "\\N{TAMIL SYLLABLE RRO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983871,
+      "replacement": "\\N{TAMIL SYLLABLE RROO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983872,
+      "replacement": "\\N{TAMIL SYLLABLE RRAU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983873,
+      "replacement": "\\N{TAMIL SYLLABLE NNNAA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983874,
+      "replacement": "\\N{TAMIL SYLLABLE NNNI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983875,
+      "replacement": "\\N{TAMIL SYLLABLE NNNII}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983876,
+      "replacement": "\\N{TAMIL SYLLABLE NNNU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983877,
+      "replacement": "\\N{TAMIL SYLLABLE NNNUU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983878,
+      "replacement": "\\N{TAMIL SYLLABLE NNNE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983879,
+      "replacement": "\\N{TAMIL SYLLABLE NNNEE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983880,
+      "replacement": "\\N{TAMIL SYLLABLE NNNAI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983881,
+      "replacement": "\\N{TAMIL SYLLABLE NNNO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983882,
+      "replacement": "\\N{TAMIL SYLLABLE NNNOO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983883,
+      "replacement": "\\N{TAMIL SYLLABLE NNNAU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983884,
+      "replacement": "\\N{TAMIL SYLLABLE JAA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983885,
+      "replacement": "\\N{TAMIL SYLLABLE JI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983886,
+      "replacement": "\\N{TAMIL SYLLABLE JII}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983887,
+      "replacement": "\\N{TAMIL SYLLABLE JU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983888,
+      "replacement": "\\N{TAMIL SYLLABLE JUU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983889,
+      "replacement": "\\N{TAMIL SYLLABLE JE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983890,
+      "replacement": "\\N{TAMIL SYLLABLE JEE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983891,
+      "replacement": "\\N{TAMIL SYLLABLE JAI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983892,
+      "replacement": "\\N{TAMIL SYLLABLE JO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983893,
+      "replacement": "\\N{TAMIL SYLLABLE JOO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983894,
+      "replacement": "\\N{TAMIL SYLLABLE JAU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983895,
+      "replacement": "\\N{TAMIL SYLLABLE SHAA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983896,
+      "replacement": "\\N{TAMIL SYLLABLE SHI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983897,
+      "replacement": "\\N{TAMIL SYLLABLE SHII}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983898,
+      "replacement": "\\N{TAMIL SYLLABLE SHU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983899,
+      "replacement": "\\N{TAMIL SYLLABLE SHUU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983900,
+      "replacement": "\\N{TAMIL SYLLABLE SHE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983901,
+      "replacement": "\\N{TAMIL SYLLABLE SHEE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983902,
+      "replacement": "\\N{TAMIL SYLLABLE SHAI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983903,
+      "replacement": "\\N{TAMIL SYLLABLE SHO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983904,
+      "replacement": "\\N{TAMIL SYLLABLE SHOO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983905,
+      "replacement": "\\N{TAMIL SYLLABLE SHAU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983906,
+      "replacement": "\\N{TAMIL SYLLABLE SSAA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983907,
+      "replacement": "\\N{TAMIL SYLLABLE SSI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983908,
+      "replacement": "\\N{TAMIL SYLLABLE SSII}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983909,
+      "replacement": "\\N{TAMIL SYLLABLE SSU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983910,
+      "replacement": "\\N{TAMIL SYLLABLE SSUU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983911,
+      "replacement": "\\N{TAMIL SYLLABLE SSE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983912,
+      "replacement": "\\N{TAMIL SYLLABLE SSEE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983913,
+      "replacement": "\\N{TAMIL SYLLABLE SSAI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983914,
+      "replacement": "\\N{TAMIL SYLLABLE SSO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983915,
+      "replacement": "\\N{TAMIL SYLLABLE SSOO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983916,
+      "replacement": "\\N{TAMIL SYLLABLE SSAU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983917,
+      "replacement": "\\N{TAMIL SYLLABLE SAA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983918,
+      "replacement": "\\N{TAMIL SYLLABLE SI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983919,
+      "replacement": "\\N{TAMIL SYLLABLE SII}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983920,
+      "replacement": "\\N{TAMIL SYLLABLE SU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983921,
+      "replacement": "\\N{TAMIL SYLLABLE SUU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983922,
+      "replacement": "\\N{TAMIL SYLLABLE SE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983923,
+      "replacement": "\\N{TAMIL SYLLABLE SEE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983924,
+      "replacement": "\\N{TAMIL SYLLABLE SAI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983925,
+      "replacement": "\\N{TAMIL SYLLABLE SO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983926,
+      "replacement": "\\N{TAMIL SYLLABLE SOO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983927,
+      "replacement": "\\N{TAMIL SYLLABLE SAU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983928,
+      "replacement": "\\N{TAMIL SYLLABLE HAA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983929,
+      "replacement": "\\N{TAMIL SYLLABLE HI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983930,
+      "replacement": "\\N{TAMIL SYLLABLE HII}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983931,
+      "replacement": "\\N{TAMIL SYLLABLE HU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983932,
+      "replacement": "\\N{TAMIL SYLLABLE HUU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983933,
+      "replacement": "\\N{TAMIL SYLLABLE HE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983934,
+      "replacement": "\\N{TAMIL SYLLABLE HEE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983935,
+      "replacement": "\\N{TAMIL SYLLABLE HAI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983936,
+      "replacement": "\\N{TAMIL SYLLABLE HO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983937,
+      "replacement": "\\N{TAMIL SYLLABLE HOO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983938,
+      "replacement": "\\N{TAMIL SYLLABLE HAU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983939,
+      "replacement": "\\N{TAMIL SYLLABLE KSSA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983940,
+      "replacement": "\\N{TAMIL SYLLABLE KSSAA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983941,
+      "replacement": "\\N{TAMIL SYLLABLE KSSI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983942,
+      "replacement": "\\N{TAMIL SYLLABLE KSSII}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983943,
+      "replacement": "\\N{TAMIL SYLLABLE KSSU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983944,
+      "replacement": "\\N{TAMIL SYLLABLE KSSUU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983945,
+      "replacement": "\\N{TAMIL SYLLABLE KSSE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983946,
+      "replacement": "\\N{TAMIL SYLLABLE KSSEE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983947,
+      "replacement": "\\N{TAMIL SYLLABLE KSSAI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983948,
+      "replacement": "\\N{TAMIL SYLLABLE KSSO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983949,
+      "replacement": "\\N{TAMIL SYLLABLE KSSOO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983950,
+      "replacement": "\\N{TAMIL SYLLABLE KSSAU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983951,
+      "replacement": "\\N{TAMIL SYLLABLE SHRII}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983952,
+      "replacement": "\\N{SINHALA CONSONANT SIGN YANSAYA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983953,
+      "replacement": "\\N{SINHALA CONSONANT SIGN RAKAARAANSAYA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983954,
+      "replacement": "\\N{SINHALA CONSONANT SIGN REPAYA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983955,
+      "replacement": "\\N{GEORGIAN LETTER U-BRJGU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983956,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG KA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983957,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG KHA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983958,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG KO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983959,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG KHO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983960,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG NGO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983961,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG CA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983962,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG CHA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983963,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG CO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983964,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG CHO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983965,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG NYO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983966,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG DA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983967,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG TTHA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983968,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG DO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983969,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG TTHO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983970,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG NA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983971,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG TA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983972,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG THA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983973,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG TO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983974,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG THO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983975,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG NO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983976,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG BA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983977,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG PHA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983978,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG PO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983979,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG PHO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983980,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG MO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983981,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG YO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983982,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG RO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983983,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG LO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983984,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG VO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983985,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG SHA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983986,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG SSA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983987,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG SA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983988,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG HA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983989,
+      "replacement": "\\N{KHMER CONSONANT SIGN COENG LA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983990,
+      "replacement": "\\N{KHMER VOWEL SIGN COENG QA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983991,
+      "replacement": "\\N{KHMER INDEPENDENT VOWEL SIGN COENG QU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983992,
+      "replacement": "\\N{KHMER INDEPENDENT VOWEL SIGN COENG RY}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983993,
+      "replacement": "\\N{KHMER INDEPENDENT VOWEL SIGN COENG RYY}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983994,
+      "replacement": "\\N{KHMER INDEPENDENT VOWEL SIGN COENG QE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983995,
+      "replacement": "\\N{KHMER VOWEL SIGN OM}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983996,
+      "replacement": "\\N{KHMER VOWEL SIGN AAM}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983997,
+      "replacement": "\\N{HIRAGANA LETTER BIDAKUON NGA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983998,
+      "replacement": "\\N{HIRAGANA LETTER BIDAKUON NGI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 983999,
+      "replacement": "\\N{HIRAGANA LETTER BIDAKUON NGU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984000,
+      "replacement": "\\N{HIRAGANA LETTER BIDAKUON NGE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984001,
+      "replacement": "\\N{HIRAGANA LETTER BIDAKUON NGO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984002,
+      "replacement": "\\N{KATAKANA LETTER BIDAKUON NGA}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984003,
+      "replacement": "\\N{KATAKANA LETTER BIDAKUON NGI}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984004,
+      "replacement": "\\N{KATAKANA LETTER BIDAKUON NGU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984005,
+      "replacement": "\\N{KATAKANA LETTER BIDAKUON NGE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984006,
+      "replacement": "\\N{KATAKANA LETTER BIDAKUON NGO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984007,
+      "replacement": "\\N{KATAKANA LETTER AINU CE}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984008,
+      "replacement": "\\N{KATAKANA LETTER AINU TU}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984009,
+      "replacement": "\\N{KATAKANA LETTER AINU TO}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984010,
+      "replacement": "\\N{KATAKANA LETTER AINU P}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984011,
+      "replacement": "\\N{MODIFIER LETTER EXTRA-HIGH EXTRA-LOW CONTOUR TONE BAR}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984012,
+      "replacement": "\\N{MODIFIER LETTER EXTRA-LOW EXTRA-HIGH CONTOUR TONE BAR}",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984013,
+      "replacement": "\\U000f03cd",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984014,
+      "replacement": "\\U000f03ce",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984015,
+      "replacement": "\\U000f03cf",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984016,
+      "replacement": "\\U000f03d0",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984017,
+      "replacement": "\\U000f03d1",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984018,
+      "replacement": "\\U000f03d2",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984019,
+      "replacement": "\\U000f03d3",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984020,
+      "replacement": "\\U000f03d4",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984021,
+      "replacement": "\\U000f03d5",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984022,
+      "replacement": "\\U000f03d6",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984023,
+      "replacement": "\\U000f03d7",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984024,
+      "replacement": "\\U000f03d8",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984025,
+      "replacement": "\\U000f03d9",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984026,
+      "replacement": "\\U000f03da",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984027,
+      "replacement": "\\U000f03db",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984028,
+      "replacement": "\\U000f03dc",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984029,
+      "replacement": "\\U000f03dd",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984030,
+      "replacement": "\\U000f03de",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984031,
+      "replacement": "\\U000f03df",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984032,
+      "replacement": "\\U000f03e0",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984033,
+      "replacement": "\\U000f03e1",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984034,
+      "replacement": "\\U000f03e2",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984035,
+      "replacement": "\\U000f03e3",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984036,
+      "replacement": "\\U000f03e4",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984037,
+      "replacement": "\\U000f03e5",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984038,
+      "replacement": "\\U000f03e6",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984039,
+      "replacement": "\\U000f03e7",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984040,
+      "replacement": "\\U000f03e8",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984041,
+      "replacement": "\\U000f03e9",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984042,
+      "replacement": "\\U000f03ea",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984043,
+      "replacement": "\\U000f03eb",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984044,
+      "replacement": "\\U000f03ec",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984045,
+      "replacement": "\\U000f03ed",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984046,
+      "replacement": "\\U000f03ee",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984047,
+      "replacement": "\\U000f03ef",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984048,
+      "replacement": "\\U000f03f0",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984049,
+      "replacement": "\\U000f03f1",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984050,
+      "replacement": "\\U000f03f2",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984051,
+      "replacement": "\\U000f03f3",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984052,
+      "replacement": "\\U000f03f4",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984053,
+      "replacement": "\\U000f03f5",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984054,
+      "replacement": "\\U000f03f6",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984055,
+      "replacement": "\\U000f03f7",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984056,
+      "replacement": "\\U000f03f8",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984057,
+      "replacement": "\\U000f03f9",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984058,
+      "replacement": "\\U000f03fa",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984059,
+      "replacement": "\\U000f03fb",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984060,
+      "replacement": "\\U000f03fc",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984061,
+      "replacement": "\\U000f03fd",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984062,
+      "replacement": "\\U000f03fe",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984063,
+      "replacement": "\\U000f03ff",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 984064,
+      "replacement": "\\U000f0400",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 1048573,
+      "replacement": "\\U000ffffd",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 1048576,
+      "replacement": "\\U00100000",
+      "position": 1,
+      "canonical": null
+    },
+    {
+      "point": 1114111,
+      "replacement": "\\U0010ffff",
+      "position": 1,
+      "canonical": null
+    }
+  ]
+}

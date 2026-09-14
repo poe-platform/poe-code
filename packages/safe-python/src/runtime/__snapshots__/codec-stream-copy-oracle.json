@@ -1,0 +1,1697 @@
+{
+  "scope": "Internal MemoryByteStream values, diagnostics and cursor state; not public io or codec integration certification",
+  "source": "import io,json,sys,unicodedata\ndata=json.load(sys.stdin)\nrows=[]\nfor payload in data['payloads']:\n s=io.BytesIO(bytes(payload))\n results=[]\n for operation in data['operations']:\n  try:\n   value=getattr(s,operation[0])(*operation[1:])\n   result={'value':list(value) if isinstance(value,bytes) else str(value) if isinstance(value,int) else None}\n  except Exception as error:\n   result={'error':type(error).__name__,'message':str(error)}\n  result['position']=None if s.closed else str(s.tell())\n  results.append(result)\n rows.append(results)\nprint(json.dumps({'version':sys.version,'unicode':unicodedata.unidata_version,'platform':sys.platform,'rows':rows}))\n",
+  "payloads": [
+    [],
+    [
+      10
+    ],
+    [
+      13,
+      10
+    ],
+    [
+      65,
+      0,
+      66
+    ],
+    [
+      239,
+      187,
+      191,
+      195,
+      169,
+      10
+    ],
+    [
+      255,
+      254,
+      0,
+      216
+    ],
+    [
+      65,
+      13,
+      66,
+      10,
+      67
+    ],
+    [
+      0,
+      255,
+      128,
+      127
+    ]
+  ],
+  "operations": [
+    [
+      "getvalue"
+    ],
+    [
+      "read",
+      0
+    ],
+    [
+      "read",
+      2
+    ],
+    [
+      "readline",
+      -1
+    ],
+    [
+      "read",
+      -1
+    ],
+    [
+      "readline",
+      0
+    ],
+    [
+      "seek",
+      0
+    ],
+    [
+      "readline",
+      2
+    ],
+    [
+      "seek",
+      20
+    ],
+    [
+      "read",
+      -1
+    ],
+    [
+      "readline",
+      -1
+    ],
+    [
+      "getvalue"
+    ],
+    [
+      "seek",
+      0
+    ],
+    [
+      "truncate",
+      1
+    ],
+    [
+      "getvalue"
+    ],
+    [
+      "close"
+    ],
+    [
+      "read",
+      0
+    ],
+    [
+      "readline",
+      -1
+    ],
+    [
+      "getvalue"
+    ]
+  ],
+  "oracle": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "rows": [
+      [
+        {
+          "value": [],
+          "position": "0"
+        },
+        {
+          "value": [],
+          "position": "0"
+        },
+        {
+          "value": [],
+          "position": "0"
+        },
+        {
+          "value": [],
+          "position": "0"
+        },
+        {
+          "value": [],
+          "position": "0"
+        },
+        {
+          "value": [],
+          "position": "0"
+        },
+        {
+          "value": "0",
+          "position": "0"
+        },
+        {
+          "value": [],
+          "position": "0"
+        },
+        {
+          "value": "20",
+          "position": "20"
+        },
+        {
+          "value": [],
+          "position": "20"
+        },
+        {
+          "value": [],
+          "position": "20"
+        },
+        {
+          "value": [],
+          "position": "20"
+        },
+        {
+          "value": "0",
+          "position": "0"
+        },
+        {
+          "value": "1",
+          "position": "0"
+        },
+        {
+          "value": [],
+          "position": "0"
+        },
+        {
+          "value": null,
+          "position": null
+        },
+        {
+          "error": "ValueError",
+          "message": "I/O operation on closed file.",
+          "position": null
+        },
+        {
+          "error": "ValueError",
+          "message": "I/O operation on closed file.",
+          "position": null
+        },
+        {
+          "error": "ValueError",
+          "message": "I/O operation on closed file.",
+          "position": null
+        }
+      ],
+      [
+        {
+          "value": [
+            10
+          ],
+          "position": "0"
+        },
+        {
+          "value": [],
+          "position": "0"
+        },
+        {
+          "value": [
+            10
+          ],
+          "position": "1"
+        },
+        {
+          "value": [],
+          "position": "1"
+        },
+        {
+          "value": [],
+          "position": "1"
+        },
+        {
+          "value": [],
+          "position": "1"
+        },
+        {
+          "value": "0",
+          "position": "0"
+        },
+        {
+          "value": [
+            10
+          ],
+          "position": "1"
+        },
+        {
+          "value": "20",
+          "position": "20"
+        },
+        {
+          "value": [],
+          "position": "20"
+        },
+        {
+          "value": [],
+          "position": "20"
+        },
+        {
+          "value": [
+            10
+          ],
+          "position": "20"
+        },
+        {
+          "value": "0",
+          "position": "0"
+        },
+        {
+          "value": "1",
+          "position": "0"
+        },
+        {
+          "value": [
+            10
+          ],
+          "position": "0"
+        },
+        {
+          "value": null,
+          "position": null
+        },
+        {
+          "error": "ValueError",
+          "message": "I/O operation on closed file.",
+          "position": null
+        },
+        {
+          "error": "ValueError",
+          "message": "I/O operation on closed file.",
+          "position": null
+        },
+        {
+          "error": "ValueError",
+          "message": "I/O operation on closed file.",
+          "position": null
+        }
+      ],
+      [
+        {
+          "value": [
+            13,
+            10
+          ],
+          "position": "0"
+        },
+        {
+          "value": [],
+          "position": "0"
+        },
+        {
+          "value": [
+            13,
+            10
+          ],
+          "position": "2"
+        },
+        {
+          "value": [],
+          "position": "2"
+        },
+        {
+          "value": [],
+          "position": "2"
+        },
+        {
+          "value": [],
+          "position": "2"
+        },
+        {
+          "value": "0",
+          "position": "0"
+        },
+        {
+          "value": [
+            13,
+            10
+          ],
+          "position": "2"
+        },
+        {
+          "value": "20",
+          "position": "20"
+        },
+        {
+          "value": [],
+          "position": "20"
+        },
+        {
+          "value": [],
+          "position": "20"
+        },
+        {
+          "value": [
+            13,
+            10
+          ],
+          "position": "20"
+        },
+        {
+          "value": "0",
+          "position": "0"
+        },
+        {
+          "value": "1",
+          "position": "0"
+        },
+        {
+          "value": [
+            13
+          ],
+          "position": "0"
+        },
+        {
+          "value": null,
+          "position": null
+        },
+        {
+          "error": "ValueError",
+          "message": "I/O operation on closed file.",
+          "position": null
+        },
+        {
+          "error": "ValueError",
+          "message": "I/O operation on closed file.",
+          "position": null
+        },
+        {
+          "error": "ValueError",
+          "message": "I/O operation on closed file.",
+          "position": null
+        }
+      ],
+      [
+        {
+          "value": [
+            65,
+            0,
+            66
+          ],
+          "position": "0"
+        },
+        {
+          "value": [],
+          "position": "0"
+        },
+        {
+          "value": [
+            65,
+            0
+          ],
+          "position": "2"
+        },
+        {
+          "value": [
+            66
+          ],
+          "position": "3"
+        },
+        {
+          "value": [],
+          "position": "3"
+        },
+        {
+          "value": [],
+          "position": "3"
+        },
+        {
+          "value": "0",
+          "position": "0"
+        },
+        {
+          "value": [
+            65,
+            0
+          ],
+          "position": "2"
+        },
+        {
+          "value": "20",
+          "position": "20"
+        },
+        {
+          "value": [],
+          "position": "20"
+        },
+        {
+          "value": [],
+          "position": "20"
+        },
+        {
+          "value": [
+            65,
+            0,
+            66
+          ],
+          "position": "20"
+        },
+        {
+          "value": "0",
+          "position": "0"
+        },
+        {
+          "value": "1",
+          "position": "0"
+        },
+        {
+          "value": [
+            65
+          ],
+          "position": "0"
+        },
+        {
+          "value": null,
+          "position": null
+        },
+        {
+          "error": "ValueError",
+          "message": "I/O operation on closed file.",
+          "position": null
+        },
+        {
+          "error": "ValueError",
+          "message": "I/O operation on closed file.",
+          "position": null
+        },
+        {
+          "error": "ValueError",
+          "message": "I/O operation on closed file.",
+          "position": null
+        }
+      ],
+      [
+        {
+          "value": [
+            239,
+            187,
+            191,
+            195,
+            169,
+            10
+          ],
+          "position": "0"
+        },
+        {
+          "value": [],
+          "position": "0"
+        },
+        {
+          "value": [
+            239,
+            187
+          ],
+          "position": "2"
+        },
+        {
+          "value": [
+            191,
+            195,
+            169,
+            10
+          ],
+          "position": "6"
+        },
+        {
+          "value": [],
+          "position": "6"
+        },
+        {
+          "value": [],
+          "position": "6"
+        },
+        {
+          "value": "0",
+          "position": "0"
+        },
+        {
+          "value": [
+            239,
+            187
+          ],
+          "position": "2"
+        },
+        {
+          "value": "20",
+          "position": "20"
+        },
+        {
+          "value": [],
+          "position": "20"
+        },
+        {
+          "value": [],
+          "position": "20"
+        },
+        {
+          "value": [
+            239,
+            187,
+            191,
+            195,
+            169,
+            10
+          ],
+          "position": "20"
+        },
+        {
+          "value": "0",
+          "position": "0"
+        },
+        {
+          "value": "1",
+          "position": "0"
+        },
+        {
+          "value": [
+            239
+          ],
+          "position": "0"
+        },
+        {
+          "value": null,
+          "position": null
+        },
+        {
+          "error": "ValueError",
+          "message": "I/O operation on closed file.",
+          "position": null
+        },
+        {
+          "error": "ValueError",
+          "message": "I/O operation on closed file.",
+          "position": null
+        },
+        {
+          "error": "ValueError",
+          "message": "I/O operation on closed file.",
+          "position": null
+        }
+      ],
+      [
+        {
+          "value": [
+            255,
+            254,
+            0,
+            216
+          ],
+          "position": "0"
+        },
+        {
+          "value": [],
+          "position": "0"
+        },
+        {
+          "value": [
+            255,
+            254
+          ],
+          "position": "2"
+        },
+        {
+          "value": [
+            0,
+            216
+          ],
+          "position": "4"
+        },
+        {
+          "value": [],
+          "position": "4"
+        },
+        {
+          "value": [],
+          "position": "4"
+        },
+        {
+          "value": "0",
+          "position": "0"
+        },
+        {
+          "value": [
+            255,
+            254
+          ],
+          "position": "2"
+        },
+        {
+          "value": "20",
+          "position": "20"
+        },
+        {
+          "value": [],
+          "position": "20"
+        },
+        {
+          "value": [],
+          "position": "20"
+        },
+        {
+          "value": [
+            255,
+            254,
+            0,
+            216
+          ],
+          "position": "20"
+        },
+        {
+          "value": "0",
+          "position": "0"
+        },
+        {
+          "value": "1",
+          "position": "0"
+        },
+        {
+          "value": [
+            255
+          ],
+          "position": "0"
+        },
+        {
+          "value": null,
+          "position": null
+        },
+        {
+          "error": "ValueError",
+          "message": "I/O operation on closed file.",
+          "position": null
+        },
+        {
+          "error": "ValueError",
+          "message": "I/O operation on closed file.",
+          "position": null
+        },
+        {
+          "error": "ValueError",
+          "message": "I/O operation on closed file.",
+          "position": null
+        }
+      ],
+      [
+        {
+          "value": [
+            65,
+            13,
+            66,
+            10,
+            67
+          ],
+          "position": "0"
+        },
+        {
+          "value": [],
+          "position": "0"
+        },
+        {
+          "value": [
+            65,
+            13
+          ],
+          "position": "2"
+        },
+        {
+          "value": [
+            66,
+            10
+          ],
+          "position": "4"
+        },
+        {
+          "value": [
+            67
+          ],
+          "position": "5"
+        },
+        {
+          "value": [],
+          "position": "5"
+        },
+        {
+          "value": "0",
+          "position": "0"
+        },
+        {
+          "value": [
+            65,
+            13
+          ],
+          "position": "2"
+        },
+        {
+          "value": "20",
+          "position": "20"
+        },
+        {
+          "value": [],
+          "position": "20"
+        },
+        {
+          "value": [],
+          "position": "20"
+        },
+        {
+          "value": [
+            65,
+            13,
+            66,
+            10,
+            67
+          ],
+          "position": "20"
+        },
+        {
+          "value": "0",
+          "position": "0"
+        },
+        {
+          "value": "1",
+          "position": "0"
+        },
+        {
+          "value": [
+            65
+          ],
+          "position": "0"
+        },
+        {
+          "value": null,
+          "position": null
+        },
+        {
+          "error": "ValueError",
+          "message": "I/O operation on closed file.",
+          "position": null
+        },
+        {
+          "error": "ValueError",
+          "message": "I/O operation on closed file.",
+          "position": null
+        },
+        {
+          "error": "ValueError",
+          "message": "I/O operation on closed file.",
+          "position": null
+        }
+      ],
+      [
+        {
+          "value": [
+            0,
+            255,
+            128,
+            127
+          ],
+          "position": "0"
+        },
+        {
+          "value": [],
+          "position": "0"
+        },
+        {
+          "value": [
+            0,
+            255
+          ],
+          "position": "2"
+        },
+        {
+          "value": [
+            128,
+            127
+          ],
+          "position": "4"
+        },
+        {
+          "value": [],
+          "position": "4"
+        },
+        {
+          "value": [],
+          "position": "4"
+        },
+        {
+          "value": "0",
+          "position": "0"
+        },
+        {
+          "value": [
+            0,
+            255
+          ],
+          "position": "2"
+        },
+        {
+          "value": "20",
+          "position": "20"
+        },
+        {
+          "value": [],
+          "position": "20"
+        },
+        {
+          "value": [],
+          "position": "20"
+        },
+        {
+          "value": [
+            0,
+            255,
+            128,
+            127
+          ],
+          "position": "20"
+        },
+        {
+          "value": "0",
+          "position": "0"
+        },
+        {
+          "value": "1",
+          "position": "0"
+        },
+        {
+          "value": [
+            0
+          ],
+          "position": "0"
+        },
+        {
+          "value": null,
+          "position": null
+        },
+        {
+          "error": "ValueError",
+          "message": "I/O operation on closed file.",
+          "position": null
+        },
+        {
+          "error": "ValueError",
+          "message": "I/O operation on closed file.",
+          "position": null
+        },
+        {
+          "error": "ValueError",
+          "message": "I/O operation on closed file.",
+          "position": null
+        }
+      ]
+    ]
+  },
+  "actual": [
+    [
+      {
+        "value": [],
+        "position": "0"
+      },
+      {
+        "value": [],
+        "position": "0"
+      },
+      {
+        "value": [],
+        "position": "0"
+      },
+      {
+        "value": [],
+        "position": "0"
+      },
+      {
+        "value": [],
+        "position": "0"
+      },
+      {
+        "value": [],
+        "position": "0"
+      },
+      {
+        "value": "0",
+        "position": "0"
+      },
+      {
+        "value": [],
+        "position": "0"
+      },
+      {
+        "value": "20",
+        "position": "20"
+      },
+      {
+        "value": [],
+        "position": "20"
+      },
+      {
+        "value": [],
+        "position": "20"
+      },
+      {
+        "value": [],
+        "position": "20"
+      },
+      {
+        "value": "0",
+        "position": "0"
+      },
+      {
+        "value": "1",
+        "position": "0"
+      },
+      {
+        "value": [],
+        "position": "0"
+      },
+      {
+        "value": null,
+        "position": null
+      },
+      {
+        "error": "ValueError",
+        "message": "I/O operation on closed file.",
+        "position": null
+      },
+      {
+        "error": "ValueError",
+        "message": "I/O operation on closed file.",
+        "position": null
+      },
+      {
+        "error": "ValueError",
+        "message": "I/O operation on closed file.",
+        "position": null
+      }
+    ],
+    [
+      {
+        "value": [
+          10
+        ],
+        "position": "0"
+      },
+      {
+        "value": [],
+        "position": "0"
+      },
+      {
+        "value": [
+          10
+        ],
+        "position": "1"
+      },
+      {
+        "value": [],
+        "position": "1"
+      },
+      {
+        "value": [],
+        "position": "1"
+      },
+      {
+        "value": [],
+        "position": "1"
+      },
+      {
+        "value": "0",
+        "position": "0"
+      },
+      {
+        "value": [
+          10
+        ],
+        "position": "1"
+      },
+      {
+        "value": "20",
+        "position": "20"
+      },
+      {
+        "value": [],
+        "position": "20"
+      },
+      {
+        "value": [],
+        "position": "20"
+      },
+      {
+        "value": [
+          10
+        ],
+        "position": "20"
+      },
+      {
+        "value": "0",
+        "position": "0"
+      },
+      {
+        "value": "1",
+        "position": "0"
+      },
+      {
+        "value": [
+          10
+        ],
+        "position": "0"
+      },
+      {
+        "value": null,
+        "position": null
+      },
+      {
+        "error": "ValueError",
+        "message": "I/O operation on closed file.",
+        "position": null
+      },
+      {
+        "error": "ValueError",
+        "message": "I/O operation on closed file.",
+        "position": null
+      },
+      {
+        "error": "ValueError",
+        "message": "I/O operation on closed file.",
+        "position": null
+      }
+    ],
+    [
+      {
+        "value": [
+          13,
+          10
+        ],
+        "position": "0"
+      },
+      {
+        "value": [],
+        "position": "0"
+      },
+      {
+        "value": [
+          13,
+          10
+        ],
+        "position": "2"
+      },
+      {
+        "value": [],
+        "position": "2"
+      },
+      {
+        "value": [],
+        "position": "2"
+      },
+      {
+        "value": [],
+        "position": "2"
+      },
+      {
+        "value": "0",
+        "position": "0"
+      },
+      {
+        "value": [
+          13,
+          10
+        ],
+        "position": "2"
+      },
+      {
+        "value": "20",
+        "position": "20"
+      },
+      {
+        "value": [],
+        "position": "20"
+      },
+      {
+        "value": [],
+        "position": "20"
+      },
+      {
+        "value": [
+          13,
+          10
+        ],
+        "position": "20"
+      },
+      {
+        "value": "0",
+        "position": "0"
+      },
+      {
+        "value": "1",
+        "position": "0"
+      },
+      {
+        "value": [
+          13
+        ],
+        "position": "0"
+      },
+      {
+        "value": null,
+        "position": null
+      },
+      {
+        "error": "ValueError",
+        "message": "I/O operation on closed file.",
+        "position": null
+      },
+      {
+        "error": "ValueError",
+        "message": "I/O operation on closed file.",
+        "position": null
+      },
+      {
+        "error": "ValueError",
+        "message": "I/O operation on closed file.",
+        "position": null
+      }
+    ],
+    [
+      {
+        "value": [
+          65,
+          0,
+          66
+        ],
+        "position": "0"
+      },
+      {
+        "value": [],
+        "position": "0"
+      },
+      {
+        "value": [
+          65,
+          0
+        ],
+        "position": "2"
+      },
+      {
+        "value": [
+          66
+        ],
+        "position": "3"
+      },
+      {
+        "value": [],
+        "position": "3"
+      },
+      {
+        "value": [],
+        "position": "3"
+      },
+      {
+        "value": "0",
+        "position": "0"
+      },
+      {
+        "value": [
+          65,
+          0
+        ],
+        "position": "2"
+      },
+      {
+        "value": "20",
+        "position": "20"
+      },
+      {
+        "value": [],
+        "position": "20"
+      },
+      {
+        "value": [],
+        "position": "20"
+      },
+      {
+        "value": [
+          65,
+          0,
+          66
+        ],
+        "position": "20"
+      },
+      {
+        "value": "0",
+        "position": "0"
+      },
+      {
+        "value": "1",
+        "position": "0"
+      },
+      {
+        "value": [
+          65
+        ],
+        "position": "0"
+      },
+      {
+        "value": null,
+        "position": null
+      },
+      {
+        "error": "ValueError",
+        "message": "I/O operation on closed file.",
+        "position": null
+      },
+      {
+        "error": "ValueError",
+        "message": "I/O operation on closed file.",
+        "position": null
+      },
+      {
+        "error": "ValueError",
+        "message": "I/O operation on closed file.",
+        "position": null
+      }
+    ],
+    [
+      {
+        "value": [
+          239,
+          187,
+          191,
+          195,
+          169,
+          10
+        ],
+        "position": "0"
+      },
+      {
+        "value": [],
+        "position": "0"
+      },
+      {
+        "value": [
+          239,
+          187
+        ],
+        "position": "2"
+      },
+      {
+        "value": [
+          191,
+          195,
+          169,
+          10
+        ],
+        "position": "6"
+      },
+      {
+        "value": [],
+        "position": "6"
+      },
+      {
+        "value": [],
+        "position": "6"
+      },
+      {
+        "value": "0",
+        "position": "0"
+      },
+      {
+        "value": [
+          239,
+          187
+        ],
+        "position": "2"
+      },
+      {
+        "value": "20",
+        "position": "20"
+      },
+      {
+        "value": [],
+        "position": "20"
+      },
+      {
+        "value": [],
+        "position": "20"
+      },
+      {
+        "value": [
+          239,
+          187,
+          191,
+          195,
+          169,
+          10
+        ],
+        "position": "20"
+      },
+      {
+        "value": "0",
+        "position": "0"
+      },
+      {
+        "value": "1",
+        "position": "0"
+      },
+      {
+        "value": [
+          239
+        ],
+        "position": "0"
+      },
+      {
+        "value": null,
+        "position": null
+      },
+      {
+        "error": "ValueError",
+        "message": "I/O operation on closed file.",
+        "position": null
+      },
+      {
+        "error": "ValueError",
+        "message": "I/O operation on closed file.",
+        "position": null
+      },
+      {
+        "error": "ValueError",
+        "message": "I/O operation on closed file.",
+        "position": null
+      }
+    ],
+    [
+      {
+        "value": [
+          255,
+          254,
+          0,
+          216
+        ],
+        "position": "0"
+      },
+      {
+        "value": [],
+        "position": "0"
+      },
+      {
+        "value": [
+          255,
+          254
+        ],
+        "position": "2"
+      },
+      {
+        "value": [
+          0,
+          216
+        ],
+        "position": "4"
+      },
+      {
+        "value": [],
+        "position": "4"
+      },
+      {
+        "value": [],
+        "position": "4"
+      },
+      {
+        "value": "0",
+        "position": "0"
+      },
+      {
+        "value": [
+          255,
+          254
+        ],
+        "position": "2"
+      },
+      {
+        "value": "20",
+        "position": "20"
+      },
+      {
+        "value": [],
+        "position": "20"
+      },
+      {
+        "value": [],
+        "position": "20"
+      },
+      {
+        "value": [
+          255,
+          254,
+          0,
+          216
+        ],
+        "position": "20"
+      },
+      {
+        "value": "0",
+        "position": "0"
+      },
+      {
+        "value": "1",
+        "position": "0"
+      },
+      {
+        "value": [
+          255
+        ],
+        "position": "0"
+      },
+      {
+        "value": null,
+        "position": null
+      },
+      {
+        "error": "ValueError",
+        "message": "I/O operation on closed file.",
+        "position": null
+      },
+      {
+        "error": "ValueError",
+        "message": "I/O operation on closed file.",
+        "position": null
+      },
+      {
+        "error": "ValueError",
+        "message": "I/O operation on closed file.",
+        "position": null
+      }
+    ],
+    [
+      {
+        "value": [
+          65,
+          13,
+          66,
+          10,
+          67
+        ],
+        "position": "0"
+      },
+      {
+        "value": [],
+        "position": "0"
+      },
+      {
+        "value": [
+          65,
+          13
+        ],
+        "position": "2"
+      },
+      {
+        "value": [
+          66,
+          10
+        ],
+        "position": "4"
+      },
+      {
+        "value": [
+          67
+        ],
+        "position": "5"
+      },
+      {
+        "value": [],
+        "position": "5"
+      },
+      {
+        "value": "0",
+        "position": "0"
+      },
+      {
+        "value": [
+          65,
+          13
+        ],
+        "position": "2"
+      },
+      {
+        "value": "20",
+        "position": "20"
+      },
+      {
+        "value": [],
+        "position": "20"
+      },
+      {
+        "value": [],
+        "position": "20"
+      },
+      {
+        "value": [
+          65,
+          13,
+          66,
+          10,
+          67
+        ],
+        "position": "20"
+      },
+      {
+        "value": "0",
+        "position": "0"
+      },
+      {
+        "value": "1",
+        "position": "0"
+      },
+      {
+        "value": [
+          65
+        ],
+        "position": "0"
+      },
+      {
+        "value": null,
+        "position": null
+      },
+      {
+        "error": "ValueError",
+        "message": "I/O operation on closed file.",
+        "position": null
+      },
+      {
+        "error": "ValueError",
+        "message": "I/O operation on closed file.",
+        "position": null
+      },
+      {
+        "error": "ValueError",
+        "message": "I/O operation on closed file.",
+        "position": null
+      }
+    ],
+    [
+      {
+        "value": [
+          0,
+          255,
+          128,
+          127
+        ],
+        "position": "0"
+      },
+      {
+        "value": [],
+        "position": "0"
+      },
+      {
+        "value": [
+          0,
+          255
+        ],
+        "position": "2"
+      },
+      {
+        "value": [
+          128,
+          127
+        ],
+        "position": "4"
+      },
+      {
+        "value": [],
+        "position": "4"
+      },
+      {
+        "value": [],
+        "position": "4"
+      },
+      {
+        "value": "0",
+        "position": "0"
+      },
+      {
+        "value": [
+          0,
+          255
+        ],
+        "position": "2"
+      },
+      {
+        "value": "20",
+        "position": "20"
+      },
+      {
+        "value": [],
+        "position": "20"
+      },
+      {
+        "value": [],
+        "position": "20"
+      },
+      {
+        "value": [
+          0,
+          255,
+          128,
+          127
+        ],
+        "position": "20"
+      },
+      {
+        "value": "0",
+        "position": "0"
+      },
+      {
+        "value": "1",
+        "position": "0"
+      },
+      {
+        "value": [
+          0
+        ],
+        "position": "0"
+      },
+      {
+        "value": null,
+        "position": null
+      },
+      {
+        "error": "ValueError",
+        "message": "I/O operation on closed file.",
+        "position": null
+      },
+      {
+        "error": "ValueError",
+        "message": "I/O operation on closed file.",
+        "position": null
+      },
+      {
+        "error": "ValueError",
+        "message": "I/O operation on closed file.",
+        "position": null
+      }
+    ]
+  ],
+  "matches": true
+}

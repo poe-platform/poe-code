@@ -1,0 +1,1199 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little",
+    "recursionLimit": 1000
+  },
+  "adapter": "Explicit PythonSession output service using real file descriptors: openSync/writeSync/fsyncSync/closeSync; no runtime ambient I/O",
+  "limits": {
+    "maxSteps": 1000000,
+    "maxAllocatedBytes": 16000000,
+    "maxDepth": 1000
+  },
+  "cases": [
+    {
+      "name": "ascii; reenter; return",
+      "sourceSha256": "3e5bdedc0c8298dbc5246d646b1e0494c32c532289f159f74f809956ff2df1a0",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'', 0)\nresult 'RA'\nevents [('handler', b'\\xffA', 0, 1, 'ordinal not in range(128)', (b'', 0)), ('nested', 'B', (b'', 0)), ('index', -1)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "ascii; reenter; raise",
+      "sourceSha256": "baa806b8301d05ad088b13848767ed722a3b5b312672faec4dd983ec9904cb2b",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'', 0)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\xffA', 0, 1, 'ordinal not in range(128)', (b'', 0)), ('nested', 'B', (b'', 0))]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "ascii; reenter; overflow",
+      "sourceSha256": "fa1599c97560509b00e718c4cb1b7311f7701de71dafd5d749b1baf2de992670",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'', 0)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\xffA', 0, 1, 'ordinal not in range(128)', (b'', 0)), ('nested', 'B', (b'', 0)), ('index', 1267650600228229401496703205376)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "ascii; reenter_once; return",
+      "sourceSha256": "5821945ccd05cfc6be20536289615392d104d7daab2e0c03176b26633cf49cb3",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'', 0)\nresult 'RA'\nevents [('handler', b'\\xffA', 0, 1, 'ordinal not in range(128)', (b'', 0)), ('nested', 'B', (b'', 0)), ('index', -1)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "ascii; reenter_once; raise",
+      "sourceSha256": "94d7195fc66d876097858b1a40baac57e87e1be820567ca133ea3683a28c9619",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'', 0)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\xffA', 0, 1, 'ordinal not in range(128)', (b'', 0)), ('nested', 'B', (b'', 0))]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "ascii; reenter_once; overflow",
+      "sourceSha256": "ed0c67badc7155970c8afa362b6865fcd1aee5a1ccbce1803b0f5e55c3302284",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'', 0)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\xffA', 0, 1, 'ordinal not in range(128)', (b'', 0)), ('nested', 'B', (b'', 0)), ('index', 1267650600228229401496703205376)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "ascii; reset; return",
+      "sourceSha256": "7cd43c3fe013766389936dce959cbb49264e06132e75813c51808ef713594ab1",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'', 0)\nresult 'RA'\nevents [('handler', b'\\xffA', 0, 1, 'ordinal not in range(128)', (b'', 0)), ('reset', (b'', 0)), ('index', -1)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "ascii; reset; raise",
+      "sourceSha256": "b2d33fedea48eac419a6a61e31d9e5b6d84f5323efd1ab44569f68084bffcefd",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'', 0)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\xffA', 0, 1, 'ordinal not in range(128)', (b'', 0)), ('reset', (b'', 0))]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "ascii; reset; overflow",
+      "sourceSha256": "26b414561db5bfc6f45173245a8da4c994ad01aeb1de042c9f3208ac9f094d68",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'', 0)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\xffA', 0, 1, 'ordinal not in range(128)', (b'', 0)), ('reset', (b'', 0)), ('index', 1267650600228229401496703205376)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "ascii; restore; return",
+      "sourceSha256": "403e751a9bb124444d72b0ffc884ee76810684e369e2d5b685dd6bab904df648",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'', 0)\nresult 'RA'\nevents [('handler', b'\\xffA', 0, 1, 'ordinal not in range(128)', (b'', 0)), ('restore', (b'', 0)), ('index', -1)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "ascii; restore; raise",
+      "sourceSha256": "8282d65ec14addc9fe4133cc7ebf7a9e67125ca12db1582dcb581acc705c98b0",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'', 0)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\xffA', 0, 1, 'ordinal not in range(128)', (b'', 0)), ('restore', (b'', 0))]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "ascii; restore; overflow",
+      "sourceSha256": "e4666a6c8bb7bccdcf7c50bf61ab34a59896388ce5c9f04dd73db02dd093e6da",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'', 0)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\xffA', 0, 1, 'ordinal not in range(128)', (b'', 0)), ('restore', (b'', 0)), ('index', 1267650600228229401496703205376)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "ascii; replace_handler; return",
+      "sourceSha256": "0b35dfeb88ea6963e7ff6dd56ae31e187ae50e1bb686fa76f9b60f455b4bbc1a",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'', 0)\nresult 'RA'\nevents [('handler', b'\\xffA', 0, 1, 'ordinal not in range(128)', (b'', 0)), ('registered', True), ('index', -1)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "ascii; replace_handler; raise",
+      "sourceSha256": "90e2a7ec84c5b84fb1ca600084d2a228a67f262b6ca2066236d19f0a3547b903",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'', 0)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\xffA', 0, 1, 'ordinal not in range(128)', (b'', 0)), ('registered', True)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "ascii; replace_handler; overflow",
+      "sourceSha256": "e9dbc14aca4ef4a4c92e1a3a51616d6ff172c48f65ecb6779a278d2744ba1b5d",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'', 0)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\xffA', 0, 1, 'ordinal not in range(128)', (b'', 0)), ('registered', True), ('index', 1267650600228229401496703205376)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "cp1252; reenter; return",
+      "sourceSha256": "67eb83282b327f3d2b4f410c9165509583c8078413821faa62312b76569fadb7",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'', 0)\nresult 'RA'\nevents [('handler', b'\\x81A', 0, 1, 'character maps to <undefined>', (b'', 0)), ('nested', 'B', (b'', 0)), ('index', -1)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "cp1252; reenter; raise",
+      "sourceSha256": "a21826efe741649727e7f96c3edb5784e0542ffbedf8a166235509064c8b7ce8",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'', 0)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\x81A', 0, 1, 'character maps to <undefined>', (b'', 0)), ('nested', 'B', (b'', 0))]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "cp1252; reenter; overflow",
+      "sourceSha256": "9dcd87bf292fc2f1716506c80b75db74ccaa89898aafb6f4390501b571537d99",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'', 0)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\x81A', 0, 1, 'character maps to <undefined>', (b'', 0)), ('nested', 'B', (b'', 0)), ('index', 1267650600228229401496703205376)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "cp1252; reenter_once; return",
+      "sourceSha256": "6bdc1c2d2a3805b6918d4e733963e373c44cfbd511cb5a6d71bab25f3933a67e",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'', 0)\nresult 'RA'\nevents [('handler', b'\\x81A', 0, 1, 'character maps to <undefined>', (b'', 0)), ('nested', 'B', (b'', 0)), ('index', -1)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "cp1252; reenter_once; raise",
+      "sourceSha256": "31526d45aeedfe2f02546405fb49245cb655a94e650a0ed682c0d69610d791af",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'', 0)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\x81A', 0, 1, 'character maps to <undefined>', (b'', 0)), ('nested', 'B', (b'', 0))]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "cp1252; reenter_once; overflow",
+      "sourceSha256": "75f9f34b203d295d024f6c3a6e993e21569f49131699e7032f9171b8c769b7a8",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'', 0)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\x81A', 0, 1, 'character maps to <undefined>', (b'', 0)), ('nested', 'B', (b'', 0)), ('index', 1267650600228229401496703205376)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "cp1252; reset; return",
+      "sourceSha256": "e94a73ee745893ee002559dcf125f921fffb15820088795138cf06f1db57b8e1",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'', 0)\nresult 'RA'\nevents [('handler', b'\\x81A', 0, 1, 'character maps to <undefined>', (b'', 0)), ('reset', (b'', 0)), ('index', -1)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "cp1252; reset; raise",
+      "sourceSha256": "dbaa4a73f9d077d596043b9520e855eff80414aa4c282c3debdd404c3ed65ec5",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'', 0)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\x81A', 0, 1, 'character maps to <undefined>', (b'', 0)), ('reset', (b'', 0))]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "cp1252; reset; overflow",
+      "sourceSha256": "08d0a8bf64ee160731fe774fcaeb7be909edb04485099e2ed7edceb374c5c75f",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'', 0)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\x81A', 0, 1, 'character maps to <undefined>', (b'', 0)), ('reset', (b'', 0)), ('index', 1267650600228229401496703205376)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "cp1252; restore; return",
+      "sourceSha256": "896b9992fef8ebfcd1d33bac401983e15ca57c2abb0b9e9a7adade8fe69d6ada",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'', 0)\nresult 'RA'\nevents [('handler', b'\\x81A', 0, 1, 'character maps to <undefined>', (b'', 0)), ('restore', (b'', 0)), ('index', -1)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "cp1252; restore; raise",
+      "sourceSha256": "4ac3408ecba71ff8b2dc4c4d962d77db38a732511889506dd4ab3524966c8abd",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'', 0)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\x81A', 0, 1, 'character maps to <undefined>', (b'', 0)), ('restore', (b'', 0))]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "cp1252; restore; overflow",
+      "sourceSha256": "25bbc949fe907be273dff930f93b51bd34bb8d3cf28f31e1097bc523a175b81b",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'', 0)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\x81A', 0, 1, 'character maps to <undefined>', (b'', 0)), ('restore', (b'', 0)), ('index', 1267650600228229401496703205376)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "cp1252; replace_handler; return",
+      "sourceSha256": "8b9c796a292ed47877d8e603429d9524b71a629553dc5be1fdd4a3f67edb3fac",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'', 0)\nresult 'RA'\nevents [('handler', b'\\x81A', 0, 1, 'character maps to <undefined>', (b'', 0)), ('registered', True), ('index', -1)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "cp1252; replace_handler; raise",
+      "sourceSha256": "24fb04d92d3b99bed3e4e1ec3697b63de233bdd7af566a321631135b1f88f38e",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'', 0)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\x81A', 0, 1, 'character maps to <undefined>', (b'', 0)), ('registered', True)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "cp1252; replace_handler; overflow",
+      "sourceSha256": "c511d7eba7579b9b9c20486ff2f75f7f3f9c61536cb75150cdcc99908c2d4296",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'', 0)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\x81A', 0, 1, 'character maps to <undefined>', (b'', 0)), ('registered', True), ('index', 1267650600228229401496703205376)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-8; reenter; return",
+      "sourceSha256": "d402a876003a9ff4ec799c8e40d1269890fd603922be4d265ef3db1319e5ff2d",
+      "result": {
+        "status": "terminated",
+        "reason": "internal",
+        "message": "Maximum call stack size exceeded"
+      },
+      "stdout": "prefix '' (b'\\xed', 0)\n",
+      "stdoutMatches": false
+    },
+    {
+      "name": "utf-8; reenter; raise",
+      "sourceSha256": "ec17f74d779bed1779bcdd6de933fc2727c2e6ca85dd46c9987f50d289c0f163",
+      "result": {
+        "status": "terminated",
+        "reason": "internal",
+        "message": "Maximum call stack size exceeded"
+      },
+      "stdout": "prefix '' (b'\\xed', 0)\n",
+      "stdoutMatches": false
+    },
+    {
+      "name": "utf-8; reenter; overflow",
+      "sourceSha256": "0cb900b6e112f2a0d12c8d0fc2624427c38d4038077a2f0a7abc30b00e1721d5",
+      "result": {
+        "status": "terminated",
+        "reason": "internal",
+        "message": "Maximum call stack size exceeded"
+      },
+      "stdout": "prefix '' (b'\\xed', 0)\n",
+      "stdoutMatches": false
+    },
+    {
+      "name": "utf-8; reenter_once; return",
+      "sourceSha256": "71f81d06a36fe87f421e63c65ed93a6eb1624c549893d86bba0df2c3b1123ba8",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xed', 0)\nresult 'RRRA'\nevents [('handler', b'\\xed\\xa0\\x80A', 0, 1, 'invalid continuation byte', (b'\\xed', 0)), ('handler', b'\\xedB', 0, 1, 'invalid continuation byte', (b'\\xed', 0)), ('nested', 'NB', (b'', 0)), ('index', -3), ('handler', b'\\xed\\xa0\\x80A', 1, 2, 'invalid start byte', (b'', 0)), ('nested', 'B', (b'', 0)), ('index', -2), ('handler', b'\\xed\\xa0\\x80A', 2, 3, 'invalid start byte', (b'', 0)), ('nested', 'B', (b'', 0)), ('index', -1)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-8; reenter_once; raise",
+      "sourceSha256": "7d558a6e506ed2612b84310832b0a8fd1182f68605a69977b4dcf34b03053d7a",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xed', 0)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\xed\\xa0\\x80A', 0, 1, 'invalid continuation byte', (b'\\xed', 0)), ('handler', b'\\xedB', 0, 1, 'invalid continuation byte', (b'\\xed', 0)), ('nested', 'NB', (b'', 0))]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-8; reenter_once; overflow",
+      "sourceSha256": "7fe9fcdc837b1a6952ef4fdf96b0ea167e7b59c96b90a4818b7770e4802f5b9e",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xed', 0)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\xed\\xa0\\x80A', 0, 1, 'invalid continuation byte', (b'\\xed', 0)), ('handler', b'\\xedB', 0, 1, 'invalid continuation byte', (b'\\xed', 0)), ('nested', 'NB', (b'', 0)), ('index', 1267650600228229401496703205376)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-8; reset; return",
+      "sourceSha256": "9690ef9856c05506d61068f790a9cc89b173b880d0d56210d36ae89cf0866fa3",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xed', 0)\nresult 'RRRA'\nevents [('handler', b'\\xed\\xa0\\x80A', 0, 1, 'invalid continuation byte', (b'\\xed', 0)), ('reset', (b'', 0)), ('index', -3), ('handler', b'\\xed\\xa0\\x80A', 1, 2, 'invalid start byte', (b'', 0)), ('reset', (b'', 0)), ('index', -2), ('handler', b'\\xed\\xa0\\x80A', 2, 3, 'invalid start byte', (b'', 0)), ('reset', (b'', 0)), ('index', -1)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-8; reset; raise",
+      "sourceSha256": "60ff57300770cd8f4dcffb0f48953e97aaedbef581462fe4468db6f9b1506058",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xed', 0)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\xed\\xa0\\x80A', 0, 1, 'invalid continuation byte', (b'\\xed', 0)), ('reset', (b'', 0))]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-8; reset; overflow",
+      "sourceSha256": "84193918415acd7cbef676d4ef44262582c1ba202cd37c486a06ef7fbfa56940",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xed', 0)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\xed\\xa0\\x80A', 0, 1, 'invalid continuation byte', (b'\\xed', 0)), ('reset', (b'', 0)), ('index', 1267650600228229401496703205376)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-8; restore; return",
+      "sourceSha256": "c5cc4b16c84b3e3ec330a5cce8de90554095b2cb5a66c2e9476fa4ecb94157c8",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xed', 0)\nresult 'RRRA'\nevents [('handler', b'\\xed\\xa0\\x80A', 0, 1, 'invalid continuation byte', (b'\\xed', 0)), ('restore', (b'', 0)), ('index', -3), ('handler', b'\\xed\\xa0\\x80A', 1, 2, 'invalid start byte', (b'', 0)), ('restore', (b'', 0)), ('index', -2), ('handler', b'\\xed\\xa0\\x80A', 2, 3, 'invalid start byte', (b'', 0)), ('restore', (b'', 0)), ('index', -1)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-8; restore; raise",
+      "sourceSha256": "90bf01b085c93304a160e63ef5fcfc76b9a3fafa1b56b357749b393d09583909",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xed', 0)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\xed\\xa0\\x80A', 0, 1, 'invalid continuation byte', (b'\\xed', 0)), ('restore', (b'', 0))]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-8; restore; overflow",
+      "sourceSha256": "7e2e1c0361c18c134b5ac7d21d8adc32b6e25c0a9fc8838c76ef3861baeb2ee4",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xed', 0)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\xed\\xa0\\x80A', 0, 1, 'invalid continuation byte', (b'\\xed', 0)), ('restore', (b'', 0)), ('index', 1267650600228229401496703205376)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-8; replace_handler; return",
+      "sourceSha256": "a7c50381b2891d2de1deddb3d10bb1a6b1559ee5eccadfd6b022b4f0713325be",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xed', 0)\nresult 'RRRA'\nevents [('handler', b'\\xed\\xa0\\x80A', 0, 1, 'invalid continuation byte', (b'\\xed', 0)), ('registered', True), ('index', -3), ('handler', b'\\xed\\xa0\\x80A', 1, 2, 'invalid start byte', (b'\\xed', 0)), ('registered', True), ('index', -2), ('handler', b'\\xed\\xa0\\x80A', 2, 3, 'invalid start byte', (b'\\xed', 0)), ('registered', True), ('index', -1)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-8; replace_handler; raise",
+      "sourceSha256": "1e3ceb723474b22997e96f5855e48b738c8c865a23659fd8215605a81eda6760",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xed', 0)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\xed\\xa0\\x80A', 0, 1, 'invalid continuation byte', (b'\\xed', 0)), ('registered', True)]\nstate (b'\\xed', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-8; replace_handler; overflow",
+      "sourceSha256": "c4e102d1226e6c70cd596a032d326dc9b5a76a466965db2313d5793447ce2a06",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xed', 0)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\xed\\xa0\\x80A', 0, 1, 'invalid continuation byte', (b'\\xed', 0)), ('registered', True), ('index', 1267650600228229401496703205376)]\nstate (b'\\xed', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-8-sig; reenter; return",
+      "sourceSha256": "466cd64613a9166ac5c64f7114769819da2c19699cd892c8a2e56812a974a89a",
+      "result": {
+        "status": "terminated",
+        "reason": "internal",
+        "message": "Maximum call stack size exceeded"
+      },
+      "stdout": "prefix '' (b'\\xef', 1)\n",
+      "stdoutMatches": false
+    },
+    {
+      "name": "utf-8-sig; reenter; raise",
+      "sourceSha256": "7a3fe8169aacac755f14f350046076b941a1444fb80678f5e4c367ab75c74038",
+      "result": {
+        "status": "terminated",
+        "reason": "internal",
+        "message": "Maximum call stack size exceeded"
+      },
+      "stdout": "prefix '' (b'\\xef', 1)\n",
+      "stdoutMatches": false
+    },
+    {
+      "name": "utf-8-sig; reenter; overflow",
+      "sourceSha256": "d91dfa63170302981c824a959dc511fc46da2e9ddc0989052817f23bbdc07f2b",
+      "result": {
+        "status": "terminated",
+        "reason": "internal",
+        "message": "Maximum call stack size exceeded"
+      },
+      "stdout": "prefix '' (b'\\xef', 1)\n",
+      "stdoutMatches": false
+    },
+    {
+      "name": "utf-8-sig; reenter_once; return",
+      "sourceSha256": "1a47da56aef110db8c9f2aaa036be042217d724765366dd6d00342d698214cdb",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xef', 1)\nresult 'RRRA'\nevents [('handler', b'\\xed\\xa0\\x80A', 0, 1, 'invalid continuation byte', (b'\\xef', 0)), ('handler', b'\\xefB', 0, 1, 'invalid continuation byte', (b'\\xef', 0)), ('nested', 'NB', (b'', 0)), ('index', -3), ('handler', b'\\xed\\xa0\\x80A', 1, 2, 'invalid start byte', (b'', 0)), ('nested', 'B', (b'', 0)), ('index', -2), ('handler', b'\\xed\\xa0\\x80A', 2, 3, 'invalid start byte', (b'', 0)), ('nested', 'B', (b'', 0)), ('index', -1)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-8-sig; reenter_once; raise",
+      "sourceSha256": "488d1dbd3eb8367cac58ba4e89c616ce1858aa6632af67f94fab90c39f3e766d",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xef', 1)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\xed\\xa0\\x80A', 0, 1, 'invalid continuation byte', (b'\\xef', 0)), ('handler', b'\\xefB', 0, 1, 'invalid continuation byte', (b'\\xef', 0)), ('nested', 'NB', (b'', 0))]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-8-sig; reenter_once; overflow",
+      "sourceSha256": "4f048711a4669c0e1aa68c5d6d9e6263ac9ba47cecf31a48408a155725551650",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xef', 1)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\xed\\xa0\\x80A', 0, 1, 'invalid continuation byte', (b'\\xef', 0)), ('handler', b'\\xefB', 0, 1, 'invalid continuation byte', (b'\\xef', 0)), ('nested', 'NB', (b'', 0)), ('index', 1267650600228229401496703205376)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-8-sig; reset; return",
+      "sourceSha256": "7b725ab47cc9d357d5decaebe0b1dee8406bb9a2cfcc4b67d371653f3237d4ed",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xef', 1)\nresult 'RRRA'\nevents [('handler', b'\\xed\\xa0\\x80A', 0, 1, 'invalid continuation byte', (b'\\xef', 0)), ('reset', (b'', 1)), ('index', -3), ('handler', b'\\xed\\xa0\\x80A', 1, 2, 'invalid start byte', (b'', 1)), ('reset', (b'', 1)), ('index', -2), ('handler', b'\\xed\\xa0\\x80A', 2, 3, 'invalid start byte', (b'', 1)), ('reset', (b'', 1)), ('index', -1)]\nstate (b'', 1)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-8-sig; reset; raise",
+      "sourceSha256": "3fe09da6012caa699991ea55247740ff7dca9afc7503a004f374dcbfee5a3075",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xef', 1)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\xed\\xa0\\x80A', 0, 1, 'invalid continuation byte', (b'\\xef', 0)), ('reset', (b'', 1))]\nstate (b'', 1)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-8-sig; reset; overflow",
+      "sourceSha256": "1a64553df2a8adb10ad698d5c736888705ff81f9fbe86150390ffa110aa86c60",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xef', 1)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\xed\\xa0\\x80A', 0, 1, 'invalid continuation byte', (b'\\xef', 0)), ('reset', (b'', 1)), ('index', 1267650600228229401496703205376)]\nstate (b'', 1)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-8-sig; restore; return",
+      "sourceSha256": "7d93d086de46c1fd196d675fb20b04d5c4e24de51c75d10ab456d84c3bd606ba",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xef', 1)\nresult 'RRRA'\nevents [('handler', b'\\xed\\xa0\\x80A', 0, 1, 'invalid continuation byte', (b'\\xef', 0)), ('restore', (b'', 0)), ('index', -3), ('handler', b'\\xed\\xa0\\x80A', 1, 2, 'invalid start byte', (b'', 0)), ('restore', (b'', 0)), ('index', -2), ('handler', b'\\xed\\xa0\\x80A', 2, 3, 'invalid start byte', (b'', 0)), ('restore', (b'', 0)), ('index', -1)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-8-sig; restore; raise",
+      "sourceSha256": "da85f361fa087354d4c4c5b33c7158322c1efe2105d8f708c3c7ad89e05c40d8",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xef', 1)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\xed\\xa0\\x80A', 0, 1, 'invalid continuation byte', (b'\\xef', 0)), ('restore', (b'', 0))]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-8-sig; restore; overflow",
+      "sourceSha256": "3278c6ebcc57e5437ab340d01931afcb2d33d36192bafc1cf83bf0b3307ce101",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xef', 1)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\xed\\xa0\\x80A', 0, 1, 'invalid continuation byte', (b'\\xef', 0)), ('restore', (b'', 0)), ('index', 1267650600228229401496703205376)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-8-sig; replace_handler; return",
+      "sourceSha256": "279e00b6f10f6ca2ee5de21dee4832a674a46663431335f014682e34fd354d00",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xef', 1)\nresult 'RRRA'\nevents [('handler', b'\\xed\\xa0\\x80A', 0, 1, 'invalid continuation byte', (b'\\xef', 0)), ('registered', True), ('index', -3), ('handler', b'\\xed\\xa0\\x80A', 1, 2, 'invalid start byte', (b'\\xef', 0)), ('registered', True), ('index', -2), ('handler', b'\\xed\\xa0\\x80A', 2, 3, 'invalid start byte', (b'\\xef', 0)), ('registered', True), ('index', -1)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-8-sig; replace_handler; raise",
+      "sourceSha256": "0beab7df33899f191749a8d499826ce2254177c4d910ead75ca27aac74175e25",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xef', 1)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\xed\\xa0\\x80A', 0, 1, 'invalid continuation byte', (b'\\xef', 0)), ('registered', True)]\nstate (b'\\xef', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-8-sig; replace_handler; overflow",
+      "sourceSha256": "1424ceb91d3fd4e15b093431f9c718458adec58ffd201ddac397d99e3ea74ca7",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xef', 1)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\xed\\xa0\\x80A', 0, 1, 'invalid continuation byte', (b'\\xef', 0)), ('registered', True), ('index', 1267650600228229401496703205376)]\nstate (b'\\xef', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-16-le; reenter; return",
+      "sourceSha256": "a5dff55f39da4ebeac089940167caefe196b89ed5a73a1bb7a517d322d7e7e87",
+      "result": {
+        "status": "terminated",
+        "reason": "internal",
+        "message": "Maximum call stack size exceeded"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\n",
+      "stdoutMatches": false
+    },
+    {
+      "name": "utf-16-le; reenter; raise",
+      "sourceSha256": "77472b37293b9699faef1e8c8596df5fcdd2a3b51e2449fad88c20918d572132",
+      "result": {
+        "status": "terminated",
+        "reason": "internal",
+        "message": "Maximum call stack size exceeded"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\n",
+      "stdoutMatches": false
+    },
+    {
+      "name": "utf-16-le; reenter; overflow",
+      "sourceSha256": "da3bc418b4fb5acbc25b105170c557726f440c09bf04b1523f22fd113e91ea15",
+      "result": {
+        "status": "terminated",
+        "reason": "internal",
+        "message": "Maximum call stack size exceeded"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\n",
+      "stdoutMatches": false
+    },
+    {
+      "name": "utf-16-le; reenter_once; return",
+      "sourceSha256": "b8b871e3da389ad93d8c9ba803079ea2f18268d4aaa090b4e257c5b072f4a684",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nresult 'RA'\nevents [('handler', b'\\x00\\xd8A\\x00', 0, 2, 'illegal UTF-16 surrogate', (b'\\x00', 0)), ('handler', b'\\x00B\\x00', 2, 3, 'truncated data', (b'\\x00', 0)), ('nested', '䈀N', (b'', 0)), ('index', -2)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-16-le; reenter_once; raise",
+      "sourceSha256": "d1b59ac072a02c6a341ebed4f5e1aa42d3688eb95bf4b65a27ed461009fcecf8",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\x00\\xd8A\\x00', 0, 2, 'illegal UTF-16 surrogate', (b'\\x00', 0)), ('handler', b'\\x00B\\x00', 2, 3, 'truncated data', (b'\\x00', 0)), ('nested', '䈀N', (b'', 0))]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-16-le; reenter_once; overflow",
+      "sourceSha256": "de21a328ca012122d290aae81e97b69e46f78dac883514f1561e7620ef7fbe8e",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\x00\\xd8A\\x00', 0, 2, 'illegal UTF-16 surrogate', (b'\\x00', 0)), ('handler', b'\\x00B\\x00', 2, 3, 'truncated data', (b'\\x00', 0)), ('nested', '䈀N', (b'', 0)), ('index', 1267650600228229401496703205376)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-16-le; reset; return",
+      "sourceSha256": "dc312587880860b31272828d66580cb859874cb7a607727e114b8df93c272dd8",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nresult 'RA'\nevents [('handler', b'\\x00\\xd8A\\x00', 0, 2, 'illegal UTF-16 surrogate', (b'\\x00', 0)), ('reset', (b'', 0)), ('index', -2)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-16-le; reset; raise",
+      "sourceSha256": "cea9cc3149926ca4593689784a9f020678f32cff356d76287b7912e89e0b8bc4",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\x00\\xd8A\\x00', 0, 2, 'illegal UTF-16 surrogate', (b'\\x00', 0)), ('reset', (b'', 0))]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-16-le; reset; overflow",
+      "sourceSha256": "022170501c6a9d26d00877f38a013076fa4af56a7e3c51a79056fdcbbc65d059",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\x00\\xd8A\\x00', 0, 2, 'illegal UTF-16 surrogate', (b'\\x00', 0)), ('reset', (b'', 0)), ('index', 1267650600228229401496703205376)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-16-le; restore; return",
+      "sourceSha256": "dde5079716de3e3c6fafe3b0f5076a6efeec20a892dbf1ba58b2d2808ddd6165",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nresult 'RA'\nevents [('handler', b'\\x00\\xd8A\\x00', 0, 2, 'illegal UTF-16 surrogate', (b'\\x00', 0)), ('restore', (b'', 0)), ('index', -2)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-16-le; restore; raise",
+      "sourceSha256": "ed4e336d0a4c3c33e1e45ec8485ce0c5df91887f30f1440242f822a3e41e4518",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\x00\\xd8A\\x00', 0, 2, 'illegal UTF-16 surrogate', (b'\\x00', 0)), ('restore', (b'', 0))]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-16-le; restore; overflow",
+      "sourceSha256": "faf4534d559322ad972ddd32f76ee1e7ea0ca571096f874352f7b572727cd902",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\x00\\xd8A\\x00', 0, 2, 'illegal UTF-16 surrogate', (b'\\x00', 0)), ('restore', (b'', 0)), ('index', 1267650600228229401496703205376)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-16-le; replace_handler; return",
+      "sourceSha256": "dc2c9d060c56ef8ca69d872bf14d7dd057cb72603cb12e78cd20745757d03f0c",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nresult 'RA'\nevents [('handler', b'\\x00\\xd8A\\x00', 0, 2, 'illegal UTF-16 surrogate', (b'\\x00', 0)), ('registered', True), ('index', -2)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-16-le; replace_handler; raise",
+      "sourceSha256": "0cb5efd2218f5f3e4ed07eb6875eacbbc98715da2749e7d5f40eabafe99b0a24",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\x00\\xd8A\\x00', 0, 2, 'illegal UTF-16 surrogate', (b'\\x00', 0)), ('registered', True)]\nstate (b'\\x00', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-16-le; replace_handler; overflow",
+      "sourceSha256": "993c39bae3721b057d3401c5815606df42d75318482e208a017d3ade530bdc87",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\x00\\xd8A\\x00', 0, 2, 'illegal UTF-16 surrogate', (b'\\x00', 0)), ('registered', True), ('index', 1267650600228229401496703205376)]\nstate (b'\\x00', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-16-be; reenter; return",
+      "sourceSha256": "e0849596b32eae8715c5aa7a336d4a27f130c00a3c7b16db85e06098ade0e774",
+      "result": {
+        "status": "terminated",
+        "reason": "internal",
+        "message": "Maximum call stack size exceeded"
+      },
+      "stdout": "prefix '' (b'\\xd8', 0)\n",
+      "stdoutMatches": false
+    },
+    {
+      "name": "utf-16-be; reenter; raise",
+      "sourceSha256": "99efd67669ec925e8c4d84e9bfcd62ebf1c543822c868b75c3b4fc89324ba814",
+      "result": {
+        "status": "terminated",
+        "reason": "internal",
+        "message": "Maximum call stack size exceeded"
+      },
+      "stdout": "prefix '' (b'\\xd8', 0)\n",
+      "stdoutMatches": false
+    },
+    {
+      "name": "utf-16-be; reenter; overflow",
+      "sourceSha256": "037f95afe9ffccb6086a743e5406290ba9cde6879337745d7f63c9e89168ffcb",
+      "result": {
+        "status": "terminated",
+        "reason": "internal",
+        "message": "Maximum call stack size exceeded"
+      },
+      "stdout": "prefix '' (b'\\xd8', 0)\n",
+      "stdoutMatches": false
+    },
+    {
+      "name": "utf-16-be; reenter_once; return",
+      "sourceSha256": "5ad8d19a7f13ddb490abd71070af3c5aa3a18d41829cd4d5d6820f9c28d6b0d6",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xd8', 0)\nresult 'RA'\nevents [('handler', b'\\xd8\\x00\\x00A', 0, 2, 'illegal UTF-16 surrogate', (b'\\xd8', 0)), ('handler', b'\\xd8\\x00B', 0, 3, 'unexpected end of data', (b'\\xd8', 0)), ('nested', 'N', (b'', 0)), ('index', -2)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-16-be; reenter_once; raise",
+      "sourceSha256": "9a255bca6f4306cd6f452de94a02a426da4df2655541ccc521f4553adfc7f6f2",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xd8', 0)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\xd8\\x00\\x00A', 0, 2, 'illegal UTF-16 surrogate', (b'\\xd8', 0)), ('handler', b'\\xd8\\x00B', 0, 3, 'unexpected end of data', (b'\\xd8', 0)), ('nested', 'N', (b'', 0))]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-16-be; reenter_once; overflow",
+      "sourceSha256": "7e24a145ee0593800540d43dc8547d88e4902fbd798d103f891a771dac16f0bb",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xd8', 0)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\xd8\\x00\\x00A', 0, 2, 'illegal UTF-16 surrogate', (b'\\xd8', 0)), ('handler', b'\\xd8\\x00B', 0, 3, 'unexpected end of data', (b'\\xd8', 0)), ('nested', 'N', (b'', 0)), ('index', 1267650600228229401496703205376)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-16-be; reset; return",
+      "sourceSha256": "a62fc3c93ec1edcabc618172038f5f3a3de58ce2ee0c44ce7f076df76591e637",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xd8', 0)\nresult 'RA'\nevents [('handler', b'\\xd8\\x00\\x00A', 0, 2, 'illegal UTF-16 surrogate', (b'\\xd8', 0)), ('reset', (b'', 0)), ('index', -2)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-16-be; reset; raise",
+      "sourceSha256": "c36dc97b21e1a59aac69ee29f84ca9deefba323c8eb3ac14313d65a8122efcac",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xd8', 0)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\xd8\\x00\\x00A', 0, 2, 'illegal UTF-16 surrogate', (b'\\xd8', 0)), ('reset', (b'', 0))]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-16-be; reset; overflow",
+      "sourceSha256": "76b21d32435811c49fb8237e5cfa0446a2b76b0af1c776e1b5d3ae73ae4c6d10",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xd8', 0)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\xd8\\x00\\x00A', 0, 2, 'illegal UTF-16 surrogate', (b'\\xd8', 0)), ('reset', (b'', 0)), ('index', 1267650600228229401496703205376)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-16-be; restore; return",
+      "sourceSha256": "a4044fd4c4c2e5773f745181ce2a3c4ea9e5176d6a62a9efeb87571e5510d40f",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xd8', 0)\nresult 'RA'\nevents [('handler', b'\\xd8\\x00\\x00A', 0, 2, 'illegal UTF-16 surrogate', (b'\\xd8', 0)), ('restore', (b'', 0)), ('index', -2)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-16-be; restore; raise",
+      "sourceSha256": "f77323516def8ddf31750d261aba1b3e2aa991470d7aa27461b2880693a5db68",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xd8', 0)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\xd8\\x00\\x00A', 0, 2, 'illegal UTF-16 surrogate', (b'\\xd8', 0)), ('restore', (b'', 0))]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-16-be; restore; overflow",
+      "sourceSha256": "f6c1ae9ed02fb7af1dccf7508d60efe90769e8c2a0fad1d20289fba1529e1a2e",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xd8', 0)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\xd8\\x00\\x00A', 0, 2, 'illegal UTF-16 surrogate', (b'\\xd8', 0)), ('restore', (b'', 0)), ('index', 1267650600228229401496703205376)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-16-be; replace_handler; return",
+      "sourceSha256": "de62beaf1507e17e7eb7ab847dde967bd348d178dcd3a8c8bcde9e21eaa14aff",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xd8', 0)\nresult 'RA'\nevents [('handler', b'\\xd8\\x00\\x00A', 0, 2, 'illegal UTF-16 surrogate', (b'\\xd8', 0)), ('registered', True), ('index', -2)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-16-be; replace_handler; raise",
+      "sourceSha256": "cc9aa5594d98b7bb355b6f600a66d030c45344bce7d335a7f88a1643c73f58c4",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xd8', 0)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\xd8\\x00\\x00A', 0, 2, 'illegal UTF-16 surrogate', (b'\\xd8', 0)), ('registered', True)]\nstate (b'\\xd8', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-16-be; replace_handler; overflow",
+      "sourceSha256": "80d3e5f788b93cea4312abce2ddaa2061dc18ea45653bdb4ce5b14d0fcba1512",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\xd8', 0)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\xd8\\x00\\x00A', 0, 2, 'illegal UTF-16 surrogate', (b'\\xd8', 0)), ('registered', True), ('index', 1267650600228229401496703205376)]\nstate (b'\\xd8', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-32-le; reenter; return",
+      "sourceSha256": "b97f81c2105dbce19677f071cda6a7b302a1747be9d147193bb02c3114adc74c",
+      "result": {
+        "status": "terminated",
+        "reason": "internal",
+        "message": "Maximum call stack size exceeded"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\n",
+      "stdoutMatches": false
+    },
+    {
+      "name": "utf-32-le; reenter; raise",
+      "sourceSha256": "9ef578574245ebfd9726d338071a1bd0dfa21b777cc8e29f1e259ab807d93c3e",
+      "result": {
+        "status": "terminated",
+        "reason": "internal",
+        "message": "Maximum call stack size exceeded"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\n",
+      "stdoutMatches": false
+    },
+    {
+      "name": "utf-32-le; reenter; overflow",
+      "sourceSha256": "43e607d449de65dd16305ad6cb58138f8a9aba01cef43e56d6a7516d29b58fc6",
+      "result": {
+        "status": "terminated",
+        "reason": "internal",
+        "message": "Maximum call stack size exceeded"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\n",
+      "stdoutMatches": false
+    },
+    {
+      "name": "utf-32-le; reenter_once; return",
+      "sourceSha256": "054e1063e20443f4b56b05474e51d14b7826f96efbb85b99dfda3be2c13733a8",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nresult 'RA'\nevents [('handler', b'\\x00\\x00\\x11\\x00A\\x00\\x00\\x00', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('handler', b'\\x00B\\x00\\x00\\x00', 4, 5, 'truncated data', (b'\\x00', 0)), ('nested', '䈀N', (b'', 0)), ('index', -4)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-32-le; reenter_once; raise",
+      "sourceSha256": "9b1db062640041d98c5fcaceaecf73062a1ed63727412bf0af888307b385721c",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\x00\\x00\\x11\\x00A\\x00\\x00\\x00', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('handler', b'\\x00B\\x00\\x00\\x00', 4, 5, 'truncated data', (b'\\x00', 0)), ('nested', '䈀N', (b'', 0))]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-32-le; reenter_once; overflow",
+      "sourceSha256": "6f1464b969aa3ac9fdd81cbcc37981ae52aad9a68c2617f2a11597a12b7b9ce0",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\x00\\x00\\x11\\x00A\\x00\\x00\\x00', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('handler', b'\\x00B\\x00\\x00\\x00', 4, 5, 'truncated data', (b'\\x00', 0)), ('nested', '䈀N', (b'', 0)), ('index', 1267650600228229401496703205376)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-32-le; reset; return",
+      "sourceSha256": "c05816ae6e73e0070c261f625e709ae7c526d082c60338d20033b3d95b11690d",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nresult 'RA'\nevents [('handler', b'\\x00\\x00\\x11\\x00A\\x00\\x00\\x00', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('reset', (b'', 0)), ('index', -4)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-32-le; reset; raise",
+      "sourceSha256": "6c8cce811be4171057d5b4f67e4ff2d78a5b9638c8b027822869d55b3b827843",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\x00\\x00\\x11\\x00A\\x00\\x00\\x00', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('reset', (b'', 0))]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-32-le; reset; overflow",
+      "sourceSha256": "5da25c09eac2f24a177b9b1e18cabb6226b95652d945c621f66e4252b1a21849",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\x00\\x00\\x11\\x00A\\x00\\x00\\x00', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('reset', (b'', 0)), ('index', 1267650600228229401496703205376)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-32-le; restore; return",
+      "sourceSha256": "8b8243704d1201b810cb3e477e8811ccb491e48ce820ebb0cf4084c9411fae16",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nresult 'RA'\nevents [('handler', b'\\x00\\x00\\x11\\x00A\\x00\\x00\\x00', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('restore', (b'', 0)), ('index', -4)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-32-le; restore; raise",
+      "sourceSha256": "c7f4a40bab43d4fd624084b12969b431a458b2084d683213552d5820aa8f6ed1",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\x00\\x00\\x11\\x00A\\x00\\x00\\x00', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('restore', (b'', 0))]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-32-le; restore; overflow",
+      "sourceSha256": "4e1825ad5a86b089f2645eac0b1b1a76d88ca337be7f717c74b1bc09d85c9351",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\x00\\x00\\x11\\x00A\\x00\\x00\\x00', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('restore', (b'', 0)), ('index', 1267650600228229401496703205376)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-32-le; replace_handler; return",
+      "sourceSha256": "37cf3778c60f7f26864f98e2c3347b0ded9b839b751a6123400d21b21fb74269",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nresult 'RA'\nevents [('handler', b'\\x00\\x00\\x11\\x00A\\x00\\x00\\x00', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('registered', True), ('index', -4)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-32-le; replace_handler; raise",
+      "sourceSha256": "dcbfc3ef7875520ce51cfbe39f581d42e41078d31597e3c84165c938fd972e9a",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\x00\\x00\\x11\\x00A\\x00\\x00\\x00', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('registered', True)]\nstate (b'\\x00', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-32-le; replace_handler; overflow",
+      "sourceSha256": "dd8fa92741b6a45203d62ae72178c2b924dceef8db482b93c9be72ca16b6d995",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\x00\\x00\\x11\\x00A\\x00\\x00\\x00', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('registered', True), ('index', 1267650600228229401496703205376)]\nstate (b'\\x00', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-32-be; reenter; return",
+      "sourceSha256": "f00bb2cbf46db9dc278fb841a7e1f3da050ecb473a335f9862e5376f5dd7e767",
+      "result": {
+        "status": "terminated",
+        "reason": "internal",
+        "message": "Maximum call stack size exceeded"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\n",
+      "stdoutMatches": false
+    },
+    {
+      "name": "utf-32-be; reenter; raise",
+      "sourceSha256": "d2e805ea7880b1216b64d0196b57ef12fdfbd1632b03a6d57aff8bc931a88c7f",
+      "result": {
+        "status": "terminated",
+        "reason": "internal",
+        "message": "Maximum call stack size exceeded"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\n",
+      "stdoutMatches": false
+    },
+    {
+      "name": "utf-32-be; reenter; overflow",
+      "sourceSha256": "23c13c93b22fa87f1897c556ea82dd35171c599c4e20cbe6e81be747338ea73c",
+      "result": {
+        "status": "terminated",
+        "reason": "internal",
+        "message": "Maximum call stack size exceeded"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\n",
+      "stdoutMatches": false
+    },
+    {
+      "name": "utf-32-be; reenter_once; return",
+      "sourceSha256": "6aa7eb0321e18f0b1d59995d6954c8b197942a004fe35402cbd42d7b239913fd",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nresult 'RA'\nevents [('handler', b'\\x00\\x11\\x00\\x00\\x00\\x00\\x00A', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('handler', b'\\x00\\x00\\x00\\x00B', 4, 5, 'truncated data', (b'\\x00', 0)), ('nested', '\\x00N', (b'', 0)), ('index', -4)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-32-be; reenter_once; raise",
+      "sourceSha256": "e5424635087ab247d1ad570b071311b052802a01182c4cb6a2167544b69f9413",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\x00\\x11\\x00\\x00\\x00\\x00\\x00A', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('handler', b'\\x00\\x00\\x00\\x00B', 4, 5, 'truncated data', (b'\\x00', 0)), ('nested', '\\x00N', (b'', 0))]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-32-be; reenter_once; overflow",
+      "sourceSha256": "28f48ec416769333b9689b12d21bddda523162d180b774bb45ab63b3b1d98e3c",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\x00\\x11\\x00\\x00\\x00\\x00\\x00A', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('handler', b'\\x00\\x00\\x00\\x00B', 4, 5, 'truncated data', (b'\\x00', 0)), ('nested', '\\x00N', (b'', 0)), ('index', 1267650600228229401496703205376)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-32-be; reset; return",
+      "sourceSha256": "aaf98065462431096bfe721c8fa0aa1f5ff62c6a7bcc362288f8a9d330e33eec",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nresult 'RA'\nevents [('handler', b'\\x00\\x11\\x00\\x00\\x00\\x00\\x00A', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('reset', (b'', 0)), ('index', -4)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-32-be; reset; raise",
+      "sourceSha256": "86090c7fc7c43a611b0c302009c001adccec02daac8c703eb1335b2f1939a399",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\x00\\x11\\x00\\x00\\x00\\x00\\x00A', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('reset', (b'', 0))]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-32-be; reset; overflow",
+      "sourceSha256": "8cea9738ff18d8d06d0b5202625fe5b9a47ee40b3e024aba7b62ae80c5200e9a",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\x00\\x11\\x00\\x00\\x00\\x00\\x00A', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('reset', (b'', 0)), ('index', 1267650600228229401496703205376)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-32-be; restore; return",
+      "sourceSha256": "3d017d18193a72d5379398664817ec432f0b51c68e416831b7ba7b7ec1323e8a",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nresult 'RA'\nevents [('handler', b'\\x00\\x11\\x00\\x00\\x00\\x00\\x00A', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('restore', (b'', 0)), ('index', -4)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-32-be; restore; raise",
+      "sourceSha256": "86dcb44fb16522586545181843e44da48a61b5c994e25a761ff585e70febcd48",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\x00\\x11\\x00\\x00\\x00\\x00\\x00A', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('restore', (b'', 0))]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-32-be; restore; overflow",
+      "sourceSha256": "7dd6471a8a7455a0a2f723531d54f88cf86a0ab6e3891afff1478401bcbb564f",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\x00\\x11\\x00\\x00\\x00\\x00\\x00A', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('restore', (b'', 0)), ('index', 1267650600228229401496703205376)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-32-be; replace_handler; return",
+      "sourceSha256": "9352e97938ada48ff056023d9ea90dacbdf3b12dc8bafd2b85bd160a2266e47e",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nresult 'RA'\nevents [('handler', b'\\x00\\x11\\x00\\x00\\x00\\x00\\x00A', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('registered', True), ('index', -4)]\nstate (b'', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-32-be; replace_handler; raise",
+      "sourceSha256": "87c20fd448571f5c675bc05f1590b341203bd0c0ab29fddf6c7569cdbfe9c201",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nfailure ValueError ('callback failure',) True\nevents [('handler', b'\\x00\\x11\\x00\\x00\\x00\\x00\\x00A', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('registered', True)]\nstate (b'\\x00', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-32-be; replace_handler; overflow",
+      "sourceSha256": "eab1722af5c7e2ee54512a0ef7b6dd8a03a1614cfb5ba88e0551cbca0e273c74",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\nfailure OverflowError ('Python int too large to convert to C ssize_t',) False\nevents [('handler', b'\\x00\\x11\\x00\\x00\\x00\\x00\\x00A', 0, 4, 'code point not in range(0x110000)', (b'\\x00', 0)), ('registered', True), ('index', 1267650600228229401496703205376)]\nstate (b'\\x00', 0)\nafter reset 'B' (b'', 0)\n",
+      "stdoutMatches": true
+    },
+    {
+      "name": "utf-8 lifecycle",
+      "sourceSha256": "6cc105b60d393b52dfc4cc88035e61e31b33596554dfcde8a60532f5048e9412",
+      "result": {
+        "status": "terminated",
+        "reason": "internal",
+        "message": "Maximum call stack size exceeded"
+      },
+      "stdout": "prefix '' (b'\\xed', 0)\n",
+      "stdoutMatches": false
+    },
+    {
+      "name": "utf-8-sig lifecycle",
+      "sourceSha256": "7b93f7c78c5c04638d0661a2a1f2a67a1a7ad2f8dfe6728bda21d082b4f893c0",
+      "result": {
+        "status": "terminated",
+        "reason": "internal",
+        "message": "Maximum call stack size exceeded"
+      },
+      "stdout": "prefix '' (b'\\xef', 1)\n",
+      "stdoutMatches": false
+    },
+    {
+      "name": "utf-16-le lifecycle",
+      "sourceSha256": "3f76ea6514402a36b4b5791c4bf6777286d40c507d5bbf42403c2bafded9ec92",
+      "result": {
+        "status": "terminated",
+        "reason": "internal",
+        "message": "Maximum call stack size exceeded"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\n",
+      "stdoutMatches": false
+    },
+    {
+      "name": "utf-16-be lifecycle",
+      "sourceSha256": "9d8affc69cd124493d3d44863924a5596d4fa0b3f61a31538279c8fca363cebe",
+      "result": {
+        "status": "terminated",
+        "reason": "internal",
+        "message": "Maximum call stack size exceeded"
+      },
+      "stdout": "prefix '' (b'\\xd8', 0)\n",
+      "stdoutMatches": false
+    },
+    {
+      "name": "utf-32-le lifecycle",
+      "sourceSha256": "de9de878f2484ed07c9f92ef6f0037bf75b241f50472fcbab864b60bd1aacfb2",
+      "result": {
+        "status": "terminated",
+        "reason": "internal",
+        "message": "Maximum call stack size exceeded"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\n",
+      "stdoutMatches": false
+    },
+    {
+      "name": "utf-32-be lifecycle",
+      "sourceSha256": "0a8fe157fd014bb575f998f598907e0b2989fe172f62ba18fc8712b6d3a92cd4",
+      "result": {
+        "status": "terminated",
+        "reason": "internal",
+        "message": "Maximum call stack size exceeded"
+      },
+      "stdout": "prefix '' (b'\\x00', 0)\n",
+      "stdoutMatches": false
+    }
+  ]
+}

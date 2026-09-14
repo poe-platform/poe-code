@@ -47,6 +47,6 @@ export function runtimeDictionaryAccess(object: DictionaryValue, key: RuntimeVal
   } catch (error) {
     if (!(error instanceof UnhashableRuntimeValueError) && !(error instanceof RuntimeHashError)) throw error;
     const type = error instanceof RuntimeHashError ? error.keyType : key.kind;
-    throw new PythonRuntimeError("TypeError", `cannot use '${type}' as a dict key (${error.message})`);
+    throw new PythonRuntimeError("TypeError", `cannot use '${type}' as a dict key (${error instanceof RuntimeHashError ? error.detail() : error.message})`);
   }
 }

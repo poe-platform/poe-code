@@ -1,0 +1,293 @@
+{
+  "target": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "node": "v22.23.2",
+  "description": "Actual PythonSession with explicit fs.readSync line input and complete fs.writeSync output; no guest filesystem capability. IDNA public integration remains unimplemented.",
+  "rows": [
+    {
+      "encoding": "utf-8",
+      "mode": "continue",
+      "source": "import codecs\nsearches = []\ninfo = (None, None, None, None)\ndef search(name):\n    searches.append(name)\n    if name == 'isolation_codec':\n        return info\ncodecs.register(search)\nassert codecs.lookup('Isolation-Codec') is info\nassert codecs.lookup('ISOLATION CODEC') is info\nassert searches == ['isolation_codec']\nseen = []\nfailure = ValueError('recovery failed')\ndef recover(error):\n    seen.append(error)\n    response = input()\n    if response == 'guest-failure':\n        raise failure\n    assert response == 'ready'\n    return ('?', -1)\ncodecs.register_error('isolation-handler', recover)\ndecoder = codecs.getincrementaldecoder('utf-8')('isolation-handler')\nassert decoder.decode(b'\\xe2', False) == ''\nstate = decoder.getstate()\nassert state[0] == b'\\xe2'\nassert codecs.lookup_error('isolation-handler') is recover\nassert codecs.lookup('isolation codec') is info\nassert decoder.getstate() == state\nassert decoder.decode(b'\\x82\\xac\\xffA', True) == '\\u20ac?A'\nassert len(seen) == 1\nassert decoder.getstate()[0] == b''\nprint('recovered')\ncodecs.unregister(search)\ntry:\n    codecs.lookup('isolation-codec')\nexcept LookupError:\n    pass\nelse:\n    raise AssertionError('removed codec survived invalidation')\ncodecs.register_error('isolation-handler', lambda error: ('!', error.end))\n",
+      "input": "ready\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "recovered\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "output": "recovered\n",
+        "reads": 1
+      },
+      "matched": true
+    },
+    {
+      "encoding": "utf-8",
+      "mode": "cancel-return",
+      "source": "import codecs\nsearches = []\ninfo = (None, None, None, None)\ndef search(name):\n    searches.append(name)\n    if name == 'isolation_codec':\n        return info\ncodecs.register(search)\nassert codecs.lookup('Isolation-Codec') is info\nassert codecs.lookup('ISOLATION CODEC') is info\nassert searches == ['isolation_codec']\nseen = []\nfailure = ValueError('recovery failed')\ndef recover(error):\n    seen.append(error)\n    response = input()\n    if response == 'guest-failure':\n        raise failure\n    assert response == 'ready'\n    return ('?', -1)\ncodecs.register_error('isolation-handler', recover)\ndecoder = codecs.getincrementaldecoder('utf-8')('isolation-handler')\nassert decoder.decode(b'\\xe2', False) == ''\nstate = decoder.getstate()\nassert state[0] == b'\\xe2'\nassert codecs.lookup_error('isolation-handler') is recover\nassert codecs.lookup('isolation codec') is info\nassert decoder.getstate() == state\nassert decoder.decode(b'\\x82\\xac\\xffA', True) == '\\u20ac?A'\nassert len(seen) == 1\nassert decoder.getstate()[0] == b''\nprint('recovered')\ncodecs.unregister(search)\ntry:\n    codecs.lookup('isolation-codec')\nexcept LookupError:\n    pass\nelse:\n    raise AssertionError('removed codec survived invalidation')\ncodecs.register_error('isolation-handler', lambda error: ('!', error.end))\n",
+      "input": "ready\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "recovered\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "output": "",
+        "reads": 1,
+        "subsequent": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      },
+      "matched": true
+    },
+    {
+      "encoding": "utf-8",
+      "mode": "cancel-throw",
+      "source": "import codecs\nsearches = []\ninfo = (None, None, None, None)\ndef search(name):\n    searches.append(name)\n    if name == 'isolation_codec':\n        return info\ncodecs.register(search)\nassert codecs.lookup('Isolation-Codec') is info\nassert codecs.lookup('ISOLATION CODEC') is info\nassert searches == ['isolation_codec']\nseen = []\nfailure = ValueError('recovery failed')\ndef recover(error):\n    seen.append(error)\n    response = input()\n    if response == 'guest-failure':\n        raise failure\n    assert response == 'ready'\n    return ('?', -1)\ncodecs.register_error('isolation-handler', recover)\ndecoder = codecs.getincrementaldecoder('utf-8')('isolation-handler')\nassert decoder.decode(b'\\xe2', False) == ''\nstate = decoder.getstate()\nassert state[0] == b'\\xe2'\nassert codecs.lookup_error('isolation-handler') is recover\nassert codecs.lookup('isolation codec') is info\nassert decoder.getstate() == state\nassert decoder.decode(b'\\x82\\xac\\xffA', True) == '\\u20ac?A'\nassert len(seen) == 1\nassert decoder.getstate()[0] == b''\nprint('recovered')\ncodecs.unregister(search)\ntry:\n    codecs.lookup('isolation-codec')\nexcept LookupError:\n    pass\nelse:\n    raise AssertionError('removed codec survived invalidation')\ncodecs.register_error('isolation-handler', lambda error: ('!', error.end))\n",
+      "input": "ready\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "recovered\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "output": "",
+        "reads": 1,
+        "subsequent": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      },
+      "matched": true
+    },
+    {
+      "encoding": "utf-16-le",
+      "mode": "continue",
+      "source": "import codecs\nsearches = []\ninfo = (None, None, None, None)\ndef search(name):\n    searches.append(name)\n    if name == 'isolation_codec':\n        return info\ncodecs.register(search)\nassert codecs.lookup('Isolation-Codec') is info\nassert codecs.lookup('ISOLATION CODEC') is info\nassert searches == ['isolation_codec']\nseen = []\nfailure = ValueError('recovery failed')\ndef recover(error):\n    seen.append(error)\n    response = input()\n    if response == 'guest-failure':\n        raise failure\n    assert response == 'ready'\n    return ('?', -2)\ncodecs.register_error('isolation-handler', recover)\ndecoder = codecs.getincrementaldecoder('utf-16-le')('isolation-handler')\nassert decoder.decode(b'\\xac', False) == ''\nstate = decoder.getstate()\nassert state[0] == b'\\xac'\nassert codecs.lookup_error('isolation-handler') is recover\nassert codecs.lookup('isolation codec') is info\nassert decoder.getstate() == state\nassert decoder.decode(b'\\x20\\x00\\xdcA\\x00', True) == '\\u20ac?A'\nassert len(seen) == 1\nassert decoder.getstate()[0] == b''\nprint('recovered')\ncodecs.unregister(search)\ntry:\n    codecs.lookup('isolation-codec')\nexcept LookupError:\n    pass\nelse:\n    raise AssertionError('removed codec survived invalidation')\ncodecs.register_error('isolation-handler', lambda error: ('!', error.end))\n",
+      "input": "ready\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "recovered\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "output": "recovered\n",
+        "reads": 1
+      },
+      "matched": true
+    },
+    {
+      "encoding": "utf-16-le",
+      "mode": "cancel-return",
+      "source": "import codecs\nsearches = []\ninfo = (None, None, None, None)\ndef search(name):\n    searches.append(name)\n    if name == 'isolation_codec':\n        return info\ncodecs.register(search)\nassert codecs.lookup('Isolation-Codec') is info\nassert codecs.lookup('ISOLATION CODEC') is info\nassert searches == ['isolation_codec']\nseen = []\nfailure = ValueError('recovery failed')\ndef recover(error):\n    seen.append(error)\n    response = input()\n    if response == 'guest-failure':\n        raise failure\n    assert response == 'ready'\n    return ('?', -2)\ncodecs.register_error('isolation-handler', recover)\ndecoder = codecs.getincrementaldecoder('utf-16-le')('isolation-handler')\nassert decoder.decode(b'\\xac', False) == ''\nstate = decoder.getstate()\nassert state[0] == b'\\xac'\nassert codecs.lookup_error('isolation-handler') is recover\nassert codecs.lookup('isolation codec') is info\nassert decoder.getstate() == state\nassert decoder.decode(b'\\x20\\x00\\xdcA\\x00', True) == '\\u20ac?A'\nassert len(seen) == 1\nassert decoder.getstate()[0] == b''\nprint('recovered')\ncodecs.unregister(search)\ntry:\n    codecs.lookup('isolation-codec')\nexcept LookupError:\n    pass\nelse:\n    raise AssertionError('removed codec survived invalidation')\ncodecs.register_error('isolation-handler', lambda error: ('!', error.end))\n",
+      "input": "ready\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "recovered\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "output": "",
+        "reads": 1,
+        "subsequent": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      },
+      "matched": true
+    },
+    {
+      "encoding": "utf-16-le",
+      "mode": "cancel-throw",
+      "source": "import codecs\nsearches = []\ninfo = (None, None, None, None)\ndef search(name):\n    searches.append(name)\n    if name == 'isolation_codec':\n        return info\ncodecs.register(search)\nassert codecs.lookup('Isolation-Codec') is info\nassert codecs.lookup('ISOLATION CODEC') is info\nassert searches == ['isolation_codec']\nseen = []\nfailure = ValueError('recovery failed')\ndef recover(error):\n    seen.append(error)\n    response = input()\n    if response == 'guest-failure':\n        raise failure\n    assert response == 'ready'\n    return ('?', -2)\ncodecs.register_error('isolation-handler', recover)\ndecoder = codecs.getincrementaldecoder('utf-16-le')('isolation-handler')\nassert decoder.decode(b'\\xac', False) == ''\nstate = decoder.getstate()\nassert state[0] == b'\\xac'\nassert codecs.lookup_error('isolation-handler') is recover\nassert codecs.lookup('isolation codec') is info\nassert decoder.getstate() == state\nassert decoder.decode(b'\\x20\\x00\\xdcA\\x00', True) == '\\u20ac?A'\nassert len(seen) == 1\nassert decoder.getstate()[0] == b''\nprint('recovered')\ncodecs.unregister(search)\ntry:\n    codecs.lookup('isolation-codec')\nexcept LookupError:\n    pass\nelse:\n    raise AssertionError('removed codec survived invalidation')\ncodecs.register_error('isolation-handler', lambda error: ('!', error.end))\n",
+      "input": "ready\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "recovered\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "output": "",
+        "reads": 1,
+        "subsequent": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      },
+      "matched": true
+    },
+    {
+      "encoding": "utf-32-be",
+      "mode": "continue",
+      "source": "import codecs\nsearches = []\ninfo = (None, None, None, None)\ndef search(name):\n    searches.append(name)\n    if name == 'isolation_codec':\n        return info\ncodecs.register(search)\nassert codecs.lookup('Isolation-Codec') is info\nassert codecs.lookup('ISOLATION CODEC') is info\nassert searches == ['isolation_codec']\nseen = []\nfailure = ValueError('recovery failed')\ndef recover(error):\n    seen.append(error)\n    response = input()\n    if response == 'guest-failure':\n        raise failure\n    assert response == 'ready'\n    return ('?', -4)\ncodecs.register_error('isolation-handler', recover)\ndecoder = codecs.getincrementaldecoder('utf-32-be')('isolation-handler')\nassert decoder.decode(b'\\x00\\x00', False) == ''\nstate = decoder.getstate()\nassert state[0] == b'\\x00\\x00'\nassert codecs.lookup_error('isolation-handler') is recover\nassert codecs.lookup('isolation codec') is info\nassert decoder.getstate() == state\nassert decoder.decode(b'\\x20\\xac\\x00\\x11\\x00\\x00\\x00\\x00\\x00A', True) == '\\u20ac?A'\nassert len(seen) == 1\nassert decoder.getstate()[0] == b''\nprint('recovered')\ncodecs.unregister(search)\ntry:\n    codecs.lookup('isolation-codec')\nexcept LookupError:\n    pass\nelse:\n    raise AssertionError('removed codec survived invalidation')\ncodecs.register_error('isolation-handler', lambda error: ('!', error.end))\n",
+      "input": "ready\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "recovered\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "output": "recovered\n",
+        "reads": 1
+      },
+      "matched": true
+    },
+    {
+      "encoding": "utf-32-be",
+      "mode": "cancel-return",
+      "source": "import codecs\nsearches = []\ninfo = (None, None, None, None)\ndef search(name):\n    searches.append(name)\n    if name == 'isolation_codec':\n        return info\ncodecs.register(search)\nassert codecs.lookup('Isolation-Codec') is info\nassert codecs.lookup('ISOLATION CODEC') is info\nassert searches == ['isolation_codec']\nseen = []\nfailure = ValueError('recovery failed')\ndef recover(error):\n    seen.append(error)\n    response = input()\n    if response == 'guest-failure':\n        raise failure\n    assert response == 'ready'\n    return ('?', -4)\ncodecs.register_error('isolation-handler', recover)\ndecoder = codecs.getincrementaldecoder('utf-32-be')('isolation-handler')\nassert decoder.decode(b'\\x00\\x00', False) == ''\nstate = decoder.getstate()\nassert state[0] == b'\\x00\\x00'\nassert codecs.lookup_error('isolation-handler') is recover\nassert codecs.lookup('isolation codec') is info\nassert decoder.getstate() == state\nassert decoder.decode(b'\\x20\\xac\\x00\\x11\\x00\\x00\\x00\\x00\\x00A', True) == '\\u20ac?A'\nassert len(seen) == 1\nassert decoder.getstate()[0] == b''\nprint('recovered')\ncodecs.unregister(search)\ntry:\n    codecs.lookup('isolation-codec')\nexcept LookupError:\n    pass\nelse:\n    raise AssertionError('removed codec survived invalidation')\ncodecs.register_error('isolation-handler', lambda error: ('!', error.end))\n",
+      "input": "ready\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "recovered\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "output": "",
+        "reads": 1,
+        "subsequent": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      },
+      "matched": true
+    },
+    {
+      "encoding": "utf-32-be",
+      "mode": "cancel-throw",
+      "source": "import codecs\nsearches = []\ninfo = (None, None, None, None)\ndef search(name):\n    searches.append(name)\n    if name == 'isolation_codec':\n        return info\ncodecs.register(search)\nassert codecs.lookup('Isolation-Codec') is info\nassert codecs.lookup('ISOLATION CODEC') is info\nassert searches == ['isolation_codec']\nseen = []\nfailure = ValueError('recovery failed')\ndef recover(error):\n    seen.append(error)\n    response = input()\n    if response == 'guest-failure':\n        raise failure\n    assert response == 'ready'\n    return ('?', -4)\ncodecs.register_error('isolation-handler', recover)\ndecoder = codecs.getincrementaldecoder('utf-32-be')('isolation-handler')\nassert decoder.decode(b'\\x00\\x00', False) == ''\nstate = decoder.getstate()\nassert state[0] == b'\\x00\\x00'\nassert codecs.lookup_error('isolation-handler') is recover\nassert codecs.lookup('isolation codec') is info\nassert decoder.getstate() == state\nassert decoder.decode(b'\\x20\\xac\\x00\\x11\\x00\\x00\\x00\\x00\\x00A', True) == '\\u20ac?A'\nassert len(seen) == 1\nassert decoder.getstate()[0] == b''\nprint('recovered')\ncodecs.unregister(search)\ntry:\n    codecs.lookup('isolation-codec')\nexcept LookupError:\n    pass\nelse:\n    raise AssertionError('removed codec survived invalidation')\ncodecs.register_error('isolation-handler', lambda error: ('!', error.end))\n",
+      "input": "ready\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "recovered\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "output": "",
+        "reads": 1,
+        "subsequent": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      },
+      "matched": true
+    },
+    {
+      "encoding": "utf-7",
+      "mode": "continue",
+      "source": "import codecs\nsearches = []\ninfo = (None, None, None, None)\ndef search(name):\n    searches.append(name)\n    if name == 'isolation_codec':\n        return info\ncodecs.register(search)\nassert codecs.lookup('Isolation-Codec') is info\nassert codecs.lookup('ISOLATION CODEC') is info\nassert searches == ['isolation_codec']\nseen = []\nfailure = ValueError('recovery failed')\ndef recover(error):\n    seen.append(error)\n    response = input()\n    if response == 'guest-failure':\n        raise failure\n    assert response == 'ready'\n    return ('?', -1)\ncodecs.register_error('isolation-handler', recover)\ndecoder = codecs.getincrementaldecoder('utf-7')('isolation-handler')\nassert decoder.decode(b'+IK', False) == ''\nstate = decoder.getstate()\nassert state[0] == b'+IK'\nassert codecs.lookup_error('isolation-handler') is recover\nassert codecs.lookup('isolation codec') is info\nassert decoder.getstate() == state\nassert decoder.decode(b'w-\\xffA', True) == '\\u20ac?A'\nassert len(seen) == 1\nassert decoder.getstate()[0] == b''\nprint('recovered')\ncodecs.unregister(search)\ntry:\n    codecs.lookup('isolation-codec')\nexcept LookupError:\n    pass\nelse:\n    raise AssertionError('removed codec survived invalidation')\ncodecs.register_error('isolation-handler', lambda error: ('!', error.end))\n",
+      "input": "ready\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "recovered\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "output": "recovered\n",
+        "reads": 1
+      },
+      "matched": true
+    },
+    {
+      "encoding": "utf-7",
+      "mode": "cancel-return",
+      "source": "import codecs\nsearches = []\ninfo = (None, None, None, None)\ndef search(name):\n    searches.append(name)\n    if name == 'isolation_codec':\n        return info\ncodecs.register(search)\nassert codecs.lookup('Isolation-Codec') is info\nassert codecs.lookup('ISOLATION CODEC') is info\nassert searches == ['isolation_codec']\nseen = []\nfailure = ValueError('recovery failed')\ndef recover(error):\n    seen.append(error)\n    response = input()\n    if response == 'guest-failure':\n        raise failure\n    assert response == 'ready'\n    return ('?', -1)\ncodecs.register_error('isolation-handler', recover)\ndecoder = codecs.getincrementaldecoder('utf-7')('isolation-handler')\nassert decoder.decode(b'+IK', False) == ''\nstate = decoder.getstate()\nassert state[0] == b'+IK'\nassert codecs.lookup_error('isolation-handler') is recover\nassert codecs.lookup('isolation codec') is info\nassert decoder.getstate() == state\nassert decoder.decode(b'w-\\xffA', True) == '\\u20ac?A'\nassert len(seen) == 1\nassert decoder.getstate()[0] == b''\nprint('recovered')\ncodecs.unregister(search)\ntry:\n    codecs.lookup('isolation-codec')\nexcept LookupError:\n    pass\nelse:\n    raise AssertionError('removed codec survived invalidation')\ncodecs.register_error('isolation-handler', lambda error: ('!', error.end))\n",
+      "input": "ready\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "recovered\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "output": "",
+        "reads": 1,
+        "subsequent": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      },
+      "matched": true
+    },
+    {
+      "encoding": "utf-7",
+      "mode": "cancel-throw",
+      "source": "import codecs\nsearches = []\ninfo = (None, None, None, None)\ndef search(name):\n    searches.append(name)\n    if name == 'isolation_codec':\n        return info\ncodecs.register(search)\nassert codecs.lookup('Isolation-Codec') is info\nassert codecs.lookup('ISOLATION CODEC') is info\nassert searches == ['isolation_codec']\nseen = []\nfailure = ValueError('recovery failed')\ndef recover(error):\n    seen.append(error)\n    response = input()\n    if response == 'guest-failure':\n        raise failure\n    assert response == 'ready'\n    return ('?', -1)\ncodecs.register_error('isolation-handler', recover)\ndecoder = codecs.getincrementaldecoder('utf-7')('isolation-handler')\nassert decoder.decode(b'+IK', False) == ''\nstate = decoder.getstate()\nassert state[0] == b'+IK'\nassert codecs.lookup_error('isolation-handler') is recover\nassert codecs.lookup('isolation codec') is info\nassert decoder.getstate() == state\nassert decoder.decode(b'w-\\xffA', True) == '\\u20ac?A'\nassert len(seen) == 1\nassert decoder.getstate()[0] == b''\nprint('recovered')\ncodecs.unregister(search)\ntry:\n    codecs.lookup('isolation-codec')\nexcept LookupError:\n    pass\nelse:\n    raise AssertionError('removed codec survived invalidation')\ncodecs.register_error('isolation-handler', lambda error: ('!', error.end))\n",
+      "input": "ready\n",
+      "oracle": {
+        "status": 0,
+        "stdout": "recovered\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "output": "",
+        "reads": 1,
+        "subsequent": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      },
+      "matched": true
+    }
+  ],
+  "idnaOracleReplay": {
+    "source": "import sys,json,encodings.idna as idna,unicodedata\nassert sys.version_info[:3]==(3,14,7) and unicodedata.unidata_version=='16.0.0'\ndef fault(e):\n d=dict(name=type(e).__name__,message=str(e),suppressContext=e.__suppress_context__)\n if isinstance(e,(UnicodeEncodeError,UnicodeDecodeError)):\n  d.update(encoding=e.encoding,object=list(e.object) if isinstance(e.object,bytes) else list(map(ord,e.object)),start=str(e.start),end=str(e.end),reason=e.reason)\n if e.__context__ is not None:d['context']=fault(e.__context__)\n return d\nmode,rows=json.load(sys.stdin)\nfor row in rows:\n row.pop('result',None);row.pop('consumed',None);row.pop('error',None)\n value=bytes(row['input']) if row.get('binary') or row.get('operation')=='decode' else ''.join(map(chr,row['input']))\n try:\n  if mode=='domain': result,consumed=getattr(idna.Codec(),row['operation'])(value,row['errors'])\n  elif mode=='encode':result,consumed=idna.IncrementalEncoder()._buffer_encode(value,row['errors'],row['final'])\n  else:result,consumed=idna.IncrementalDecoder()._buffer_decode(value,row['errors'],row['final'])\n  row.update(result=list(map(ord,result)) if isinstance(result,str) else list(result),consumed=consumed)\n except Exception as e:row['error']=fault(e)\nprint(json.dumps(rows))",
+    "summary": [
+      {
+        "file": "packages/safe-python/src/runtime/__snapshots__/idna-domain-3.14.7.json",
+        "sha256": "2cc7f5b0f3f44173ccd6e9dd18939680f5cad7fb65bd88a8aac179580126732d",
+        "total": 1625,
+        "matched": 1625,
+        "status": 0,
+        "stderr": ""
+      },
+      {
+        "file": "packages/safe-python/src/runtime/__snapshots__/idna-buffer-encode-3.14.7.json",
+        "sha256": "ef0bb2c93d6e8bdca781b0b8fa398a51440f9f174e669bbc18145e15a9b056bc",
+        "total": 828,
+        "matched": 828,
+        "status": 0,
+        "stderr": ""
+      },
+      {
+        "file": "packages/safe-python/src/runtime/__snapshots__/idna-buffer-decode-3.14.7.json",
+        "sha256": "84a837b8aa65811eb85088e4046b128542f26246c5915f15639753cb38c75d6f",
+        "total": 1928,
+        "matched": 1928,
+        "status": 0,
+        "stderr": ""
+      }
+    ]
+  }
+}

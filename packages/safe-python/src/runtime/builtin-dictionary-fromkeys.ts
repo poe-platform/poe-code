@@ -13,6 +13,7 @@ import type { BuiltinFunctionValue, ClassMethodDescriptorValue, RuntimeValue, Ru
 export function createDictionaryFromKeysDescriptor(owner: TypeValue, values: RuntimeValues, keys: KeyOperations<RuntimeValue>, meter: ExecutionMeter): ClassMethodDescriptorValue {
   meter.checkpoint(0, 96);
   return values.classMethodDescriptor({ owner, name: "fromkeys", doc: "Create a new dictionary with keys from iterable and values set to value.",
+    textSignature: "($type, iterable, value=None, /)",
     accepts(receiver, meter) {
       if (receiver.kind !== "type") return false;
       for (const ancestor of receiver.value.mro) { meter.checkpoint(); if (ancestor === owner.value) return true; }
@@ -63,8 +64,11 @@ export function createDictionaryFromKeysBuiltin(values: RuntimeValues, keys: Key
       const result = context ? context.create() : values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(keys, meter, runtimeDictionaryStorage));
       meter.checkpoint();
       if (result.kind === "dict" && (source.kind === "dict" || source.kind === "set" || source.kind === "frozenset")) {
-        meter.checkpoint(0, 16);
-        result.items.update(source.items, undefined, { value });
+        if (source.kind === "dict") result.items.assignKeys(source.items, value);
+        else {
+          meter.checkpoint(0, 16);
+          result.items.update(source.items, undefined, { value });
+        }
       } else {
         const iterator = runtimeIterate(source, values, meter, invocation?.iteration);
         while (true) {

@@ -45,7 +45,7 @@ export function createBoundCallableReprWrapper(kind: NativeBoundCallableKind, ow
       const type = invocation.actualType(instance); meter.checkpoint();
       const identity = (invocation.identity ?? values.identity).id(instance); meter.checkpoint();
       const name = receiver.kind === "method-wrapper" ? receiver.value.descriptor.value.name : receiver.binding?.descriptor.value.name ?? receiver.value.name;
-      const hex = identity.toString(16), typeName = type.value.name;
+      const hex = identity.toString(16), typeName = type.value.diagnosticName;
       meter.checkpoint(0, 128 + 2 * (hex.length + name.length + typeName.length));
       return values.string(receiver.kind === "method-wrapper" ? `<method-wrapper '${name}' of ${typeName} object at 0x${hex}>`
         : `<built-in method ${name} of ${typeName} object at 0x${hex}>`);

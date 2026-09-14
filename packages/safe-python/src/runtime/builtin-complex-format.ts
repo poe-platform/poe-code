@@ -12,7 +12,7 @@ import type { MethodDescriptorValue,RuntimeValues,TypeValue } from "./runtime-va
  * complex storage and resolves execution locale only when requested. */
 export function createComplexFormatDescriptor(owner:TypeValue,values:RuntimeValues,meter:ExecutionMeter):MethodDescriptorValue {
   meter.checkpoint(0,96);
-  return values.methodDescriptor({owner,name:"__format__",doc:"Convert to a string according to format_spec.",accepts:receiver=>runtimeComplexPayload(receiver)!==undefined,
+  return values.methodDescriptor({textSignature: "($self, format_spec, /)", owner,name:"__format__",doc:"Convert to a string according to format_spec.",accepts:receiver=>runtimeComplexPayload(receiver)!==undefined,
     invoke(receiver,positional,keywords,meter,invocation) {
       meter.checkpoint();
       if(keywords.items.size!==0)throw new PythonRuntimeError("TypeError","complex.__format__() takes no keyword arguments");

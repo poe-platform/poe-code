@@ -32,6 +32,10 @@ export class CallStack<Frame extends object> {
     this.meter.checkpoint();
     if (this.#frames.length >= this.maxDepth)
       throw new PythonRuntimeError("RecursionError", "maximum recursion depth exceeded");
+    // Admit the stack slot, activation bookkeeping and retained restoration
+    // closure before publishing any state. Native reentries still allocate a
+    // distinct restoration closure even when they reuse an active guest frame.
+    this.meter.checkpoint(0, 192);
     this.#frames.push(frame);
     const previousCurrent = this.#current;
     if (options?.activate !== false) this.#current = frame;

@@ -1,0 +1,287 @@
+{
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "unicode": "16.0.0",
+  "setup": "i = iter(b'abc')\nT = type(i)",
+  "rows": [
+    {
+      "source": "i.__iter__()",
+      "expected": "('self', 'bytes_iterator')"
+    },
+    {
+      "source": "i.__iter__(1)",
+      "expected": "('TypeError', 'expected 0 arguments, got 1')"
+    },
+    {
+      "source": "i.__iter__(1, 2)",
+      "expected": "('TypeError', 'expected 0 arguments, got 2')"
+    },
+    {
+      "source": "i.__iter__(foo=1)",
+      "expected": "('TypeError', 'wrapper __iter__() takes no keyword arguments')"
+    },
+    {
+      "source": "i.__iter__(1, foo=1)",
+      "expected": "('TypeError', 'wrapper __iter__() takes no keyword arguments')"
+    },
+    {
+      "source": "i.__iter__(*[1, 2], **{1: 2})",
+      "expected": "('TypeError', 'wrapper __iter__() takes no keyword arguments')"
+    },
+    {
+      "source": "T.__iter__()",
+      "expected": "('TypeError', \"descriptor '__iter__' of 'bytes_iterator' object needs an argument\")"
+    },
+    {
+      "source": "T.__iter__(i)",
+      "expected": "('self', 'bytes_iterator')"
+    },
+    {
+      "source": "T.__iter__(i, 1)",
+      "expected": "('TypeError', 'expected 0 arguments, got 1')"
+    },
+    {
+      "source": "T.__iter__(i, 1, 2)",
+      "expected": "('TypeError', 'expected 0 arguments, got 2')"
+    },
+    {
+      "source": "T.__iter__(None)",
+      "expected": "('TypeError', \"descriptor '__iter__' requires a 'bytes_iterator' object but received a 'NoneType'\")"
+    },
+    {
+      "source": "T.__iter__(None, 1)",
+      "expected": "('TypeError', \"descriptor '__iter__' requires a 'bytes_iterator' object but received a 'NoneType'\")"
+    },
+    {
+      "source": "T.__iter__(None, foo=1)",
+      "expected": "('TypeError', \"descriptor '__iter__' requires a 'bytes_iterator' object but received a 'NoneType'\")"
+    },
+    {
+      "source": "T.__iter__(i, foo=1)",
+      "expected": "('TypeError', 'wrapper __iter__() takes no keyword arguments')"
+    },
+    {
+      "source": "i.__next__()",
+      "expected": "('int', '97')"
+    },
+    {
+      "source": "i.__next__(1)",
+      "expected": "('TypeError', 'expected 0 arguments, got 1')"
+    },
+    {
+      "source": "i.__next__(1, 2)",
+      "expected": "('TypeError', 'expected 0 arguments, got 2')"
+    },
+    {
+      "source": "i.__next__(foo=1)",
+      "expected": "('TypeError', 'wrapper __next__() takes no keyword arguments')"
+    },
+    {
+      "source": "i.__next__(1, foo=1)",
+      "expected": "('TypeError', 'wrapper __next__() takes no keyword arguments')"
+    },
+    {
+      "source": "i.__next__(*[1, 2], **{1: 2})",
+      "expected": "('TypeError', 'wrapper __next__() takes no keyword arguments')"
+    },
+    {
+      "source": "T.__next__()",
+      "expected": "('TypeError', \"descriptor '__next__' of 'bytes_iterator' object needs an argument\")"
+    },
+    {
+      "source": "T.__next__(i)",
+      "expected": "('int', '97')"
+    },
+    {
+      "source": "T.__next__(i, 1)",
+      "expected": "('TypeError', 'expected 0 arguments, got 1')"
+    },
+    {
+      "source": "T.__next__(i, 1, 2)",
+      "expected": "('TypeError', 'expected 0 arguments, got 2')"
+    },
+    {
+      "source": "T.__next__(None)",
+      "expected": "('TypeError', \"descriptor '__next__' requires a 'bytes_iterator' object but received a 'NoneType'\")"
+    },
+    {
+      "source": "T.__next__(None, 1)",
+      "expected": "('TypeError', \"descriptor '__next__' requires a 'bytes_iterator' object but received a 'NoneType'\")"
+    },
+    {
+      "source": "T.__next__(None, foo=1)",
+      "expected": "('TypeError', \"descriptor '__next__' requires a 'bytes_iterator' object but received a 'NoneType'\")"
+    },
+    {
+      "source": "T.__next__(i, foo=1)",
+      "expected": "('TypeError', 'wrapper __next__() takes no keyword arguments')"
+    },
+    {
+      "source": "i.__length_hint__()",
+      "expected": "('int', '3')"
+    },
+    {
+      "source": "i.__length_hint__(1)",
+      "expected": "('TypeError', 'bytes_iterator.__length_hint__() takes no arguments (1 given)')"
+    },
+    {
+      "source": "i.__length_hint__(1, 2)",
+      "expected": "('TypeError', 'bytes_iterator.__length_hint__() takes no arguments (2 given)')"
+    },
+    {
+      "source": "i.__length_hint__(foo=1)",
+      "expected": "('TypeError', 'bytes_iterator.__length_hint__() takes no keyword arguments')"
+    },
+    {
+      "source": "i.__length_hint__(1, foo=1)",
+      "expected": "('TypeError', 'bytes_iterator.__length_hint__() takes no keyword arguments')"
+    },
+    {
+      "source": "i.__length_hint__(*[1, 2], **{1: 2})",
+      "expected": "('TypeError', 'keywords must be strings')"
+    },
+    {
+      "source": "T.__length_hint__()",
+      "expected": "('TypeError', 'unbound method bytes_iterator.__length_hint__() needs an argument')"
+    },
+    {
+      "source": "T.__length_hint__(i)",
+      "expected": "('int', '3')"
+    },
+    {
+      "source": "T.__length_hint__(i, 1)",
+      "expected": "('TypeError', 'bytes_iterator.__length_hint__() takes no arguments (1 given)')"
+    },
+    {
+      "source": "T.__length_hint__(i, 1, 2)",
+      "expected": "('TypeError', 'bytes_iterator.__length_hint__() takes no arguments (2 given)')"
+    },
+    {
+      "source": "T.__length_hint__(None)",
+      "expected": "('TypeError', \"descriptor '__length_hint__' for 'bytes_iterator' objects doesn't apply to a 'NoneType' object\")"
+    },
+    {
+      "source": "T.__length_hint__(None, 1)",
+      "expected": "('TypeError', \"descriptor '__length_hint__' for 'bytes_iterator' objects doesn't apply to a 'NoneType' object\")"
+    },
+    {
+      "source": "T.__length_hint__(None, foo=1)",
+      "expected": "('TypeError', \"descriptor '__length_hint__' for 'bytes_iterator' objects doesn't apply to a 'NoneType' object\")"
+    },
+    {
+      "source": "T.__length_hint__(i, foo=1)",
+      "expected": "('TypeError', 'bytes_iterator.__length_hint__() takes no keyword arguments')"
+    },
+    {
+      "source": "i.__reduce__()",
+      "expected": "('tuple', True, (b'abc',), (0,))"
+    },
+    {
+      "source": "i.__reduce__(1)",
+      "expected": "('TypeError', 'bytes_iterator.__reduce__() takes no arguments (1 given)')"
+    },
+    {
+      "source": "i.__reduce__(1, 2)",
+      "expected": "('TypeError', 'bytes_iterator.__reduce__() takes no arguments (2 given)')"
+    },
+    {
+      "source": "i.__reduce__(foo=1)",
+      "expected": "('TypeError', 'bytes_iterator.__reduce__() takes no keyword arguments')"
+    },
+    {
+      "source": "i.__reduce__(1, foo=1)",
+      "expected": "('TypeError', 'bytes_iterator.__reduce__() takes no keyword arguments')"
+    },
+    {
+      "source": "i.__reduce__(*[1, 2], **{1: 2})",
+      "expected": "('TypeError', 'keywords must be strings')"
+    },
+    {
+      "source": "T.__reduce__()",
+      "expected": "('TypeError', 'unbound method bytes_iterator.__reduce__() needs an argument')"
+    },
+    {
+      "source": "T.__reduce__(i)",
+      "expected": "('tuple', True, (b'abc',), (0,))"
+    },
+    {
+      "source": "T.__reduce__(i, 1)",
+      "expected": "('TypeError', 'bytes_iterator.__reduce__() takes no arguments (1 given)')"
+    },
+    {
+      "source": "T.__reduce__(i, 1, 2)",
+      "expected": "('TypeError', 'bytes_iterator.__reduce__() takes no arguments (2 given)')"
+    },
+    {
+      "source": "T.__reduce__(None)",
+      "expected": "('TypeError', \"descriptor '__reduce__' for 'bytes_iterator' objects doesn't apply to a 'NoneType' object\")"
+    },
+    {
+      "source": "T.__reduce__(None, 1)",
+      "expected": "('TypeError', \"descriptor '__reduce__' for 'bytes_iterator' objects doesn't apply to a 'NoneType' object\")"
+    },
+    {
+      "source": "T.__reduce__(None, foo=1)",
+      "expected": "('TypeError', \"descriptor '__reduce__' for 'bytes_iterator' objects doesn't apply to a 'NoneType' object\")"
+    },
+    {
+      "source": "T.__reduce__(i, foo=1)",
+      "expected": "('TypeError', 'bytes_iterator.__reduce__() takes no keyword arguments')"
+    },
+    {
+      "source": "i.__setstate__()",
+      "expected": "('TypeError', 'bytes_iterator.__setstate__() takes exactly one argument (0 given)')"
+    },
+    {
+      "source": "i.__setstate__(1)",
+      "expected": "('NoneType', 'None')"
+    },
+    {
+      "source": "i.__setstate__(1, 2)",
+      "expected": "('TypeError', 'bytes_iterator.__setstate__() takes exactly one argument (2 given)')"
+    },
+    {
+      "source": "i.__setstate__(foo=1)",
+      "expected": "('TypeError', 'bytes_iterator.__setstate__() takes no keyword arguments')"
+    },
+    {
+      "source": "i.__setstate__(1, foo=1)",
+      "expected": "('TypeError', 'bytes_iterator.__setstate__() takes no keyword arguments')"
+    },
+    {
+      "source": "i.__setstate__(*[1, 2], **{1: 2})",
+      "expected": "('TypeError', 'keywords must be strings')"
+    },
+    {
+      "source": "T.__setstate__()",
+      "expected": "('TypeError', 'unbound method bytes_iterator.__setstate__() needs an argument')"
+    },
+    {
+      "source": "T.__setstate__(i)",
+      "expected": "('TypeError', 'bytes_iterator.__setstate__() takes exactly one argument (0 given)')"
+    },
+    {
+      "source": "T.__setstate__(i, 1)",
+      "expected": "('NoneType', 'None')"
+    },
+    {
+      "source": "T.__setstate__(i, 1, 2)",
+      "expected": "('TypeError', 'bytes_iterator.__setstate__() takes exactly one argument (2 given)')"
+    },
+    {
+      "source": "T.__setstate__(None)",
+      "expected": "('TypeError', \"descriptor '__setstate__' for 'bytes_iterator' objects doesn't apply to a 'NoneType' object\")"
+    },
+    {
+      "source": "T.__setstate__(None, 1)",
+      "expected": "('TypeError', \"descriptor '__setstate__' for 'bytes_iterator' objects doesn't apply to a 'NoneType' object\")"
+    },
+    {
+      "source": "T.__setstate__(None, foo=1)",
+      "expected": "('TypeError', \"descriptor '__setstate__' for 'bytes_iterator' objects doesn't apply to a 'NoneType' object\")"
+    },
+    {
+      "source": "T.__setstate__(i, foo=1)",
+      "expected": "('TypeError', 'bytes_iterator.__setstate__() takes no keyword arguments')"
+    }
+  ]
+}

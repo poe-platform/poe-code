@@ -8,7 +8,8 @@ interface Context {
   readonly target: boolean;
   readonly assignments: Set<string> | null;
   readonly targetReferences?: Set<string>;
-  readonly comprehension?: boolean;
+  readonly comprehension?: string;
+  readonly typeScope?: string;
 }
 
 /** Validate expression-level scope constraints without host recursion. Pending
@@ -20,9 +21,19 @@ export function validateExpression(node: Expression, filename = "<string>", cont
   while(pending.length) {
     meter?.checkpoint();
     const {node,context}=pending.pop()!;
+    if (context.typeScope && !context.comprehension &&
+        (node.kind === "assignment-expression" || node.kind === "yield" || node.kind === "yield-from" || node.kind === "await")) {
+      const kind = node.kind === "assignment-expression" ? "named" : node.kind === "await" ? "await" : "yield";
+      const message = `${kind} expression cannot be used within ${context.typeScope === "annotation" ? "an annotation" : `a ${context.typeScope}`}`;
+      const span = node.contentSpan ?? node;
+      meter?.checkpoint(0,320+2*message.length);
+      throw new PythonSyntaxError(message, filename, span.start, span.end);
+    }
     if ((node.kind === "yield" || node.kind === "yield-from") && context.comprehension) {
-      meter?.checkpoint(0,256);
-      throw new PythonSyntaxError("yield is not allowed inside a comprehension scope", filename, node.start);
+      const message = `'yield' inside ${context.comprehension}`;
+      const span = node.contentSpan ?? node;
+      meter?.checkpoint(0,320+2*message.length);
+      throw new PythonSyntaxError(message, filename, span.start, span.end);
     }
     if (node.kind === "name" && context.target && context.assignments?.has(node.name)) {
       meter?.checkpoint(0,288+2*node.name.length);
@@ -36,7 +47,13 @@ export function validateExpression(node: Expression, filename = "<string>", cont
       }
       if (context.iterations.has(node.target.name)) {
         meter?.checkpoint(0,288+2*node.target.name.length);
-        throw new PythonSyntaxError(`assignment expression cannot rebind comprehension iteration variable '${node.target.name}'`, filename, node.target.start);
+        throw new PythonSyntaxError(`assignment expression cannot rebind comprehension iteration variable '${node.target.name}'`, filename, node.target.start, node.target.end);
+      }
+      if (context.typeScope && context.typeScope !== "annotation" && context.comprehension) {
+        const scope = context.typeScope === "type alias" ? "type alias" : "TypeVar bound";
+        const message = `assignment expression within a comprehension cannot be used in a ${scope}`;
+        meter?.checkpoint(0,320+2*message.length);
+        throw new PythonSyntaxError(message, filename, node.target.start, node.target.end);
       }
       if(context.assignments)addName(context.assignments,node.target.name,meter);
       // A first assignment makes a referenced target name a local definition.
@@ -56,7 +73,7 @@ export function validateExpression(node: Expression, filename = "<string>", cont
       meter?.checkpoint(1+context.iterations.size,192+32*context.iterations.size);
       const iterations = new Set(context.iterations);
       for (const clause of node.clauses) {meter?.checkpoint();collectBindings(clause.target, iterations,meter);}
-      const inner = { iterations, iterable: context.iterable, target: false, assignments: new Set<string>(), targetReferences: new Set<string>(), comprehension: true };
+      const inner = { iterations, iterable: context.iterable, target: false, assignments: new Set<string>(), targetReferences: new Set<string>(), comprehension: node.kind === "dictionary-comprehension" ? "dict comprehension" : node.collection === "generator" ? "generator expression" : `${node.collection} comprehension`, typeScope: context.typeScope };
       if(node.kind==="comprehension"){meter?.checkpoint(0,40);pending.push({node:node.element,context:inner});}
       else {meter?.checkpoint(0,80);pending.push({node:node.value,context:inner},{node:node.key,context:inner});}
       for(let index=node.clauses.length-1;index>=0;index--) {

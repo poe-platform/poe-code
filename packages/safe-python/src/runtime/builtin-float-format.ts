@@ -12,7 +12,7 @@ import type { MethodDescriptorValue, RuntimeValues, TypeValue } from "./runtime-
  * storage directly, without invoking subclass numeric conversion overrides. */
 export function createFloatFormatDescriptor(owner: TypeValue, values: RuntimeValues, meter: ExecutionMeter): MethodDescriptorValue {
   meter.checkpoint(0,96);
-  return values.methodDescriptor({owner,name:"__format__",doc:"Formats the float according to format_spec.",accepts:receiver=>runtimeFloatPayload(receiver)!==undefined,
+  return values.methodDescriptor({textSignature: "($self, format_spec, /)", owner,name:"__format__",doc:"Formats the float according to format_spec.",accepts:receiver=>runtimeFloatPayload(receiver)!==undefined,
     invoke(receiver,positional,keywords,meter,invocation) {
       meter.checkpoint();
       if(keywords.items.size!==0)throw new PythonRuntimeError("TypeError","float.__format__() takes no keyword arguments");

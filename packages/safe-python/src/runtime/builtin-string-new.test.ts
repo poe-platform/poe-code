@@ -51,10 +51,11 @@ it("uses direct-new argument diagnostics rather than the exact-type call fast pa
   const {v,owner,subclass,call}=fixture();
   for(const type of [owner,subclass])expect(()=>call([type,v.string("x"),v.none])).toThrow(/^str\(\) argument 'encoding' must be str, not None$/);
 });
-it("decodes before wrapping subtype storage without invoking initializers",()=>{
-  const {v,subclass,call,decode}=fixture(),source=v.bytes(new Uint8Array([120])),result=call([subclass,source,v.string("custom")]);
+it.each([false,true])("decodes before wrapping subtype storage without invoking initializers (explicit errors=%s)",explicitErrors=>{
+  const {v,subclass,call,decode}=fixture(),source=v.bytes(new Uint8Array([120])),result=call([subclass,source,v.string("custom"),...(explicitErrors?[v.string("strict")]:[])]);
   expect(result.kind).toBe("instance");if(result.kind!=="instance")throw Error("expected subtype");
-  expect(result.native).toEqual(v.string("decoded"));expect(decode).toHaveBeenCalledWith(source,"custom","strict",expect.anything(),undefined);
+  expect(result.native).toEqual(v.string("decoded"));expect(decode).toHaveBeenCalledWith(source,"custom",explicitErrors?"strict":undefined,expect.anything(),undefined);
+  expect(decode).toHaveBeenCalledTimes(1);
 });
 it("recognizes native string subtype storage without consulting guest conversion",()=>{
   const {v,meter,subclass}=fixture(),source=v.instance(subclass,undefined,v.string("stored")),string=vi.fn();

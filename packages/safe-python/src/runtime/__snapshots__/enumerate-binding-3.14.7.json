@@ -1,0 +1,1377 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin"
+  },
+  "cases": [
+    {
+      "mode": "plain",
+      "expression": "enumerate(**{})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"enumerate() missing required argument 'iterable'\"), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(**{'iterable': Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{'iterable': Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ok', [(0, 'a'), (1, 'b')]), ['iter'])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(**{'start': Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{'start': Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"'start' is an invalid keyword argument for enumerate()\"), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(**{'bad': Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{'bad': Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"'bad' is an invalid keyword argument for enumerate()\"), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(**{'iterable': Source(), 'start': Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{'iterable': Source(), 'start': Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ok', [(7, 'a'), (8, 'b')]), ['index', 'iter'])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(**{'start': Start(), 'iterable': Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{'start': Start(), 'iterable': Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ok', [(7, 'a'), (8, 'b')]), ['index', 'iter'])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(**{'bad': Start(), 'start': Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{'bad': Start(), 'start': Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"'bad' is an invalid keyword argument for enumerate()\"), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(**{'start': Start(), 'bad': Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{'start': Start(), 'bad': Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"'bad' is an invalid keyword argument for enumerate()\"), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(**{'iterable': Source(), 'bad': Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{'iterable': Source(), 'bad': Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"'bad' is an invalid keyword argument for enumerate()\"), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(**{'bad': Start(), 'iterable': Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{'bad': Start(), 'iterable': Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"'bad' is an invalid keyword argument for enumerate()\"), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(**{'iterable': Source(), 'start': Start(), 'bad': Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{'iterable': Source(), 'start': Start(), 'bad': Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"enumerate() missing required argument 'iterable'\"), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), **{})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ok', [(0, 'a'), (1, 'b')]), ['iter'])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), **{'iterable': Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{'iterable': Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"'iterable' is an invalid keyword argument for enumerate()\"), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), **{'start': Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{'start': Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ok', [(7, 'a'), (8, 'b')]), ['index', 'iter'])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), **{'bad': Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{'bad': Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"'bad' is an invalid keyword argument for enumerate()\"), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), **{'iterable': Source(), 'start': Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{'iterable': Source(), 'start': Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), **{'start': Start(), 'iterable': Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{'start': Start(), 'iterable': Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), **{'bad': Start(), 'start': Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{'bad': Start(), 'start': Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), **{'start': Start(), 'bad': Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{'start': Start(), 'bad': Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), **{'iterable': Source(), 'bad': Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{'iterable': Source(), 'bad': Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), **{'bad': Start(), 'iterable': Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{'bad': Start(), 'iterable': Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), **{'iterable': Source(), 'start': Start(), 'bad': Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{'iterable': Source(), 'start': Start(), 'bad': Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), Start(), **{})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ok', [(7, 'a'), (8, 'b')]), ['index', 'iter'])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), Start(), **{'iterable': Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{'iterable': Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), Start(), **{'start': Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{'start': Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), Start(), **{'bad': Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{'bad': Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), Start(), **{'iterable': Source(), 'start': Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{'iterable': Source(), 'start': Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), Start(), **{'start': Start(), 'iterable': Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{'start': Start(), 'iterable': Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), Start(), **{'bad': Start(), 'start': Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{'bad': Start(), 'start': Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), Start(), **{'start': Start(), 'bad': Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{'start': Start(), 'bad': Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), Start(), **{'iterable': Source(), 'bad': Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{'iterable': Source(), 'bad': Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), Start(), **{'bad': Start(), 'iterable': Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{'bad': Start(), 'iterable': Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), Start(), **{'iterable': Source(), 'start': Start(), 'bad': Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{'iterable': Source(), 'start': Start(), 'bad': Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), Start(), None, **{})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), Start(), None, **{'iterable': Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{'iterable': Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), Start(), None, **{'start': Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{'start': Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), Start(), None, **{'bad': Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{'bad': Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), Start(), None, **{'iterable': Source(), 'start': Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{'iterable': Source(), 'start': Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), Start(), None, **{'start': Start(), 'iterable': Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{'start': Start(), 'iterable': Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), Start(), None, **{'bad': Start(), 'start': Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{'bad': Start(), 'start': Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), Start(), None, **{'start': Start(), 'bad': Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{'start': Start(), 'bad': Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), Start(), None, **{'iterable': Source(), 'bad': Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{'iterable': Source(), 'bad': Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), Start(), None, **{'bad': Start(), 'iterable': Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{'bad': Start(), 'iterable': Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "plain",
+      "expression": "enumerate(Source(), Start(), None, **{'iterable': Source(), 'start': Start(), 'bad': Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{'iterable': Source(), 'start': Start(), 'bad': Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (6 given)'), [])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(**{})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"enumerate() missing required argument 'iterable'\"), [])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(**{Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ok', [(0, 'a'), (1, 'b')]), ['iter'])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(**{Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"'rendered' is an invalid keyword argument for enumerate()\"), ['str'])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(**{Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"'rendered' is an invalid keyword argument for enumerate()\"), ['str'])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(**{Key('iterable'): Source(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('iterable'): Source(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ok', [(7, 'a'), (8, 'b')]), ['index', 'iter'])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(**{Key('start'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('start'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ok', [(7, 'a'), (8, 'b')]), ['index', 'iter'])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(**{Key('bad'): Start(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('bad'): Start(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"'rendered' is an invalid keyword argument for enumerate()\"), ['str'])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(**{Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"'rendered' is an invalid keyword argument for enumerate()\"), ['str'])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(**{Key('iterable'): Source(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('iterable'): Source(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"'rendered' is an invalid keyword argument for enumerate()\"), ['str'])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(**{Key('bad'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('bad'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"'rendered' is an invalid keyword argument for enumerate()\"), ['str'])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(**{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"enumerate() missing required argument 'iterable'\"), [])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), **{})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ok', [(0, 'a'), (1, 'b')]), ['iter'])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), **{Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"'rendered' is an invalid keyword argument for enumerate()\"), ['str'])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), **{Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ok', [(7, 'a'), (8, 'b')]), ['index', 'iter'])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), **{Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"'rendered' is an invalid keyword argument for enumerate()\"), ['str'])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), **{Key('iterable'): Source(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('iterable'): Source(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), **{Key('start'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('start'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), **{Key('bad'): Start(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('bad'): Start(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), **{Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), **{Key('iterable'): Source(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('iterable'): Source(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), **{Key('bad'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('bad'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), **{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), Start(), **{})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ok', [(7, 'a'), (8, 'b')]), ['index', 'iter'])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), Start(), **{Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), Start(), **{Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), Start(), **{Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), Start(), **{Key('iterable'): Source(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('iterable'): Source(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), Start(), **{Key('start'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('start'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), Start(), **{Key('bad'): Start(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('bad'): Start(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), Start(), **{Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), Start(), **{Key('iterable'): Source(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('iterable'): Source(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), Start(), **{Key('bad'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('bad'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), Start(), **{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), Start(), None, **{})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), Start(), None, **{Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), Start(), None, **{Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), Start(), None, **{Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), Start(), None, **{Key('iterable'): Source(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('iterable'): Source(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), Start(), None, **{Key('start'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('start'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), Start(), None, **{Key('bad'): Start(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('bad'): Start(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), Start(), None, **{Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), Start(), None, **{Key('iterable'): Source(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('iterable'): Source(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), Start(), None, **{Key('bad'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('bad'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "subtype",
+      "expression": "enumerate(Source(), Start(), None, **{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (6 given)'), [])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(**{})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"enumerate() missing required argument 'iterable'\"), [])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(**{Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ok', [(0, 'a'), (1, 'b')]), ['iter'])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(**{Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ValueError', 'render failed'), ['str'])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(**{Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ValueError', 'render failed'), ['str'])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(**{Key('iterable'): Source(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('iterable'): Source(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ok', [(7, 'a'), (8, 'b')]), ['index', 'iter'])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(**{Key('start'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('start'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ok', [(7, 'a'), (8, 'b')]), ['index', 'iter'])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(**{Key('bad'): Start(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('bad'): Start(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ValueError', 'render failed'), ['str'])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(**{Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ValueError', 'render failed'), ['str'])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(**{Key('iterable'): Source(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('iterable'): Source(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ValueError', 'render failed'), ['str'])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(**{Key('bad'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('bad'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ValueError', 'render failed'), ['str'])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(**{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"enumerate() missing required argument 'iterable'\"), [])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), **{})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ok', [(0, 'a'), (1, 'b')]), ['iter'])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), **{Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ValueError', 'render failed'), ['str'])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), **{Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ok', [(7, 'a'), (8, 'b')]), ['index', 'iter'])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), **{Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ValueError', 'render failed'), ['str'])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), **{Key('iterable'): Source(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('iterable'): Source(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), **{Key('start'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('start'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), **{Key('bad'): Start(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('bad'): Start(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), **{Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), **{Key('iterable'): Source(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('iterable'): Source(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), **{Key('bad'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('bad'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), **{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), Start(), **{})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ok', [(7, 'a'), (8, 'b')]), ['index', 'iter'])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), Start(), **{Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), Start(), **{Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), Start(), **{Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), Start(), **{Key('iterable'): Source(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('iterable'): Source(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), Start(), **{Key('start'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('start'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), Start(), **{Key('bad'): Start(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('bad'): Start(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), Start(), **{Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), Start(), **{Key('iterable'): Source(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('iterable'): Source(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), Start(), **{Key('bad'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('bad'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), Start(), **{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), Start(), None, **{})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), Start(), None, **{Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), Start(), None, **{Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), Start(), None, **{Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), Start(), None, **{Key('iterable'): Source(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('iterable'): Source(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), Start(), None, **{Key('start'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('start'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), Start(), None, **{Key('bad'): Start(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('bad'): Start(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), Start(), None, **{Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), Start(), None, **{Key('iterable'): Source(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('iterable'): Source(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), Start(), None, **{Key('bad'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('bad'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "raising",
+      "expression": "enumerate(Source(), Start(), None, **{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  raise ValueError('render failed')\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (6 given)'), [])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(**{})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"enumerate() missing required argument 'iterable'\"), [])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(**{Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ok', [(0, 'a'), (1, 'b')]), ['iter'])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(**{Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', '__str__ returned non-string (type int)'), ['str'])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(**{Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', '__str__ returned non-string (type int)'), ['str'])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(**{Key('iterable'): Source(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('iterable'): Source(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ok', [(7, 'a'), (8, 'b')]), ['index', 'iter'])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(**{Key('start'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('start'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ok', [(7, 'a'), (8, 'b')]), ['index', 'iter'])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(**{Key('bad'): Start(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('bad'): Start(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', '__str__ returned non-string (type int)'), ['str'])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(**{Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', '__str__ returned non-string (type int)'), ['str'])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(**{Key('iterable'): Source(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('iterable'): Source(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', '__str__ returned non-string (type int)'), ['str'])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(**{Key('bad'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('bad'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', '__str__ returned non-string (type int)'), ['str'])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(**{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"enumerate() missing required argument 'iterable'\"), [])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), **{})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ok', [(0, 'a'), (1, 'b')]), ['iter'])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), **{Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', '__str__ returned non-string (type int)'), ['str'])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), **{Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ok', [(7, 'a'), (8, 'b')]), ['index', 'iter'])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), **{Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', '__str__ returned non-string (type int)'), ['str'])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), **{Key('iterable'): Source(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('iterable'): Source(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), **{Key('start'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('start'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), **{Key('bad'): Start(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('bad'): Start(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), **{Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), **{Key('iterable'): Source(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('iterable'): Source(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), **{Key('bad'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('bad'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), **{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), Start(), **{})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ok', [(7, 'a'), (8, 'b')]), ['index', 'iter'])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), Start(), **{Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), Start(), **{Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), Start(), **{Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), Start(), **{Key('iterable'): Source(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('iterable'): Source(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), Start(), **{Key('start'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('start'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), Start(), **{Key('bad'): Start(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('bad'): Start(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), Start(), **{Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), Start(), **{Key('iterable'): Source(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('iterable'): Source(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), Start(), **{Key('bad'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('bad'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), Start(), **{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), Start(), None, **{})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), Start(), None, **{Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), Start(), None, **{Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), Start(), None, **{Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), Start(), None, **{Key('iterable'): Source(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('iterable'): Source(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), Start(), None, **{Key('start'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('start'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), Start(), None, **{Key('bad'): Start(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('bad'): Start(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), Start(), None, **{Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), Start(), None, **{Key('iterable'): Source(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('iterable'): Source(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), Start(), None, **{Key('bad'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('bad'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "invalid",
+      "expression": "enumerate(Source(), Start(), None, **{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 42\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (6 given)'), [])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(**{})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"enumerate() missing required argument 'iterable'\"), [])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(**{Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ok', [(0, 'a'), (1, 'b')]), ['iter'])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(**{Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"'rendered' is an invalid keyword argument for enumerate()\"), ['str'])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(**{Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"'rendered' is an invalid keyword argument for enumerate()\"), ['str'])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(**{Key('iterable'): Source(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('iterable'): Source(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ok', [(7, 'a'), (8, 'b')]), ['index', 'iter'])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(**{Key('start'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('start'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ok', [(7, 'a'), (8, 'b')]), ['index', 'iter'])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(**{Key('bad'): Start(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('bad'): Start(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"'rendered' is an invalid keyword argument for enumerate()\"), ['str'])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(**{Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"'rendered' is an invalid keyword argument for enumerate()\"), ['str'])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(**{Key('iterable'): Source(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('iterable'): Source(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"'rendered' is an invalid keyword argument for enumerate()\"), ['str'])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(**{Key('bad'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('bad'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"'rendered' is an invalid keyword argument for enumerate()\"), ['str'])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(**{Key('iterable'): Source(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('iterable'): Source(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"'rendered' is an invalid keyword argument for enumerate()\"), ['eq', 'str'])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(**{Key('start'): Start(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('start'): Start(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"'rendered' is an invalid keyword argument for enumerate()\"), ['eq', 'str'])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(**{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(**{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"enumerate() missing required argument 'iterable'\"), [])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), **{})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ok', [(0, 'a'), (1, 'b')]), ['iter'])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), **{Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"'rendered' is an invalid keyword argument for enumerate()\"), ['str'])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), **{Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ok', [(7, 'a'), (8, 'b')]), ['index', 'iter'])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), **{Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', \"'rendered' is an invalid keyword argument for enumerate()\"), ['str'])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), **{Key('iterable'): Source(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('iterable'): Source(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), **{Key('start'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('start'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), **{Key('bad'): Start(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('bad'): Start(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), **{Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), **{Key('iterable'): Source(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('iterable'): Source(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), **{Key('bad'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('bad'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), **{Key('iterable'): Source(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('iterable'): Source(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), ['eq'])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), **{Key('start'): Start(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('start'): Start(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), ['eq'])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), **{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), **{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), Start(), **{})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('ok', [(7, 'a'), (8, 'b')]), ['index', 'iter'])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), Start(), **{Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), Start(), **{Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), Start(), **{Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), Start(), **{Key('iterable'): Source(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('iterable'): Source(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), Start(), **{Key('start'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('start'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), Start(), **{Key('bad'): Start(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('bad'): Start(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), Start(), **{Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), Start(), **{Key('iterable'): Source(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('iterable'): Source(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), Start(), **{Key('bad'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('bad'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), Start(), **{Key('iterable'): Source(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('iterable'): Source(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), ['eq'])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), Start(), **{Key('start'): Start(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('start'): Start(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), ['eq'])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), Start(), **{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), **{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), Start(), None, **{})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (3 given)'), [])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), Start(), None, **{Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), Start(), None, **{Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), Start(), None, **{Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (4 given)'), [])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), Start(), None, **{Key('iterable'): Source(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('iterable'): Source(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), Start(), None, **{Key('start'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('start'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), Start(), None, **{Key('bad'): Start(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('bad'): Start(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), Start(), None, **{Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), Start(), None, **{Key('iterable'): Source(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('iterable'): Source(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), Start(), None, **{Key('bad'): Start(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('bad'): Start(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), [])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), Start(), None, **{Key('iterable'): Source(), Key('iterable'): Source()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('iterable'): Source(), Key('iterable'): Source()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), ['eq'])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), Start(), None, **{Key('start'): Start(), Key('start'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('start'): Start(), Key('start'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (5 given)'), ['eq'])"
+    },
+    {
+      "mode": "duplicate",
+      "expression": "enumerate(Source(), Start(), None, **{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})",
+      "source": "events=[]\nclass Key(str):\n __hash__=str.__hash__\n def __eq__(self,other):\n  events.append('eq')\n  return False\n def __str__(self):\n  events.append('str')\n  return 'rendered'\nclass Start:\n def __index__(self):\n  events.append('index')\n  return 7\nclass Source:\n def __iter__(self):\n  events.append('iter')\n  return iter(['a','b'])\ntry:\n result=('ok', list(enumerate(Source(), Start(), None, **{Key('iterable'): Source(), Key('start'): Start(), Key('bad'): Start()})))\nexcept Exception as e:\n result=(type(e).__name__, str(e))\nresult=(result, events)",
+      "expected": "(('TypeError', 'enumerate() takes at most 2 arguments (6 given)'), [])"
+    }
+  ]
+}

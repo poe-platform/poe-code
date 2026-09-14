@@ -9,7 +9,7 @@ import type { RuntimeValues, TypeValue, WrapperDescriptorValue } from "./runtime
  * single argument uses repr, while ordinary exception strings use str. */
 export function createExceptionRepresentationDescriptor(name:"__str__"|"__repr__",owner:TypeValue,values:RuntimeValues,meter:ExecutionMeter,singleArgument:"str"|"repr"="str",stringMember?:string):WrapperDescriptorValue {
   meter.checkpoint(0,96);
-  return values.wrapperDescriptor({owner,name,doc:name==="__str__"?"Return str(self).":"Return repr(self).",
+  return values.wrapperDescriptor({owner,name,doc:name==="__str__"?"Return str(self).":"Return repr(self).",textSignature:"($self, /)",
     accepts(value,meter) {
       if(value.kind!=="instance"||runtimeExceptionPayload(value)===undefined)return false;
       for(const base of value.type.value.mro){meter.checkpoint();if(base===owner.value)return true;}

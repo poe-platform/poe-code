@@ -1,4 +1,10 @@
+import {propertyDocumentation} from "./runtime-property-documentation.js";
+import {installRuntimeTypeDocumentation} from "./runtime-type-documentation.js";
+import {installRuntimeProperty} from "./runtime-property.js";
 import type { TupleConstant } from "./constant-values.js";
+import {installRuntimeEncodingMap} from "./runtime-encoding-map.js";
+import {installRuntimeModule} from "./runtime-module.js";
+import { installRuntimeDirDescriptors } from "./runtime-dir-descriptors.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
 import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
@@ -60,10 +66,20 @@ import { installRuntimeIntegerSlots } from "./runtime-integer-slots.js";
 import { installRuntimeIntegerMethodDescriptors } from "./runtime-integer-method-descriptors.js";
 import { installRuntimeIntegerByteDescriptors } from "./runtime-integer-byte-descriptors.js";
 import { createFloatNewBuiltin } from "./builtin-float-new.js";
+import {createBytesNewBuiltin} from "./builtin-bytes-new.js";
+import {installRuntimeBytesDescriptors} from "./runtime-bytes-descriptors.js";
+import {RuntimeBytesIterator,installRuntimeBytesIterator} from "./runtime-bytes-iterator.js";
+import { CallableIterator } from "./callable-iterator.js";
+import { createObjectSubclasshookDescriptor } from "./builtin-object-subclasshook.js";
+import { installRuntimeCallableIteratorDescriptors } from "./runtime-callable-iterator-descriptors.js";
+import { RuntimeRangeIterator } from "./runtime-range-iterator.js";
+import { installRuntimeRangeIteratorDescriptors } from "./runtime-range-iterator-descriptors.js";
+import {createRuntimeUtf8Encoder} from "./runtime-utf8-encoding.js";
 import {createStringNewBuiltin} from "./builtin-string-new.js";
 import {constructRuntimeString} from "./runtime-string-construction.js";
 import {createRuntimeStringDecoder} from "./runtime-string-decoding.js";
 import {createRuntimeTextDecoder} from "./runtime-text-decoding.js";
+import {readRuntimeNativeMethodMetadata} from "./runtime-native-method-metadata.js";
 import {installRuntimeStringSlots} from "./runtime-string-slots.js";
 import {installRuntimeStringArithmeticSlots} from "./runtime-string-arithmetic-slots.js";
 import {installRuntimeStringMethodDescriptors} from "./runtime-string-method-descriptors.js";
@@ -106,6 +122,8 @@ import {createCellReprWrapper} from "./builtin-cell-repr.js";
 import {readRuntimeCell,mutateRuntimeCell} from "./runtime-cell.js";
 import type {CellValue} from "./runtime-values.js";
 
+import {installRuntimeSuper} from "./runtime-super.js";
+
 interface TypeEntry {
   readonly type: TypeValue;
   bases?: TupleConstant<TypeValue>;
@@ -126,6 +144,7 @@ export class RuntimeTypeRegistry {
   readonly #methodDecorators = new Map<"staticmethod" | "classmethod", TypeValue>();
   readonly #descriptors = new Map<IntrinsicDescriptorKind, TypeValue>();
   readonly #boundCallables = new Map<NativeBoundCallableKind, TypeValue>();
+  #superType:TypeValue|undefined;
   #listType: TypeValue | undefined;
   #tupleType: TypeValue | undefined;
   #dictionaryType: TypeValue | undefined;
@@ -144,6 +163,10 @@ export class RuntimeTypeRegistry {
   #rangeType: TypeValue | undefined;
   #integerType: TypeValue | undefined;
   #floatType: TypeValue | undefined;
+  #bytesType:TypeValue|undefined;
+  #bytesIteratorType:TypeValue|undefined;
+  #callableIteratorType: TypeValue | undefined;
+  readonly #rangeIteratorTypes = new Map<RuntimeRangeIterator["typeName"], TypeValue>();
   #stringType:TypeValue|undefined;
   #complexType: TypeValue | undefined;
   #baseExceptionType:TypeValue|undefined;
@@ -158,6 +181,40 @@ export class RuntimeTypeRegistry {
   readonly #exceptions=new Map<StandardExceptionName,TypeValue>();
   #booleanType: TypeValue | undefined;
   readonly #sets = new Map<"set" | "frozenset", TypeValue>();
+  #moduleType?:TypeValue;
+  #encodingMapType?:TypeValue;
+
+  #propertyType?:TypeValue;
+
+  propertyType():TypeValue {
+    this.meter.checkpoint();
+    if(this.#propertyType!==undefined)return this.#propertyType;
+    const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
+    const layout=new RuntimeTypeLayout("property",[this.object.value],namespace,this.meter,{nativeDocumentation:propertyDocumentation,sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:false});
+    const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee"});
+    installRuntimeProperty(type,this.values,this.meter,this.keys,candidate=>this.#entries.get(candidate.value)?.type===candidate);
+    this.#entries.set(layout,{type});this.#propertyType=type;return type;
+  }
+
+  encodingMapType():TypeValue {
+    this.meter.checkpoint();
+    if(this.#encodingMapType!==undefined)return this.#encodingMapType;
+    const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
+    const layout=new RuntimeTypeLayout("EncodingMap",[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:false,subclassable:false,instantiable:false});
+    const type=this.values.type(layout,this.type,{immutable:true});
+    installRuntimeEncodingMap(type,this.values,this.meter);
+    this.#entries.set(layout,{type});this.#encodingMapType=type;return type;
+  }
+
+  moduleType():TypeValue {
+    this.meter.checkpoint();
+    if(this.#moduleType!==undefined)return this.#moduleType;
+    const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
+    const layout=new RuntimeTypeLayout("module",[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:true,objectLayout:false,weakReferences:true});
+    const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee"});
+    installRuntimeModule(type,this.values,this.meter,this.keys);
+    this.#entries.set(layout,{type});this.#moduleType=type;return type;
+  }
 
   constructor(private readonly values: RuntimeValues, private readonly keys: KeyOperations<RuntimeValue>, private readonly meter: ExecutionMeter,
     /** Needed for lazy line lookup on guest-constructed tracebacks. */
@@ -174,6 +231,7 @@ export class RuntimeTypeRegistry {
     typeLayout.namespace.items.set(values.string("__new__"), createTypeNewBuiltin(values, meter, this));
     typeLayout.namespace.items.set(values.string("__prepare__"), createTypePrepareDescriptor(values, meter, keys, this.type));
     installRuntimeUnionOperators(this.type,values,meter,keys,this.noneType.bind(this),this.unionType.bind(this));
+    installRuntimeTypeDocumentation(this.type,values,meter);
     for(const name of ["__instancecheck__","__subclasscheck__"] as const){meter.checkpoint();typeLayout.namespace.items.set(values.string(name),createTypeCheckDescriptor(name,this.type,values,meter));}
     typeLayout.namespace.items.set(values.string("__repr__"), createTypeReprWrapper(values, meter, this.type));
     objectLayout.namespace.items.set(values.string("__init__"), createObjectInitWrapper(values, meter, this.object));
@@ -185,6 +243,7 @@ export class RuntimeTypeRegistry {
     objectLayout.namespace.items.set(values.string("__eq__"), createObjectEqWrapper(values, meter, this.object));
     installObjectOrderingWrappers(values, meter, this.object);
     objectLayout.namespace.items.set(values.string("__init_subclass__"), createObjectInitSubclassDescriptor(values, meter, this.object));
+    objectLayout.namespace.items.set(values.string("__subclasshook__"), createObjectSubclasshookDescriptor(values, meter, this.object));
     typeLayout.namespace.items.set(values.string("__init__"), createTypeInitWrapper(values, meter, this.type));
     typeLayout.namespace.items.set(values.string("__call__"), createTypeCallWrapper(values, meter, this.type));
     for (const name of ["__getattribute__", "__setattr__", "__delattr__"] as const) {
@@ -248,6 +307,7 @@ export class RuntimeTypeRegistry {
         }
       }));
     }
+    installRuntimeDirDescriptors(this.object, this.type, values, keys, meter);
     Object.freeze(this);
   }
 
@@ -272,6 +332,8 @@ export class RuntimeTypeRegistry {
       case "int":return this.integerType();
       case "float":return this.floatType();
       case "str":return this.stringType();
+      case "bytes":return this.bytesType();
+      case "iterator":return value.value instanceof RuntimeBytesIterator?this.bytesIteratorType():value.value instanceof RuntimeRangeIterator?this.rangeIteratorType(value.value.typeName):value.value instanceof CallableIterator?this.callableIteratorType():undefined;
       case "complex":return this.complexType();
       case "bool":return this.booleanType();
       case "set":case "frozenset":return this.setType(value.kind);
@@ -284,6 +346,16 @@ export class RuntimeTypeRegistry {
 
   /** Lazily publish canonical native wrapper types without charging executions
    * that never request them. Heap subclasses retain their own type identity. */
+  superType():TypeValue {
+    this.meter.checkpoint();
+    if(this.#superType!==undefined)return this.#superType;
+    const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
+    const layout=new RuntimeTypeLayout("super",[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:false});
+    const type=this.values.type(layout,this.type,{immutable:true});
+    installRuntimeSuper(type,this.values,this.meter,this.keys,this.resolve.bind(this));
+    this.meter.checkpoint(1,64);this.#entries.set(layout,{type});this.#superType=type;return type;
+  }
+
   methodDecoratorType(kind: "staticmethod" | "classmethod"): TypeValue {
     this.meter.checkpoint();
     const existing = this.#methodDecorators.get(kind);
@@ -325,6 +397,16 @@ export class RuntimeTypeRegistry {
     installRuntimeComparisonMethods(kind, type, this.values, this.meter);
     namespace.items.set(this.values.string("__repr__"), createBoundCallableReprWrapper(kind, type, this.values, this.meter));
     namespace.items.set(this.values.string("__hash__"), createNativeHashWrapper(kind, type, this.values, this.meter));
+    if (kind === "builtin_function_or_method") namespace.items.set(this.values.string("__module__"), this.values.memberDescriptor({
+      owner: type, name: "__module__", accepts: receiver => receiver.kind === "builtin_function_or_method",
+      get: receiver => { if (receiver.kind !== "builtin_function_or_method") throw Error("builtin module member requires a native callable"); return this.values.builtinFunctionModule(receiver); },
+      set: (receiver, value) => { if (receiver.kind !== "builtin_function_or_method") throw Error("builtin module member requires a native callable"); this.values.builtinFunctionModule(receiver, value); },
+      delete: receiver => { if (receiver.kind !== "builtin_function_or_method") throw Error("builtin module member requires a native callable"); this.values.builtinFunctionModule(receiver, this.values.none); }
+    }));
+    if (kind === "builtin_function_or_method") namespace.items.set(this.values.string("__self__"), this.values.getsetDescriptor({
+      owner: type, name: "__self__", accepts: receiver => receiver.kind === "builtin_function_or_method",
+      get: (receiver, meter) => readRuntimeNativeMethodMetadata(receiver, "__self__", this.values, meter)!
+    }));
     this.meter.checkpoint(1, 96);
     this.#entries.set(layout, { type }); this.#boundCallables.set(kind, type);
     return type;
@@ -417,9 +499,10 @@ export class RuntimeTypeRegistry {
     if(!Object.hasOwn(standardExceptionCatalog,name))throw Error("unknown standard exception type");
     const spec=standardExceptionCatalog[name],base=this.exceptionType(spec.base);
     const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
-    const layout=new RuntimeTypeLayout(name,[base.value],namespace,this.meter,{sequenceTable:false,weakReferences:false,objectLayout:"member" in spec||"nativeMembers" in spec?false:undefined,nativeAllocator:base.value.nativeAllocator});
+    const layout=new RuntimeTypeLayout(name,[base.value],namespace,this.meter,{sequenceTable:false,weakReferences:false,objectLayout:"member" in spec||"nativeMembers" in spec?false:undefined,nativeAllocator:"allocation" in spec||"createAllocator" in spec?"self":base.value.nativeAllocator});
     const type=this.values.type(layout,this.type,{immutable:true});
-    if(!("ownAllocator" in spec)||spec.ownAllocator)namespace.items.set(this.values.string("__new__"),createExceptionNewBuiltin(type,this.values,this.meter,candidate=>this.#entries.has(candidate.value)));
+    if("createAllocator" in spec)namespace.items.set(this.values.string("__new__"),spec.createAllocator(type,this.values,this.meter,candidate=>this.#entries.has(candidate.value),name=>this.exceptionType(name as StandardExceptionName)));
+    else if(!("ownAllocator" in spec)||spec.ownAllocator)namespace.items.set(this.values.string("__new__"),createExceptionNewBuiltin(type,this.values,this.meter,candidate=>this.#entries.has(candidate.value),"allocation" in spec?spec.allocation:undefined));
     if("stringArgument" in spec||"stringMember" in spec)namespace.items.set(this.values.string("__str__"),createExceptionRepresentationDescriptor("__str__",type,this.values,this.meter,"stringArgument" in spec?spec.stringArgument:"str","stringMember" in spec?spec.stringMember:undefined));
     if("member" in spec)installExceptionArgumentMember(type,spec.member,this.values,this.meter);
     if("install" in spec)spec.install(type,this.values,this.meter);
@@ -443,6 +526,52 @@ export class RuntimeTypeRegistry {
     return type;
   }
 
+  bytesType():TypeValue {
+    this.meter.checkpoint();if(this.#bytesType!==undefined)return this.#bytesType;
+    const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
+    const layout=new RuntimeTypeLayout("bytes",[this.object.value],namespace,this.meter,{matchSelf:true,sequenceTable:true,instanceDictionary:false,objectLayout:false,weakReferences:false,variableSized:true});
+    const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee"});
+    namespace.items.set(this.values.string("__new__"),createBytesNewBuiltin(type,this.values,this.meter,requested=>this.#entries.get(requested.value)?.type===requested,createRuntimeUtf8Encoder(this.values)));
+    installRuntimeBytesDescriptors(type,this.values,this.meter);
+    this.meter.checkpoint(1,64);this.#entries.set(layout,{type});this.#bytesType=type;return type;
+  }
+
+  bytesIteratorType():TypeValue {
+    this.meter.checkpoint();if(this.#bytesIteratorType!==undefined)return this.#bytesIteratorType;
+    const namespace=this.values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(this.keys,this.meter,runtimeDictionaryStorage));
+    const layout=new RuntimeTypeLayout("bytes_iterator",[this.object.value],namespace,this.meter,{sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:false,subclassable:false,instantiable:false});
+    const type=this.values.type(layout,this.type,{immutable:true});
+    installRuntimeBytesIterator(type,this.values,this.meter);
+    this.meter.checkpoint(1,64);this.#entries.set(layout,{type});this.#bytesIteratorType=type;return type;
+  }
+
+  callableIteratorType(): TypeValue {
+    this.meter.checkpoint();
+    if (this.#callableIteratorType !== undefined) return this.#callableIteratorType;
+    const namespace = this.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.keys, this.meter, runtimeDictionaryStorage));
+    const layout = new RuntimeTypeLayout("callable_iterator", [this.object.value], namespace, this.meter, { sequenceTable: false, instanceDictionary: false, objectLayout: false, weakReferences: false, subclassable: false, instantiable: false });
+    const type = this.values.type(layout, this.type, { immutable: true });
+    installRuntimeCallableIteratorDescriptors(type, this.values, this.meter);
+    this.meter.checkpoint(1, 64);
+    this.#entries.set(layout, { type });
+    this.#callableIteratorType = type;
+    return type;
+  }
+
+  rangeIteratorType(name: RuntimeRangeIterator["typeName"]): TypeValue {
+    this.meter.checkpoint();
+    const existing = this.#rangeIteratorTypes.get(name);
+    if (existing !== undefined) return existing;
+    const namespace = this.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(this.keys, this.meter, runtimeDictionaryStorage));
+    const layout = new RuntimeTypeLayout(name, [this.object.value], namespace, this.meter, { sequenceTable: false, instanceDictionary: false, objectLayout: false, weakReferences: false, subclassable: false, instantiable: false });
+    const type = this.values.type(layout, this.type, { immutable: true });
+    installRuntimeRangeIteratorDescriptors(type, this.values, this.meter);
+    this.meter.checkpoint(1, 64);
+    this.#entries.set(layout, { type });
+    this.#rangeIteratorTypes.set(name, type);
+    return type;
+  }
+
   stringType():TypeValue {
     this.meter.checkpoint();
     if(this.#stringType!==undefined)return this.#stringType;
@@ -452,6 +581,7 @@ export class RuntimeTypeRegistry {
     const directCall=this.values.builtinFunction({name:"str",keywordValidation:"callee",invoke:(positional,keywords,meter,invocation)=>constructRuntimeString(positional,keywords,this.values,meter,{invocation,decode})});
     const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee",directCall});
     namespace.items.set(this.values.string("__new__"),createStringNewBuiltin(type,this.values,this.meter,requested=>this.#entries.get(requested.value)?.type===requested,decode));
+    namespace.items.set(this.values.string("__doc__"),this.values.string("str(object='') -> str\nstr(bytes_or_buffer[, encoding[, errors]]) -> str\n\nCreate a new string object from the given object. If encoding or\nerrors is specified, then the object must expose a data buffer\nthat will be decoded using the given encoding and error handler.\nOtherwise, returns the result of object.__str__() (if defined)\nor repr(object).\nencoding defaults to 'utf-8'.\nerrors defaults to 'strict'."));
     installRuntimeStringSlots(type,this.values,this.meter);
     installRuntimeStringArithmeticSlots(type,this.values,this.meter);
     installRuntimeStringMethodDescriptors(type,this.values,this.meter);
@@ -698,7 +828,7 @@ export class RuntimeTypeRegistry {
     const layout=new RuntimeTypeLayout("Union",[this.object.value],namespace,this.meter,{nativeName:"typing.Union",sequenceTable:false,instanceDictionary:false,objectLayout:false,weakReferences:true,subclassable:false,instantiable:false});
     const type=this.values.type(layout,this.type,{immutable:true});
     installRuntimeUnionSlots(type,this.values,this.meter,this.keys,this.noneType.bind(this),this.unionType.bind(this));
-    installRuntimeUnionMetadata(type,this.values,this.meter);
+    installRuntimeUnionMetadata(type,this.values,this.meter,this.keys);
     this.meter.checkpoint(1,64);this.#entries.set(layout,{type});this.#unionType=type;return type;
   }
 
@@ -728,8 +858,6 @@ export class RuntimeTypeRegistry {
     const type=this.values.type(layout,this.type,{immutable:true,keywordValidation:"callee"});
     namespace.items.set(this.values.string("__new__"),createSingletonNewBuiltin(type,this.values.none,this.values,this.meter));
     installRuntimeSingletonSlots("none",type,this.values,this.meter);
-    installRuntimeComparisonMethods("none",type,this.values,this.meter);
-    namespace.items.set(this.values.string("__hash__"),createNativeHashWrapper("none",type,this.values,this.meter));
     this.meter.checkpoint(1,64);
     this.#entries.set(layout,{type});this.#noneType=type;
     return type;

@@ -21,6 +21,8 @@ export class ListIterator<Value> implements IterableIterator<Value> {
 
   [Symbol.iterator](): IterableIterator<Value> { return this; }
 
+  get typeName(): string { return this.#step === 1 ? "list_iterator" : "list_reverseiterator"; }
+
   lengthHint(): number {
     this.meter.checkpoint();
     const source = this.#source;

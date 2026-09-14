@@ -1,4 +1,6 @@
 import {PythonRuntimeError} from "./error.js";
+import {createNativeHashWrapper} from "./builtin-native-hash.js";
+import {installRuntimeComparisonMethods} from "./runtime-native-comparison-method.js";
 import type {ExecutionMeter} from "./execution-budget.js";
 import type {RuntimeValue,RuntimeValues,TypeValue} from "./runtime-values.js";
 
@@ -8,7 +10,7 @@ export function installRuntimeSingletonSlots(kind:"none"|"not-implemented"|"elli
   const accepts=(value:RuntimeValue)=>value.kind===kind;
   meter.checkpoint(1,192);
   for(const name of kind==="ellipsis"?["__repr__"] as const:["__repr__","__bool__"] as const){
-    const descriptor=values.wrapperDescriptor({owner,name,doc:name==="__repr__"?"Return repr(self).":"True if self else False",accepts,
+    const descriptor=values.wrapperDescriptor({owner,name,textSignature:"($self, /)",doc:name==="__repr__"?"Return repr(self).":"True if self else False",accepts,
       invoke(_receiver,positional,keywords,meter){
         meter.checkpoint();
         try {
@@ -21,9 +23,14 @@ export function installRuntimeSingletonSlots(kind:"none"|"not-implemented"|"elli
       }
     });
     owner.value.namespace.items.set(values.string(name),descriptor);
+    // Native slot publication follows CPython's type dictionary order.
+    if(kind==="none"&&name==="__repr__"){
+      owner.value.namespace.items.set(values.string("__hash__"),createNativeHashWrapper(kind,owner,values,meter));
+      installRuntimeComparisonMethods(kind,owner,values,meter);
+    }
   }
   if(kind!=="none"){
-    const descriptor=values.methodDescriptor({owner,name:"__reduce__",accepts,
+    const descriptor=values.methodDescriptor({owner,name:"__reduce__",textSignature:"($self, /)",accepts,
       invoke(_receiver,positional,keywords,meter){
         meter.checkpoint();
         try {
@@ -35,4 +42,5 @@ export function installRuntimeSingletonSlots(kind:"none"|"not-implemented"|"elli
     });
     owner.value.namespace.items.set(values.string("__reduce__"),descriptor);
   }
+  owner.value.namespace.items.set(values.string("__doc__"),values.string(`The type of the ${spelling} singleton.`));
 }

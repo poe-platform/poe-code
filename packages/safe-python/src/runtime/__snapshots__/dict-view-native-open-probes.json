@@ -1,0 +1,107 @@
+{
+  "scope": "Thirteen unresolved behavior blockers and the resolved qualified hash type-name regression; missing APIs are not passing compatibility evidence.",
+  "rows": [
+    {
+      "name": "bytearray",
+      "source": "try:\n    observation = ('ok', bytearray())\nexcept BaseException as error:\n    observation = (type(error).__name__, error.args)\n",
+      "expected": "('ok', bytearray(b''))",
+      "actual": "('NameError', (\"name 'bytearray' is not defined\",))",
+      "matches": false
+    },
+    {
+      "name": "memoryview",
+      "source": "try:\n    observation = ('ok', memoryview(b\"abc\").tolist())\nexcept BaseException as error:\n    observation = (type(error).__name__, error.args)\n",
+      "expected": "('ok', [97, 98, 99])",
+      "actual": "('NameError', (\"name 'memoryview' is not defined\",))",
+      "matches": false
+    },
+    {
+      "name": "buffer",
+      "source": "try:\n    observation = ('ok', bytes.__buffer__.__name__)\nexcept BaseException as error:\n    observation = (type(error).__name__, error.args)\n",
+      "expected": "('ok', '__buffer__')",
+      "actual": "('AttributeError', (\"type object 'bytes' has no attribute '__buffer__'\",))",
+      "matches": false
+    },
+    {
+      "name": "open",
+      "source": "try:\n    observation = ('ok', open.__name__)\nexcept BaseException as error:\n    observation = (type(error).__name__, error.args)\n",
+      "expected": "('ok', 'open')",
+      "actual": "('NameError', (\"name 'open' is not defined\",))",
+      "matches": false
+    },
+    {
+      "name": "import",
+      "source": "try:\n    observation = ('ok', __import__(\"types\").__name__)\nexcept BaseException as error:\n    observation = (type(error).__name__, error.args)\n",
+      "expected": "('ok', 'types')",
+      "actual": "('NameError', (\"name '__import__' is not defined\",))",
+      "matches": false
+    },
+    {
+      "name": "generic-alias",
+      "source": "try:\n    observation = ('ok', list[int].__args__)\nexcept BaseException as error:\n    observation = (type(error).__name__, error.args)\n",
+      "expected": "('ok', (<class 'int'>,))",
+      "actual": "('TypeError', (\"type 'list' is not subscriptable\",))",
+      "matches": false
+    },
+    {
+      "name": "canonical-enumerate",
+      "source": "try:\n    observation = ('ok', type(enumerate).__name__)\nexcept BaseException as error:\n    observation = (type(error).__name__, error.args)\n",
+      "expected": "('ok', 'type')",
+      "actual": "('ok', 'builtin_function_or_method')",
+      "matches": false
+    },
+    {
+      "name": "canonical-map",
+      "source": "try:\n    observation = ('ok', type(map).__name__)\nexcept BaseException as error:\n    observation = (type(error).__name__, error.args)\n",
+      "expected": "('ok', 'type')",
+      "actual": "('ok', 'builtin_function_or_method')",
+      "matches": false
+    },
+    {
+      "name": "iterator-type",
+      "source": "try:\n    observation = ('ok', type(iter([])).__name__)\nexcept BaseException as error:\n    observation = (type(error).__name__, error.args)\n",
+      "expected": "('ok', 'list_iterator')",
+      "actual": {
+        "status": "terminated",
+        "reason": "capability",
+        "message": "canonical type for iterator is unavailable"
+      },
+      "matches": false
+    },
+    {
+      "name": "property",
+      "source": "try:\n    observation = ('ok', property(lambda self: 1).fget is not None)\nexcept BaseException as error:\n    observation = (type(error).__name__, error.args)\n",
+      "expected": "('ok', True)",
+      "actual": "('NameError', (\"name 'property' is not defined\",))",
+      "matches": false
+    },
+    {
+      "name": "oserror",
+      "source": "try:\n    observation = ('ok', OSError(2,\"missing\").errno)\nexcept BaseException as error:\n    observation = (type(error).__name__, error.args)\n",
+      "expected": "('ok', 2)",
+      "actual": "('NameError', (\"name 'OSError' is not defined\",))",
+      "matches": false
+    },
+    {
+      "name": "exception-group",
+      "source": "try:\n    observation = ('ok', ExceptionGroup(\"group\",[ValueError(\"x\")]).message)\nexcept BaseException as error:\n    observation = (type(error).__name__, error.args)\n",
+      "expected": "('ok', 'group')",
+      "actual": "('NameError', (\"name 'ExceptionGroup' is not defined\",))",
+      "matches": false
+    },
+    {
+      "name": "traceback-type",
+      "source": "try:\n    raise ValueError('x')\nexcept ValueError as error:\n    observation = type(error.__traceback__).__name__\n",
+      "expected": "'traceback'",
+      "actual": "'NoneType'",
+      "matches": false
+    },
+    {
+      "name": "qualified-hash-type-name",
+      "source": "class Outer:\n    class K:\n        def __hash__(self):\n            raise TypeError('details')\nOuter.K.__module__ = 'custom'\ntry:\n    value = {Outer.K()}\nexcept TypeError as error:\n    observation = error.args\n",
+      "expected": "(\"cannot use 'custom.Outer.K' as a set element (details)\",)",
+      "actual": "(\"cannot use 'custom.Outer.K' as a set element (details)\",)",
+      "matches": true
+    }
+  ]
+}

@@ -9,7 +9,7 @@ import type { ClassMethodDescriptorValue, RuntimeValues, TypeValue } from "./run
  * and never parses text or requests a buffer. */
 export function createFloatFromNumberDescriptor(owner:TypeValue,values:RuntimeValues,meter:ExecutionMeter):ClassMethodDescriptorValue {
   meter.checkpoint(0,96);
-  return values.classMethodDescriptor({owner,name:"from_number",doc:"Convert real number to a floating-point number.",
+  return values.classMethodDescriptor({textSignature: "($type, number, /)", owner,name:"from_number",doc:"Convert real number to a floating-point number.",
     accepts(receiver,meter) {
       if(receiver.kind!=="type")return false;
       for(const ancestor of receiver.value.mro){meter.checkpoint();if(ancestor===owner.value)return true;}

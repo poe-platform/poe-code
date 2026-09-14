@@ -1,5 +1,6 @@
 import type { ExecutionMeter } from "./execution-budget.js";
 import { runtimeComparison } from "./runtime-comparison.js";
+import { runtimeDictionaryViewComparison } from "./runtime-dictionary-view-comparison.js";
 import { usesRuntimeGuestNumericSlots } from "./runtime-numeric-slots.js";
 import type { RuntimeRichComparisonContext } from "./runtime-rich-comparison.js";
 import type { BuiltinInvocationContext, RuntimeValue, RuntimeValues } from "./runtime-values.js";
@@ -12,6 +13,10 @@ export function runtimeReceiverComparison(operator: string, left: RuntimeValue, 
   if (context !== undefined) {
     const result = context.slots.forward(); meter.checkpoint(); return result;
   }
+  if (left.kind === "dict_keys" || left.kind === "dict_items") return runtimeDictionaryViewComparison(operator, left, right, values, meter, invocation);
+  // The set slot itself declines views; reflection must retain the original
+  // set subtype so the view can observe its overridden protocols.
+  if ((left.kind === "set" || left.kind === "frozenset") && right.kind !== "set" && right.kind !== "frozenset") return values.notImplemented;
   // Numeric expression comparison combines both directions; a single native
   // receiver slot accepts only its own numeric widening direction.
   if ((left.kind === "int" || left.kind === "bool") && (right.kind === "float" || right.kind === "complex")

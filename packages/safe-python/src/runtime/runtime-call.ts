@@ -13,6 +13,7 @@ import type { IterationContext } from "./protocol-iterator.js";
 import { mergeRuntimeMapping } from "./runtime-mapping-merge.js";
 import { PythonKeyError } from "./runtime-dictionary-access.js";
 import { representationObject } from "./representation-protocol.js";
+import {runtimeStringPayload} from "./runtime-string-payload.js";
 
 export interface RuntimeCallContext {
   readonly values: RuntimeValues;
@@ -43,6 +44,7 @@ export interface RuntimeCallContext {
 export function beginRuntimeCall(callee: RuntimeValue, context: RuntimeCallContext, meter: ExecutionMeter): ExpressionCall<RuntimeValue> {
   meter.checkpoint(1, 320);
   const positional: RuntimeValue[] = [];
+  let original:ReturnType<typeof context.values.argumentTuples.get>;
   const keywords = context.values.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>(context.keys, meter, runtimeDictionaryStorage));
   const duplicate = (key: RuntimeValue): never => {
     const name = context.name(callee); meter.checkpoint();
@@ -60,8 +62,13 @@ export function beginRuntimeCall(callee: RuntimeValue, context: RuntimeCallConte
   // Merge catches must finish before diagnostic formatting runs guest code.
   const duplicateKey=(key:RuntimeValue):never=>{throw new PythonKeyError(key,meter);};
   return {
-    positional(value) { meter.checkpoint(1, 8); positional.push(value); },
+    positional(value) { meter.checkpoint(1, 8); original=undefined;positional.push(value); },
+    positionalArray(args){
+      original=positional.length===0?context.values.argumentTuples.get(args):undefined;
+      for(const value of args){meter.checkpoint(1,8);positional.push(value);}
+    },
     starred(value, loneStar = false) {
+      original=loneStar&&positional.length===0&&value.kind==="tuple"?{tuple:value,offset:0}:undefined;
       const iterator = runtimeIterate(value, context.values, meter, context.iteration, name => {
         const prefix = loneStar ? `${context.name(callee)} argument after` : "Value after";
         meter.checkpoint();
@@ -103,6 +110,7 @@ export function beginRuntimeCall(callee: RuntimeValue, context: RuntimeCallConte
       const callable = context.callable(callee); meter.checkpoint();
       if (!callable) {
         const name = hasRuntimeInstanceAttributes(callee) ? diagnosticTypeName(callee.type.value.name, meter, 200)
+          : callee.kind === "type" ? diagnosticTypeName(callee.metaclass.value.name, meter, 200)
           : callee.kind === "none" ? "NoneType" : callee.kind === "not-implemented" ? "NotImplementedType" : callee.kind;
         throw new PythonRuntimeError("TypeError", `'${name}' object is not callable`);
       }
@@ -113,9 +121,10 @@ export function beginRuntimeCall(callee: RuntimeValue, context: RuntimeCallConte
         const iterator = keywords.items.iterate(key => key);
         for (let item = iterator.next(); !item.done; item = iterator.next()) {
           meter.checkpoint();
-          if (item.value.kind !== "str") throw new PythonRuntimeError("TypeError", "keywords must be strings");
+          if (runtimeStringPayload(item.value) === undefined) throw new PythonRuntimeError("TypeError", "keywords must be strings");
         }
       }
+      if(original!==undefined){meter.checkpoint(0,64);context.values.argumentTuples.set(positional,original);}
       const result = context.invoke(callee, Object.freeze(positional), keywords);
       meter.checkpoint(); return result;
     }

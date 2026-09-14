@@ -1,0 +1,33 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0"
+  },
+  "cases": [
+    {
+      "name": "b''",
+      "source": "events=[]\nclass B(bytes):\n def __len__(self):\n  events.append('len')\n  return 1\n def __bytes__(self):\n  events.append('bytes')\n  return b'Z'\n def __str__(self):\n  events.append('str')\n  return 'Z'\n def __index__(self):\n  events.append('index')\n  return 90\n def __getitem__(self,key):\n  events.append('getitem')\n  return 90\n def __buffer__(self,flags):\n  events.append('buffer')\n  return memoryview(b'Z')\ntry:\n answer=ord(B(b''))\n result=(type(answer).__name__,answer,events)\nexcept Exception as e:\n result=(type(e).__name__,e.args,events)",
+      "expected": "('TypeError', ('ord() expected a character, but string of length 0 found',), [])"
+    },
+    {
+      "name": "b'A'",
+      "source": "events=[]\nclass B(bytes):\n def __len__(self):\n  events.append('len')\n  return 1\n def __bytes__(self):\n  events.append('bytes')\n  return b'Z'\n def __str__(self):\n  events.append('str')\n  return 'Z'\n def __index__(self):\n  events.append('index')\n  return 90\n def __getitem__(self,key):\n  events.append('getitem')\n  return 90\n def __buffer__(self,flags):\n  events.append('buffer')\n  return memoryview(b'Z')\ntry:\n answer=ord(B(b'A'))\n result=(type(answer).__name__,answer,events)\nexcept Exception as e:\n result=(type(e).__name__,e.args,events)",
+      "expected": "('int', 65, [])"
+    },
+    {
+      "name": "b'\\x00'",
+      "source": "events=[]\nclass B(bytes):\n def __len__(self):\n  events.append('len')\n  return 1\n def __bytes__(self):\n  events.append('bytes')\n  return b'Z'\n def __str__(self):\n  events.append('str')\n  return 'Z'\n def __index__(self):\n  events.append('index')\n  return 90\n def __getitem__(self,key):\n  events.append('getitem')\n  return 90\n def __buffer__(self,flags):\n  events.append('buffer')\n  return memoryview(b'Z')\ntry:\n answer=ord(B(b'\\x00'))\n result=(type(answer).__name__,answer,events)\nexcept Exception as e:\n result=(type(e).__name__,e.args,events)",
+      "expected": "('int', 0, [])"
+    },
+    {
+      "name": "b'\\xff'",
+      "source": "events=[]\nclass B(bytes):\n def __len__(self):\n  events.append('len')\n  return 1\n def __bytes__(self):\n  events.append('bytes')\n  return b'Z'\n def __str__(self):\n  events.append('str')\n  return 'Z'\n def __index__(self):\n  events.append('index')\n  return 90\n def __getitem__(self,key):\n  events.append('getitem')\n  return 90\n def __buffer__(self,flags):\n  events.append('buffer')\n  return memoryview(b'Z')\ntry:\n answer=ord(B(b'\\xff'))\n result=(type(answer).__name__,answer,events)\nexcept Exception as e:\n result=(type(e).__name__,e.args,events)",
+      "expected": "('int', 255, [])"
+    },
+    {
+      "name": "b'ab'",
+      "source": "events=[]\nclass B(bytes):\n def __len__(self):\n  events.append('len')\n  return 1\n def __bytes__(self):\n  events.append('bytes')\n  return b'Z'\n def __str__(self):\n  events.append('str')\n  return 'Z'\n def __index__(self):\n  events.append('index')\n  return 90\n def __getitem__(self,key):\n  events.append('getitem')\n  return 90\n def __buffer__(self,flags):\n  events.append('buffer')\n  return memoryview(b'Z')\ntry:\n answer=ord(B(b'ab'))\n result=(type(answer).__name__,answer,events)\nexcept Exception as e:\n result=(type(e).__name__,e.args,events)",
+      "expected": "('TypeError', ('ord() expected a character, but string of length 2 found',), [])"
+    }
+  ]
+}

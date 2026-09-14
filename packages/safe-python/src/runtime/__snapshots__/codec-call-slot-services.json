@@ -1,0 +1,262 @@
+{
+  "driver": "import {mkdtempSync,openSync,closeSync,writeFileSync,readFileSync,readSync,writeSync,fsyncSync,rmSync} from 'node:fs';\nimport {tmpdir} from 'node:os';\nimport {join} from 'node:path';\nimport {createHash} from 'node:crypto';\nimport {PythonSession} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/index.ts';\nimport {codecCallSlotCases} from '/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/codec-call-slot-cases.ts';\nconst root='/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/__snapshots__/';\nconst oracle=JSON.parse(readFileSync(root+'codec-call-slot-oracle.json','utf8'));\nconst scratch=mkdtempSync(join(tmpdir(),'safe-python-call-services-'));\nconst digest=(s:string)=>createHash('sha256').update(s).digest('hex');\nlet writes=0,reads=0,flushes=0;\nfunction replay(source:string,cancel?:boolean){\n  const input=join(scratch,'input'),output=join(scratch,'output');\n  writeFileSync(input,'ready\\n');\n  const readFd=openSync(input,'r'),writeFd=openSync(output,'w');\n  const controller=new AbortController();\n  const session=new PythonSession({limits:{maxSteps:1000000,maxAllocatedBytes:16000000,maxDepth:100},hashSeed:[1n,2n],signal:controller.signal,\n    input:{readLine(){reads++;let text='';const byte=Buffer.alloc(1);while(readSync(readFd,byte,0,1,null)){text+=byte.toString();if(byte[0]===10)break;}if(cancel!==undefined){controller.abort();if(cancel)throw Error('cancelled after real read');}return text;}},\n    output:{write(text){writes++;writeSync(writeFd,text);},flush(){flushes++;fsyncSync(writeFd);}}});\n  try{const result=session.exec(source);const stdout=readFileSync(output,'utf8');let error;\n    if(result.status==='exception'){session.globals.set('failure',result.exception);const r=session.eval('str(failure)');if(r.status==='ok')error=r.value.primitive;}\n    return {result:result.status==='exception'?{status:result.status,error}:result,stdout,usage:session.usage,...(cancel===undefined?{}:{repeated:session.eval('1')})};\n  }finally{closeSync(readFd);closeSync(writeFd);}\n}\ntry{\n  const rows=codecCallSlotCases.map((c,i)=>{const result=replay(c.source);return {name:c.name,sourceSha256:digest(c.source),...result,matches:result.result.status==='ok'&&result.stdout===oracle.rows[i].oracle.stdout};});\n  const cancellation=[false,true].map(throws=>({throws,...replay(codecCallSlotCases.at(-1)!.source,throws)}));\n  const evidence={driver:readFileSync(import.meta.filename,'utf8'),reference:oracle.reference,oracleSha256:digest(readFileSync(root+'codec-call-slot-oracle.json','utf8')),rows,cancellation,services:{writes,reads,flushes}};\n  writeFileSync(root+'codec-call-slot-services.json',JSON.stringify(evidence,null,2)+'\\n');\n  console.log(JSON.stringify({failures:rows.filter(r=>!r.matches),cancellation,services:evidence.services},null,2));\n}finally{rmSync(scratch,{recursive:true,force:true});}\n",
+  "reference": {
+    "status": 0,
+    "stdout": "{\"version\": \"3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\", \"unicode\": \"16.0.0\", \"platform\": \"macOS-26.4.1-arm64-arm-64bit-Mach-O\"}\n",
+    "stderr": ""
+  },
+  "oracleSha256": "d1f064dc78459f5d150f002db5687f1ed4cbbb2a90ade9c9cbeeb85a5d35f425",
+  "rows": [
+    {
+      "name": "CodecInfo readiness and query identity",
+      "sourceSha256": "bd338d8a593e2c9200d7785438bf73b38727860b7a5ef923762cdf94011182b4",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 143363,
+        "allocatedBytes": 1931349
+      },
+      "matches": true
+    },
+    {
+      "name": "IncrementalEncoder readiness and query identity",
+      "sourceSha256": "68a01cf7f4645d573f2b1b9949245a9c76b26c844430670b1b64b07782c60e0d",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 143507,
+        "allocatedBytes": 1931783
+      },
+      "matches": true
+    },
+    {
+      "name": "IncrementalDecoder readiness and query identity",
+      "sourceSha256": "31f6dd3fc955e65c804d05373e57fd493e4ec63de0ef3d428f4fd11f425bfc03",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 143507,
+        "allocatedBytes": 1931783
+      },
+      "matches": true
+    },
+    {
+      "name": "BufferedIncrementalEncoder readiness and query identity",
+      "sourceSha256": "b0e768e0c52df010099d5eb6ca798418cf17f720bc194f2d5e56f5fba18f4eb9",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 143656,
+        "allocatedBytes": 1932055
+      },
+      "matches": true
+    },
+    {
+      "name": "BufferedIncrementalDecoder readiness and query identity",
+      "sourceSha256": "718da2286f84c9c6f9065f949cb191e29e5eeea4d6e796fb55bc81186ade4534",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 143656,
+        "allocatedBytes": 1932055
+      },
+      "matches": true
+    },
+    {
+      "name": "StreamReader readiness and query identity",
+      "sourceSha256": "c3f0026d326790f3807ebcb8671ce7a361be421594fef15b43f8319e357599f1",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 143488,
+        "allocatedBytes": 1931579
+      },
+      "matches": true
+    },
+    {
+      "name": "StreamWriter readiness and query identity",
+      "sourceSha256": "e0d3c09815ab1411e1f0f645ca924d49fd5b9b3549c1720896a0886728092f38",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 143488,
+        "allocatedBytes": 1931579
+      },
+      "matches": true
+    },
+    {
+      "name": "StreamReaderWriter readiness and query identity",
+      "sourceSha256": "56cfc36f81e85aefde7bebf1dabeff7bbde183c0233bc359b9988a2d10ae9983",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 143507,
+        "allocatedBytes": 1931783
+      },
+      "matches": true
+    },
+    {
+      "name": "StreamRecoder readiness and query identity",
+      "sourceSha256": "a2c4a1f81194c4341c7ff646d6926de31e1be498a48922e27108090f13d131c4",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 143447,
+        "allocatedBytes": 1931613
+      },
+      "matches": true
+    },
+    {
+      "name": "call readiness follows hash and precedes str",
+      "sourceSha256": "a6816e18fb3d29a2d223375fbe0feb40c3a40929d843472df19d6527bf84f050",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 149116,
+        "allocatedBytes": 2060209
+      },
+      "matches": true
+    },
+    {
+      "name": "failed call fixup disables invocation but preserves the dictionary",
+      "sourceSha256": "116b945409a1cb65560fe283a4bcdb7a826963242bd226123314e9a2b90d253e",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 151657,
+        "allocatedBytes": 2098706
+      },
+      "matches": true
+    },
+    {
+      "name": "descriptor binding is deferred to invocation",
+      "sourceSha256": "917836202e2bf9a1b2997c6b27f68a250ef5f41ccb8469ada2ac0fbb6373e9e2",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 141384,
+        "allocatedBytes": 1896059
+      },
+      "matches": true
+    },
+    {
+      "name": "inherited mutation and disabled call values",
+      "sourceSha256": "d5c94b6ca4d3ec4312678aa8f752862ac85ec56f565836fd852f1b793018cb5e",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 143840,
+        "allocatedBytes": 1964745
+      },
+      "matches": true
+    },
+    {
+      "name": "source mutation leaves the copied call slot intact",
+      "sourceSha256": "f753e33f9ddbb6abdd2b88cf7e87a641b73554be8e78d97a90e9ef8ca36be615",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 143081,
+        "allocatedBytes": 1939025
+      },
+      "matches": true
+    },
+    {
+      "name": "metaclass call fixup controls class callability",
+      "sourceSha256": "87858e394bcc99a08f5a4ec8d842c6101d0d748d534bc2facdbf9411f71a2e48",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 152878,
+        "allocatedBytes": 2095968
+      },
+      "matches": true
+    },
+    {
+      "name": "supported service callback during call readiness",
+      "sourceSha256": "31415f337ec60b76f43b36351798f6017cac7fec3af5eff1361fdbd3a678279c",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "call slot ready\n",
+      "usage": {
+        "steps": 141359,
+        "allocatedBytes": 1911450
+      },
+      "matches": true
+    }
+  ],
+  "cancellation": [
+    {
+      "throws": false,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 138640,
+        "allocatedBytes": 1859940
+      },
+      "repeated": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "throws": true,
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "",
+      "usage": {
+        "steps": 138640,
+        "allocatedBytes": 1859940
+      },
+      "repeated": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    }
+  ],
+  "services": {
+    "writes": 2,
+    "reads": 3,
+    "flushes": 4
+  }
+}

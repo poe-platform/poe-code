@@ -6,6 +6,9 @@ import {runtimeCompilationSource} from "./runtime-compilation-source.js";
 import {decodeRuntimeFileSystemName,runtimeFileSystemPath,type FileSystemNameDecoder} from "./runtime-filesystem-path.js";
 import type {RuntimeValue,RuntimeValues} from "./runtime-values.js";
 import {compileSourceProgram,type SourceCompilationOptions} from "./source-program-compilation.js";
+import {runtimeStringPayload} from "./runtime-string-payload.js";
+import {createRuntimeSourceCodecRecovery} from "./runtime-source-codec-recovery.js";
+import {createRuntimeSourceCodecDecoder} from "./runtime-source-codec-decoder.js";
 
 export interface RuntimeCompilationPolicy extends Pick<CompileContext,"inheritedFlags"> {
   /** Execution defaults and shared recursion guard; explicit request optimization
@@ -27,10 +30,12 @@ export function createRuntimeCompilation(values:RuntimeValues,programs:RuntimeCo
       let fatal=false;
       try {
         const path=runtimeFileSystemPath(value,meter,invocation);
-        const name=path.kind==="str"?path:values.stringPoints(decodeRuntimeFileSystemName(path,meter,undefined,policy.decodeFilename));
+        const text=runtimeStringPayload(path);
+        const points=text?.value??decodeRuntimeFileSystemName(path,meter,undefined,policy.decodeFilename);
+        const name=text===undefined?values.stringPoints(points):path;
         meter.checkpoint(1,80);
         let displayName="";
-        for(const point of name.value){meter.checkpoint(1,64+(point>0xffff?4:2));displayName+=String.fromCodePoint(point);}
+        for(const point of points){meter.checkpoint(1,64+(point>0xffff?4:2));displayName+=String.fromCodePoint(point);}
         return {displayName,value:name};
       } catch(error){fatal=error instanceof ExecutionLimitError;throw error;}
       finally{if(!fatal)meter.checkpoint();}
@@ -46,7 +51,12 @@ export function createRuntimeCompilation(values:RuntimeValues,programs:RuntimeCo
         const source=runtimeCompilationSource(request.source,meter,invocation);
         const options=policy.compilation();meter.checkpoint();
         const optimize=request.optimize===-1?options.optimize??0:request.optimize as 0|1|2;
-        const program=compileSourceProgram<RuntimeValue>(source,{...options,mode:request.mode,filename:request.filename,futureFlags:request.flags,optimize},values,meter);
+        const sourceException=invocation?.sourceException;
+        const program=compileSourceProgram<RuntimeValue>(source,{...options,mode:request.mode,filename:request.filename,futureFlags:request.flags,optimize,
+          decodeSource:options.decodeSource??(typeof source==="string"?undefined:createRuntimeSourceCodecDecoder(invocation)),
+          sourceDecodeRecovery:options.sourceDecodeRecovery??(typeof source==="string"?undefined:createRuntimeSourceCodecRecovery(invocation)),
+          ...(sourceException===undefined?{}:{sourceException:(error:unknown)=>sourceException(error,typeof request.filename==="string"?values.string(request.filename):request.filename.value)})
+        },values,meter);
         programs.register(program);
         return policy.code(program.module);
       } catch(error){fatal=error instanceof ExecutionLimitError;throw error;}

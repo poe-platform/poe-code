@@ -39,7 +39,7 @@ export function installRuntimeStringSlots(owner:TypeValue,values:RuntimeValues,m
             const result=runtimeIndex(payload,positional[0],values,meter,invocation?.integerIndex);
             return receiver.kind==="instance"&&result===payload?values.stringPoints(payload.value):result;
           }
-          if(name==="__contains__")return runtimeMembership("in",runtimeStringPayload(positional[0])??positional[0],payload,values,meter);
+          if(name==="__contains__")return runtimeMembership("in",positional[0],payload,values,meter,undefined,invocation);
           if(invocation?.nativeHash===undefined)throw Error("string hashing requires a native hash policy");
           try{return values.integer(invocation.nativeHash(payload));}
           catch(error){throw error instanceof RuntimeHashError?error.original:error;}

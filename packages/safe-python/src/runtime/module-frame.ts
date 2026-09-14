@@ -4,7 +4,7 @@ import type {CompiledModule} from "./program-compilation.js";
 import {FrameLocals} from "./frame-locals.js";
 import {compileCodeLocalLayout} from "./code-local-layout.js";
 import { ExecutionLimitError, type ExecutionMeter } from "./execution-budget.js";
-import { PythonRuntimeError } from "./error.js";
+import { PythonNameError } from "./name-error.js";
 import { lookupNamespace,storeNamespace,type MutableNameNamespace, type NameNamespace } from "./namespace-lookup.js";
 
 export interface LocalNamespace<Value> {
@@ -79,7 +79,7 @@ export class ModuleFrame<Value> extends ExecutionFrame {
     this.meter.checkpoint();
     const builtin = lookupNamespace(this.namespaces.builtins, name);
     if (builtin !== undefined) return builtin.value;
-    throw new PythonRuntimeError("NameError", `name '${name}' is not defined`);
+    throw new PythonNameError(name, `name '${name}' is not defined`);
   }
 
   store(name: string, value: Value): void {
@@ -99,6 +99,6 @@ export class ModuleFrame<Value> extends ExecutionFrame {
         if (error instanceof ExecutionLimitError || !locals.isGuest(error)) throw error;
       }
     } else if (this.namespaces.globals.delete(name)) return;
-    throw new PythonRuntimeError("NameError", `name '${name}' is not defined`);
+    throw new PythonNameError(name, `name '${name}' is not defined`);
   }
 }

@@ -1,5 +1,6 @@
 import type { ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
+import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import { SequenceReverseIterator, type ReverseSequenceContext } from "./sequence-reverse-iterator.js";
 
 export interface ReversedConstructionContext<Value> extends ReverseSequenceContext<Value> {
@@ -33,7 +34,7 @@ export function constructReversed<Value>(positional: readonly Value[], keywords:
   const eligible = method !== null && context.hasSequenceItem(source);
   meter.checkpoint();
   if (!eligible) {
-    const name = context.typeName(source);
+    const name = diagnosticTypeName(context.typeName(source), meter);
     meter.checkpoint();
     throw new PythonRuntimeError("TypeError", `'${name}' object is not reversible`);
   }

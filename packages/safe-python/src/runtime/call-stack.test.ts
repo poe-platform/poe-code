@@ -6,6 +6,44 @@ import { ExecutionFrame } from "./execution-frame.js";
 const budget = (maxSteps = 1000) => new ExecutionBudget({ maxSteps, maxAllocatedBytes: 100000 });
 
 describe("execution call stack", () => {
+  it("rejects unbudgeted activation storage without publishing caller state", () => {
+    const meter = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 0 });
+    const calls = new CallStack(1000, meter), frame = new ExecutionFrame();
+    expect(() => calls.enter(frame)).toThrow(expect.objectContaining({ reason: "allocation" }));
+    expect(calls.depth).toBe(0);
+    expect(calls.current).toBeUndefined();
+    expect(frame.caller).toBeUndefined();
+  });
+
+  it("charges repeated native entries and retains cumulative storage after cleanup", () => {
+    const meter = budget(), calls = new CallStack(1000, meter), frame = new ExecutionFrame();
+    const leave = calls.enter(frame);
+    const first = meter.usage.allocatedBytes;
+    expect(first).toBeGreaterThan(0);
+    const leaveNative = calls.enter(frame);
+    const second = meter.usage.allocatedBytes;
+    expect(second).toBeGreaterThan(first);
+    leaveNative(); leave();
+    expect(meter.usage.allocatedBytes).toBe(second);
+    expect(calls.depth).toBe(0);
+  });
+
+  it("keeps the active caller intact on allocation failure and unwinds without charges", () => {
+    const meter = new ExecutionBudget({ maxSteps: 100, maxAllocatedBytes: 1000 });
+    const calls = new CallStack(1000, meter), outer = new ExecutionFrame(), inner = new ExecutionFrame();
+    const leave = calls.enter(outer);
+    meter.checkpoint(0, 1000 - meter.usage.allocatedBytes);
+    expect(() => calls.enter(inner)).toThrow(expect.objectContaining({ reason: "allocation" }));
+    expect(calls.current).toBe(outer);
+    expect(calls.depth).toBe(1);
+    expect(inner.caller).toBeUndefined();
+    const usage = meter.usage;
+    leave(); leave();
+    expect(calls.depth).toBe(0);
+    expect(calls.current).toBeUndefined();
+    expect(meter.usage).toEqual(usage);
+  });
+
   it("retains ordinary callers while ignoring repeated native entries", () => {
     const calls = new CallStack(8, budget()), outer = new ExecutionFrame(), inner = new ExecutionFrame();
     const leaveOuter = calls.enter(outer), leaveNative = calls.enter(outer);

@@ -1,0 +1,313 @@
+{
+  "oracle": "/opt/homebrew/bin/python3.14",
+  "metadata": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0\nmacOS-26.4.1-arm64-arm-64bit-Mach-O\n",
+  "adapter": "Explicit node:fs descriptors through supported PythonSession input.readLine and output.write/flush; real guest stream methods",
+  "cases": [
+    {
+      "name": "buffered state truth and indexing preserve mutation on failure",
+      "sha256": "cbdef910fcc4cfa28805786822d67d7925dd292714726c7de3b58913de635d29",
+      "result": "ok",
+      "output": "None\nFalse  ['bool']\nNone\nTrue state ['bool']\nTrue\nFalse mutated ['bool']\nTrue\nFalse mutated ['bool']\nNone\nTrue ([], 0) [0]\nTrue\nFalse (b'mutated', 0) [0]\n",
+      "reads": 0,
+      "writes": 48,
+      "reference": {
+        "status": 0,
+        "stdout": "None\nFalse  ['bool']\nNone\nTrue state ['bool']\nTrue\nFalse mutated ['bool']\nTrue\nFalse mutated ['bool']\nNone\nTrue ([], 0) [0]\nTrue\nFalse (b'mutated', 0) [0]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "stream reader bytearray and memoryview short reads preserve native concatenation",
+      "sha256": "ea228e5315eba3cd7ac83346963a3fc5efdd85162b4270d6c47f992c5f7e9670",
+      "result": "exception",
+      "diagnostic": "name 'bytearray' is not defined",
+      "output": "",
+      "reads": 0,
+      "writes": 0,
+      "reference": {
+        "status": 0,
+        "stdout": "bytes 'é\\n' '' b'' \nbytearray 'é\\n' '' b'' \nmemoryview 'é\\n' '' b'' \n",
+        "stderr": ""
+      },
+      "matches": false
+    },
+    {
+      "name": "reader character buffer inplace addition preserves callback identity and failure mutation",
+      "sha256": "17928114a1fb90d8faec30c236fd6ba02d526df63cce91dec2ead94512d3944d",
+      "result": "ok",
+      "output": "True\nFalse b'changed' [('decode', b'ab', 'strict'), ('iadd', 'text'), ('decode', b'changed', 'strict'), ('iadd', 'text')]\nTrue\nTrue b'changed' [('decode', b'ab', 'strict'), ('iadd', 'text')]\n",
+      "reads": 0,
+      "writes": 16,
+      "reference": {
+        "status": 0,
+        "stdout": "True\nFalse b'changed' [('decode', b'ab', 'strict'), ('iadd', 'text'), ('decode', b'changed', 'strict'), ('iadd', 'text')]\nTrue\nTrue b'changed' [('decode', b'ab', 'strict'), ('iadd', 'text')]\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "stream delegation preserves descriptor errors and close exception identity",
+      "sha256": "fe67306e66278450d7897c27446a0d1862270cfc2ef05e60eb235c03a680709a",
+      "result": "exception",
+      "diagnostic": "name 'property' is not defined",
+      "output": "",
+      "reads": 0,
+      "writes": 0,
+      "reference": {
+        "status": 0,
+        "stdout": "True ['tell']\nTrue\nTrue ValueError ('body',) ['tell', 'close']\nTrue ['tell']\nTrue\nTrue ValueError ('body',) ['tell', 'close']\nTrue ['tell']\nTrue\nTrue ValueError ('body',) ['tell', 'close']\nTrue ['tell']\nTrue\nTrue ValueError ('body',) ['tell', 'close']\n",
+        "stderr": ""
+      },
+      "matches": false
+    },
+    {
+      "name": "real UTF8 short reads and writes",
+      "sha256": "20310ed208b3408195c5a01c416a775a0d5eec2317c80ab096e44ed20de0384d",
+      "result": "ok",
+      "output": "c3a90a\nf09f908d0a\n410a\n",
+      "reads": 6,
+      "writes": 6,
+      "reference": {
+        "status": 0,
+        "stdout": "c3a90a\nf09f908d0a\n410a\n",
+        "stderr": ""
+      },
+      "matches": true
+    },
+    {
+      "name": "reader.read",
+      "sha256": "212641d020ad55cdb4f2e41f98456b4af50ba7e357a8cc98d75ec8a17cd71563",
+      "result": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "reads": 1,
+      "writes": 0,
+      "postCancellation": {
+        "status": "terminated",
+        "reason": "cancelled"
+      }
+    },
+    {
+      "name": "writer.write",
+      "sha256": "0e31527b34c285ba4bed614bc8115830f106948caadd4ea2d058245e9e064870",
+      "result": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "reads": 1,
+      "writes": 0,
+      "postCancellation": {
+        "status": "terminated",
+        "reason": "cancelled"
+      }
+    },
+    {
+      "name": "paired.reset",
+      "sha256": "82af76ed47ed808357b8772be07c9dd47991141f00bea39fcb1e5631858d68cd",
+      "result": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "reads": 1,
+      "writes": 0,
+      "postCancellation": {
+        "status": "terminated",
+        "reason": "cancelled"
+      }
+    },
+    {
+      "name": "recoder.seek",
+      "sha256": "b4d436bcaa770516aa9feaeda78c3241e4efc2dab6bd18b52835ca3cdc56d384",
+      "result": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "reads": 1,
+      "writes": 0,
+      "postCancellation": {
+        "status": "terminated",
+        "reason": "cancelled"
+      }
+    },
+    {
+      "name": "incremental handler",
+      "sha256": "57b68982a225a736f9d85a2edbdc45cf142eb31727cbec4a33d2f69422822e41",
+      "result": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "reads": 1,
+      "writes": 0,
+      "postCancellation": {
+        "status": "terminated",
+        "reason": "cancelled"
+      }
+    },
+    {
+      "name": "iterator source",
+      "sha256": "899533db492f675937960602d73a753bf476cd1414341990a24902edec88a863",
+      "result": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "reads": 1,
+      "writes": 0,
+      "postCancellation": {
+        "status": "terminated",
+        "reason": "cancelled"
+      }
+    },
+    {
+      "name": "reader.readline",
+      "sha256": "65c6aa8986d5a03a7a0ec038ff87d95c56dde668e3b54803938b75d0e7303370",
+      "result": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "reads": 1,
+      "writes": 0,
+      "postCancellation": {
+        "status": "terminated",
+        "reason": "cancelled"
+      }
+    },
+    {
+      "name": "reader.readlines",
+      "sha256": "cea4a6e0820cb006e7a776d6c367a7d152d663d45b0e670eb21fa7ebbd5c5ce2",
+      "result": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "reads": 1,
+      "writes": 0,
+      "postCancellation": {
+        "status": "terminated",
+        "reason": "cancelled"
+      }
+    },
+    {
+      "name": "reader.tell",
+      "sha256": "2c38bd2108f9e30173ad0ce7024239ae33d66ef8da2c2fd4cacf0d90c5c75dd3",
+      "result": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "reads": 1,
+      "writes": 0,
+      "postCancellation": {
+        "status": "terminated",
+        "reason": "cancelled"
+      }
+    },
+    {
+      "name": "writer.writelines source",
+      "sha256": "415a2b3b207411e7238291ad444d432325e7bae41ce718ca28fa3ec2cf4f70a6",
+      "result": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "reads": 1,
+      "writes": 0,
+      "postCancellation": {
+        "status": "terminated",
+        "reason": "cancelled"
+      }
+    },
+    {
+      "name": "buffered decoder consumed index",
+      "sha256": "bceaad8badd6ee68a6b3bc7f4f16db63925876448b055756c22c155875f22727",
+      "result": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "reads": 1,
+      "writes": 0,
+      "postCancellation": {
+        "status": "terminated",
+        "reason": "cancelled"
+      }
+    },
+    {
+      "name": "iterencode final callback",
+      "sha256": "8bc046ca49cf7bed981b01b995667d7f6829b1efe973cb30bbfbca2112557f0d",
+      "result": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "reads": 1,
+      "writes": 0,
+      "postCancellation": {
+        "status": "terminated",
+        "reason": "cancelled"
+      }
+    },
+    {
+      "name": "iterdecode final callback",
+      "sha256": "eeeecfc7b67705689add0b0ca81746d1345aac4b2f59685c04de483977ab374e",
+      "result": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "reads": 1,
+      "writes": 0,
+      "postCancellation": {
+        "status": "terminated",
+        "reason": "cancelled"
+      }
+    },
+    {
+      "name": "recoder frontend decoder",
+      "sha256": "c7ff8dd3494d3e1a7231597a64b305f320cf64f7b4f4f960dc70a0b7f6e529f2",
+      "result": "terminated",
+      "reason": "cancelled",
+      "output": "",
+      "reads": 1,
+      "writes": 0,
+      "postCancellation": {
+        "status": "terminated",
+        "reason": "cancelled"
+      }
+    },
+    {
+      "name": "writer.write",
+      "sha256": "d233955eeb6ca05624dc90d47f8c2b6b74e2450ec0eb08caebad8e3715209915",
+      "result": "terminated",
+      "reason": "cancelled",
+      "output": "c3a9",
+      "reads": 0,
+      "writes": 1,
+      "postCancellation": {
+        "status": "terminated",
+        "reason": "cancelled"
+      }
+    },
+    {
+      "name": "writer.writelines",
+      "sha256": "2f4e294af99363535751a87279809d1e6c46f2a8a5917c378848a049b69c5e9e",
+      "result": "terminated",
+      "reason": "cancelled",
+      "output": "c3a9f09f908d",
+      "reads": 0,
+      "writes": 1,
+      "postCancellation": {
+        "status": "terminated",
+        "reason": "cancelled"
+      }
+    },
+    {
+      "name": "paired.write",
+      "sha256": "7fea6cc85775149a3487cf1cf027cb510ef99e0f4440227296389731af843060",
+      "result": "terminated",
+      "reason": "cancelled",
+      "output": "c3a9",
+      "reads": 0,
+      "writes": 1,
+      "postCancellation": {
+        "status": "terminated",
+        "reason": "cancelled"
+      }
+    },
+    {
+      "name": "recoder.write",
+      "sha256": "aca05eb107201574c97319e73dcc60f81fd43545063936dfca62d8172d30ae81",
+      "result": "terminated",
+      "reason": "cancelled",
+      "output": "c3a9",
+      "reads": 0,
+      "writes": 1,
+      "postCancellation": {
+        "status": "terminated",
+        "reason": "cancelled"
+      }
+    }
+  ]
+}

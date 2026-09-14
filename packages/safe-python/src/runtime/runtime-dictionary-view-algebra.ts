@@ -44,8 +44,9 @@ export function runtimeDictionaryViewBinary(operator: "|" | "&" | "-" | "^", lef
     }
   }
   const result = values.set(view.value.items.emptyCopy());
-  // Only conversion of the left keys view gets the exact-dictionary fast path.
-  updateRuntimeSet(result, left.kind === "dict_keys" ? left.value : left, values, meter, iteration);
+  // CPython borrows cached key hashes only for a view of an exact dict.
+  // Subtype-backed views still iterate native storage, rehashing each key.
+  updateRuntimeSet(result, left.kind === "dict_keys" && left.owner === undefined ? left.value : left, values, meter, iteration);
   if (operator === "|") updateRuntimeSet(result, right, values, meter, iteration);
   else if (operator === "-") subtractRuntimeSet(result, right, values, meter, iteration);
   else symmetricDifferenceUpdateRuntimeSet(result, right, values, meter, iteration);

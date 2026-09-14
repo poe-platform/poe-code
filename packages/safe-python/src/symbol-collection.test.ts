@@ -44,7 +44,7 @@ describe("lexical symbol collection", () => {
 
   it("ignores type expressions and preserves annotation-only binding semantics", () => {
     const root = collectSymbols(parseModule("x: Missing\n(y): Missing\nobj.attr: Missing\ntype Alias = Missing\ndef f[T](x: Missing) -> Missing: pass"));
-    expect(root.events.map(e => [e.kind,e.name])).toEqual([["annotation","x"],["read","obj"],["write","f"]]);
+    expect(root.events.map(e => [e.kind,e.name])).toEqual([["annotation","x"],["read","obj"],["write","Alias"],["write","f"]]);
     expect(root.children[0].events.map(e => e.name)).toEqual(["x"]);
   });
 });

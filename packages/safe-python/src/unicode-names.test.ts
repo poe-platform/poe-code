@@ -12,6 +12,10 @@ describe("Python Unicode character name lookup", () => {
     ["NUSHU CHARACTER-1B170", "𛅰"], ["EGYPTIAN HIEROGLYPH-13460", "\u{13460}"],
     ["KHITAN SMALL SCRIPT CHARACTER-18B00", "\u{18b00}"],
     ["TODHRI LETTER A", "\u{105c0}"],
+    ["TANGUT IDEOGRAPH-17000", "\u{17000}"],
+    ["TANGUT IDEOGRAPH-187F7", "\u{187f7}"],
+    ["TANGUT IDEOGRAPH-18D00", "\u{18d00}"],
+    ["TANGUT IDEOGRAPH-18D08", "\u{18d08}"],
     ["ZERO WIDTH NO-BREAK SPACE", "\uFEFF"]
   ])("resolves %s", (name, value) => {
     expect(lookupUnicodeName(name)).toBe(value);
@@ -22,7 +26,7 @@ describe("Python Unicode character name lookup", () => {
     "LATIN  CAPITAL LETTER A", "LATIN_CAPITAL_LETTER_A", "KELVIN SIGN",
     "CJK UNIFIED IDEOGRAPH-04E00", "CJK UNIFIED IDEOGRAPH-4E0G",
     "CJK UNIFIED IDEOGRAPH-110000", "CJK UNIFIED IDEOGRAPH-2FFFF",
-    "KEYCAP DIGIT ONE", "TANGUT IDEOGRAPH-17000", "<control>", "__proto__"
+    "KEYCAP DIGIT ONE", "TANGUT IDEOGRAPH-187F8", "TANGUT IDEOGRAPH-18D09", "<control>", "__proto__"
   ])("rejects unknown or non-character name %j", (name) => {
     expect(lookupUnicodeName(name)).toBeUndefined();
   });

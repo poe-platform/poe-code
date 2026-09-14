@@ -1,0 +1,13 @@
+
+> @poe-code/safe-python@0.0.0-dev test:unit
+> vitest run --config vitest.config.ts src/session-codec-handler-field-precedence.test.ts src/session-codec-decoder-index-retry.test.ts src/session-codec-search-mutation.test.ts src/session-codec-interpreter-isolation.test.ts src/session-codec-cache-identity.test.ts src/session-codec-stream-eof.test.ts src/session-codec-incremental-state-transfer-user.test.ts src/session-codec-recovery-index-boundaries.test.ts src/session-codec-split-native-audit.test.ts --maxWorkers=2 --pool=forks
+
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code-3/packages/safe-python
+
+
+ Test Files  9 passed (9)
+      Tests  121 passed (121)
+   Start at  11:16:38
+   Duration  15.26s (transform 11.95s, setup 0ms, import 22.37s, tests 5.97s, environment 1ms)
+

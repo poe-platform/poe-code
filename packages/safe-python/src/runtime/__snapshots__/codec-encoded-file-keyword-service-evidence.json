@@ -1,0 +1,281 @@
+{
+  "target": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O"
+  },
+  "adapter": "Explicit node:fs descriptors with readSync, partial-write-safe writeSync and fsyncSync; closed and removed in finally. No mocks.",
+  "cases": [
+    {
+      "name": "EncodedFile accepts string subclass keywords with native spelling",
+      "source": "assert input() == 'file'\nimport codecs\nclass Key(str):\n    def __str__(self):\n        raise AssertionError('conversion')\nstream = object()\nwrapped = codecs.EncodedFile(**{Key('file'): stream, Key('data_encoding'): 'utf-8'})\nassert wrapped.stream is stream\nassert wrapped.data_encoding == wrapped.file_encoding == 'utf-8'\n\nprint('verified')\n",
+      "sha256": "3e69311bad8bd428f036225b573ed526c0ef96cb7d7d5bbb5157e74f6c7dcbcc",
+      "reference": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "verified\n",
+        "reads": 1,
+        "writes": 2
+      },
+      "match": true
+    },
+    {
+      "name": "EncodedFile keyword equality runs in parameter order and can redirect binding",
+      "source": "assert input() == 'file'\nimport codecs\nevents = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(other)\n        return other == 'file'\nstream = object()\nwrapped = codecs.EncodedFile(**{Key('unrelated'): stream, 'data_encoding': 'utf-8'})\nassert wrapped.stream is stream\nassert events == ['file'], events\n\nprint('verified')\n",
+      "sha256": "a2cc25eea37d92b4a962f70fad9912ab0aa6f84e70997e64d395ffe5dccac3f7",
+      "reference": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "verified\n",
+        "reads": 1,
+        "writes": 2
+      },
+      "match": true
+    },
+    {
+      "name": "EncodedFile keyword equality failure short circuits later keys and lookup",
+      "source": "assert input() == 'file'\nimport codecs\nevents = []\nfailure = LookupError('keyword')\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(other)\n        raise failure\nkey = Key('unrelated')\ndef lookup(name):\n    raise AssertionError('body entered')\ncodecs.lookup = lookup\ntry:\n    codecs.EncodedFile(**{'file': None, key: None})\nexcept LookupError as error:\n    assert error is failure\nelse:\n    raise AssertionError('equality exception lost')\nassert events == ['file'], events\n\nprint('verified')\n",
+      "sha256": "c604550481c1b161a9bca433dd62d917a9a9192022c5286ab7affa89cb4513b9",
+      "reference": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "verified\n",
+        "reads": 1,
+        "writes": 2
+      },
+      "match": true
+    },
+    {
+      "name": "EncodedFile duplicate binding stops before a later keyword callback",
+      "source": "assert input() == 'file'\nimport codecs\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        raise AssertionError('late equality')\ntry:\n    codecs.EncodedFile(None, **{'file': None, Key('later'): None})\nexcept TypeError as error:\n    assert error.args == (\"EncodedFile() got multiple values for argument 'file'\",)\nelse:\n    raise AssertionError('duplicate accepted')\n\nprint('verified')\n",
+      "sha256": "388be93aaa25bf030d3ee4077e175b378f1f650d55b9ef687da31b63a9a830be",
+      "reference": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "verified\n",
+        "reads": 1,
+        "writes": 2
+      },
+      "match": true
+    },
+    {
+      "name": "EncodedFile duplicate diagnostic uses the original keyword str slot",
+      "source": "assert input() == 'file'\nimport codecs\nevents = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(other)\n        return other == 'file'\n    def __str__(self):\n        events.append('str')\n        return 'shown'\ntry:\n    codecs.EncodedFile(None, **{Key('redirected'): None})\nexcept TypeError as error:\n    assert error.args == (\"EncodedFile() got multiple values for argument 'shown'\",), error.args\nelse:\n    raise AssertionError('duplicate accepted')\nassert events == ['file', 'str'], events\n\nprint('verified')\n",
+      "sha256": "e896392539ab5d359711b8e762cb92f436cea12d776e0dea498a44cd5f5c61a5",
+      "reference": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "verified\n",
+        "reads": 1,
+        "writes": 2
+      },
+      "match": true
+    },
+    {
+      "name": "EncodedFile keyword truth conversion preserves its original exception",
+      "source": "assert input() == 'file'\nimport codecs\nevents = []\nfailure = ValueError('truth')\nclass Decision:\n    def __bool__(self):\n        events.append('truth')\n        raise failure\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(other)\n        return Decision()\ntry:\n    codecs.EncodedFile(**{Key('other'): None})\nexcept ValueError as error:\n    assert error is failure\nelse:\n    raise AssertionError('truth failure lost')\nassert events == ['file', 'truth'], events\n\nprint('verified')\n",
+      "sha256": "70b5ac86c5dd5a685f05a0a9da1ab917a8fdec1159668a710a038b818171cb92",
+      "reference": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "verified\n",
+        "reads": 1,
+        "writes": 2
+      },
+      "match": true
+    },
+    {
+      "name": "EncodedFile binding observes defaults mutated by keyword equality",
+      "source": "assert input() == 'file'\nimport codecs\nstream = object()\nerrors = object()\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        codecs.EncodedFile.__defaults__ = ('utf-8', None, errors)\n        return other == 'file'\nwrapped = codecs.EncodedFile(**{Key('alias'): stream})\nassert wrapped.stream is stream and wrapped.errors is errors\nassert wrapped.data_encoding == wrapped.file_encoding == 'utf-8'\n\nprint('verified')\n",
+      "sha256": "cc4cf07219862c05235b69598d4ca67aa91c9fdaa13872c22de5daee79aad9aa",
+      "reference": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "verified\n",
+        "reads": 1,
+        "writes": 2
+      },
+      "match": true
+    },
+    {
+      "name": "EncodedFile replacement code reports positional-only keyword aliases",
+      "source": "assert input() == 'file'\nimport codecs\nevents = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(other)\n        return other == 'file'\ndef replacement(file, /, data_encoding):\n    raise AssertionError('body entered')\ncodecs.EncodedFile.__code__ = replacement.__code__\ntry:\n    codecs.EncodedFile(**{Key('alias'): None})\nexcept TypeError as error:\n    assert error.args == (\"EncodedFile() got some positional-only arguments passed as keyword arguments: 'alias'\",), error.args\nelse:\n    raise AssertionError('positional-only accepted')\nassert events == ['data_encoding', 'file'], events\n\nprint('verified')\n",
+      "sha256": "5870f5263814f46d886628de6be1d6e28803c4516c3f41b1f38d74eac32db6d9",
+      "reference": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "verified\n",
+        "reads": 1,
+        "writes": 2
+      },
+      "match": true
+    },
+    {
+      "name": "EncodedFile positional-only errors use native keyword text without str conversion",
+      "source": "assert input() == 'file'\nimport codecs\nclass Key(str):\n    def __str__(self):\n        raise AssertionError('virtual conflict text')\ndef replacement(file, /):\n    raise AssertionError('body entered')\ncodecs.EncodedFile.__code__ = replacement.__code__\ntry:\n    codecs.EncodedFile(**{Key('file'): None})\nexcept TypeError as error:\n    assert error.args == (\"EncodedFile() got some positional-only arguments passed as keyword arguments: 'file'\",), error.args\nelse:\n    raise AssertionError('positional-only accepted')\n\nprint('verified')\n",
+      "sha256": "24a0a167680dbcaf0f67774b853e2ed1e583532894a978a1c66aa9da6bce0c52",
+      "reference": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "verified\n",
+        "reads": 1,
+        "writes": 2
+      },
+      "match": true
+    },
+    {
+      "name": "EncodedFile keyword-only defaults replaced during keyword binding remain live",
+      "source": "assert input() == 'file'\nimport codecs\nstream = object()\nerrors = object()\ndef replacement(file, *, errors='old'):\n    return file, errors\ncodecs.EncodedFile.__code__ = replacement.__code__\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        codecs.EncodedFile.__kwdefaults__ = {'errors': errors}\n        return other == 'file'\nassert codecs.EncodedFile(**{Key('alias'): stream}) == (stream, errors)\n\nprint('verified')\n",
+      "sha256": "dcd83fde6bb417c08c78e50e5c5ea7389b4fb3e9b5e6ce23d98cf5a1da1b70e9",
+      "reference": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "verified\n",
+        "reads": 1,
+        "writes": 2
+      },
+      "match": true
+    },
+    {
+      "name": "EncodedFile keyword equality callback real input",
+      "source": "import codecs\nevents = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        events.append(other)\n        assert input() == 'file'\n        return other == 'file'\nstream = object()\nwrapped = codecs.EncodedFile(**{Key('alias'): stream, 'data_encoding': 'utf-8'})\nassert wrapped.stream is stream and events == ['file']\nprint('verified')\n",
+      "sha256": "ec61de0f1c934828a086624b343cea3de7cf6bd6f0fe03879a64167e00b5654b",
+      "reference": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "stdout": "verified\n",
+        "reads": 1,
+        "writes": 2
+      },
+      "match": true
+    },
+    {
+      "name": "EncodedFile constant and instruction metadata",
+      "source": "assert input() == 'contract'\nimport codecs\nc = codecs.EncodedFile.__code__\nassert c.co_consts == (codecs.EncodedFile.__doc__,)\nassert type(c.co_code) is bytes\nassert type(c.co_linetable) is bytes\nassert type(c.co_exceptiontable) is bytes\nassert list(c.co_lines())\nassert list(c.co_positions())\n\nprint('verified')\n",
+      "sha256": "0d1822e14e93fcb2fd0f4426133cec5e62dfed9624aead3d85d81c3f221d94f6",
+      "reference": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "exception",
+        "stdout": "",
+        "reads": 1,
+        "writes": 0,
+        "diagnostic": {
+          "status": "ok",
+          "value": {
+            "kind": "str",
+            "primitive": "'code' object has no attribute 'co_consts'"
+          }
+        }
+      },
+      "match": false
+    },
+    {
+      "name": "EncodedFile real traceback frame chain",
+      "source": "assert input() == 'contract'\nimport codecs\nfailure = LookupError('failure')\ndef lookup(name):\n    raise failure\ncodecs.lookup = lookup\ntry:\n    codecs.EncodedFile(None, 'utf-8')\nexcept LookupError as error:\n    assert error is failure\n    tb = error.__traceback__\n    frames = []\n    while tb is not None:\n        frames.append((tb.tb_frame.f_code.co_name, tb.tb_lineno, tb.tb_lasti))\n        tb = tb.tb_next\n    print(frames)\n    assert [entry[0] for entry in frames] == ['<module>', 'EncodedFile', 'lookup']\n\nprint('verified')\n",
+      "sha256": "3f510bf6159da7b299194c3649c1f9c6ce4b847c14f40090dd4b41120465f2dc",
+      "reference": {
+        "status": 0,
+        "stdout": "[('<module>', 8, 104), ('EncodedFile', 964, 26), ('lookup', 5, 12)]\nverified\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "exception",
+        "stdout": "[]\n",
+        "reads": 1,
+        "writes": 2,
+        "diagnostic": {
+          "status": "ok",
+          "value": {
+            "kind": "str",
+            "primitive": ""
+          }
+        }
+      },
+      "match": false
+    },
+    {
+      "name": "EncodedFile public binary stream",
+      "source": "assert input() == 'contract'\nimport codecs, io\nstream = io.BytesIO(b'\\xe9\\n')\nwrapped = codecs.EncodedFile(stream, 'utf-8', 'latin-1')\nassert wrapped.readlines() == [b'\\xc3\\xa9\\n']\nwrapped.seek(0)\nassert next(wrapped) == b'\\xc3\\xa9\\n'\nwrapped.reset()\nwith wrapped as entered:\n    assert entered is wrapped\nassert stream.closed\n\nprint('verified')\n",
+      "sha256": "a700761b36abedcf490897258a681dab257fe3dfe48af5d767dc06d97cb5a436",
+      "reference": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "exception",
+        "stdout": "",
+        "reads": 1,
+        "writes": 0,
+        "diagnostic": {
+          "status": "ok",
+          "value": {
+            "kind": "str",
+            "primitive": "No module named 'io'"
+          }
+        }
+      },
+      "match": false
+    }
+  ],
+  "cancellation": {
+    "status": "terminated",
+    "stdout": "",
+    "reads": 1,
+    "writes": 0,
+    "reason": "cancelled",
+    "subsequent": {
+      "status": "terminated",
+      "reason": "cancelled",
+      "message": "execution cancelled"
+    }
+  }
+}

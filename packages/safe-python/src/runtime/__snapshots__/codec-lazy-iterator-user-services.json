@@ -1,0 +1,517 @@
+{
+  "adapters": "readSync input; complete writeSync loops and fsyncSync output; owned temporary files removed",
+  "cases": [
+    {
+      "name": "encode: finish",
+      "mode": "normal",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 8,
+      "flushes": 1,
+      "output": "[('B', False, 'changed'), ('', True, 'changed')]\n[('search', 'lazy_codec'), ('init', True, True), 'iter', ('next', 0), ('original', '', False), ('truth', '', False, 'original'), ('next', 1), ('original', 'A', False), ('truth', 'A', False, 'original'), ('next', 2), ('changed', 'B', False), ('truth', 'B', False, 'changed'), ('next', 3), ('changed', '', True), ('truth', '', True, 'changed')]\n[('', False, 'original'), ('A', False, 'original'), ('B', False, 'changed'), ('', True, 'changed')]\n3\n",
+      "pass": true
+    },
+    {
+      "name": "encode: finish",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "output": "",
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      },
+      "pass": true
+    },
+    {
+      "name": "encode: finish",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "output": "",
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      },
+      "pass": true
+    },
+    {
+      "name": "encode: suppress-final",
+      "mode": "normal",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 8,
+      "flushes": 1,
+      "output": "[('B', False, 'changed')]\n[('search', 'lazy_codec'), ('init', True, True), 'iter', ('next', 0), ('original', '', False), ('truth', '', False, 'original'), ('next', 1), ('original', 'A', False), ('truth', 'A', False, 'original'), ('next', 2), ('changed', 'B', False), ('truth', 'B', False, 'changed'), ('next', 3), ('changed', '', True), ('truth', '', True, 'changed')]\n[('', False, 'original'), ('A', False, 'original'), ('B', False, 'changed'), ('', True, 'changed')]\n3\n",
+      "pass": true
+    },
+    {
+      "name": "encode: suppress-final",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "output": "",
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      },
+      "pass": true
+    },
+    {
+      "name": "encode: suppress-final",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "output": "",
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      },
+      "pass": true
+    },
+    {
+      "name": "encode: close",
+      "mode": "normal",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 6,
+      "flushes": 1,
+      "output": "[('search', 'lazy_codec'), ('init', True, True), 'iter', ('next', 0), ('original', '', False), ('truth', '', False, 'original'), ('next', 1), ('original', 'A', False), ('truth', 'A', False, 'original')]\n[('', False, 'original'), ('A', False, 'original')]\n2\n",
+      "pass": true
+    },
+    {
+      "name": "encode: close",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "output": "",
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      },
+      "pass": true
+    },
+    {
+      "name": "encode: close",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "output": "",
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      },
+      "pass": true
+    },
+    {
+      "name": "encode: empty",
+      "mode": "normal",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 8,
+      "flushes": 1,
+      "output": "[]\n[('search', 'lazy_codec'), ('init', True, True), 'iter', ('next', 0), ('original', '', True), ('truth', '', True, 'original')]\n[('', True, 'original')]\n0\n",
+      "pass": true
+    },
+    {
+      "name": "encode: empty",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "output": "",
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      },
+      "pass": true
+    },
+    {
+      "name": "encode: empty",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "output": "",
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      },
+      "pass": true
+    },
+    {
+      "name": "decode: finish",
+      "mode": "normal",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 8,
+      "flushes": 1,
+      "output": "[(b'B', False, 'changed'), (b'', True, 'changed')]\n[('search', 'lazy_codec'), ('init', True, True), 'iter', ('next', 0), ('original', b'', False), ('truth', b'', False, 'original'), ('next', 1), ('original', b'A', False), ('truth', b'A', False, 'original'), ('next', 2), ('changed', b'B', False), ('truth', b'B', False, 'changed'), ('next', 3), ('changed', b'', True), ('truth', b'', True, 'changed')]\n[(b'', False, 'original'), (b'A', False, 'original'), (b'B', False, 'changed'), (b'', True, 'changed')]\n3\n",
+      "pass": true
+    },
+    {
+      "name": "decode: finish",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "output": "",
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      },
+      "pass": true
+    },
+    {
+      "name": "decode: finish",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "output": "",
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      },
+      "pass": true
+    },
+    {
+      "name": "decode: suppress-final",
+      "mode": "normal",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 8,
+      "flushes": 1,
+      "output": "[(b'B', False, 'changed')]\n[('search', 'lazy_codec'), ('init', True, True), 'iter', ('next', 0), ('original', b'', False), ('truth', b'', False, 'original'), ('next', 1), ('original', b'A', False), ('truth', b'A', False, 'original'), ('next', 2), ('changed', b'B', False), ('truth', b'B', False, 'changed'), ('next', 3), ('changed', b'', True), ('truth', b'', True, 'changed')]\n[(b'', False, 'original'), (b'A', False, 'original'), (b'B', False, 'changed'), (b'', True, 'changed')]\n3\n",
+      "pass": true
+    },
+    {
+      "name": "decode: suppress-final",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "output": "",
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      },
+      "pass": true
+    },
+    {
+      "name": "decode: suppress-final",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "output": "",
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      },
+      "pass": true
+    },
+    {
+      "name": "decode: close",
+      "mode": "normal",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 6,
+      "flushes": 1,
+      "output": "[('search', 'lazy_codec'), ('init', True, True), 'iter', ('next', 0), ('original', b'', False), ('truth', b'', False, 'original'), ('next', 1), ('original', b'A', False), ('truth', b'A', False, 'original')]\n[(b'', False, 'original'), (b'A', False, 'original')]\n2\n",
+      "pass": true
+    },
+    {
+      "name": "decode: close",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "output": "",
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      },
+      "pass": true
+    },
+    {
+      "name": "decode: close",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "output": "",
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      },
+      "pass": true
+    },
+    {
+      "name": "decode: empty",
+      "mode": "normal",
+      "result": {
+        "status": "ok"
+      },
+      "reads": 1,
+      "writes": 8,
+      "flushes": 1,
+      "output": "[]\n[('search', 'lazy_codec'), ('init', True, True), 'iter', ('next', 0), ('original', b'', True), ('truth', b'', True, 'original')]\n[(b'', True, 'original')]\n0\n",
+      "pass": true
+    },
+    {
+      "name": "decode: empty",
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "output": "",
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      },
+      "pass": true
+    },
+    {
+      "name": "decode: empty",
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "reads": 1,
+      "writes": 0,
+      "flushes": 1,
+      "output": "",
+      "followup": {
+        "exec": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        "eval": {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      },
+      "pass": true
+    }
+  ]
+}

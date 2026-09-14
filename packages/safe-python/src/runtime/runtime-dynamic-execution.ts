@@ -11,6 +11,8 @@ import {RuntimeMappingNamespace} from "./runtime-mapping-namespace.js";
 import {executeRuntimeProgram,type RuntimeExecutionContext} from "./runtime-program.js";
 import type {BuiltinInvocationContext,RuntimeValue} from "./runtime-values.js";
 import {compileSourceProgram,type SourceCompilationOptions} from "./source-program-compilation.js";
+import {createRuntimeSourceCodecRecovery} from "./runtime-source-codec-recovery.js";
+import {createRuntimeSourceCodecDecoder} from "./runtime-source-codec-decoder.js";
 
 export interface RuntimeDynamicExecutionPolicy extends Pick<DynamicNamespaceContext,"globals"|"locals"|"builtins"> {
   /** Read caller compilation policy only after namespace and source admission.
@@ -40,7 +42,12 @@ export function createRuntimeDynamicExecution(context:RuntimeExecutionContext,pr
       if(code===undefined){
         const source=runtimeCompilationSource(request.source,meter,invocation,request.mode);
         const options=policy.compilation();meter.checkpoint();
-        program=compileSourceProgram<RuntimeValue>(source,{...options,mode:request.mode,filename:"<string>"},v,meter);
+        const sourceException=invocation.sourceException;
+        program=compileSourceProgram<RuntimeValue>(source,{...options,mode:request.mode,filename:"<string>",
+          decodeSource:options.decodeSource??(typeof source==="string"?undefined:createRuntimeSourceCodecDecoder(invocation)),
+          sourceDecodeRecovery:options.sourceDecodeRecovery??(typeof source==="string"?undefined:createRuntimeSourceCodecRecovery(invocation)),
+          ...(sourceException===undefined?{}:{sourceException:(error:unknown)=>sourceException(error,v.string("<string>"))})
+        },v,meter);
         programs.register(program);
       }
       const globals=new RuntimeDictionaryNamespace(selected.globals,v,meter,invocation);

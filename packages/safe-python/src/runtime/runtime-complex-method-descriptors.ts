@@ -16,7 +16,7 @@ export function installRuntimeComplexMethodDescriptors(owner:TypeValue,values:Ru
   }
   for(const [name,doc] of [["__complex__","Convert this value to exact type complex."],["conjugate","Return the complex conjugate of its argument. (3-4j).conjugate() == 3+4j."],["__getnewargs__",undefined]] as const) {
     meter.checkpoint(0,96);
-    owner.value.namespace.items.set(values.string(name),values.methodDescriptor({owner,name,doc,accepts:receiver=>runtimeComplexPayload(receiver)!==undefined,
+    owner.value.namespace.items.set(values.string(name),values.methodDescriptor({textSignature: "($self, /)", owner,name,doc,accepts:receiver=>runtimeComplexPayload(receiver)!==undefined,
       invoke(receiver,positional,keywords,meter) {
         meter.checkpoint();
         if(keywords.items.size!==0)throw new PythonRuntimeError("TypeError",`complex.${name}() takes no keyword arguments`);

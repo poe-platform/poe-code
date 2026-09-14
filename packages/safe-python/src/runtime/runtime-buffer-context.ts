@@ -18,8 +18,15 @@ export interface RuntimeBufferLease {
 }
 
 export interface RuntimeBufferContext {
+  /** Publish an ownerless, one-dimensional, read-only B-format memoryview over
+   * owned immutable storage. The view retains storage until guest release/GC;
+   * obj is None, shape is (length,), strides (1,), suboffsets (). The provider
+   * owns allocation admission and the complete guest memoryview protocol. */
+  createReadOnlyView?(bytes: ImmutableBytes): RuntimeValue;
   /** Pure guest type name for consumers that rewrite buffer acquisition errors. */
   typeName?(value: RuntimeValue): string;
   /** Undefined means no buffer protocol; exporter errors propagate unchanged. */
+  /** Full read-only exports, copied in logical C order, including strides. */
+  acquireFull?(value: RuntimeValue): RuntimeBufferLease | undefined;
   acquireSimple(value: RuntimeValue): RuntimeBufferLease | undefined;
 }

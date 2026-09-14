@@ -1,0 +1,11 @@
+{
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+  "unicode": "16.0.0",
+  "programs": 611,
+  "bytes": 53934,
+  "sourceSha256": "eb0a9b75bc813e8e0c25e2787e53a46c376811ae5f7d59c95ffcb0b402a49800",
+  "outputSha256": "54b7cc449f0b33ae461dfad97977b6975de435a031b84256adf4fe3adac174f6",
+  "adapter": "Explicit output adapter owning a descriptor; writeSync/fsyncSync; descriptor closed and scratch directory removed.",
+  "matches": true
+}

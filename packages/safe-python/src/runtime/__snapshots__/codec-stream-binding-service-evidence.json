@@ -1,0 +1,464 @@
+{
+  "oracle": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0\nmacOS-26.4.1-arm64-arm-64bit-Mach-O\n",
+  "adapter": "PythonSession explicit input.readLine/output.write/output.flush backed by real node:fs readSync/writeSync/fsyncSync descriptors; guest stream protocols; no memfs",
+  "results": [
+    {
+      "name": "codecs.Codec",
+      "sourceSha256": "aed2bc6a2fa1adca0eef28fe5bcbc9dcd10ee3f969ff6075749f7b5413880747",
+      "result": {
+        "status": "ok"
+      },
+      "output": "encode\n(\"Codec.encode() missing 2 required positional arguments: 'self' and 'input'\",)\n('Codec.encode() takes from 2 to 3 positional arguments but 20 were given',)\n(\"Codec.encode() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\ndecode\n(\"Codec.decode() missing 2 required positional arguments: 'self' and 'input'\",)\n('Codec.decode() takes from 2 to 3 positional arguments but 20 were given',)\n(\"Codec.decode() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n",
+      "readCalls": 0
+    },
+    {
+      "name": "codecs.IncrementalEncoder",
+      "sourceSha256": "ea1f83dd6dbe47f023036f77f2828074fe54247e88faa7e5342d78f77598c6bf",
+      "result": {
+        "status": "ok"
+      },
+      "output": "__init__\n(\"IncrementalEncoder.__init__() missing 1 required positional argument: 'self'\",)\n('IncrementalEncoder.__init__() takes from 1 to 2 positional arguments but 20 were given',)\n(\"IncrementalEncoder.__init__() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nencode\n(\"IncrementalEncoder.encode() missing 2 required positional arguments: 'self' and 'input'\",)\n('IncrementalEncoder.encode() takes from 2 to 3 positional arguments but 20 were given',)\n(\"IncrementalEncoder.encode() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nreset\n(\"IncrementalEncoder.reset() missing 1 required positional argument: 'self'\",)\n('IncrementalEncoder.reset() takes 1 positional argument but 20 were given',)\n(\"IncrementalEncoder.reset() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\ngetstate\n(\"IncrementalEncoder.getstate() missing 1 required positional argument: 'self'\",)\n('IncrementalEncoder.getstate() takes 1 positional argument but 20 were given',)\n(\"IncrementalEncoder.getstate() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nsetstate\n(\"IncrementalEncoder.setstate() missing 2 required positional arguments: 'self' and 'state'\",)\n('IncrementalEncoder.setstate() takes 2 positional arguments but 20 were given',)\n(\"IncrementalEncoder.setstate() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n",
+      "readCalls": 0
+    },
+    {
+      "name": "codecs.BufferedIncrementalEncoder",
+      "sourceSha256": "31002dc503175cc62ed98cc081fa86f068d756cb18d9920a96109b0d2cb09e71",
+      "result": {
+        "status": "ok"
+      },
+      "output": "__init__\n(\"BufferedIncrementalEncoder.__init__() missing 1 required positional argument: 'self'\",)\n('BufferedIncrementalEncoder.__init__() takes from 1 to 2 positional arguments but 20 were given',)\n(\"BufferedIncrementalEncoder.__init__() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n_buffer_encode\n(\"BufferedIncrementalEncoder._buffer_encode() missing 4 required positional arguments: 'self', 'input', 'errors', and 'final'\",)\n('BufferedIncrementalEncoder._buffer_encode() takes 4 positional arguments but 20 were given',)\n(\"BufferedIncrementalEncoder._buffer_encode() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nencode\n(\"BufferedIncrementalEncoder.encode() missing 2 required positional arguments: 'self' and 'input'\",)\n('BufferedIncrementalEncoder.encode() takes from 2 to 3 positional arguments but 20 were given',)\n(\"BufferedIncrementalEncoder.encode() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nreset\n(\"BufferedIncrementalEncoder.reset() missing 1 required positional argument: 'self'\",)\n('BufferedIncrementalEncoder.reset() takes 1 positional argument but 20 were given',)\n(\"BufferedIncrementalEncoder.reset() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\ngetstate\n(\"BufferedIncrementalEncoder.getstate() missing 1 required positional argument: 'self'\",)\n('BufferedIncrementalEncoder.getstate() takes 1 positional argument but 20 were given',)\n(\"BufferedIncrementalEncoder.getstate() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nsetstate\n(\"BufferedIncrementalEncoder.setstate() missing 2 required positional arguments: 'self' and 'state'\",)\n('BufferedIncrementalEncoder.setstate() takes 2 positional arguments but 20 were given',)\n(\"BufferedIncrementalEncoder.setstate() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n",
+      "readCalls": 0
+    },
+    {
+      "name": "codecs.IncrementalDecoder",
+      "sourceSha256": "6250b69f2697775f658116778a9ad34566c37446ffd96a8ac63e9c9148dc3031",
+      "result": {
+        "status": "ok"
+      },
+      "output": "__init__\n(\"IncrementalDecoder.__init__() missing 1 required positional argument: 'self'\",)\n('IncrementalDecoder.__init__() takes from 1 to 2 positional arguments but 20 were given',)\n(\"IncrementalDecoder.__init__() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\ndecode\n(\"IncrementalDecoder.decode() missing 2 required positional arguments: 'self' and 'input'\",)\n('IncrementalDecoder.decode() takes from 2 to 3 positional arguments but 20 were given',)\n(\"IncrementalDecoder.decode() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nreset\n(\"IncrementalDecoder.reset() missing 1 required positional argument: 'self'\",)\n('IncrementalDecoder.reset() takes 1 positional argument but 20 were given',)\n(\"IncrementalDecoder.reset() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\ngetstate\n(\"IncrementalDecoder.getstate() missing 1 required positional argument: 'self'\",)\n('IncrementalDecoder.getstate() takes 1 positional argument but 20 were given',)\n(\"IncrementalDecoder.getstate() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nsetstate\n(\"IncrementalDecoder.setstate() missing 2 required positional arguments: 'self' and 'state'\",)\n('IncrementalDecoder.setstate() takes 2 positional arguments but 20 were given',)\n(\"IncrementalDecoder.setstate() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n",
+      "readCalls": 0
+    },
+    {
+      "name": "codecs.BufferedIncrementalDecoder",
+      "sourceSha256": "ca6fc4efae96c3b6c08abab4c6b4dcb94f8392cd9e16e623f733e07a22eaf915",
+      "result": {
+        "status": "ok"
+      },
+      "output": "__init__\n(\"BufferedIncrementalDecoder.__init__() missing 1 required positional argument: 'self'\",)\n('BufferedIncrementalDecoder.__init__() takes from 1 to 2 positional arguments but 20 were given',)\n(\"BufferedIncrementalDecoder.__init__() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n_buffer_decode\n(\"BufferedIncrementalDecoder._buffer_decode() missing 4 required positional arguments: 'self', 'input', 'errors', and 'final'\",)\n('BufferedIncrementalDecoder._buffer_decode() takes 4 positional arguments but 20 were given',)\n(\"BufferedIncrementalDecoder._buffer_decode() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\ndecode\n(\"BufferedIncrementalDecoder.decode() missing 2 required positional arguments: 'self' and 'input'\",)\n('BufferedIncrementalDecoder.decode() takes from 2 to 3 positional arguments but 20 were given',)\n(\"BufferedIncrementalDecoder.decode() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nreset\n(\"BufferedIncrementalDecoder.reset() missing 1 required positional argument: 'self'\",)\n('BufferedIncrementalDecoder.reset() takes 1 positional argument but 20 were given',)\n(\"BufferedIncrementalDecoder.reset() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\ngetstate\n(\"BufferedIncrementalDecoder.getstate() missing 1 required positional argument: 'self'\",)\n('BufferedIncrementalDecoder.getstate() takes 1 positional argument but 20 were given',)\n(\"BufferedIncrementalDecoder.getstate() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nsetstate\n(\"BufferedIncrementalDecoder.setstate() missing 2 required positional arguments: 'self' and 'state'\",)\n('BufferedIncrementalDecoder.setstate() takes 2 positional arguments but 20 were given',)\n(\"BufferedIncrementalDecoder.setstate() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n",
+      "readCalls": 0
+    },
+    {
+      "name": "codecs.StreamReader",
+      "sourceSha256": "81af5fe815b196fa1051430f573959c33042ae55a7a961c004e032f0a9ee2e79",
+      "result": {
+        "status": "ok"
+      },
+      "output": "__init__\n(\"StreamReader.__init__() missing 2 required positional arguments: 'self' and 'stream'\",)\n('StreamReader.__init__() takes from 2 to 3 positional arguments but 20 were given',)\n(\"StreamReader.__init__() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\ndecode\n(\"StreamReader.decode() missing 2 required positional arguments: 'self' and 'input'\",)\n('StreamReader.decode() takes from 2 to 3 positional arguments but 20 were given',)\n(\"StreamReader.decode() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nread\n(\"StreamReader.read() missing 1 required positional argument: 'self'\",)\n('StreamReader.read() takes from 1 to 4 positional arguments but 20 were given',)\n(\"StreamReader.read() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nreadline\n(\"StreamReader.readline() missing 1 required positional argument: 'self'\",)\n('StreamReader.readline() takes from 1 to 3 positional arguments but 20 were given',)\n(\"StreamReader.readline() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nreadlines\n(\"StreamReader.readlines() missing 1 required positional argument: 'self'\",)\n('StreamReader.readlines() takes from 1 to 3 positional arguments but 20 were given',)\n(\"StreamReader.readlines() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nreset\n(\"StreamReader.reset() missing 1 required positional argument: 'self'\",)\n('StreamReader.reset() takes 1 positional argument but 20 were given',)\n(\"StreamReader.reset() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nseek\n(\"StreamReader.seek() missing 2 required positional arguments: 'self' and 'offset'\",)\n('StreamReader.seek() takes from 2 to 3 positional arguments but 20 were given',)\n(\"StreamReader.seek() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n__next__\n(\"StreamReader.__next__() missing 1 required positional argument: 'self'\",)\n('StreamReader.__next__() takes 1 positional argument but 20 were given',)\n(\"StreamReader.__next__() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n__iter__\n(\"StreamReader.__iter__() missing 1 required positional argument: 'self'\",)\n('StreamReader.__iter__() takes 1 positional argument but 20 were given',)\n(\"StreamReader.__iter__() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n__getattr__\n(\"StreamReader.__getattr__() missing 2 required positional arguments: 'self' and 'name'\",)\n('StreamReader.__getattr__() takes from 2 to 3 positional arguments but 20 were given',)\n(\"StreamReader.__getattr__() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n__enter__\n(\"StreamReader.__enter__() missing 1 required positional argument: 'self'\",)\n('StreamReader.__enter__() takes 1 positional argument but 20 were given',)\n(\"StreamReader.__enter__() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n__exit__\n(\"StreamReader.__exit__() missing 4 required positional arguments: 'self', 'type', 'value', and 'tb'\",)\n('StreamReader.__exit__() takes 4 positional arguments but 20 were given',)\n(\"StreamReader.__exit__() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n__reduce_ex__\n(\"StreamReader.__reduce_ex__() missing 2 required positional arguments: 'self' and 'proto'\",)\n('StreamReader.__reduce_ex__() takes 2 positional arguments but 20 were given',)\n(\"StreamReader.__reduce_ex__() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n",
+      "readCalls": 0
+    },
+    {
+      "name": "codecs.StreamWriter",
+      "sourceSha256": "6f19f736a811465461846741d15d5b9a38c3a70bf914556c148e698fad24d19f",
+      "result": {
+        "status": "ok"
+      },
+      "output": "__init__\n(\"StreamWriter.__init__() missing 2 required positional arguments: 'self' and 'stream'\",)\n('StreamWriter.__init__() takes from 2 to 3 positional arguments but 20 were given',)\n(\"StreamWriter.__init__() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nwrite\n(\"StreamWriter.write() missing 2 required positional arguments: 'self' and 'object'\",)\n('StreamWriter.write() takes 2 positional arguments but 20 were given',)\n(\"StreamWriter.write() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nwritelines\n(\"StreamWriter.writelines() missing 2 required positional arguments: 'self' and 'list'\",)\n('StreamWriter.writelines() takes 2 positional arguments but 20 were given',)\n(\"StreamWriter.writelines() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nreset\n(\"StreamWriter.reset() missing 1 required positional argument: 'self'\",)\n('StreamWriter.reset() takes 1 positional argument but 20 were given',)\n(\"StreamWriter.reset() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nseek\n(\"StreamWriter.seek() missing 2 required positional arguments: 'self' and 'offset'\",)\n('StreamWriter.seek() takes from 2 to 3 positional arguments but 20 were given',)\n(\"StreamWriter.seek() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n__getattr__\n(\"StreamWriter.__getattr__() missing 2 required positional arguments: 'self' and 'name'\",)\n('StreamWriter.__getattr__() takes from 2 to 3 positional arguments but 20 were given',)\n(\"StreamWriter.__getattr__() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n__enter__\n(\"StreamWriter.__enter__() missing 1 required positional argument: 'self'\",)\n('StreamWriter.__enter__() takes 1 positional argument but 20 were given',)\n(\"StreamWriter.__enter__() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n__exit__\n(\"StreamWriter.__exit__() missing 4 required positional arguments: 'self', 'type', 'value', and 'tb'\",)\n('StreamWriter.__exit__() takes 4 positional arguments but 20 were given',)\n(\"StreamWriter.__exit__() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n__reduce_ex__\n(\"StreamWriter.__reduce_ex__() missing 2 required positional arguments: 'self' and 'proto'\",)\n('StreamWriter.__reduce_ex__() takes 2 positional arguments but 20 were given',)\n(\"StreamWriter.__reduce_ex__() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n",
+      "readCalls": 0
+    },
+    {
+      "name": "codecs.StreamReaderWriter",
+      "sourceSha256": "bcb3fa3a74bbcbfe3fc4c82349061c3a17036021b52cd03f6fa9b27bd7be9128",
+      "result": {
+        "status": "ok"
+      },
+      "output": "__init__\n(\"StreamReaderWriter.__init__() missing 4 required positional arguments: 'self', 'stream', 'Reader', and 'Writer'\",)\n('StreamReaderWriter.__init__() takes from 4 to 5 positional arguments but 20 were given',)\n(\"StreamReaderWriter.__init__() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nread\n(\"StreamReaderWriter.read() missing 1 required positional argument: 'self'\",)\n('StreamReaderWriter.read() takes from 1 to 2 positional arguments but 20 were given',)\n(\"StreamReaderWriter.read() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nreadline\n(\"StreamReaderWriter.readline() missing 1 required positional argument: 'self'\",)\n('StreamReaderWriter.readline() takes from 1 to 3 positional arguments but 20 were given',)\n(\"StreamReaderWriter.readline() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nreadlines\n(\"StreamReaderWriter.readlines() missing 1 required positional argument: 'self'\",)\n('StreamReaderWriter.readlines() takes from 1 to 3 positional arguments but 20 were given',)\n(\"StreamReaderWriter.readlines() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n__next__\n(\"StreamReaderWriter.__next__() missing 1 required positional argument: 'self'\",)\n('StreamReaderWriter.__next__() takes 1 positional argument but 20 were given',)\n(\"StreamReaderWriter.__next__() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n__iter__\n(\"StreamReaderWriter.__iter__() missing 1 required positional argument: 'self'\",)\n('StreamReaderWriter.__iter__() takes 1 positional argument but 20 were given',)\n(\"StreamReaderWriter.__iter__() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nwrite\n(\"StreamReaderWriter.write() missing 2 required positional arguments: 'self' and 'data'\",)\n('StreamReaderWriter.write() takes 2 positional arguments but 20 were given',)\n(\"StreamReaderWriter.write() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nwritelines\n(\"StreamReaderWriter.writelines() missing 2 required positional arguments: 'self' and 'list'\",)\n('StreamReaderWriter.writelines() takes 2 positional arguments but 20 were given',)\n(\"StreamReaderWriter.writelines() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nreset\n(\"StreamReaderWriter.reset() missing 1 required positional argument: 'self'\",)\n('StreamReaderWriter.reset() takes 1 positional argument but 20 were given',)\n(\"StreamReaderWriter.reset() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nseek\n(\"StreamReaderWriter.seek() missing 2 required positional arguments: 'self' and 'offset'\",)\n('StreamReaderWriter.seek() takes from 2 to 3 positional arguments but 20 were given',)\n(\"StreamReaderWriter.seek() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n__getattr__\n(\"StreamReaderWriter.__getattr__() missing 2 required positional arguments: 'self' and 'name'\",)\n('StreamReaderWriter.__getattr__() takes from 2 to 3 positional arguments but 20 were given',)\n(\"StreamReaderWriter.__getattr__() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n__enter__\n(\"StreamReaderWriter.__enter__() missing 1 required positional argument: 'self'\",)\n('StreamReaderWriter.__enter__() takes 1 positional argument but 20 were given',)\n(\"StreamReaderWriter.__enter__() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n__exit__\n(\"StreamReaderWriter.__exit__() missing 4 required positional arguments: 'self', 'type', 'value', and 'tb'\",)\n('StreamReaderWriter.__exit__() takes 4 positional arguments but 20 were given',)\n(\"StreamReaderWriter.__exit__() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n__reduce_ex__\n(\"StreamReaderWriter.__reduce_ex__() missing 2 required positional arguments: 'self' and 'proto'\",)\n('StreamReaderWriter.__reduce_ex__() takes 2 positional arguments but 20 were given',)\n(\"StreamReaderWriter.__reduce_ex__() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n",
+      "readCalls": 0
+    },
+    {
+      "name": "codecs.StreamRecoder",
+      "sourceSha256": "3fa985edc3e06c6c96122664c8bdd6470178b2df7913f947825e5909779fdf8a",
+      "result": {
+        "status": "ok"
+      },
+      "output": "__init__\n(\"StreamRecoder.__init__() missing 6 required positional arguments: 'self', 'stream', 'encode', 'decode', 'Reader', and 'Writer'\",)\n('StreamRecoder.__init__() takes from 6 to 7 positional arguments but 20 were given',)\n(\"StreamRecoder.__init__() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nread\n(\"StreamRecoder.read() missing 1 required positional argument: 'self'\",)\n('StreamRecoder.read() takes from 1 to 2 positional arguments but 20 were given',)\n(\"StreamRecoder.read() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nreadline\n(\"StreamRecoder.readline() missing 1 required positional argument: 'self'\",)\n('StreamRecoder.readline() takes from 1 to 2 positional arguments but 20 were given',)\n(\"StreamRecoder.readline() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nreadlines\n(\"StreamRecoder.readlines() missing 1 required positional argument: 'self'\",)\n('StreamRecoder.readlines() takes from 1 to 2 positional arguments but 20 were given',)\n(\"StreamRecoder.readlines() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n__next__\n(\"StreamRecoder.__next__() missing 1 required positional argument: 'self'\",)\n('StreamRecoder.__next__() takes 1 positional argument but 20 were given',)\n(\"StreamRecoder.__next__() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n__iter__\n(\"StreamRecoder.__iter__() missing 1 required positional argument: 'self'\",)\n('StreamRecoder.__iter__() takes 1 positional argument but 20 were given',)\n(\"StreamRecoder.__iter__() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nwrite\n(\"StreamRecoder.write() missing 2 required positional arguments: 'self' and 'data'\",)\n('StreamRecoder.write() takes 2 positional arguments but 20 were given',)\n(\"StreamRecoder.write() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nwritelines\n(\"StreamRecoder.writelines() missing 2 required positional arguments: 'self' and 'list'\",)\n('StreamRecoder.writelines() takes 2 positional arguments but 20 were given',)\n(\"StreamRecoder.writelines() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nreset\n(\"StreamRecoder.reset() missing 1 required positional argument: 'self'\",)\n('StreamRecoder.reset() takes 1 positional argument but 20 were given',)\n(\"StreamRecoder.reset() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\nseek\n(\"StreamRecoder.seek() missing 2 required positional arguments: 'self' and 'offset'\",)\n('StreamRecoder.seek() takes from 2 to 3 positional arguments but 20 were given',)\n(\"StreamRecoder.seek() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n__getattr__\n(\"StreamRecoder.__getattr__() missing 2 required positional arguments: 'self' and 'name'\",)\n('StreamRecoder.__getattr__() takes from 2 to 3 positional arguments but 20 were given',)\n(\"StreamRecoder.__getattr__() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n__enter__\n(\"StreamRecoder.__enter__() missing 1 required positional argument: 'self'\",)\n('StreamRecoder.__enter__() takes 1 positional argument but 20 were given',)\n(\"StreamRecoder.__enter__() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n__exit__\n(\"StreamRecoder.__exit__() missing 4 required positional arguments: 'self', 'type', 'value', and 'tb'\",)\n('StreamRecoder.__exit__() takes 4 positional arguments but 20 were given',)\n(\"StreamRecoder.__exit__() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n__reduce_ex__\n(\"StreamRecoder.__reduce_ex__() missing 2 required positional arguments: 'self' and 'proto'\",)\n('StreamRecoder.__reduce_ex__() takes 2 positional arguments but 20 were given',)\n(\"StreamRecoder.__reduce_ex__() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n",
+      "readCalls": 0
+    },
+    {
+      "name": "encodings.ascii.Codec",
+      "sourceSha256": "a8c14540ecd54daf07c71530214f99af58857cc10167dbc93be02990c97f57e0",
+      "result": {
+        "status": "ok"
+      },
+      "output": "encode\n('ascii_encode expected at least 1 argument, got 0',)\n('ascii_encode expected at most 2 arguments, got 20',)\n('_codecs.ascii_encode() takes no keyword arguments',)\nFalse True\ndecode\n('ascii_decode expected at least 1 argument, got 0',)\n('ascii_decode expected at most 2 arguments, got 20',)\n('_codecs.ascii_decode() takes no keyword arguments',)\nFalse True\n",
+      "readCalls": 0
+    },
+    {
+      "name": "encodings.ascii.IncrementalEncoder",
+      "sourceSha256": "6dbf973367f04b0022169c8293d1676a0339c975f8bfacb12a03a219ab42b6e6",
+      "result": {
+        "status": "ok"
+      },
+      "output": "encode\n(\"IncrementalEncoder.encode() missing 2 required positional arguments: 'self' and 'input'\",)\n('IncrementalEncoder.encode() takes from 2 to 3 positional arguments but 20 were given',)\n(\"IncrementalEncoder.encode() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n",
+      "readCalls": 0
+    },
+    {
+      "name": "encodings.ascii.IncrementalDecoder",
+      "sourceSha256": "aff16f8107dc54953b01d06e5007ba237eb535f86b8c9dab81c1b291ef697221",
+      "result": {
+        "status": "ok"
+      },
+      "output": "decode\n(\"IncrementalDecoder.decode() missing 2 required positional arguments: 'self' and 'input'\",)\n('IncrementalDecoder.decode() takes from 2 to 3 positional arguments but 20 were given',)\n(\"IncrementalDecoder.decode() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n",
+      "readCalls": 0
+    },
+    {
+      "name": "encodings.ascii.StreamReader",
+      "sourceSha256": "1c566209d9f2aaddfb75254ceb07dce20017b8f535b3f2fb10106d313ae591a8",
+      "result": {
+        "status": "ok"
+      },
+      "output": "",
+      "readCalls": 0
+    },
+    {
+      "name": "encodings.ascii.StreamWriter",
+      "sourceSha256": "0a326ac022766a5aae8c3fd3ae7bc954081cfdbc22ef1415b4c04fc8dba2cfae",
+      "result": {
+        "status": "ok"
+      },
+      "output": "",
+      "readCalls": 0
+    },
+    {
+      "name": "encodings.ascii.StreamConverter",
+      "sourceSha256": "50bad411e64006b6320f97f1335fc4783843b5833775eb663c164cc62196584f",
+      "result": {
+        "status": "ok"
+      },
+      "output": "encode\n('ascii_decode expected at least 1 argument, got 0',)\n('ascii_decode expected at most 2 arguments, got 20',)\n('_codecs.ascii_decode() takes no keyword arguments',)\nFalse True\ndecode\n('ascii_encode expected at least 1 argument, got 0',)\n('ascii_encode expected at most 2 arguments, got 20',)\n('_codecs.ascii_encode() takes no keyword arguments',)\nFalse True\n",
+      "readCalls": 0
+    },
+    {
+      "name": "encodings.latin_1.Codec",
+      "sourceSha256": "ea9ffb867ff32bcf75cfd5b7c9650e9ddabd6f2bdf370aa948b450e089a86ebe",
+      "result": {
+        "status": "ok"
+      },
+      "output": "encode\n('latin_1_encode expected at least 1 argument, got 0',)\n('latin_1_encode expected at most 2 arguments, got 20',)\n('_codecs.latin_1_encode() takes no keyword arguments',)\nFalse True\ndecode\n('latin_1_decode expected at least 1 argument, got 0',)\n('latin_1_decode expected at most 2 arguments, got 20',)\n('_codecs.latin_1_decode() takes no keyword arguments',)\nFalse True\n",
+      "readCalls": 0
+    },
+    {
+      "name": "encodings.latin_1.IncrementalEncoder",
+      "sourceSha256": "d2e0904423a4bfc2a8b4c3fd10017b43f796e4f596871c93d19358d355884ec2",
+      "result": {
+        "status": "ok"
+      },
+      "output": "encode\n(\"IncrementalEncoder.encode() missing 2 required positional arguments: 'self' and 'input'\",)\n('IncrementalEncoder.encode() takes from 2 to 3 positional arguments but 20 were given',)\n(\"IncrementalEncoder.encode() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n",
+      "readCalls": 0
+    },
+    {
+      "name": "encodings.latin_1.IncrementalDecoder",
+      "sourceSha256": "c674264dca2930fe9a205a82f39ba8e21b9ab8ac21f67ce3c6c4f18526c39df3",
+      "result": {
+        "status": "ok"
+      },
+      "output": "decode\n(\"IncrementalDecoder.decode() missing 2 required positional arguments: 'self' and 'input'\",)\n('IncrementalDecoder.decode() takes from 2 to 3 positional arguments but 20 were given',)\n(\"IncrementalDecoder.decode() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n",
+      "readCalls": 0
+    },
+    {
+      "name": "encodings.latin_1.StreamReader",
+      "sourceSha256": "11ba0e8a44df88c89a8345d5034a382cb29671a8b3ad0faf427de32cc09ac5ec",
+      "result": {
+        "status": "ok"
+      },
+      "output": "",
+      "readCalls": 0
+    },
+    {
+      "name": "encodings.latin_1.StreamWriter",
+      "sourceSha256": "592de26f48f9b43f4f94228a068496af3a3fede325a2b4b3a8b93703aee97bf9",
+      "result": {
+        "status": "ok"
+      },
+      "output": "",
+      "readCalls": 0
+    },
+    {
+      "name": "encodings.latin_1.StreamConverter",
+      "sourceSha256": "07f1eda80b18f4a311fbcebeaeadd0075d78f8e7fad2522d35fa42a1c91e6429",
+      "result": {
+        "status": "ok"
+      },
+      "output": "encode\n('latin_1_decode expected at least 1 argument, got 0',)\n('latin_1_decode expected at most 2 arguments, got 20',)\n('_codecs.latin_1_decode() takes no keyword arguments',)\nFalse True\ndecode\n('latin_1_encode expected at least 1 argument, got 0',)\n('latin_1_encode expected at most 2 arguments, got 20',)\n('_codecs.latin_1_encode() takes no keyword arguments',)\nFalse True\n",
+      "readCalls": 0
+    },
+    {
+      "name": "encodings.utf_8.IncrementalEncoder",
+      "sourceSha256": "77518c8632ad9d960f9e2fc7b0fe5d42988597c40e2ad72204b667f46525fd31",
+      "result": {
+        "status": "ok"
+      },
+      "output": "encode\n(\"IncrementalEncoder.encode() missing 2 required positional arguments: 'self' and 'input'\",)\n('IncrementalEncoder.encode() takes from 2 to 3 positional arguments but 20 were given',)\n(\"IncrementalEncoder.encode() got an unexpected keyword argument 'unexpected'\",)\n('__get__ expected at least 1 argument, got 0',)\n('__get__(None, None) is invalid',)\n('__get__(None, None) is invalid',)\n('__get__ expected at most 2 arguments, got 3',)\nTrue\nTrue True True\n",
+      "readCalls": 0
+    },
+    {
+      "name": "encodings.utf_8.IncrementalDecoder",
+      "sourceSha256": "6f570fe7bb6b63fe737430b83eb05e38846a59f677343a4e3e52b0ab2a12305a",
+      "result": {
+        "status": "ok"
+      },
+      "output": "_buffer_decode\n('utf_8_decode expected at least 1 argument, got 0',)\n('utf_8_decode expected at most 3 arguments, got 20',)\n('_codecs.utf_8_decode() takes no keyword arguments',)\nFalse True\n",
+      "readCalls": 0
+    },
+    {
+      "name": "encodings.utf_8.StreamReader",
+      "sourceSha256": "31561a0e0d0877262844baeeff8df7af71794d0e6342b0fee499e187a4a33523",
+      "result": {
+        "status": "ok"
+      },
+      "output": "decode\n('utf_8_decode expected at least 1 argument, got 0',)\n('utf_8_decode expected at most 3 arguments, got 20',)\n('_codecs.utf_8_decode() takes no keyword arguments',)\nFalse True\n",
+      "readCalls": 0
+    },
+    {
+      "name": "encodings.utf_8.StreamWriter",
+      "sourceSha256": "e96991d58136c58f810e1f288b1c00a9ac98fe86908fb468e712498a94e38599",
+      "result": {
+        "status": "ok"
+      },
+      "output": "encode\n('utf_8_encode expected at least 1 argument, got 0',)\n('utf_8_encode expected at most 2 arguments, got 20',)\n('_codecs.utf_8_encode() takes no keyword arguments',)\nFalse True\n",
+      "readCalls": 0
+    },
+    {
+      "name": "UTF-8 short reads and writes",
+      "sourceSha256": "20310ed208b3408195c5a01c416a775a0d5eec2317c80ab096e44ed20de0384d",
+      "result": {
+        "status": "ok"
+      },
+      "output": "c3a90a\nf09f908d0a\n410a\n",
+      "readCalls": 6
+    },
+    {
+      "name": "reader.read",
+      "sourceSha256": "212641d020ad55cdb4f2e41f98456b4af50ba7e357a8cc98d75ec8a17cd71563",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1,
+      "subsequent": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "name": "writer.write",
+      "sourceSha256": "0e31527b34c285ba4bed614bc8115830f106948caadd4ea2d058245e9e064870",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1,
+      "subsequent": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "name": "paired.reset",
+      "sourceSha256": "82af76ed47ed808357b8772be07c9dd47991141f00bea39fcb1e5631858d68cd",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1,
+      "subsequent": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "name": "recoder.seek",
+      "sourceSha256": "b4d436bcaa770516aa9feaeda78c3241e4efc2dab6bd18b52835ca3cdc56d384",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1,
+      "subsequent": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "name": "incremental handler",
+      "sourceSha256": "57b68982a225a736f9d85a2edbdc45cf142eb31727cbec4a33d2f69422822e41",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1,
+      "subsequent": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "name": "iterator source",
+      "sourceSha256": "899533db492f675937960602d73a753bf476cd1414341990a24902edec88a863",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1,
+      "subsequent": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "name": "reader.readline",
+      "sourceSha256": "65c6aa8986d5a03a7a0ec038ff87d95c56dde668e3b54803938b75d0e7303370",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1,
+      "subsequent": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "name": "reader.readlines",
+      "sourceSha256": "cea4a6e0820cb006e7a776d6c367a7d152d663d45b0e670eb21fa7ebbd5c5ce2",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1,
+      "subsequent": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "name": "reader.tell",
+      "sourceSha256": "2c38bd2108f9e30173ad0ce7024239ae33d66ef8da2c2fd4cacf0d90c5c75dd3",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1,
+      "subsequent": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "name": "writer.writelines source",
+      "sourceSha256": "415a2b3b207411e7238291ad444d432325e7bae41ce718ca28fa3ec2cf4f70a6",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1,
+      "subsequent": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "name": "buffered decoder consumed index",
+      "sourceSha256": "bceaad8badd6ee68a6b3bc7f4f16db63925876448b055756c22c155875f22727",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1,
+      "subsequent": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "name": "iterencode final callback",
+      "sourceSha256": "8bc046ca49cf7bed981b01b995667d7f6829b1efe973cb30bbfbca2112557f0d",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1,
+      "subsequent": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "name": "iterdecode final callback",
+      "sourceSha256": "eeeecfc7b67705689add0b0ca81746d1345aac4b2f59685c04de483977ab374e",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1,
+      "subsequent": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    },
+    {
+      "name": "recoder frontend decoder",
+      "sourceSha256": "c7ff8dd3494d3e1a7231597a64b305f320cf64f7b4f4f960dc70a0b7f6e529f2",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "output": "",
+      "readCalls": 1,
+      "subsequent": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      }
+    }
+  ]
+}

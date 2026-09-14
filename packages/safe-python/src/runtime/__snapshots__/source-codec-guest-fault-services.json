@@ -1,0 +1,271 @@
+{
+  "reads": 46,
+  "writes": 62,
+  "rows": [
+    {
+      "name": "ValueError live string protocol",
+      "mode": "compile",
+      "status": "ok"
+    },
+    {
+      "name": "ValueError live string protocol",
+      "mode": "exec",
+      "status": "ok"
+    },
+    {
+      "name": "ValueError live string protocol",
+      "mode": "eval",
+      "status": "ok"
+    },
+    {
+      "name": "LookupError live string protocol",
+      "mode": "compile",
+      "status": "ok"
+    },
+    {
+      "name": "LookupError live string protocol",
+      "mode": "exec",
+      "status": "ok"
+    },
+    {
+      "name": "LookupError live string protocol",
+      "mode": "eval",
+      "status": "ok"
+    },
+    {
+      "name": "IndexError live string protocol",
+      "mode": "compile",
+      "status": "ok"
+    },
+    {
+      "name": "IndexError live string protocol",
+      "mode": "exec",
+      "status": "ok"
+    },
+    {
+      "name": "IndexError live string protocol",
+      "mode": "eval",
+      "status": "ok"
+    },
+    {
+      "name": "UnicodeError live string protocol",
+      "mode": "compile",
+      "status": "ok"
+    },
+    {
+      "name": "UnicodeError live string protocol",
+      "mode": "exec",
+      "status": "ok"
+    },
+    {
+      "name": "UnicodeError live string protocol",
+      "mode": "eval",
+      "status": "ok"
+    },
+    {
+      "name": "KeyError renders the original key through guest repr",
+      "mode": "compile",
+      "status": "ok"
+    },
+    {
+      "name": "KeyError renders the original key through guest repr",
+      "mode": "exec",
+      "status": "ok"
+    },
+    {
+      "name": "KeyError renders the original key through guest repr",
+      "mode": "eval",
+      "status": "ok"
+    },
+    {
+      "name": "SyntaxError updates filename using the live setter and retains args",
+      "mode": "compile",
+      "status": "ok"
+    },
+    {
+      "name": "SyntaxError updates filename using the live setter and retains args",
+      "mode": "exec",
+      "status": "ok"
+    },
+    {
+      "name": "SyntaxError updates filename using the live setter and retains args",
+      "mode": "eval",
+      "status": "ok"
+    },
+    {
+      "name": "rendering failure propagates without a second translation",
+      "mode": "compile",
+      "status": "ok"
+    },
+    {
+      "name": "rendering failure propagates without a second translation",
+      "mode": "exec",
+      "status": "ok"
+    },
+    {
+      "name": "rendering failure propagates without a second translation",
+      "mode": "eval",
+      "status": "ok"
+    },
+    {
+      "name": "invalid str return is a TypeError",
+      "mode": "compile",
+      "status": "ok"
+    },
+    {
+      "name": "invalid str return is a TypeError",
+      "mode": "exec",
+      "status": "ok"
+    },
+    {
+      "name": "invalid str return is a TypeError",
+      "mode": "eval",
+      "status": "ok"
+    },
+    {
+      "name": "untranslated exceptions preserve identity without rendering",
+      "mode": "compile",
+      "status": "ok"
+    },
+    {
+      "name": "untranslated exceptions preserve identity without rendering",
+      "mode": "exec",
+      "status": "ok"
+    },
+    {
+      "name": "untranslated exceptions preserve identity without rendering",
+      "mode": "eval",
+      "status": "ok"
+    },
+    {
+      "name": "filename setter failures preserve identity",
+      "mode": "compile",
+      "status": "ok"
+    },
+    {
+      "name": "filename setter failures preserve identity",
+      "mode": "exec",
+      "status": "ok"
+    },
+    {
+      "name": "filename setter failures preserve identity",
+      "mode": "eval",
+      "status": "ok"
+    },
+    {
+      "phase": "decode",
+      "outcome": "return",
+      "status": "ok",
+      "reason": "cancelled",
+      "same": true
+    },
+    {
+      "phase": "decode",
+      "outcome": "throw",
+      "status": "ok",
+      "reason": "cancelled",
+      "same": true
+    },
+    {
+      "phase": "decode",
+      "outcome": "fatal",
+      "status": "ok",
+      "reason": "allocation",
+      "same": true
+    },
+    {
+      "phase": "decode",
+      "outcome": "fatal-abort",
+      "status": "ok",
+      "reason": "allocation",
+      "same": true
+    },
+    {
+      "phase": "str",
+      "outcome": "return",
+      "status": "ok",
+      "reason": "cancelled",
+      "same": true
+    },
+    {
+      "phase": "str",
+      "outcome": "throw",
+      "status": "ok",
+      "reason": "cancelled",
+      "same": true
+    },
+    {
+      "phase": "str",
+      "outcome": "fatal",
+      "status": "ok",
+      "reason": "allocation",
+      "same": true
+    },
+    {
+      "phase": "str",
+      "outcome": "fatal-abort",
+      "status": "ok",
+      "reason": "allocation",
+      "same": true
+    },
+    {
+      "phase": "repr",
+      "outcome": "return",
+      "status": "ok",
+      "reason": "cancelled",
+      "same": true
+    },
+    {
+      "phase": "repr",
+      "outcome": "throw",
+      "status": "ok",
+      "reason": "cancelled",
+      "same": true
+    },
+    {
+      "phase": "repr",
+      "outcome": "fatal",
+      "status": "ok",
+      "reason": "allocation",
+      "same": true
+    },
+    {
+      "phase": "repr",
+      "outcome": "fatal-abort",
+      "status": "ok",
+      "reason": "allocation",
+      "same": true
+    },
+    {
+      "phase": "filename",
+      "outcome": "return",
+      "status": "ok",
+      "reason": "cancelled",
+      "same": true
+    },
+    {
+      "phase": "filename",
+      "outcome": "throw",
+      "status": "ok",
+      "reason": "cancelled",
+      "same": true
+    },
+    {
+      "phase": "filename",
+      "outcome": "fatal",
+      "status": "ok",
+      "reason": "allocation",
+      "same": true
+    },
+    {
+      "phase": "filename",
+      "outcome": "fatal-abort",
+      "status": "ok",
+      "reason": "allocation",
+      "same": true
+    }
+  ],
+  "driver": "import {openSync,closeSync,readSync,writeSync,fsyncSync,readFileSync,writeFileSync} from 'node:fs';\nimport {sourceCodecGuestFaultCases} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/source-codec-guest-fault-cases.ts\";\nimport {CallStack} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/call-stack.ts\";\nimport {ExecutionBudget,ExecutionLimitError} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/execution-budget.ts\";\nimport {RuntimeCodecRegistry} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.ts\";\nimport {RuntimeValues,type RuntimeValue} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-values.ts\";\nimport {RuntimeTypeRegistry} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-type-registry.ts\";\nimport {RuntimeExceptionExecution,RuntimeRaisedException} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-exception-execution.ts\";\nimport {RuntimeExecutionKeys} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-execution-keys.ts\";\nimport {createRuntimeBuiltins} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-builtins.ts\";\nimport {RuntimeCodePrograms} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-code-programs.ts\";\nimport {createRuntimeCompilation} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-compilation.ts\";\nimport {createRuntimeDynamicExecution} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-dynamic-execution.ts\";\nimport {executeRuntimeProgram,type RuntimeProgramContext} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-program.ts\";\nimport {compileSourceProgram} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/source-program-compilation.ts\";\nimport {standardExceptionCatalog,type StandardExceptionName} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/standard-exception-catalog.ts\";\nimport {runtimeExceptionPayload} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-exception-state.ts\";\nimport {OrderedKeyMap} from \"/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/ordered-key-map.ts\";\nfunction runCase(source:string,mode:string,options:{signal?:AbortSignal;service?:()=>void;input?:Uint8Array;decoded?:string}={}){\n  const meter=new ExecutionBudget({maxSteps:1000000,maxAllocatedBytes:16000000,signal:options.signal});\n  const values=new RuntimeValues(meter),calls=new CallStack<object>(100,meter);\n  const hash={none:values.none,identity:values.identity.hash.bind(values.identity),string:()=>23n,bytes:()=>29n};\n  const keys=new RuntimeExecutionKeys(values,hash,meter,calls);\n  const types=new RuntimeTypeRegistry(values,keys,meter),exceptions=new RuntimeExceptionExecution(types,values,meter);\n  const globals=new Map<string,RuntimeValue>(),programs=new RuntimeCodePrograms(meter,values);\n  const unused=():never=>{throw Error(\"unexpected service\");};\n  const builtins=createRuntimeBuiltins(values,meter,{hash,identity:values.identity,buildClass:{registry:types,keys},print:{stdout:unused,lookupWrite:unused,flush:unused}});\n  for(const name of Object.keys(standardExceptionCatalog) as StandardExceptionName[])builtins.set(name,types.exceptionType(name));\n  for(const [name,value] of Object.entries({object:types.object,type:types.type,str:types.stringType(),int:types.integerType(),tuple:types.tupleType(),super:types.superType()}))builtins.set(name,value);\n  const context:RuntimeProgramContext={values,calls,keys,globals,builtins,exceptions,objectType:types.object,hooks:{\n    expressions:()=>({warn:unused}),statements:()=>({setAttribute:unused,deleteAttribute:unused,executeUnhandled:unused}),callable:()=>false,invoke:unused,name:()=>\"function()\",\n    keywordName:value=>{if(value.kind!==\"str\")return unused();return String.fromCodePoint(...value.value);},\n    specialMethods:()=>({slots:()=>undefined,typeOf:value=>types.nativeType(value)??unused()})\n  }};\n  builtins.set(\"service\",values.builtinFunction({name:\"service\",invoke(){options.service?.();return values.none;}}));\n  globals.set(\"__name__\",values.string(\"__main__\"));\n  const target=values.string(mode===\"compile\"?\"guest-codec.py\":\"<string>\",\"fresh\");\n  globals.set(\"target\",target);\n  globals.set(\"preserve_filename\",values.boolean(mode===\"compile\"));\n  builtins.set(\"trigger\",values.builtinFunction({name:\"trigger\",invoke(_args,_kwargs,_meter,invocation){\n    const codecs=new RuntimeCodecRegistry(values,meter);\n    const callback=values.builtinFunction({name:\"decoder\",invoke(){invocation!.call(globals.get(\"decode\")!,[]);throw Error(\"decoder unexpectedly returned\");}});\n    const info=values.tuple([values.none,callback,values.none,values.none]);\n    codecs.register(values.builtinFunction({name:\"search\",invoke:()=>info}),invocation!);\n    const compilation=()=>({stripDocstring:false,enterRecursiveCall:()=>calls.enter({}),decodeSource:(encoding:string,source:Uint8Array)=>{\n      if(options.decoded!==undefined)return options.decoded;\n      codecs.transform(\"decode\",values.bytes(source),encoding,undefined,invocation!);\n      throw Error(\"decoder unexpectedly returned\");\n    }});\n    const input=values.bytes(options.input??Uint8Array.from(Array.from(\"# coding: guest-fault\\n1\",character=>character.charCodeAt(0))));\n    if(mode===\"compile\")return createRuntimeCompilation(values,programs,{compilation,code:types.code.bind(types)}).compile({source:input,filename:{displayName:\"guest-codec.py\",value:target},mode:\"exec\",flags:0,optimize:-1,featureVersion:-1},invocation,meter);\n    const namespace=values.dictionary(new OrderedKeyMap<RuntimeValue,RuntimeValue>(keys,meter));\n    return createRuntimeDynamicExecution(context,programs,{compilation,globals:()=>namespace,locals:()=>namespace,builtins:()=>namespace}).execute({mode:mode as \"exec\"|\"eval\",source:input,globals:namespace,locals:namespace,closure:values.none},invocation,meter);\n  }}));\n  let failure:unknown;\n  try{executeRuntimeProgram(compileSourceProgram(source,{stripDocstring:false,enterRecursiveCall:()=>calls.enter({})},values,meter),context,meter);}\n  catch(error){failure=error instanceof RuntimeRaisedException?{type:error.value.type.value.name,args:runtimeExceptionPayload(error.value)?.args.items}:error;}\n  return {failure,meter};\n}\nconst sourcePath='/tmp/source-codec-guest-service-input.py',outputPath='/tmp/source-codec-guest-service-output.jsonl';\nwriteFileSync(sourcePath,'# coding: guest-fault\\n1');\nconst output=openSync(outputPath,'w');const rows=[];let reads=0,writes=0;\ntry{\n for(const row of sourceCodecGuestFaultCases)for(const mode of ['compile','exec','eval']){\n  const fd=openSync(sourcePath,'r');const bytes=new Uint8Array(1024);let n;\n  try{n=readSync(fd,bytes);reads++;}finally{closeSync(fd);}\n  const result=runCase(row.source,mode,{input:bytes.slice(0,n)});\n  const entry={name:row.name,mode,status:result.failure===undefined?'ok':'failure'};\n  if(result.failure!==undefined)entry.detail=String(result.failure);\n  writeSync(output,JSON.stringify(entry)+'\\n');writes++;rows.push(entry);\n }\n for(const phase of ['decode','str','repr','filename'])for(const outcome of ['return','throw','fatal','fatal-abort']){\n  const controller=new AbortController(),fatal=new ExecutionLimitError('allocation');let calls=0;\n  const operation=phase==='decode'?\"service(); raise ValueError('decode')\":\"raise failure\";\n  const definition=phase==='str'?\"class Failure(ValueError):\\n    def __str__(self):\\n        service()\\n        return 'rendered'\\nfailure = Failure('before')\"\n    :phase==='repr'?\"class Key:\\n    def __repr__(self):\\n        service()\\n        return 'key'\\nfailure = KeyError(Key())\"\n      :phase==='filename'?\"class Failure(SyntaxError):\\n    def __setattr__(self, name, value):\\n        if name == 'filename':\\n            service()\\n        super().__setattr__(name, value)\\nfailure = Failure('before')\":\"\";\n  const fd=openSync(sourcePath,'r'),input=new Uint8Array(1024);let n;\n  try{n=readSync(fd,input);reads++;}finally{closeSync(fd);}\n  const result=runCase(definition+'\\ndef decode():\\n    '+operation+\"\\ntry:\\n    trigger()\\nexcept BaseException:\\n    raise AssertionError('cancellation became catchable')\\n\",'compile',{\n   signal:controller.signal,input:input.slice(0,n),service(){\n    calls++;writeSync(output,JSON.stringify({event:'service',phase,outcome})+'\\n');writes++;\n    if(outcome==='fatal')throw fatal;\n    controller.abort();\n    if(outcome==='fatal-abort')throw fatal;\n    if(outcome==='throw')throw Error('service failed after cancellation');\n   }\n  });\n  const same=!outcome.startsWith('fatal')||result.failure===fatal;\n  const entry={phase,outcome,status:result.failure instanceof ExecutionLimitError&&calls===1&&same?'ok':'failure',reason:result.failure?.reason,same};\n  writeSync(output,JSON.stringify(entry)+'\\n');writes++;rows.push(entry);\n }\n fsyncSync(output);\n}finally{closeSync(output);}\nwriteFileSync('/tmp/source-codec-guest-services.json',JSON.stringify({reads,writes,rows},null,2));\nconsole.log({matches:rows.filter(r=>r.status==='ok').length,total:rows.length,reads,writes});\n",
+  "generator": "import fs from 'node:fs';\nimport path from 'node:path';\nimport ts from '/Users/kjopek/Workspace/poe-code-3/node_modules/typescript/lib/typescript.js';\nconst file='/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/source-codec-guest-fault.test.ts';\nconst source=fs.readFileSync(file,'utf8'),ast=ts.createSourceFile(file,source,ts.ScriptTarget.Latest,true,ts.ScriptKind.TS);\nconst imports=[];let fixture;\nfor(const node of ast.statements){\n if(ts.isImportDeclaration(node)){\n  const name=node.moduleSpecifier.text;if(name==='vitest')continue;\n  imports.push(node.getText(ast).replace(JSON.stringify(name),JSON.stringify(path.resolve(path.dirname(file),name).replace('.js','.ts'))));\n }\n if(ts.isFunctionDeclaration(node)&&node.name?.text==='runCase')fixture=node.getText(ast);\n}\nconst driver=`import {openSync,closeSync,readSync,writeSync,fsyncSync,readFileSync,writeFileSync} from 'node:fs';\n${imports.join('\\n')}\n${fixture}\nconst sourcePath='/tmp/source-codec-guest-service-input.py',outputPath='/tmp/source-codec-guest-service-output.jsonl';\nwriteFileSync(sourcePath,'# coding: guest-fault\\\\n1');\nconst output=openSync(outputPath,'w');const rows=[];let reads=0,writes=0;\ntry{\n for(const row of sourceCodecGuestFaultCases)for(const mode of ['compile','exec','eval']){\n  const fd=openSync(sourcePath,'r');const bytes=new Uint8Array(1024);let n;\n  try{n=readSync(fd,bytes);reads++;}finally{closeSync(fd);}\n  const result=runCase(row.source,mode,{input:bytes.slice(0,n)});\n  const entry={name:row.name,mode,status:result.failure===undefined?'ok':'failure'};\n  if(result.failure!==undefined)entry.detail=String(result.failure);\n  writeSync(output,JSON.stringify(entry)+'\\\\n');writes++;rows.push(entry);\n }\n fsyncSync(output);\n}finally{closeSync(output);}\nwriteFileSync('/tmp/source-codec-guest-services.json',JSON.stringify({reads,writes,rows},null,2));\nconsole.log({matches:rows.filter(r=>r.status==='ok').length,total:rows.length,reads,writes});\n`;\nfs.writeFileSync('/tmp/source-codec-guest-services.mts',driver);\n",
+  "cancellationFragment": " for(const phase of ['decode','str','repr','filename'])for(const outcome of ['return','throw','fatal','fatal-abort']){\n  const controller=new AbortController(),fatal=new ExecutionLimitError('allocation');let calls=0;\n  const operation=phase==='decode'?\"service(); raise ValueError('decode')\":\"raise failure\";\n  const definition=phase==='str'?\"class Failure(ValueError):\\n    def __str__(self):\\n        service()\\n        return 'rendered'\\nfailure = Failure('before')\"\n    :phase==='repr'?\"class Key:\\n    def __repr__(self):\\n        service()\\n        return 'key'\\nfailure = KeyError(Key())\"\n      :phase==='filename'?\"class Failure(SyntaxError):\\n    def __setattr__(self, name, value):\\n        if name == 'filename':\\n            service()\\n        super().__setattr__(name, value)\\nfailure = Failure('before')\":\"\";\n  const fd=openSync(sourcePath,'r'),input=new Uint8Array(1024);let n;\n  try{n=readSync(fd,input);reads++;}finally{closeSync(fd);}\n  const result=runCase(definition+'\\ndef decode():\\n    '+operation+\"\\ntry:\\n    trigger()\\nexcept BaseException:\\n    raise AssertionError('cancellation became catchable')\\n\",'compile',{\n   signal:controller.signal,input:input.slice(0,n),service(){\n    calls++;writeSync(output,JSON.stringify({event:'service',phase,outcome})+'\\n');writes++;\n    if(outcome==='fatal')throw fatal;\n    controller.abort();\n    if(outcome==='fatal-abort')throw fatal;\n    if(outcome==='throw')throw Error('service failed after cancellation');\n   }\n  });\n  const same=!outcome.startsWith('fatal')||result.failure===fatal;\n  const entry={phase,outcome,status:result.failure instanceof ExecutionLimitError&&calls===1&&same?'ok':'failure',reason:result.failure?.reason,same};\n  writeSync(output,JSON.stringify(entry)+'\\n');writes++;rows.push(entry);\n }\n"
+}

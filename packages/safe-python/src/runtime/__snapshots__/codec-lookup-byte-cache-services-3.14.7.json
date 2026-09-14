@@ -1,0 +1,87 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "cases": [
+    {
+      "name": "b'8'",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'notcodec\\ud800'\nseen = []\ndef strict(error):\n    seen.append(error.object is name)\n    return (b'8', error.end)\ncodecs.register_error('strict', strict)\ndef search(name):\n    print('search', repr(name))\ncodecs.register(search)\nfor attempt in range(2):\n    try:\n        print(codecs.lookup(name).name)\n    except Exception as error:\n        print(type(error).__name__, ascii(str(error)))\n    codecs.register_error('strict', original)\nprint(seen)\n",
+      "input": "8\n",
+      "expected": "search 'notcodec8'\nLookupError 'unknown encoding: notcodec8'\nsearch 'notcodec8'\nLookupError 'unknown encoding: notcodec8'\n[True]\n",
+      "actual": "search 'notcodec8'\nLookupError 'unknown encoding: notcodec8'\nsearch 'notcodec8'\nLookupError 'unknown encoding: notcodec8'\n[True]\n",
+      "status": "ok",
+      "reads": 0,
+      "writes": 18,
+      "flushes": 0
+    },
+    {
+      "name": "b'\\xff'",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'notcodec\\ud800'\nseen = []\ndef strict(error):\n    seen.append(error.object is name)\n    return (b'\\xff', error.end)\ncodecs.register_error('strict', strict)\ndef search(name):\n    print('search', repr(name))\ncodecs.register(search)\nfor attempt in range(2):\n    try:\n        print(codecs.lookup(name).name)\n    except Exception as error:\n        print(type(error).__name__, ascii(str(error)))\n    codecs.register_error('strict', original)\nprint(seen)\n",
+      "input": "8\n",
+      "expected": "search 'notcodec'\nLookupError 'unknown encoding: notcodec\\ufffd'\nsearch 'notcodec'\nLookupError 'unknown encoding: notcodec\\ufffd'\n[True]\n",
+      "actual": "search 'notcodec'\nLookupError 'unknown encoding: notcodec\\ufffd'\nsearch 'notcodec'\nLookupError 'unknown encoding: notcodec\\ufffd'\n[True]\n",
+      "status": "ok",
+      "reads": 0,
+      "writes": 18,
+      "flushes": 0
+    },
+    {
+      "name": "b'\\xc3\\xa9'",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'notcodec\\ud800'\nseen = []\ndef strict(error):\n    seen.append(error.object is name)\n    return (b'\\xc3\\xa9', error.end)\ncodecs.register_error('strict', strict)\ndef search(name):\n    print('search', repr(name))\ncodecs.register(search)\nfor attempt in range(2):\n    try:\n        print(codecs.lookup(name).name)\n    except Exception as error:\n        print(type(error).__name__, ascii(str(error)))\n    codecs.register_error('strict', original)\nprint(seen)\n",
+      "input": "8\n",
+      "expected": "search 'notcodec'\nLookupError 'unknown encoding: notcodec\\xe9'\nsearch 'notcodec'\nLookupError 'unknown encoding: notcodec\\xe9'\n[True]\n",
+      "actual": "search 'notcodec'\nLookupError 'unknown encoding: notcodec\\xe9'\nsearch 'notcodec'\nLookupError 'unknown encoding: notcodec\\xe9'\n[True]\n",
+      "status": "ok",
+      "reads": 0,
+      "writes": 18,
+      "flushes": 0
+    },
+    {
+      "name": "b'\\xed\\xa0\\x80'",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'notcodec\\ud800'\nseen = []\ndef strict(error):\n    seen.append(error.object is name)\n    return (b'\\xed\\xa0\\x80', error.end)\ncodecs.register_error('strict', strict)\ndef search(name):\n    print('search', repr(name))\ncodecs.register(search)\nfor attempt in range(2):\n    try:\n        print(codecs.lookup(name).name)\n    except Exception as error:\n        print(type(error).__name__, ascii(str(error)))\n    codecs.register_error('strict', original)\nprint(seen)\n",
+      "input": "8\n",
+      "expected": "search 'notcodec'\nLookupError 'unknown encoding: notcodec\\ufffd\\ufffd\\ufffd'\nsearch 'notcodec'\nLookupError 'unknown encoding: notcodec\\ufffd\\ufffd\\ufffd'\n[True]\n",
+      "actual": "search 'notcodec'\nLookupError 'unknown encoding: notcodec\\ufffd\\ufffd\\ufffd'\nsearch 'notcodec'\nLookupError 'unknown encoding: notcodec\\ufffd\\ufffd\\ufffd'\n[True]\n",
+      "status": "ok",
+      "reads": 0,
+      "writes": 18,
+      "flushes": 0
+    },
+    {
+      "name": "b'\\xf0\\x90'",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'notcodec\\ud800'\nseen = []\ndef strict(error):\n    seen.append(error.object is name)\n    return (b'\\xf0\\x90', error.end)\ncodecs.register_error('strict', strict)\ndef search(name):\n    print('search', repr(name))\ncodecs.register(search)\nfor attempt in range(2):\n    try:\n        print(codecs.lookup(name).name)\n    except Exception as error:\n        print(type(error).__name__, ascii(str(error)))\n    codecs.register_error('strict', original)\nprint(seen)\n",
+      "input": "8\n",
+      "expected": "search 'notcodec'\nLookupError 'unknown encoding: notcodec\\ufffd'\nsearch 'notcodec'\nLookupError 'unknown encoding: notcodec\\ufffd'\n[True]\n",
+      "actual": "search 'notcodec'\nLookupError 'unknown encoding: notcodec\\ufffd'\nsearch 'notcodec'\nLookupError 'unknown encoding: notcodec\\ufffd'\n[True]\n",
+      "status": "ok",
+      "reads": 0,
+      "writes": 18,
+      "flushes": 0
+    },
+    {
+      "name": "b'8\\x00tail'",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'notcodec\\ud800'\nseen = []\ndef strict(error):\n    seen.append(error.object is name)\n    return (b'8\\x00tail', error.end)\ncodecs.register_error('strict', strict)\ndef search(name):\n    print('search', repr(name))\ncodecs.register(search)\nfor attempt in range(2):\n    try:\n        print(codecs.lookup(name).name)\n    except Exception as error:\n        print(type(error).__name__, ascii(str(error)))\n    codecs.register_error('strict', original)\nprint(seen)\n",
+      "input": "8\n",
+      "expected": "ValueError 'embedded null character'\nValueError 'embedded null character'\n[True]\n",
+      "actual": "ValueError 'embedded null character'\nValueError 'embedded null character'\n[True]\n",
+      "status": "ok",
+      "reads": 0,
+      "writes": 10,
+      "flushes": 0
+    },
+    {
+      "name": "descriptor input and cross-consumer cached lookup",
+      "source": "\nimport codecs\noriginal = codecs.lookup_error('strict')\nname = 'utf\\ud800'\ndef strict(error):\n    assert error.object is name\n    return (input(), error.end)\ncodecs.register_error('strict', strict)\nassert codecs.lookup_error('surrogatepass')(UnicodeEncodeError(name, '\\ud800', 0, 1, 'x')) == (b'\\xed\\xa0\\x80', 1)\ncodecs.register_error('strict', original)\nprint(codecs.lookup(name).name)\n",
+      "input": "8\n",
+      "expected": "utf-8\n",
+      "actual": "utf-8\n",
+      "status": "ok",
+      "reads": 1,
+      "writes": 2,
+      "flushes": 1
+    }
+  ]
+}

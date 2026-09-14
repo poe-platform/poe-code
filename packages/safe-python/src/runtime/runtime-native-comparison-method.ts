@@ -14,11 +14,10 @@ export type NativeBoundCallableKind = "method" | "method-wrapper" | "builtin_fun
  * raw guest ordering results. Member comparison uses the active execution. */
 export function installRuntimeComparisonMethods(kind: NativeBoundCallableKind | "dict" | "list" | "tuple" | "set" | "frozenset" | "slice" | "cell" | "none", owner: TypeValue, values: RuntimeValues, meter: ExecutionMeter): void {
   meter.checkpoint(0, 256);
-  const slots = [["__eq__", "=="], ["__ne__", "!="]];
-  if (kind === "list" || kind === "tuple" || kind === "set" || kind === "frozenset" || kind === "slice" || kind === "cell" || kind === "none") slots.push(["__lt__", "<"], ["__le__", "<="], ["__gt__", ">"], ["__ge__", ">="]);
+  const slots = [["__lt__", "<"], ["__le__", "<="], ["__eq__", "=="], ["__ne__", "!="], ["__gt__", ">"], ["__ge__", ">="]];
   for (const [name, operator] of slots) {
     meter.checkpoint(0, 96);
-    owner.value.namespace.items.set(values.string(name), values.wrapperDescriptor({ owner, name, doc: `Return self${operator}value.`, accepts: receiver => kind === "dict" ? runtimeDictionaryPayload(receiver) !== undefined : kind === "list" ? runtimeListPayload(receiver) !== undefined : kind === "tuple" ? runtimeTuplePayload(receiver) !== undefined : kind === "set" || kind === "frozenset" ? runtimeSetPayload(receiver)?.kind === kind : receiver.kind === kind,
+    owner.value.namespace.items.set(values.string(name), values.wrapperDescriptor({ owner, name, textSignature: "($self, value, /)", doc: `Return self${operator}value.`, accepts: receiver => kind === "dict" ? runtimeDictionaryPayload(receiver) !== undefined : kind === "list" ? runtimeListPayload(receiver) !== undefined : kind === "tuple" ? runtimeTuplePayload(receiver) !== undefined : kind === "set" || kind === "frozenset" ? runtimeSetPayload(receiver)?.kind === kind : receiver.kind === kind,
       invoke(receiver, positional, keywords, meter, invocation) {
         meter.checkpoint();
         if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", `wrapper ${name}() takes no keyword arguments`);

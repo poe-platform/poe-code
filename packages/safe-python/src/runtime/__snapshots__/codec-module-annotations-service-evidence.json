@@ -1,0 +1,267 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "adapter": "Explicit node:fs readSync/writeSync/fsyncSync file descriptors; temporary service files cleaned in finally; no guest filesystem access",
+  "cases": [
+    {
+      "name": "codecs lazy annotation descriptors and cache invalidation",
+      "source": "\nimport codecs as module\nassert '__annotations__' not in module.__dict__\nassert '__annotate__' not in module.__dict__\nannotations = module.__annotations__\nassert type(annotations) is dict and annotations == {}\nassert module.__annotations__ is annotations\nassert module.__dict__['__annotations__'] is annotations\nassert module.__annotate__ is None\nassert module.__dict__['__annotate__'] is None\nevents = []\nresult = {'text': str}\ndef annotate(format):\n    events.append(format)\n    return result\nmodule.__annotate__ = annotate\nassert '__annotations__' not in module.__dict__\nassert module.__annotations__ is result\nassert module.__annotations__ is result and events == [1]\nmodule.__annotate__ = None\nassert module.__annotations__ is result\nmodule.__annotate__ = annotate\nassert '__annotations__' not in module.__dict__\nmodule.__annotations__ = None\nassert module.__annotations__ is None\nassert '__annotate__' not in module.__dict__\nfor value in ([], 42, None):\n    module.__annotations__ = value\n    assert module.__annotations__ is value\ndel module.__annotations__\ntry:\n    del module.__annotations__\nexcept AttributeError as error:\n    assert error.args == ('__annotations__',)\nelse:\n    assert False\ntry:\n    del module.__annotate__\nexcept TypeError as error:\n    assert error.args == ('cannot delete __annotate__ attribute',)\nelse:\n    assert False\nfor value in (1, [], {}):\n    try:\n        module.__annotate__ = value\n    except TypeError as error:\n        assert error.args == ('__annotate__ must be callable or None',)\n    else:\n        assert False\nmodule.__dict__['__annotate__'] = 1\nassert module.__annotate__ == 1\nassert module.__annotations__ == {}\n",
+      "sha256": "11bfa42eae4f3be47fc2aaa87388cfcbd56137e74491055e21dd896544608e41",
+      "oracle": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "reason": null,
+        "diagnostic": null,
+        "reads": 0,
+        "writes": 0,
+        "stdout": "",
+        "subsequent": null
+      }
+    },
+    {
+      "name": "_codecs lazy annotation descriptors and cache invalidation",
+      "source": "\nimport _codecs as module\nassert '__annotations__' not in module.__dict__\nassert '__annotate__' not in module.__dict__\nannotations = module.__annotations__\nassert type(annotations) is dict and annotations == {}\nassert module.__annotations__ is annotations\nassert module.__dict__['__annotations__'] is annotations\nassert module.__annotate__ is None\nassert module.__dict__['__annotate__'] is None\nevents = []\nresult = {'text': str}\ndef annotate(format):\n    events.append(format)\n    return result\nmodule.__annotate__ = annotate\nassert '__annotations__' not in module.__dict__\nassert module.__annotations__ is result\nassert module.__annotations__ is result and events == [1]\nmodule.__annotate__ = None\nassert module.__annotations__ is result\nmodule.__annotate__ = annotate\nassert '__annotations__' not in module.__dict__\nmodule.__annotations__ = None\nassert module.__annotations__ is None\nassert '__annotate__' not in module.__dict__\nfor value in ([], 42, None):\n    module.__annotations__ = value\n    assert module.__annotations__ is value\ndel module.__annotations__\ntry:\n    del module.__annotations__\nexcept AttributeError as error:\n    assert error.args == ('__annotations__',)\nelse:\n    assert False\ntry:\n    del module.__annotate__\nexcept TypeError as error:\n    assert error.args == ('cannot delete __annotate__ attribute',)\nelse:\n    assert False\nfor value in (1, [], {}):\n    try:\n        module.__annotate__ = value\n    except TypeError as error:\n        assert error.args == ('__annotate__ must be callable or None',)\n    else:\n        assert False\nmodule.__dict__['__annotate__'] = 1\nassert module.__annotate__ == 1\nassert module.__annotations__ == {}\n",
+      "sha256": "6f8d947127f99bb2908e775f71c433c869afe3deb8750e6264139005a918cd79",
+      "oracle": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "reason": null,
+        "diagnostic": null,
+        "reads": 0,
+        "writes": 0,
+        "stdout": "",
+        "subsequent": null
+      }
+    },
+    {
+      "name": "encodings lazy annotation descriptors and cache invalidation",
+      "source": "\nimport encodings as module\nassert '__annotations__' not in module.__dict__\nassert '__annotate__' not in module.__dict__\nannotations = module.__annotations__\nassert type(annotations) is dict and annotations == {}\nassert module.__annotations__ is annotations\nassert module.__dict__['__annotations__'] is annotations\nassert module.__annotate__ is None\nassert module.__dict__['__annotate__'] is None\nevents = []\nresult = {'text': str}\ndef annotate(format):\n    events.append(format)\n    return result\nmodule.__annotate__ = annotate\nassert '__annotations__' not in module.__dict__\nassert module.__annotations__ is result\nassert module.__annotations__ is result and events == [1]\nmodule.__annotate__ = None\nassert module.__annotations__ is result\nmodule.__annotate__ = annotate\nassert '__annotations__' not in module.__dict__\nmodule.__annotations__ = None\nassert module.__annotations__ is None\nassert '__annotate__' not in module.__dict__\nfor value in ([], 42, None):\n    module.__annotations__ = value\n    assert module.__annotations__ is value\ndel module.__annotations__\ntry:\n    del module.__annotations__\nexcept AttributeError as error:\n    assert error.args == ('__annotations__',)\nelse:\n    assert False\ntry:\n    del module.__annotate__\nexcept TypeError as error:\n    assert error.args == ('cannot delete __annotate__ attribute',)\nelse:\n    assert False\nfor value in (1, [], {}):\n    try:\n        module.__annotate__ = value\n    except TypeError as error:\n        assert error.args == ('__annotate__ must be callable or None',)\n    else:\n        assert False\nmodule.__dict__['__annotate__'] = 1\nassert module.__annotate__ == 1\nassert module.__annotations__ == {}\n",
+      "sha256": "f655499b44a97db6c164a628e637fefac84ba6ddddc8b15fcbbea7cb749ed369",
+      "oracle": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "reason": null,
+        "diagnostic": null,
+        "reads": 0,
+        "writes": 0,
+        "stdout": "",
+        "subsequent": null
+      }
+    },
+    {
+      "name": "encodings.aliases lazy annotation descriptors and cache invalidation",
+      "source": "\nimport encodings.aliases as module\nassert '__annotations__' not in module.__dict__\nassert '__annotate__' not in module.__dict__\nannotations = module.__annotations__\nassert type(annotations) is dict and annotations == {}\nassert module.__annotations__ is annotations\nassert module.__dict__['__annotations__'] is annotations\nassert module.__annotate__ is None\nassert module.__dict__['__annotate__'] is None\nevents = []\nresult = {'text': str}\ndef annotate(format):\n    events.append(format)\n    return result\nmodule.__annotate__ = annotate\nassert '__annotations__' not in module.__dict__\nassert module.__annotations__ is result\nassert module.__annotations__ is result and events == [1]\nmodule.__annotate__ = None\nassert module.__annotations__ is result\nmodule.__annotate__ = annotate\nassert '__annotations__' not in module.__dict__\nmodule.__annotations__ = None\nassert module.__annotations__ is None\nassert '__annotate__' not in module.__dict__\nfor value in ([], 42, None):\n    module.__annotations__ = value\n    assert module.__annotations__ is value\ndel module.__annotations__\ntry:\n    del module.__annotations__\nexcept AttributeError as error:\n    assert error.args == ('__annotations__',)\nelse:\n    assert False\ntry:\n    del module.__annotate__\nexcept TypeError as error:\n    assert error.args == ('cannot delete __annotate__ attribute',)\nelse:\n    assert False\nfor value in (1, [], {}):\n    try:\n        module.__annotate__ = value\n    except TypeError as error:\n        assert error.args == ('__annotate__ must be callable or None',)\n    else:\n        assert False\nmodule.__dict__['__annotate__'] = 1\nassert module.__annotate__ == 1\nassert module.__annotations__ == {}\n",
+      "sha256": "123ee008598540d0d1d03c4cd92fa91282b522fc3d7b7a4c03898552a7f19613",
+      "oracle": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "reason": null,
+        "diagnostic": null,
+        "reads": 0,
+        "writes": 0,
+        "stdout": "",
+        "subsequent": null
+      }
+    },
+    {
+      "name": "encodings.ascii lazy annotation descriptors and cache invalidation",
+      "source": "\nimport encodings.ascii as module\nassert '__annotations__' not in module.__dict__\nassert '__annotate__' not in module.__dict__\nannotations = module.__annotations__\nassert type(annotations) is dict and annotations == {}\nassert module.__annotations__ is annotations\nassert module.__dict__['__annotations__'] is annotations\nassert module.__annotate__ is None\nassert module.__dict__['__annotate__'] is None\nevents = []\nresult = {'text': str}\ndef annotate(format):\n    events.append(format)\n    return result\nmodule.__annotate__ = annotate\nassert '__annotations__' not in module.__dict__\nassert module.__annotations__ is result\nassert module.__annotations__ is result and events == [1]\nmodule.__annotate__ = None\nassert module.__annotations__ is result\nmodule.__annotate__ = annotate\nassert '__annotations__' not in module.__dict__\nmodule.__annotations__ = None\nassert module.__annotations__ is None\nassert '__annotate__' not in module.__dict__\nfor value in ([], 42, None):\n    module.__annotations__ = value\n    assert module.__annotations__ is value\ndel module.__annotations__\ntry:\n    del module.__annotations__\nexcept AttributeError as error:\n    assert error.args == ('__annotations__',)\nelse:\n    assert False\ntry:\n    del module.__annotate__\nexcept TypeError as error:\n    assert error.args == ('cannot delete __annotate__ attribute',)\nelse:\n    assert False\nfor value in (1, [], {}):\n    try:\n        module.__annotate__ = value\n    except TypeError as error:\n        assert error.args == ('__annotate__ must be callable or None',)\n    else:\n        assert False\nmodule.__dict__['__annotate__'] = 1\nassert module.__annotate__ == 1\nassert module.__annotations__ == {}\n",
+      "sha256": "ba390aef325beeed72f6c828c2b13c7990a8be6f6efbc67eddeb10b125ba6155",
+      "oracle": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "reason": null,
+        "diagnostic": null,
+        "reads": 0,
+        "writes": 0,
+        "stdout": "",
+        "subsequent": null
+      }
+    },
+    {
+      "name": "encodings.latin_1 lazy annotation descriptors and cache invalidation",
+      "source": "\nimport encodings.latin_1 as module\nassert '__annotations__' not in module.__dict__\nassert '__annotate__' not in module.__dict__\nannotations = module.__annotations__\nassert type(annotations) is dict and annotations == {}\nassert module.__annotations__ is annotations\nassert module.__dict__['__annotations__'] is annotations\nassert module.__annotate__ is None\nassert module.__dict__['__annotate__'] is None\nevents = []\nresult = {'text': str}\ndef annotate(format):\n    events.append(format)\n    return result\nmodule.__annotate__ = annotate\nassert '__annotations__' not in module.__dict__\nassert module.__annotations__ is result\nassert module.__annotations__ is result and events == [1]\nmodule.__annotate__ = None\nassert module.__annotations__ is result\nmodule.__annotate__ = annotate\nassert '__annotations__' not in module.__dict__\nmodule.__annotations__ = None\nassert module.__annotations__ is None\nassert '__annotate__' not in module.__dict__\nfor value in ([], 42, None):\n    module.__annotations__ = value\n    assert module.__annotations__ is value\ndel module.__annotations__\ntry:\n    del module.__annotations__\nexcept AttributeError as error:\n    assert error.args == ('__annotations__',)\nelse:\n    assert False\ntry:\n    del module.__annotate__\nexcept TypeError as error:\n    assert error.args == ('cannot delete __annotate__ attribute',)\nelse:\n    assert False\nfor value in (1, [], {}):\n    try:\n        module.__annotate__ = value\n    except TypeError as error:\n        assert error.args == ('__annotate__ must be callable or None',)\n    else:\n        assert False\nmodule.__dict__['__annotate__'] = 1\nassert module.__annotate__ == 1\nassert module.__annotations__ == {}\n",
+      "sha256": "9ed0aa2cebe265b15e7daddc2f64c7dc2c70fdd7f102487b6e3a3aba1245ea89",
+      "oracle": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "reason": null,
+        "diagnostic": null,
+        "reads": 0,
+        "writes": 0,
+        "stdout": "",
+        "subsequent": null
+      }
+    },
+    {
+      "name": "encodings.utf_8 lazy annotation descriptors and cache invalidation",
+      "source": "\nimport encodings.utf_8 as module\nassert '__annotations__' not in module.__dict__\nassert '__annotate__' not in module.__dict__\nannotations = module.__annotations__\nassert type(annotations) is dict and annotations == {}\nassert module.__annotations__ is annotations\nassert module.__dict__['__annotations__'] is annotations\nassert module.__annotate__ is None\nassert module.__dict__['__annotate__'] is None\nevents = []\nresult = {'text': str}\ndef annotate(format):\n    events.append(format)\n    return result\nmodule.__annotate__ = annotate\nassert '__annotations__' not in module.__dict__\nassert module.__annotations__ is result\nassert module.__annotations__ is result and events == [1]\nmodule.__annotate__ = None\nassert module.__annotations__ is result\nmodule.__annotate__ = annotate\nassert '__annotations__' not in module.__dict__\nmodule.__annotations__ = None\nassert module.__annotations__ is None\nassert '__annotate__' not in module.__dict__\nfor value in ([], 42, None):\n    module.__annotations__ = value\n    assert module.__annotations__ is value\ndel module.__annotations__\ntry:\n    del module.__annotations__\nexcept AttributeError as error:\n    assert error.args == ('__annotations__',)\nelse:\n    assert False\ntry:\n    del module.__annotate__\nexcept TypeError as error:\n    assert error.args == ('cannot delete __annotate__ attribute',)\nelse:\n    assert False\nfor value in (1, [], {}):\n    try:\n        module.__annotate__ = value\n    except TypeError as error:\n        assert error.args == ('__annotate__ must be callable or None',)\n    else:\n        assert False\nmodule.__dict__['__annotate__'] = 1\nassert module.__annotate__ == 1\nassert module.__annotations__ == {}\n",
+      "sha256": "660a0319de2369692441afc1ae8b46ba3da18366b1cf808cc8cc5a67dab15aa8",
+      "oracle": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "reason": null,
+        "diagnostic": null,
+        "reads": 0,
+        "writes": 0,
+        "stdout": "",
+        "subsequent": null
+      }
+    },
+    {
+      "name": "encodings.charmap lazy annotation descriptors and cache invalidation",
+      "source": "\nimport encodings.charmap as module\nassert '__annotations__' not in module.__dict__\nassert '__annotate__' not in module.__dict__\nannotations = module.__annotations__\nassert type(annotations) is dict and annotations == {}\nassert module.__annotations__ is annotations\nassert module.__dict__['__annotations__'] is annotations\nassert module.__annotate__ is None\nassert module.__dict__['__annotate__'] is None\nevents = []\nresult = {'text': str}\ndef annotate(format):\n    events.append(format)\n    return result\nmodule.__annotate__ = annotate\nassert '__annotations__' not in module.__dict__\nassert module.__annotations__ is result\nassert module.__annotations__ is result and events == [1]\nmodule.__annotate__ = None\nassert module.__annotations__ is result\nmodule.__annotate__ = annotate\nassert '__annotations__' not in module.__dict__\nmodule.__annotations__ = None\nassert module.__annotations__ is None\nassert '__annotate__' not in module.__dict__\nfor value in ([], 42, None):\n    module.__annotations__ = value\n    assert module.__annotations__ is value\ndel module.__annotations__\ntry:\n    del module.__annotations__\nexcept AttributeError as error:\n    assert error.args == ('__annotations__',)\nelse:\n    assert False\ntry:\n    del module.__annotate__\nexcept TypeError as error:\n    assert error.args == ('cannot delete __annotate__ attribute',)\nelse:\n    assert False\nfor value in (1, [], {}):\n    try:\n        module.__annotate__ = value\n    except TypeError as error:\n        assert error.args == ('__annotate__ must be callable or None',)\n    else:\n        assert False\nmodule.__dict__['__annotate__'] = 1\nassert module.__annotate__ == 1\nassert module.__annotations__ == {}\n",
+      "sha256": "c76d24e7147c4bbfae2e0ef626ebf8e084d41be504c8adabc05b373b4f3bd4e2",
+      "oracle": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "reason": null,
+        "diagnostic": null,
+        "reads": 0,
+        "writes": 0,
+        "stdout": "",
+        "subsequent": null
+      }
+    },
+    {
+      "name": "annotation callback subtype results, recursion, exceptions and retry",
+      "source": "\nimport codecs as module\nevents = []\nclass Result(dict):\n    def __setitem__(self, key, value):\n        raise AssertionError('virtual dict mutation')\nresult = Result(text=str)\nfailure = ValueError('annotation callback failed')\ndef annotate(format):\n    events.append(format)\n    if len(events) == 1:\n        raise failure\n    return result\nmodule.__annotate__ = annotate\ntry:\n    module.__annotations__\nexcept ValueError as error:\n    assert error is failure and error.args == ('annotation callback failed',)\nelse:\n    assert False\nassert '__annotations__' not in module.__dict__\nassert module.__annotations__ is result and events == [1, 1]\nfor value in (None, [], 1):\n    module.__annotate__ = lambda format: value\n    try:\n        module.__annotations__\n    except TypeError as error:\n        assert error.args == (\"__annotate__ returned non-dict of type '\" + type(value).__name__ + \"'\",)\n    else:\n        assert False\n    assert '__annotations__' not in module.__dict__\ndef inner(format):\n    events.append('inner')\n    return result\ndef outer(format):\n    events.append('outer')\n    module.__annotate__ = inner\n    assert module.__annotations__ is result\n    return {'outer': True}\nmodule.__annotate__ = outer\nassert module.__annotations__ == {'outer': True}\nassert events == [1, 1, 'outer', 'inner']\nassert module.__annotate__ is inner\n",
+      "sha256": "a011f8633fd43e49a9febf957588a82e20dd367122e21c78efbc4d1784993433",
+      "oracle": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "reason": null,
+        "diagnostic": null,
+        "reads": 0,
+        "writes": 0,
+        "stdout": "",
+        "subsequent": null
+      }
+    },
+    {
+      "name": "initializing module annotations, spec callbacks and cached precedence",
+      "source": "\nimport codecs\nmodule = type(codecs)('annotation_probe')\nevents = []\nfailure = ValueError('spec failed')\nclass Flag:\n    def __bool__(self):\n        events.append('truth')\n        return True\nclass Spec:\n    @property\n    def _initializing(self):\n        events.append('spec')\n        return Flag()\nmodule.__spec__ = Spec()\ndef annotate(format):\n    events.append(format)\n    return {}\nmodule.__annotate__ = annotate\nfirst = module.__annotations__\nassert first == {} and '__annotations__' not in module.__dict__\nassert module.__annotations__ is not first\nassert events == ['spec', 'truth', 1, 'spec', 'truth', 1]\nclass BadSpec:\n    @property\n    def _initializing(self):\n        raise failure\nmodule.__spec__ = BadSpec()\ntry:\n    module.__annotations__\nexcept ValueError as error:\n    assert error is failure\nelse:\n    assert False\nmodule.__dict__['__annotations__'] = first\nassert module.__annotations__ is first\n",
+      "sha256": "b708b9199d0bd2e0e38e72531cb61522879167b9140823454d1ce999ac08cc4f",
+      "oracle": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "exception",
+        "reason": null,
+        "diagnostic": "NameError(\"name 'property' is not defined\")",
+        "reads": 0,
+        "writes": 0,
+        "stdout": "",
+        "subsequent": null
+      }
+    },
+    {
+      "name": "module annotation descriptors honor overridden dictionaries",
+      "source": "\nimport codecs\nModule = type(codecs)\nnamespace = {}\nevents = []\nclass M(Module):\n    @property\n    def __dict__(self):\n        events.append('dict')\n        return namespace\nmodule = M('override')\nassert module.__annotations__ is namespace['__annotations__']\nassert events == ['dict']\nnamespace = None\ntry:\n    module.__annotations__\nexcept TypeError as error:\n    assert error.args == ('<module>.__dict__ is not a dictionary',)\nelse:\n    assert False\ntry:\n    module.__annotate__ = 1\nexcept TypeError as error:\n    assert error.args == ('<module>.__dict__ is not a dictionary',)\nelse:\n    assert False\ntry:\n    del module.__annotate__\nexcept TypeError as error:\n    assert error.args == ('cannot delete __annotate__ attribute',)\nelse:\n    assert False\nfor name in ('__annotations__', '__annotate__'):\n    descriptor = Module.__dict__[name]\n    assert type(descriptor).__name__ == 'getset_descriptor'\n    assert descriptor.__name__ == name\n    assert descriptor.__qualname__ == 'module.' + name\n    assert descriptor.__objclass__ is Module and descriptor.__doc__ is None\n",
+      "sha256": "2f1f64a9d40e6a573bebbd2b0f591139eaeb08267e914bf0f2b0553d77caaa68",
+      "oracle": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "exception",
+        "reason": null,
+        "diagnostic": "NameError(\"name 'property' is not defined\")",
+        "reads": 0,
+        "writes": 0,
+        "stdout": "",
+        "subsequent": null
+      }
+    },
+    {
+      "name": "annotation descriptors use captured dictionaries and native initialization specs",
+      "source": "\nimport codecs\nModule = type(codecs)\nnamespace = {}\noriginal = namespace\nevents = []\nclass M(Module):\n    def __getattribute__(self, name):\n        if name == '__dict__':\n            events.append('dict')\n            return namespace\n        return Module.__getattribute__(self, name)\nmodule = M('capture')\nclass Flag:\n    def __bool__(self):\n        events.append('truth')\n        return True\nclass Spec:\n    def __getattribute__(self, name):\n        events.append(name)\n        if name == '_initializing':\n            return Flag()\n        return object.__getattribute__(self, name)\nmodule.__spec__ = Spec()\nassert module.__annotations__ == {}\nassert original == {}\nassert events == ['dict', '_initializing', 'truth']\nmodule.__spec__ = None\nresult = {}\ndef annotate(format):\n    global namespace\n    namespace = {}\n    return result\nmodule.__annotate__ = annotate\nassert module.__annotations__ is result\nassert original['__annotations__'] is result\nassert namespace == {}\nnamespace = []\ntry:\n    module.__annotations__\nexcept TypeError as error:\n    assert error.args == ('<module>.__dict__ is not a dictionary',)\nelse:\n    assert False\nfor name in ('__annotations__', '__annotate__'):\n    descriptor = Module.__dict__[name]\n    assert type(descriptor).__name__ == 'getset_descriptor'\n    assert descriptor.__name__ == name\n    assert descriptor.__qualname__ == 'module.' + name\n    assert descriptor.__objclass__ is Module and descriptor.__doc__ is None\n",
+      "sha256": "9d851ecec2d66e69ce0ddc938b28661e4a62f66f0beff38562d53cb83a578bf4",
+      "oracle": {
+        "exitCode": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "reason": null,
+        "diagnostic": null,
+        "reads": 0,
+        "writes": 0,
+        "stdout": "",
+        "subsequent": null
+      }
+    },
+    {
+      "name": "module annotation callback uses the explicit input and output services",
+      "source": "\nimport codecs\ndef annotate(format):\n    assert format == 1\n    return {'text': input()}\ncodecs.__annotate__ = annotate\nassert codecs.__annotations__ == {'text': 'annotation'}\nassert codecs.__annotations__ == {'text': 'annotation'}\nprint('verified')\n",
+      "sha256": "997f49ec2e5850cb217a3b6f17b47ec38ee4d8d0102348a79140a6eea1174ef8",
+      "oracle": {
+        "exitCode": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "reason": null,
+        "diagnostic": null,
+        "reads": 1,
+        "writes": 2,
+        "stdout": "verified\n",
+        "subsequent": null
+      }
+    }
+  ],
+  "cancellation": {
+    "status": "terminated",
+    "reason": "cancelled",
+    "diagnostic": null,
+    "reads": 1,
+    "writes": 0,
+    "stdout": "",
+    "subsequent": "terminated"
+  }
+}

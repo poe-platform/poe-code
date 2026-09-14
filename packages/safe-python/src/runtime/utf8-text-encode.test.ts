@@ -67,7 +67,7 @@ describe("UTF-8 text write preparation", () => {
     const expected = encodeUtf8Text(input, { newline: "\r\n" });
     for (const axis of ["maxSteps", "maxAllocatedBytes"] as const) {
       let failures = 0, successes = 0;
-      for (let limit = 0; limit < 150; limit++) {
+      for (let limit = 0; limit < 300; limit++) {
         const budget = new ExecutionBudget({ maxSteps: 1000, maxAllocatedBytes: 1000, [axis]: limit });
         try {
           expect(encodeUtf8Text(input, { newline: "\r\n" }, budget)).toEqual(expected);

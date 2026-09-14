@@ -1,0 +1,932 @@
+{
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+  "unicode": "16.0.0",
+  "rows": [
+    {
+      "name": "iter range(0)",
+      "source": "r = range(0)\ni = iter(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['range_iterator', True, True, True, True, (0, True, 'range(0, 0)', None, 'end'), (0, True, 'range(0, 0)', None, 'end'), (0, True, 'range(0, 0)', None, 'end'), (0, True, 'range(0, 0)', None, 'end'), (0, True, 'range(0, 0)', None, 'end')]"
+    },
+    {
+      "name": "reversed range(0)",
+      "source": "r = range(0)\ni = reversed(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['range_iterator', True, True, True, True, (0, True, 'range(-1, -1, -1)', None, 'end'), (0, True, 'range(-1, -1, -1)', None, 'end'), (0, True, 'range(-1, -1, -1)', None, 'end'), (0, True, 'range(-1, -1, -1)', None, 'end'), (0, True, 'range(-1, -1, -1)', None, 'end')]"
+    },
+    {
+      "name": "iter range(3)",
+      "source": "r = range(3)\ni = iter(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['range_iterator', True, True, True, True, (3, True, 'range(0, 3)', None, 0), (2, True, 'range(1, 3)', None, 1), (1, True, 'range(2, 3)', None, 2), (0, True, 'range(3, 3)', None, 'end'), (0, True, 'range(3, 3)', None, 'end')]"
+    },
+    {
+      "name": "reversed range(3)",
+      "source": "r = range(3)\ni = reversed(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['range_iterator', True, True, True, True, (3, True, 'range(2, -1, -1)', None, 2), (2, True, 'range(1, -1, -1)', None, 1), (1, True, 'range(0, -1, -1)', None, 0), (0, True, 'range(-1, -1, -1)', None, 'end'), (0, True, 'range(-1, -1, -1)', None, 'end')]"
+    },
+    {
+      "name": "iter range(2, 9, 3)",
+      "source": "r = range(2, 9, 3)\ni = iter(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['range_iterator', True, True, True, True, (3, True, 'range(2, 11, 3)', None, 2), (2, True, 'range(5, 11, 3)', None, 5), (1, True, 'range(8, 11, 3)', None, 8), (0, True, 'range(11, 11, 3)', None, 'end'), (0, True, 'range(11, 11, 3)', None, 'end')]"
+    },
+    {
+      "name": "reversed range(2, 9, 3)",
+      "source": "r = range(2, 9, 3)\ni = reversed(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['range_iterator', True, True, True, True, (3, True, 'range(8, -1, -3)', None, 8), (2, True, 'range(5, -1, -3)', None, 5), (1, True, 'range(2, -1, -3)', None, 2), (0, True, 'range(-1, -1, -3)', None, 'end'), (0, True, 'range(-1, -1, -3)', None, 'end')]"
+    },
+    {
+      "name": "iter range(9, 2, -3)",
+      "source": "r = range(9, 2, -3)\ni = iter(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['range_iterator', True, True, True, True, (3, True, 'range(9, 0, -3)', None, 9), (2, True, 'range(6, 0, -3)', None, 6), (1, True, 'range(3, 0, -3)', None, 3), (0, True, 'range(0, 0, -3)', None, 'end'), (0, True, 'range(0, 0, -3)', None, 'end')]"
+    },
+    {
+      "name": "reversed range(9, 2, -3)",
+      "source": "r = range(9, 2, -3)\ni = reversed(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['range_iterator', True, True, True, True, (3, True, 'range(3, 12, 3)', None, 3), (2, True, 'range(6, 12, 3)', None, 6), (1, True, 'range(9, 12, 3)', None, 9), (0, True, 'range(12, 12, 3)', None, 'end'), (0, True, 'range(12, 12, 3)', None, 'end')]"
+    },
+    {
+      "name": "iter range(5, 2, 1)",
+      "source": "r = range(5, 2, 1)\ni = iter(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['range_iterator', True, True, True, True, (0, True, 'range(5, 5)', None, 'end'), (0, True, 'range(5, 5)', None, 'end'), (0, True, 'range(5, 5)', None, 'end'), (0, True, 'range(5, 5)', None, 'end'), (0, True, 'range(5, 5)', None, 'end')]"
+    },
+    {
+      "name": "reversed range(5, 2, 1)",
+      "source": "r = range(5, 2, 1)\ni = reversed(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['range_iterator', True, True, True, True, (0, True, 'range(4, 4, -1)', None, 'end'), (0, True, 'range(4, 4, -1)', None, 'end'), (0, True, 'range(4, 4, -1)', None, 'end'), (0, True, 'range(4, 4, -1)', None, 'end'), (0, True, 'range(4, 4, -1)', None, 'end')]"
+    },
+    {
+      "name": "iter range(2**63-2, 2**63-1, 2)",
+      "source": "r = range(2**63-2, 2**63-1, 2)\ni = iter(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['longrange_iterator', True, True, True, True, (1, True, 'range(9223372036854775806, 9223372036854775808, 2)', None, 9223372036854775806), (0, True, 'range(9223372036854775808, 9223372036854775808, 2)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808, 2)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808, 2)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808, 2)', None, 'end')]"
+    },
+    {
+      "name": "reversed range(2**63-2, 2**63-1, 2)",
+      "source": "r = range(2**63-2, 2**63-1, 2)\ni = reversed(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['range_iterator', True, True, True, True, (1, True, 'range(9223372036854775806, 9223372036854775804, -2)', None, 9223372036854775806), (0, True, 'range(9223372036854775804, 9223372036854775804, -2)', None, 'end'), (0, True, 'range(9223372036854775804, 9223372036854775804, -2)', None, 'end'), (0, True, 'range(9223372036854775804, 9223372036854775804, -2)', None, 'end'), (0, True, 'range(9223372036854775804, 9223372036854775804, -2)', None, 'end')]"
+    },
+    {
+      "name": "iter range(-2**63+1, -2**63, -2)",
+      "source": "r = range(-2**63+1, -2**63, -2)\ni = iter(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['longrange_iterator', True, True, True, True, (1, True, 'range(-9223372036854775807, -9223372036854775809, -2)', None, -9223372036854775807), (0, True, 'range(-9223372036854775809, -9223372036854775809, -2)', None, 'end'), (0, True, 'range(-9223372036854775809, -9223372036854775809, -2)', None, 'end'), (0, True, 'range(-9223372036854775809, -9223372036854775809, -2)', None, 'end'), (0, True, 'range(-9223372036854775809, -9223372036854775809, -2)', None, 'end')]"
+    },
+    {
+      "name": "reversed range(-2**63+1, -2**63, -2)",
+      "source": "r = range(-2**63+1, -2**63, -2)\ni = reversed(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['range_iterator', True, True, True, True, (1, True, 'range(-9223372036854775807, -9223372036854775805, 2)', None, -9223372036854775807), (0, True, 'range(-9223372036854775805, -9223372036854775805, 2)', None, 'end'), (0, True, 'range(-9223372036854775805, -9223372036854775805, 2)', None, 'end'), (0, True, 'range(-9223372036854775805, -9223372036854775805, 2)', None, 'end'), (0, True, 'range(-9223372036854775805, -9223372036854775805, 2)', None, 'end')]"
+    },
+    {
+      "name": "iter range(-2**63, -2**63+1)",
+      "source": "r = range(-2**63, -2**63+1)\ni = iter(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['range_iterator', True, True, True, True, (1, True, 'range(-9223372036854775808, -9223372036854775807)', None, -9223372036854775808), (0, True, 'range(-9223372036854775807, -9223372036854775807)', None, 'end'), (0, True, 'range(-9223372036854775807, -9223372036854775807)', None, 'end'), (0, True, 'range(-9223372036854775807, -9223372036854775807)', None, 'end'), (0, True, 'range(-9223372036854775807, -9223372036854775807)', None, 'end')]"
+    },
+    {
+      "name": "reversed range(-2**63, -2**63+1)",
+      "source": "r = range(-2**63, -2**63+1)\ni = reversed(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['longrange_iterator', True, True, True, True, (1, True, 'range(-9223372036854775808, -9223372036854775809, -1)', None, -9223372036854775808), (0, True, 'range(-9223372036854775809, -9223372036854775809, -1)', None, 'end'), (0, True, 'range(-9223372036854775809, -9223372036854775809, -1)', None, 'end'), (0, True, 'range(-9223372036854775809, -9223372036854775809, -1)', None, 'end'), (0, True, 'range(-9223372036854775809, -9223372036854775809, -1)', None, 'end')]"
+    },
+    {
+      "name": "iter range(2**63-1, 2**63-2, -1)",
+      "source": "r = range(2**63-1, 2**63-2, -1)\ni = iter(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['range_iterator', True, True, True, True, (1, True, 'range(9223372036854775807, 9223372036854775806, -1)', None, 9223372036854775807), (0, True, 'range(9223372036854775806, 9223372036854775806, -1)', None, 'end'), (0, True, 'range(9223372036854775806, 9223372036854775806, -1)', None, 'end'), (0, True, 'range(9223372036854775806, 9223372036854775806, -1)', None, 'end'), (0, True, 'range(9223372036854775806, 9223372036854775806, -1)', None, 'end')]"
+    },
+    {
+      "name": "reversed range(2**63-1, 2**63-2, -1)",
+      "source": "r = range(2**63-1, 2**63-2, -1)\ni = reversed(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['longrange_iterator', True, True, True, True, (1, True, 'range(9223372036854775807, 9223372036854775808)', None, 9223372036854775807), (0, True, 'range(9223372036854775808, 9223372036854775808)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808)', None, 'end')]"
+    },
+    {
+      "name": "iter range(0, 1, -2**63)",
+      "source": "r = range(0, 1, -2**63)\ni = iter(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['range_iterator', True, True, True, True, (0, True, 'range(0, 0, -9223372036854775808)', None, 'end'), (0, True, 'range(0, 0, -9223372036854775808)', None, 'end'), (0, True, 'range(0, 0, -9223372036854775808)', None, 'end'), (0, True, 'range(0, 0, -9223372036854775808)', None, 'end'), (0, True, 'range(0, 0, -9223372036854775808)', None, 'end')]"
+    },
+    {
+      "name": "reversed range(0, 1, -2**63)",
+      "source": "r = range(0, 1, -2**63)\ni = reversed(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['longrange_iterator', True, True, True, True, (0, True, 'range(9223372036854775808, 9223372036854775808, 9223372036854775808)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808, 9223372036854775808)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808, 9223372036854775808)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808, 9223372036854775808)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808, 9223372036854775808)', None, 'end')]"
+    },
+    {
+      "name": "iter range(0, 1, 2**63)",
+      "source": "r = range(0, 1, 2**63)\ni = iter(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['longrange_iterator', True, True, True, True, (1, True, 'range(0, 9223372036854775808, 9223372036854775808)', None, 0), (0, True, 'range(9223372036854775808, 9223372036854775808, 9223372036854775808)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808, 9223372036854775808)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808, 9223372036854775808)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808, 9223372036854775808)', None, 'end')]"
+    },
+    {
+      "name": "reversed range(0, 1, 2**63)",
+      "source": "r = range(0, 1, 2**63)\ni = reversed(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['longrange_iterator', True, True, True, True, (1, True, 'range(0, -9223372036854775808, -9223372036854775808)', None, 0), (0, True, 'range(-9223372036854775808, -9223372036854775808, -9223372036854775808)', None, 'end'), (0, True, 'range(-9223372036854775808, -9223372036854775808, -9223372036854775808)', None, 'end'), (0, True, 'range(-9223372036854775808, -9223372036854775808, -9223372036854775808)', None, 'end'), (0, True, 'range(-9223372036854775808, -9223372036854775808, -9223372036854775808)', None, 'end')]"
+    },
+    {
+      "name": "iter range(2**63, 2**63+3)",
+      "source": "r = range(2**63, 2**63+3)\ni = iter(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['longrange_iterator', True, True, True, True, (3, True, 'range(9223372036854775808, 9223372036854775811)', None, 9223372036854775808), (2, True, 'range(9223372036854775809, 9223372036854775811)', None, 9223372036854775809), (1, True, 'range(9223372036854775810, 9223372036854775811)', None, 9223372036854775810), (0, True, 'range(9223372036854775811, 9223372036854775811)', None, 'end'), (0, True, 'range(9223372036854775811, 9223372036854775811)', None, 'end')]"
+    },
+    {
+      "name": "reversed range(2**63, 2**63+3)",
+      "source": "r = range(2**63, 2**63+3)\ni = reversed(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['longrange_iterator', True, True, True, True, (3, True, 'range(9223372036854775810, 9223372036854775807, -1)', None, 9223372036854775810), (2, True, 'range(9223372036854775809, 9223372036854775807, -1)', None, 9223372036854775809), (1, True, 'range(9223372036854775808, 9223372036854775807, -1)', None, 9223372036854775808), (0, True, 'range(9223372036854775807, 9223372036854775807, -1)', None, 'end'), (0, True, 'range(9223372036854775807, 9223372036854775807, -1)', None, 'end')]"
+    },
+    {
+      "name": "iter range(-2**63-3, -2**63)",
+      "source": "r = range(-2**63-3, -2**63)\ni = iter(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['longrange_iterator', True, True, True, True, (3, True, 'range(-9223372036854775811, -9223372036854775808)', None, -9223372036854775811), (2, True, 'range(-9223372036854775810, -9223372036854775808)', None, -9223372036854775810), (1, True, 'range(-9223372036854775809, -9223372036854775808)', None, -9223372036854775809), (0, True, 'range(-9223372036854775808, -9223372036854775808)', None, 'end'), (0, True, 'range(-9223372036854775808, -9223372036854775808)', None, 'end')]"
+    },
+    {
+      "name": "reversed range(-2**63-3, -2**63)",
+      "source": "r = range(-2**63-3, -2**63)\ni = reversed(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['longrange_iterator', True, True, True, True, (3, True, 'range(-9223372036854775809, -9223372036854775812, -1)', None, -9223372036854775809), (2, True, 'range(-9223372036854775810, -9223372036854775812, -1)', None, -9223372036854775810), (1, True, 'range(-9223372036854775811, -9223372036854775812, -1)', None, -9223372036854775811), (0, True, 'range(-9223372036854775812, -9223372036854775812, -1)', None, 'end'), (0, True, 'range(-9223372036854775812, -9223372036854775812, -1)', None, 'end')]"
+    },
+    {
+      "name": "iter range(-2**63, 2**63-1)",
+      "source": "r = range(-2**63, 2**63-1)\ni = iter(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['longrange_iterator', True, True, True, True, (18446744073709551615, True, 'range(-9223372036854775808, 9223372036854775807)', None, -9223372036854775808), (18446744073709551614, True, 'range(-9223372036854775807, 9223372036854775807)', None, -9223372036854775807), (18446744073709551613, True, 'range(-9223372036854775806, 9223372036854775807)', None, -9223372036854775806), (18446744073709551612, True, 'range(-9223372036854775805, 9223372036854775807)', None, -9223372036854775805), (18446744073709551611, True, 'range(-9223372036854775804, 9223372036854775807)', None, -9223372036854775804)]"
+    },
+    {
+      "name": "reversed range(-2**63, 2**63-1)",
+      "source": "r = range(-2**63, 2**63-1)\ni = reversed(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['longrange_iterator', True, True, True, True, (18446744073709551615, True, 'range(9223372036854775806, -9223372036854775809, -1)', None, 9223372036854775806), (18446744073709551614, True, 'range(9223372036854775805, -9223372036854775809, -1)', None, 9223372036854775805), (18446744073709551613, True, 'range(9223372036854775804, -9223372036854775809, -1)', None, 9223372036854775804), (18446744073709551612, True, 'range(9223372036854775803, -9223372036854775809, -1)', None, 9223372036854775803), (18446744073709551611, True, 'range(9223372036854775802, -9223372036854775809, -1)', None, 9223372036854775802)]"
+    },
+    {
+      "name": "iter range(0, 2**100)",
+      "source": "r = range(0, 2**100)\ni = iter(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['longrange_iterator', True, True, True, True, (1267650600228229401496703205376, True, 'range(0, 1267650600228229401496703205376)', None, 0), (1267650600228229401496703205375, True, 'range(1, 1267650600228229401496703205376)', None, 1), (1267650600228229401496703205374, True, 'range(2, 1267650600228229401496703205376)', None, 2), (1267650600228229401496703205373, True, 'range(3, 1267650600228229401496703205376)', None, 3), (1267650600228229401496703205372, True, 'range(4, 1267650600228229401496703205376)', None, 4)]"
+    },
+    {
+      "name": "reversed range(0, 2**100)",
+      "source": "r = range(0, 2**100)\ni = reversed(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['longrange_iterator', True, True, True, True, (1267650600228229401496703205376, True, 'range(1267650600228229401496703205375, -1, -1)', None, 1267650600228229401496703205375), (1267650600228229401496703205375, True, 'range(1267650600228229401496703205374, -1, -1)', None, 1267650600228229401496703205374), (1267650600228229401496703205374, True, 'range(1267650600228229401496703205373, -1, -1)', None, 1267650600228229401496703205373), (1267650600228229401496703205373, True, 'range(1267650600228229401496703205372, -1, -1)', None, 1267650600228229401496703205372), (1267650600228229401496703205372, True, 'range(1267650600228229401496703205371, -1, -1)', None, 1267650600228229401496703205371)]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+6, 2)",
+      "source": "r = range(2**100, 2**100+6, 2)\ni = iter(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['longrange_iterator', True, True, True, True, (3, True, 'range(1267650600228229401496703205376, 1267650600228229401496703205382, 2)', None, 1267650600228229401496703205376), (2, True, 'range(1267650600228229401496703205378, 1267650600228229401496703205382, 2)', None, 1267650600228229401496703205378), (1, True, 'range(1267650600228229401496703205380, 1267650600228229401496703205382, 2)', None, 1267650600228229401496703205380), (0, True, 'range(1267650600228229401496703205382, 1267650600228229401496703205382, 2)', None, 'end'), (0, True, 'range(1267650600228229401496703205382, 1267650600228229401496703205382, 2)', None, 'end')]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+6, 2)",
+      "source": "r = range(2**100, 2**100+6, 2)\ni = reversed(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['longrange_iterator', True, True, True, True, (3, True, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', None, 1267650600228229401496703205380), (2, True, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', None, 1267650600228229401496703205378), (1, True, 'range(1267650600228229401496703205376, 1267650600228229401496703205374, -2)', None, 1267650600228229401496703205376), (0, True, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', None, 'end'), (0, True, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', None, 'end')]"
+    },
+    {
+      "name": "iter range(2**100, 0, 1)",
+      "source": "r = range(2**100, 0, 1)\ni = iter(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['longrange_iterator', True, True, True, True, (0, True, 'range(1267650600228229401496703205376, 1267650600228229401496703205376)', None, 'end'), (0, True, 'range(1267650600228229401496703205376, 1267650600228229401496703205376)', None, 'end'), (0, True, 'range(1267650600228229401496703205376, 1267650600228229401496703205376)', None, 'end'), (0, True, 'range(1267650600228229401496703205376, 1267650600228229401496703205376)', None, 'end'), (0, True, 'range(1267650600228229401496703205376, 1267650600228229401496703205376)', None, 'end')]"
+    },
+    {
+      "name": "reversed range(2**100, 0, 1)",
+      "source": "r = range(2**100, 0, 1)\ni = reversed(r)\nT = type(i)\nactual = [T.__name__, T.__base__ is object, iter(i) is i, i.__iter__() is i, T.__iter__(i) is i]\nfor j in range(5):\n    reduction = i.__reduce__()\n    actual.append((i.__length_hint__(), reduction[0] is iter, repr(reduction[1][0]), reduction[2], next(i, 'end')))\n",
+      "expected": "['longrange_iterator', True, True, True, True, (0, True, 'range(1267650600228229401496703205375, 1267650600228229401496703205375, -1)', None, 'end'), (0, True, 'range(1267650600228229401496703205375, 1267650600228229401496703205375, -1)', None, 'end'), (0, True, 'range(1267650600228229401496703205375, 1267650600228229401496703205375, -1)', None, 'end'), (0, True, 'range(1267650600228229401496703205375, 1267650600228229401496703205375, -1)', None, 'end'), (0, True, 'range(1267650600228229401496703205375, 1267650600228229401496703205375, -1)', None, 'end')]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state -2**100",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(-2**100)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('OverflowError', ('Python int too large to convert to C long',)), (4, 'range(10, 18, 2)', 10), ('OverflowError', ('Python int too large to convert to C long',)), (3, 'range(12, 18, 2)', 12), ('OverflowError', ('Python int too large to convert to C long',)), (2, 'range(14, 18, 2)', 14), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state -2**63",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(-2**63)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (4, 'range(10, 18, 2)', 10), ('ok', None), (3, 'range(12, 18, 2)', 12), ('ok', None), (2, 'range(14, 18, 2)', 14), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state -1",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(-1)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (4, 'range(10, 18, 2)', 10), ('ok', None), (3, 'range(12, 18, 2)', 12), ('ok', None), (2, 'range(14, 18, 2)', 14), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state 0",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(0)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (4, 'range(10, 18, 2)', 10), ('ok', None), (3, 'range(12, 18, 2)', 12), ('ok', None), (2, 'range(14, 18, 2)', 14), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state 1",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(1)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (3, 'range(12, 18, 2)', 12), ('ok', None), (1, 'range(16, 18, 2)', 16), ('ok', None), (0, 'range(18, 18, 2)', 'end'), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state 2",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(2)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (2, 'range(14, 18, 2)', 14), ('ok', None), (0, 'range(18, 18, 2)', 'end'), ('ok', None), (0, 'range(18, 18, 2)', 'end'), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state 4",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(4)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (0, 'range(18, 18, 2)', 'end'), ('ok', None), (0, 'range(18, 18, 2)', 'end'), ('ok', None), (0, 'range(18, 18, 2)', 'end'), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state 10",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(10)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (0, 'range(18, 18, 2)', 'end'), ('ok', None), (0, 'range(18, 18, 2)', 'end'), ('ok', None), (0, 'range(18, 18, 2)', 'end'), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state 2**63-1",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(2**63-1)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (0, 'range(18, 18, 2)', 'end'), ('ok', None), (0, 'range(18, 18, 2)', 'end'), ('ok', None), (0, 'range(18, 18, 2)', 'end'), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state 2**63",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(2**63)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('OverflowError', ('Python int too large to convert to C long',)), (4, 'range(10, 18, 2)', 10), ('OverflowError', ('Python int too large to convert to C long',)), (3, 'range(12, 18, 2)', 12), ('OverflowError', ('Python int too large to convert to C long',)), (2, 'range(14, 18, 2)', 14), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state 2**100",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(2**100)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('OverflowError', ('Python int too large to convert to C long',)), (4, 'range(10, 18, 2)', 10), ('OverflowError', ('Python int too large to convert to C long',)), (3, 'range(12, 18, 2)', 12), ('OverflowError', ('Python int too large to convert to C long',)), (2, 'range(14, 18, 2)', 14), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state True",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(True)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (3, 'range(12, 18, 2)', 12), ('ok', None), (1, 'range(16, 18, 2)', 16), ('ok', None), (0, 'range(18, 18, 2)', 'end'), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state False",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(False)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (4, 'range(10, 18, 2)', 10), ('ok', None), (3, 'range(12, 18, 2)', 12), ('ok', None), (2, 'range(14, 18, 2)', 14), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state None",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(None)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('TypeError', (\"'NoneType' object cannot be interpreted as an integer\",)), (4, 'range(10, 18, 2)', 10), ('TypeError', (\"'NoneType' object cannot be interpreted as an integer\",)), (3, 'range(12, 18, 2)', 12), ('TypeError', (\"'NoneType' object cannot be interpreted as an integer\",)), (2, 'range(14, 18, 2)', 14), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state 1.0",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(1.0)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('TypeError', (\"'float' object cannot be interpreted as an integer\",)), (4, 'range(10, 18, 2)', 10), ('TypeError', (\"'float' object cannot be interpreted as an integer\",)), (3, 'range(12, 18, 2)', 12), ('TypeError', (\"'float' object cannot be interpreted as an integer\",)), (2, 'range(14, 18, 2)', 14), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state '1'",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__('1')\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('TypeError', (\"'str' object cannot be interpreted as an integer\",)), (4, 'range(10, 18, 2)', 10), ('TypeError', (\"'str' object cannot be interpreted as an integer\",)), (3, 'range(12, 18, 2)', 12), ('TypeError', (\"'str' object cannot be interpreted as an integer\",)), (2, 'range(14, 18, 2)', 14), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state I(1)",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(I(1))\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (3, 'range(12, 18, 2)', 12), ('ok', None), (1, 'range(16, 18, 2)', 16), ('ok', None), (0, 'range(18, 18, 2)', 'end'), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state Index()",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(Index())\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (3, 'range(12, 18, 2)', 12), ('ok', None), (1, 'range(16, 18, 2)', 16), ('ok', None), (0, 'range(18, 18, 2)', 'end'), ['index', 'index', 'index']]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state -2**100",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(-2**100)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('ok', None), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('ok', None), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state -2**63",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(-2**63)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('ok', None), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('ok', None), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state -1",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(-1)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('ok', None), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('ok', None), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state 0",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(0)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('ok', None), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('ok', None), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state 1",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(1)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('ok', None), (1, 'range(1267650600228229401496703205382, 1267650600228229401496703205384, 2)', 1267650600228229401496703205382), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state 2",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(2)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state 4",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(4)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state 10",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(10)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state 2**63-1",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(2**63-1)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state 2**63",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(2**63)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state 2**100",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(2**100)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state True",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(True)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('TypeError', ('state must be an int, not bool',)), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('TypeError', ('state must be an int, not bool',)), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('TypeError', ('state must be an int, not bool',)), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state False",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(False)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('TypeError', ('state must be an int, not bool',)), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('TypeError', ('state must be an int, not bool',)), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('TypeError', ('state must be an int, not bool',)), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state None",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(None)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('TypeError', ('state must be an int, not NoneType',)), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('TypeError', ('state must be an int, not NoneType',)), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('TypeError', ('state must be an int, not NoneType',)), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state 1.0",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(1.0)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('TypeError', ('state must be an int, not float',)), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('TypeError', ('state must be an int, not float',)), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('TypeError', ('state must be an int, not float',)), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state '1'",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__('1')\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('TypeError', ('state must be an int, not str',)), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('TypeError', ('state must be an int, not str',)), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('TypeError', ('state must be an int, not str',)), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state I(1)",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(I(1))\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('TypeError', ('state must be an int, not I',)), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('TypeError', ('state must be an int, not I',)), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('TypeError', ('state must be an int, not I',)), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state Index()",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = iter(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(Index())\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('TypeError', ('state must be an int, not Index',)), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('TypeError', ('state must be an int, not Index',)), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('TypeError', ('state must be an int, not Index',)), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state -2**100",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(-2**100)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('OverflowError', ('Python int too large to convert to C long',)), (4, 'range(16, 8, -2)', 16), ('OverflowError', ('Python int too large to convert to C long',)), (3, 'range(14, 8, -2)', 14), ('OverflowError', ('Python int too large to convert to C long',)), (2, 'range(12, 8, -2)', 12), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state -2**63",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(-2**63)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (4, 'range(16, 8, -2)', 16), ('ok', None), (3, 'range(14, 8, -2)', 14), ('ok', None), (2, 'range(12, 8, -2)', 12), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state -1",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(-1)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (4, 'range(16, 8, -2)', 16), ('ok', None), (3, 'range(14, 8, -2)', 14), ('ok', None), (2, 'range(12, 8, -2)', 12), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state 0",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(0)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (4, 'range(16, 8, -2)', 16), ('ok', None), (3, 'range(14, 8, -2)', 14), ('ok', None), (2, 'range(12, 8, -2)', 12), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state 1",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(1)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (3, 'range(14, 8, -2)', 14), ('ok', None), (1, 'range(10, 8, -2)', 10), ('ok', None), (0, 'range(8, 8, -2)', 'end'), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state 2",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(2)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (2, 'range(12, 8, -2)', 12), ('ok', None), (0, 'range(8, 8, -2)', 'end'), ('ok', None), (0, 'range(8, 8, -2)', 'end'), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state 4",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(4)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (0, 'range(8, 8, -2)', 'end'), ('ok', None), (0, 'range(8, 8, -2)', 'end'), ('ok', None), (0, 'range(8, 8, -2)', 'end'), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state 10",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(10)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (0, 'range(8, 8, -2)', 'end'), ('ok', None), (0, 'range(8, 8, -2)', 'end'), ('ok', None), (0, 'range(8, 8, -2)', 'end'), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state 2**63-1",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(2**63-1)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (0, 'range(8, 8, -2)', 'end'), ('ok', None), (0, 'range(8, 8, -2)', 'end'), ('ok', None), (0, 'range(8, 8, -2)', 'end'), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state 2**63",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(2**63)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('OverflowError', ('Python int too large to convert to C long',)), (4, 'range(16, 8, -2)', 16), ('OverflowError', ('Python int too large to convert to C long',)), (3, 'range(14, 8, -2)', 14), ('OverflowError', ('Python int too large to convert to C long',)), (2, 'range(12, 8, -2)', 12), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state 2**100",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(2**100)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('OverflowError', ('Python int too large to convert to C long',)), (4, 'range(16, 8, -2)', 16), ('OverflowError', ('Python int too large to convert to C long',)), (3, 'range(14, 8, -2)', 14), ('OverflowError', ('Python int too large to convert to C long',)), (2, 'range(12, 8, -2)', 12), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state True",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(True)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (3, 'range(14, 8, -2)', 14), ('ok', None), (1, 'range(10, 8, -2)', 10), ('ok', None), (0, 'range(8, 8, -2)', 'end'), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state False",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(False)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (4, 'range(16, 8, -2)', 16), ('ok', None), (3, 'range(14, 8, -2)', 14), ('ok', None), (2, 'range(12, 8, -2)', 12), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state None",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(None)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('TypeError', (\"'NoneType' object cannot be interpreted as an integer\",)), (4, 'range(16, 8, -2)', 16), ('TypeError', (\"'NoneType' object cannot be interpreted as an integer\",)), (3, 'range(14, 8, -2)', 14), ('TypeError', (\"'NoneType' object cannot be interpreted as an integer\",)), (2, 'range(12, 8, -2)', 12), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state 1.0",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(1.0)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('TypeError', (\"'float' object cannot be interpreted as an integer\",)), (4, 'range(16, 8, -2)', 16), ('TypeError', (\"'float' object cannot be interpreted as an integer\",)), (3, 'range(14, 8, -2)', 14), ('TypeError', (\"'float' object cannot be interpreted as an integer\",)), (2, 'range(12, 8, -2)', 12), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state '1'",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__('1')\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('TypeError', (\"'str' object cannot be interpreted as an integer\",)), (4, 'range(16, 8, -2)', 16), ('TypeError', (\"'str' object cannot be interpreted as an integer\",)), (3, 'range(14, 8, -2)', 14), ('TypeError', (\"'str' object cannot be interpreted as an integer\",)), (2, 'range(12, 8, -2)', 12), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state I(1)",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(I(1))\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (3, 'range(14, 8, -2)', 14), ('ok', None), (1, 'range(10, 8, -2)', 10), ('ok', None), (0, 'range(8, 8, -2)', 'end'), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state Index()",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(10, 17, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(Index())\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (3, 'range(14, 8, -2)', 14), ('ok', None), (1, 'range(10, 8, -2)', 10), ('ok', None), (0, 'range(8, 8, -2)', 'end'), ['index', 'index', 'index']]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state -2**100",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(-2**100)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('ok', None), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('ok', None), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state -2**63",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(-2**63)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('ok', None), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('ok', None), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state -1",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(-1)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('ok', None), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('ok', None), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state 0",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(0)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('ok', None), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('ok', None), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state 1",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(1)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('ok', None), (1, 'range(1267650600228229401496703205376, 1267650600228229401496703205374, -2)', 1267650600228229401496703205376), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state 2",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(2)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state 4",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(4)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state 10",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(10)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state 2**63-1",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(2**63-1)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state 2**63",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(2**63)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state 2**100",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(2**100)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state True",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(True)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('TypeError', ('state must be an int, not bool',)), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('TypeError', ('state must be an int, not bool',)), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('TypeError', ('state must be an int, not bool',)), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state False",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(False)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('TypeError', ('state must be an int, not bool',)), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('TypeError', ('state must be an int, not bool',)), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('TypeError', ('state must be an int, not bool',)), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state None",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(None)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('TypeError', ('state must be an int, not NoneType',)), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('TypeError', ('state must be an int, not NoneType',)), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('TypeError', ('state must be an int, not NoneType',)), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state 1.0",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(1.0)\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('TypeError', ('state must be an int, not float',)), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('TypeError', ('state must be an int, not float',)), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('TypeError', ('state must be an int, not float',)), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state '1'",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__('1')\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('TypeError', ('state must be an int, not str',)), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('TypeError', ('state must be an int, not str',)), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('TypeError', ('state must be an int, not str',)), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state I(1)",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(I(1))\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('TypeError', ('state must be an int, not I',)), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('TypeError', ('state must be an int, not I',)), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('TypeError', ('state must be an int, not I',)), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state Index()",
+      "source": "events = []\nclass I(int):\n    def __index__(self):\n        events.append('int index')\n        return 3\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ni = reversed(range(2**100, 2**100+7, 2))\nactual = []\nfor repeat in range(3):\n    try:\n        result = i.__setstate__(Index())\n        actual.append(('ok', result))\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    actual.append((i.__length_hint__(), repr(i.__reduce__()[1][0]), next(i, 'end')))\nactual.append(events)\n",
+      "expected": "[('TypeError', ('state must be an int, not Index',)), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('TypeError', ('state must be an int, not Index',)), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('TypeError', ('state must be an int, not Index',)), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]"
+    },
+    {
+      "name": "metadata range(3)",
+      "source": "i = iter(range(3))\nT = type(i)\nactual = [T.__name__, T.__doc__, sorted(T.__dict__)]\nfor name in ('__iter__', '__next__', '__length_hint__', '__reduce__', '__setstate__'):\n    d = T.__dict__[name]\n    b = getattr(i, name)\n    actual.append((name, type(d).__name__, d.__name__, d.__qualname__, d.__doc__, d.__text_signature__, d.__objclass__ is T, b.__self__ is i))\nfor action in (lambda: T(), lambda: T(1), lambda: T(x=1)):\n    try:\n        action()\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\ntry:\n    class Bad(T):\n        pass\nexcept Exception as e:\n    actual.append((type(e).__name__, e.args))\n",
+      "expected": "['range_iterator', None, ['__doc__', '__iter__', '__length_hint__', '__next__', '__reduce__', '__setstate__'], ('__iter__', 'wrapper_descriptor', '__iter__', 'range_iterator.__iter__', 'Implement iter(self).', '($self, /)', True, True), ('__next__', 'wrapper_descriptor', '__next__', 'range_iterator.__next__', 'Implement next(self).', '($self, /)', True, True), ('__length_hint__', 'method_descriptor', '__length_hint__', 'range_iterator.__length_hint__', 'Private method returning an estimate of len(list(it)).', '($self, /)', True, True), ('__reduce__', 'method_descriptor', '__reduce__', 'range_iterator.__reduce__', 'Return state information for pickling.', '($self, /)', True, True), ('__setstate__', 'method_descriptor', '__setstate__', 'range_iterator.__setstate__', 'Set state information for unpickling.', '($self, object, /)', True, True), ('TypeError', (\"cannot create 'range_iterator' instances\",)), ('TypeError', (\"cannot create 'range_iterator' instances\",)), ('TypeError', (\"cannot create 'range_iterator' instances\",)), ('TypeError', (\"type 'range_iterator' is not an acceptable base type\",))]"
+    },
+    {
+      "name": "binding range(3) __iter__()",
+      "source": "i = iter(range(3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__iter__')(), lambda: getattr(T, '__iter__')(i), lambda: getattr(T, '__iter__')(None)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__iter__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__iter__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('self', True), ('self', True), ('TypeError', (\"descriptor '__iter__' requires a 'range_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(3) __iter__(1)",
+      "source": "i = iter(range(3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__iter__')(1), lambda: getattr(T, '__iter__')(i, 1), lambda: getattr(T, '__iter__')(None, 1)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__iter__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__iter__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('expected 0 arguments, got 1',)), ('TypeError', ('expected 0 arguments, got 1',)), ('TypeError', (\"descriptor '__iter__' requires a 'range_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(3) __iter__(1, 2)",
+      "source": "i = iter(range(3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__iter__')(1, 2), lambda: getattr(T, '__iter__')(i, 1, 2), lambda: getattr(T, '__iter__')(None, 1, 2)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__iter__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__iter__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('expected 0 arguments, got 2',)), ('TypeError', ('expected 0 arguments, got 2',)), ('TypeError', (\"descriptor '__iter__' requires a 'range_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(3) __iter__(x=1)",
+      "source": "i = iter(range(3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__iter__')(x=1), lambda: getattr(T, '__iter__')(i, x=1), lambda: getattr(T, '__iter__')(None, x=1)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__iter__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__iter__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('wrapper __iter__() takes no keyword arguments',)), ('TypeError', ('wrapper __iter__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__iter__' requires a 'range_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(3) __iter__(1, x=2)",
+      "source": "i = iter(range(3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__iter__')(1, x=2), lambda: getattr(T, '__iter__')(i, 1, x=2), lambda: getattr(T, '__iter__')(None, 1, x=2)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__iter__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__iter__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('wrapper __iter__() takes no keyword arguments',)), ('TypeError', ('wrapper __iter__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__iter__' requires a 'range_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(3) __next__()",
+      "source": "i = iter(range(3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__next__')(), lambda: getattr(T, '__next__')(i), lambda: getattr(T, '__next__')(None)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__next__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__next__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('ok', 0), ('ok', 1), ('TypeError', (\"descriptor '__next__' requires a 'range_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(3) __next__(1)",
+      "source": "i = iter(range(3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__next__')(1), lambda: getattr(T, '__next__')(i, 1), lambda: getattr(T, '__next__')(None, 1)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__next__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__next__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('expected 0 arguments, got 1',)), ('TypeError', ('expected 0 arguments, got 1',)), ('TypeError', (\"descriptor '__next__' requires a 'range_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(3) __next__(1, 2)",
+      "source": "i = iter(range(3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__next__')(1, 2), lambda: getattr(T, '__next__')(i, 1, 2), lambda: getattr(T, '__next__')(None, 1, 2)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__next__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__next__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('expected 0 arguments, got 2',)), ('TypeError', ('expected 0 arguments, got 2',)), ('TypeError', (\"descriptor '__next__' requires a 'range_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(3) __next__(x=1)",
+      "source": "i = iter(range(3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__next__')(x=1), lambda: getattr(T, '__next__')(i, x=1), lambda: getattr(T, '__next__')(None, x=1)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__next__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__next__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('wrapper __next__() takes no keyword arguments',)), ('TypeError', ('wrapper __next__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__next__' requires a 'range_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(3) __next__(1, x=2)",
+      "source": "i = iter(range(3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__next__')(1, x=2), lambda: getattr(T, '__next__')(i, 1, x=2), lambda: getattr(T, '__next__')(None, 1, x=2)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__next__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__next__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('wrapper __next__() takes no keyword arguments',)), ('TypeError', ('wrapper __next__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__next__' requires a 'range_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(3) __length_hint__()",
+      "source": "i = iter(range(3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__length_hint__')(), lambda: getattr(T, '__length_hint__')(i), lambda: getattr(T, '__length_hint__')(None)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__length_hint__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__length_hint__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('ok', 3), ('ok', 3), ('TypeError', (\"descriptor '__length_hint__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(3) __length_hint__(1)",
+      "source": "i = iter(range(3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__length_hint__')(1), lambda: getattr(T, '__length_hint__')(i, 1), lambda: getattr(T, '__length_hint__')(None, 1)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__length_hint__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__length_hint__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('range_iterator.__length_hint__() takes no arguments (1 given)',)), ('TypeError', ('range_iterator.__length_hint__() takes no arguments (1 given)',)), ('TypeError', (\"descriptor '__length_hint__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(3) __length_hint__(1, 2)",
+      "source": "i = iter(range(3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__length_hint__')(1, 2), lambda: getattr(T, '__length_hint__')(i, 1, 2), lambda: getattr(T, '__length_hint__')(None, 1, 2)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__length_hint__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__length_hint__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('range_iterator.__length_hint__() takes no arguments (2 given)',)), ('TypeError', ('range_iterator.__length_hint__() takes no arguments (2 given)',)), ('TypeError', (\"descriptor '__length_hint__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(3) __length_hint__(x=1)",
+      "source": "i = iter(range(3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__length_hint__')(x=1), lambda: getattr(T, '__length_hint__')(i, x=1), lambda: getattr(T, '__length_hint__')(None, x=1)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__length_hint__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__length_hint__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('range_iterator.__length_hint__() takes no keyword arguments',)), ('TypeError', ('range_iterator.__length_hint__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__length_hint__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(3) __length_hint__(1, x=2)",
+      "source": "i = iter(range(3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__length_hint__')(1, x=2), lambda: getattr(T, '__length_hint__')(i, 1, x=2), lambda: getattr(T, '__length_hint__')(None, 1, x=2)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__length_hint__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__length_hint__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('range_iterator.__length_hint__() takes no keyword arguments',)), ('TypeError', ('range_iterator.__length_hint__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__length_hint__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(3) __reduce__()",
+      "source": "i = iter(range(3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__reduce__')(), lambda: getattr(T, '__reduce__')(i), lambda: getattr(T, '__reduce__')(None)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__reduce__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__reduce__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('reduction', True, 'range(0, 3)', None), ('reduction', True, 'range(0, 3)', None), ('TypeError', (\"descriptor '__reduce__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(3) __reduce__(1)",
+      "source": "i = iter(range(3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__reduce__')(1), lambda: getattr(T, '__reduce__')(i, 1), lambda: getattr(T, '__reduce__')(None, 1)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__reduce__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__reduce__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('range_iterator.__reduce__() takes no arguments (1 given)',)), ('TypeError', ('range_iterator.__reduce__() takes no arguments (1 given)',)), ('TypeError', (\"descriptor '__reduce__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(3) __reduce__(1, 2)",
+      "source": "i = iter(range(3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__reduce__')(1, 2), lambda: getattr(T, '__reduce__')(i, 1, 2), lambda: getattr(T, '__reduce__')(None, 1, 2)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__reduce__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__reduce__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('range_iterator.__reduce__() takes no arguments (2 given)',)), ('TypeError', ('range_iterator.__reduce__() takes no arguments (2 given)',)), ('TypeError', (\"descriptor '__reduce__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(3) __reduce__(x=1)",
+      "source": "i = iter(range(3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__reduce__')(x=1), lambda: getattr(T, '__reduce__')(i, x=1), lambda: getattr(T, '__reduce__')(None, x=1)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__reduce__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__reduce__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('range_iterator.__reduce__() takes no keyword arguments',)), ('TypeError', ('range_iterator.__reduce__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__reduce__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(3) __reduce__(1, x=2)",
+      "source": "i = iter(range(3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__reduce__')(1, x=2), lambda: getattr(T, '__reduce__')(i, 1, x=2), lambda: getattr(T, '__reduce__')(None, 1, x=2)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__reduce__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__reduce__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('range_iterator.__reduce__() takes no keyword arguments',)), ('TypeError', ('range_iterator.__reduce__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__reduce__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(3) __setstate__()",
+      "source": "i = iter(range(3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__setstate__')(), lambda: getattr(T, '__setstate__')(i), lambda: getattr(T, '__setstate__')(None)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__setstate__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__setstate__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('range_iterator.__setstate__() takes exactly one argument (0 given)',)), ('TypeError', ('range_iterator.__setstate__() takes exactly one argument (0 given)',)), ('TypeError', (\"descriptor '__setstate__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(3) __setstate__(1)",
+      "source": "i = iter(range(3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__setstate__')(1), lambda: getattr(T, '__setstate__')(i, 1), lambda: getattr(T, '__setstate__')(None, 1)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__setstate__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__setstate__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('ok', None), ('ok', None), ('TypeError', (\"descriptor '__setstate__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(3) __setstate__(1, 2)",
+      "source": "i = iter(range(3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__setstate__')(1, 2), lambda: getattr(T, '__setstate__')(i, 1, 2), lambda: getattr(T, '__setstate__')(None, 1, 2)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__setstate__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__setstate__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('range_iterator.__setstate__() takes exactly one argument (2 given)',)), ('TypeError', ('range_iterator.__setstate__() takes exactly one argument (2 given)',)), ('TypeError', (\"descriptor '__setstate__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(3) __setstate__(x=1)",
+      "source": "i = iter(range(3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__setstate__')(x=1), lambda: getattr(T, '__setstate__')(i, x=1), lambda: getattr(T, '__setstate__')(None, x=1)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__setstate__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__setstate__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('range_iterator.__setstate__() takes no keyword arguments',)), ('TypeError', ('range_iterator.__setstate__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__setstate__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(3) __setstate__(1, x=2)",
+      "source": "i = iter(range(3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__setstate__')(1, x=2), lambda: getattr(T, '__setstate__')(i, 1, x=2), lambda: getattr(T, '__setstate__')(None, 1, x=2)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__setstate__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__setstate__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('range_iterator.__setstate__() takes no keyword arguments',)), ('TypeError', ('range_iterator.__setstate__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__setstate__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "reentrant reduction range(3)",
+      "source": "i = iter(range(3))\noriginal = iter\nevents = []\nclass Builtins(dict):\n    def __getitem__(self, name):\n        if name == 'iter':\n            events.append(next(i))\n            return None\n        return dict.__getitem__(self, name)\ndef template():\n    pass\n__builtins__ = Builtins(template.__builtins__)\ndef reduce():\n    return i.__reduce__()\na = reduce()\nb = reduce()\nactual = [a[0], repr(a[1][0]), a[2], b[0], repr(b[1][0]), b[2], events, i.__length_hint__()]\n",
+      "expected": "[None, 'range(0, 3)', None, None, 'range(1, 3)', None, [0, 1], 1]"
+    },
+    {
+      "name": "metadata range(2**100, 2**100+3)",
+      "source": "i = iter(range(2**100, 2**100+3))\nT = type(i)\nactual = [T.__name__, T.__doc__, sorted(T.__dict__)]\nfor name in ('__iter__', '__next__', '__length_hint__', '__reduce__', '__setstate__'):\n    d = T.__dict__[name]\n    b = getattr(i, name)\n    actual.append((name, type(d).__name__, d.__name__, d.__qualname__, d.__doc__, d.__text_signature__, d.__objclass__ is T, b.__self__ is i))\nfor action in (lambda: T(), lambda: T(1), lambda: T(x=1)):\n    try:\n        action()\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\ntry:\n    class Bad(T):\n        pass\nexcept Exception as e:\n    actual.append((type(e).__name__, e.args))\n",
+      "expected": "['longrange_iterator', None, ['__doc__', '__iter__', '__length_hint__', '__next__', '__reduce__', '__setstate__'], ('__iter__', 'wrapper_descriptor', '__iter__', 'longrange_iterator.__iter__', 'Implement iter(self).', '($self, /)', True, True), ('__next__', 'wrapper_descriptor', '__next__', 'longrange_iterator.__next__', 'Implement next(self).', '($self, /)', True, True), ('__length_hint__', 'method_descriptor', '__length_hint__', 'longrange_iterator.__length_hint__', 'Private method returning an estimate of len(list(it)).', '($self, /)', True, True), ('__reduce__', 'method_descriptor', '__reduce__', 'longrange_iterator.__reduce__', 'Return state information for pickling.', '($self, /)', True, True), ('__setstate__', 'method_descriptor', '__setstate__', 'longrange_iterator.__setstate__', 'Set state information for unpickling.', '($self, object, /)', True, True), ('TypeError', (\"cannot create 'longrange_iterator' instances\",)), ('TypeError', (\"cannot create 'longrange_iterator' instances\",)), ('TypeError', (\"cannot create 'longrange_iterator' instances\",)), ('TypeError', (\"type 'longrange_iterator' is not an acceptable base type\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __iter__()",
+      "source": "i = iter(range(2**100, 2**100+3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__iter__')(), lambda: getattr(T, '__iter__')(i), lambda: getattr(T, '__iter__')(None)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__iter__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__iter__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('self', True), ('self', True), ('TypeError', (\"descriptor '__iter__' requires a 'longrange_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __iter__(1)",
+      "source": "i = iter(range(2**100, 2**100+3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__iter__')(1), lambda: getattr(T, '__iter__')(i, 1), lambda: getattr(T, '__iter__')(None, 1)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__iter__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__iter__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('expected 0 arguments, got 1',)), ('TypeError', ('expected 0 arguments, got 1',)), ('TypeError', (\"descriptor '__iter__' requires a 'longrange_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __iter__(1, 2)",
+      "source": "i = iter(range(2**100, 2**100+3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__iter__')(1, 2), lambda: getattr(T, '__iter__')(i, 1, 2), lambda: getattr(T, '__iter__')(None, 1, 2)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__iter__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__iter__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('expected 0 arguments, got 2',)), ('TypeError', ('expected 0 arguments, got 2',)), ('TypeError', (\"descriptor '__iter__' requires a 'longrange_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __iter__(x=1)",
+      "source": "i = iter(range(2**100, 2**100+3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__iter__')(x=1), lambda: getattr(T, '__iter__')(i, x=1), lambda: getattr(T, '__iter__')(None, x=1)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__iter__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__iter__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('wrapper __iter__() takes no keyword arguments',)), ('TypeError', ('wrapper __iter__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__iter__' requires a 'longrange_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __iter__(1, x=2)",
+      "source": "i = iter(range(2**100, 2**100+3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__iter__')(1, x=2), lambda: getattr(T, '__iter__')(i, 1, x=2), lambda: getattr(T, '__iter__')(None, 1, x=2)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__iter__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__iter__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('wrapper __iter__() takes no keyword arguments',)), ('TypeError', ('wrapper __iter__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__iter__' requires a 'longrange_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __next__()",
+      "source": "i = iter(range(2**100, 2**100+3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__next__')(), lambda: getattr(T, '__next__')(i), lambda: getattr(T, '__next__')(None)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__next__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__next__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('ok', 1267650600228229401496703205376), ('ok', 1267650600228229401496703205377), ('TypeError', (\"descriptor '__next__' requires a 'longrange_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __next__(1)",
+      "source": "i = iter(range(2**100, 2**100+3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__next__')(1), lambda: getattr(T, '__next__')(i, 1), lambda: getattr(T, '__next__')(None, 1)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__next__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__next__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('expected 0 arguments, got 1',)), ('TypeError', ('expected 0 arguments, got 1',)), ('TypeError', (\"descriptor '__next__' requires a 'longrange_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __next__(1, 2)",
+      "source": "i = iter(range(2**100, 2**100+3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__next__')(1, 2), lambda: getattr(T, '__next__')(i, 1, 2), lambda: getattr(T, '__next__')(None, 1, 2)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__next__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__next__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('expected 0 arguments, got 2',)), ('TypeError', ('expected 0 arguments, got 2',)), ('TypeError', (\"descriptor '__next__' requires a 'longrange_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __next__(x=1)",
+      "source": "i = iter(range(2**100, 2**100+3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__next__')(x=1), lambda: getattr(T, '__next__')(i, x=1), lambda: getattr(T, '__next__')(None, x=1)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__next__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__next__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('wrapper __next__() takes no keyword arguments',)), ('TypeError', ('wrapper __next__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__next__' requires a 'longrange_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __next__(1, x=2)",
+      "source": "i = iter(range(2**100, 2**100+3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__next__')(1, x=2), lambda: getattr(T, '__next__')(i, 1, x=2), lambda: getattr(T, '__next__')(None, 1, x=2)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__next__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__next__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('wrapper __next__() takes no keyword arguments',)), ('TypeError', ('wrapper __next__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__next__' requires a 'longrange_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __length_hint__()",
+      "source": "i = iter(range(2**100, 2**100+3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__length_hint__')(), lambda: getattr(T, '__length_hint__')(i), lambda: getattr(T, '__length_hint__')(None)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__length_hint__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__length_hint__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('ok', 3), ('ok', 3), ('TypeError', (\"descriptor '__length_hint__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __length_hint__(1)",
+      "source": "i = iter(range(2**100, 2**100+3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__length_hint__')(1), lambda: getattr(T, '__length_hint__')(i, 1), lambda: getattr(T, '__length_hint__')(None, 1)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__length_hint__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__length_hint__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('longrange_iterator.__length_hint__() takes no arguments (1 given)',)), ('TypeError', ('longrange_iterator.__length_hint__() takes no arguments (1 given)',)), ('TypeError', (\"descriptor '__length_hint__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __length_hint__(1, 2)",
+      "source": "i = iter(range(2**100, 2**100+3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__length_hint__')(1, 2), lambda: getattr(T, '__length_hint__')(i, 1, 2), lambda: getattr(T, '__length_hint__')(None, 1, 2)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__length_hint__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__length_hint__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('longrange_iterator.__length_hint__() takes no arguments (2 given)',)), ('TypeError', ('longrange_iterator.__length_hint__() takes no arguments (2 given)',)), ('TypeError', (\"descriptor '__length_hint__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __length_hint__(x=1)",
+      "source": "i = iter(range(2**100, 2**100+3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__length_hint__')(x=1), lambda: getattr(T, '__length_hint__')(i, x=1), lambda: getattr(T, '__length_hint__')(None, x=1)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__length_hint__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__length_hint__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('longrange_iterator.__length_hint__() takes no keyword arguments',)), ('TypeError', ('longrange_iterator.__length_hint__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__length_hint__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __length_hint__(1, x=2)",
+      "source": "i = iter(range(2**100, 2**100+3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__length_hint__')(1, x=2), lambda: getattr(T, '__length_hint__')(i, 1, x=2), lambda: getattr(T, '__length_hint__')(None, 1, x=2)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__length_hint__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__length_hint__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('longrange_iterator.__length_hint__() takes no keyword arguments',)), ('TypeError', ('longrange_iterator.__length_hint__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__length_hint__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __reduce__()",
+      "source": "i = iter(range(2**100, 2**100+3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__reduce__')(), lambda: getattr(T, '__reduce__')(i), lambda: getattr(T, '__reduce__')(None)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__reduce__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__reduce__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('reduction', True, 'range(1267650600228229401496703205376, 1267650600228229401496703205379)', None), ('reduction', True, 'range(1267650600228229401496703205376, 1267650600228229401496703205379)', None), ('TypeError', (\"descriptor '__reduce__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __reduce__(1)",
+      "source": "i = iter(range(2**100, 2**100+3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__reduce__')(1), lambda: getattr(T, '__reduce__')(i, 1), lambda: getattr(T, '__reduce__')(None, 1)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__reduce__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__reduce__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('longrange_iterator.__reduce__() takes no arguments (1 given)',)), ('TypeError', ('longrange_iterator.__reduce__() takes no arguments (1 given)',)), ('TypeError', (\"descriptor '__reduce__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __reduce__(1, 2)",
+      "source": "i = iter(range(2**100, 2**100+3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__reduce__')(1, 2), lambda: getattr(T, '__reduce__')(i, 1, 2), lambda: getattr(T, '__reduce__')(None, 1, 2)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__reduce__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__reduce__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('longrange_iterator.__reduce__() takes no arguments (2 given)',)), ('TypeError', ('longrange_iterator.__reduce__() takes no arguments (2 given)',)), ('TypeError', (\"descriptor '__reduce__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __reduce__(x=1)",
+      "source": "i = iter(range(2**100, 2**100+3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__reduce__')(x=1), lambda: getattr(T, '__reduce__')(i, x=1), lambda: getattr(T, '__reduce__')(None, x=1)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__reduce__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__reduce__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('longrange_iterator.__reduce__() takes no keyword arguments',)), ('TypeError', ('longrange_iterator.__reduce__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__reduce__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __reduce__(1, x=2)",
+      "source": "i = iter(range(2**100, 2**100+3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__reduce__')(1, x=2), lambda: getattr(T, '__reduce__')(i, 1, x=2), lambda: getattr(T, '__reduce__')(None, 1, x=2)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__reduce__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__reduce__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('longrange_iterator.__reduce__() takes no keyword arguments',)), ('TypeError', ('longrange_iterator.__reduce__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__reduce__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __setstate__()",
+      "source": "i = iter(range(2**100, 2**100+3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__setstate__')(), lambda: getattr(T, '__setstate__')(i), lambda: getattr(T, '__setstate__')(None)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__setstate__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__setstate__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('longrange_iterator.__setstate__() takes exactly one argument (0 given)',)), ('TypeError', ('longrange_iterator.__setstate__() takes exactly one argument (0 given)',)), ('TypeError', (\"descriptor '__setstate__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __setstate__(1)",
+      "source": "i = iter(range(2**100, 2**100+3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__setstate__')(1), lambda: getattr(T, '__setstate__')(i, 1), lambda: getattr(T, '__setstate__')(None, 1)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__setstate__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__setstate__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('ok', None), ('ok', None), ('TypeError', (\"descriptor '__setstate__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __setstate__(1, 2)",
+      "source": "i = iter(range(2**100, 2**100+3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__setstate__')(1, 2), lambda: getattr(T, '__setstate__')(i, 1, 2), lambda: getattr(T, '__setstate__')(None, 1, 2)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__setstate__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__setstate__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('longrange_iterator.__setstate__() takes exactly one argument (2 given)',)), ('TypeError', ('longrange_iterator.__setstate__() takes exactly one argument (2 given)',)), ('TypeError', (\"descriptor '__setstate__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __setstate__(x=1)",
+      "source": "i = iter(range(2**100, 2**100+3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__setstate__')(x=1), lambda: getattr(T, '__setstate__')(i, x=1), lambda: getattr(T, '__setstate__')(None, x=1)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__setstate__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__setstate__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('longrange_iterator.__setstate__() takes no keyword arguments',)), ('TypeError', ('longrange_iterator.__setstate__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__setstate__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __setstate__(1, x=2)",
+      "source": "i = iter(range(2**100, 2**100+3))\nT = type(i)\nactual = []\nfor action in (lambda: getattr(i, '__setstate__')(1, x=2), lambda: getattr(T, '__setstate__')(i, 1, x=2), lambda: getattr(T, '__setstate__')(None, 1, x=2)):\n    try:\n        v = action()\n        actual.append(('self', v is i) if '__setstate__' == '__iter__' else ('reduction', v[0] is iter, repr(v[1][0]), v[2]) if '__setstate__' == '__reduce__' else ('ok', v))\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('TypeError', ('longrange_iterator.__setstate__() takes no keyword arguments',)), ('TypeError', ('longrange_iterator.__setstate__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__setstate__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "reentrant reduction range(2**100, 2**100+3)",
+      "source": "i = iter(range(2**100, 2**100+3))\noriginal = iter\nevents = []\nclass Builtins(dict):\n    def __getitem__(self, name):\n        if name == 'iter':\n            events.append(next(i))\n            return None\n        return dict.__getitem__(self, name)\ndef template():\n    pass\n__builtins__ = Builtins(template.__builtins__)\ndef reduce():\n    return i.__reduce__()\na = reduce()\nb = reduce()\nactual = [a[0], repr(a[1][0]), a[2], b[0], repr(b[1][0]), b[2], events, i.__length_hint__()]\n",
+      "expected": "[None, 'range(1267650600228229401496703205376, 1267650600228229401496703205379)', None, None, 'range(1267650600228229401496703205377, 1267650600228229401496703205379)', None, [1267650600228229401496703205376, 1267650600228229401496703205377], 1]"
+    },
+    {
+      "name": "payload identity range(1000, 1400, 2)",
+      "source": "r = range(1000, 1400, 2)\ni = iter(r)\na = i.__reduce__()[1][0]\nb = i.__reduce__()[1][0]\nx = i.__length_hint__()\ny = i.__length_hint__()\nn = next(i)\nactual = [a is b, a.start is r.start, a.step is r.step, a.start is b.start, a.start is n, x is y, x == y]\n",
+      "expected": "[False, False, True, False, False, True, True]"
+    },
+    {
+      "name": "reduction snapshot range(1000, 1400, 2)",
+      "source": "i = iter(range(1000, 1400, 2))\nr = i.__reduce__()\nclone = r[0](*r[1])\nnext(i)\nactual = [next(clone), next(i), clone.__length_hint__(), i.__length_hint__(), r[2]]\n",
+      "expected": "[1000, 1002, 199, 198, None]"
+    },
+    {
+      "name": "reentrant state range(1000, 1400, 2) consume",
+      "source": "i = iter(range(1000, 1400, 2))\nevents = []\nclass Index:\n    def __index__(self):\n        events.append('index')\n        if 'consume' == 'consume':\n            events.append(next(i))\n        if 'consume' == 'exhaust':\n            i.__setstate__(1000)\n        if 'consume' == 'raise':\n            raise ValueError('index failed')\n        if 'consume' == 'bad':\n            return 1.5\n        return 2\ntry:\n    actual = [('ok', i.__setstate__(Index()))]\nexcept Exception as e:\n    actual = [(type(e).__name__, e.args)]\nactual.extend([events, next(i, None), i.__length_hint__(), repr(i.__reduce__()[1][0])])\n",
+      "expected": "[('ok', None), ['index', 1000], 1006, 196, 'range(1008, 1400, 2)']"
+    },
+    {
+      "name": "reentrant state range(1000, 1400, 2) exhaust",
+      "source": "i = iter(range(1000, 1400, 2))\nevents = []\nclass Index:\n    def __index__(self):\n        events.append('index')\n        if 'exhaust' == 'consume':\n            events.append(next(i))\n        if 'exhaust' == 'exhaust':\n            i.__setstate__(1000)\n        if 'exhaust' == 'raise':\n            raise ValueError('index failed')\n        if 'exhaust' == 'bad':\n            return 1.5\n        return 2\ntry:\n    actual = [('ok', i.__setstate__(Index()))]\nexcept Exception as e:\n    actual = [(type(e).__name__, e.args)]\nactual.extend([events, next(i, None), i.__length_hint__(), repr(i.__reduce__()[1][0])])\n",
+      "expected": "[('ok', None), ['index'], None, 0, 'range(1400, 1400, 2)']"
+    },
+    {
+      "name": "reentrant state range(1000, 1400, 2) raise",
+      "source": "i = iter(range(1000, 1400, 2))\nevents = []\nclass Index:\n    def __index__(self):\n        events.append('index')\n        if 'raise' == 'consume':\n            events.append(next(i))\n        if 'raise' == 'exhaust':\n            i.__setstate__(1000)\n        if 'raise' == 'raise':\n            raise ValueError('index failed')\n        if 'raise' == 'bad':\n            return 1.5\n        return 2\ntry:\n    actual = [('ok', i.__setstate__(Index()))]\nexcept Exception as e:\n    actual = [(type(e).__name__, e.args)]\nactual.extend([events, next(i, None), i.__length_hint__(), repr(i.__reduce__()[1][0])])\n",
+      "expected": "[('ValueError', ('index failed',)), ['index'], 1000, 199, 'range(1002, 1400, 2)']"
+    },
+    {
+      "name": "reentrant state range(1000, 1400, 2) bad",
+      "source": "i = iter(range(1000, 1400, 2))\nevents = []\nclass Index:\n    def __index__(self):\n        events.append('index')\n        if 'bad' == 'consume':\n            events.append(next(i))\n        if 'bad' == 'exhaust':\n            i.__setstate__(1000)\n        if 'bad' == 'raise':\n            raise ValueError('index failed')\n        if 'bad' == 'bad':\n            return 1.5\n        return 2\ntry:\n    actual = [('ok', i.__setstate__(Index()))]\nexcept Exception as e:\n    actual = [(type(e).__name__, e.args)]\nactual.extend([events, next(i, None), i.__length_hint__(), repr(i.__reduce__()[1][0])])\n",
+      "expected": "[('TypeError', ('__index__ returned non-int (type float)',)), ['index'], 1000, 199, 'range(1002, 1400, 2)']"
+    },
+    {
+      "name": "builtin replacement range(1000, 1400, 2) False",
+      "source": "i = iter(range(1000, 1400, 2))\ndef reduce():\n    return i.__reduce__()\nb = reduce.__builtins__\noriginal = b['iter']\ntry:\n    if False:\n        del b['iter']\n    else:\n        b['iter'] = 42\n    try:\n        r = reduce()\n        actual = [('ok', r[0], repr(r[1][0]), r[2])]\n    except Exception as e:\n        actual = [(type(e).__name__, e.args)]\nfinally:\n    b['iter'] = original\nactual.extend([next(i), i.__length_hint__()])\n",
+      "expected": "[('ok', 42, 'range(1000, 1400, 2)', None), 1000, 199]"
+    },
+    {
+      "name": "builtin replacement range(1000, 1400, 2) True",
+      "source": "i = iter(range(1000, 1400, 2))\ndef reduce():\n    return i.__reduce__()\nb = reduce.__builtins__\noriginal = b['iter']\ntry:\n    if True:\n        del b['iter']\n    else:\n        b['iter'] = 42\n    try:\n        r = reduce()\n        actual = [('ok', r[0], repr(r[1][0]), r[2])]\n    except Exception as e:\n        actual = [(type(e).__name__, e.args)]\nfinally:\n    b['iter'] = original\nactual.extend([next(i), i.__length_hint__()])\n",
+      "expected": "[('AttributeError', ('iter',)), 1000, 199]"
+    },
+    {
+      "name": "payload identity range(2**100, 2**100+800, 2)",
+      "source": "r = range(2**100, 2**100+800, 2)\ni = iter(r)\na = i.__reduce__()[1][0]\nb = i.__reduce__()[1][0]\nx = i.__length_hint__()\ny = i.__length_hint__()\nn = next(i)\nactual = [a is b, a.start is r.start, a.step is r.step, a.start is b.start, a.start is n, x is y, x == y]\n",
+      "expected": "[False, True, True, True, True, True, True]"
+    },
+    {
+      "name": "reduction snapshot range(2**100, 2**100+800, 2)",
+      "source": "i = iter(range(2**100, 2**100+800, 2))\nr = i.__reduce__()\nclone = r[0](*r[1])\nnext(i)\nactual = [next(clone), next(i), clone.__length_hint__(), i.__length_hint__(), r[2]]\n",
+      "expected": "[1267650600228229401496703205376, 1267650600228229401496703205378, 399, 398, None]"
+    },
+    {
+      "name": "reentrant state range(2**100, 2**100+800, 2) consume",
+      "source": "i = iter(range(2**100, 2**100+800, 2))\nevents = []\nclass Index:\n    def __index__(self):\n        events.append('index')\n        if 'consume' == 'consume':\n            events.append(next(i))\n        if 'consume' == 'exhaust':\n            i.__setstate__(1000)\n        if 'consume' == 'raise':\n            raise ValueError('index failed')\n        if 'consume' == 'bad':\n            return 1.5\n        return 2\ntry:\n    actual = [('ok', i.__setstate__(Index()))]\nexcept Exception as e:\n    actual = [(type(e).__name__, e.args)]\nactual.extend([events, next(i, None), i.__length_hint__(), repr(i.__reduce__()[1][0])])\n",
+      "expected": "[('TypeError', ('state must be an int, not Index',)), [], 1267650600228229401496703205376, 399, 'range(1267650600228229401496703205378, 1267650600228229401496703206176, 2)']"
+    },
+    {
+      "name": "reentrant state range(2**100, 2**100+800, 2) exhaust",
+      "source": "i = iter(range(2**100, 2**100+800, 2))\nevents = []\nclass Index:\n    def __index__(self):\n        events.append('index')\n        if 'exhaust' == 'consume':\n            events.append(next(i))\n        if 'exhaust' == 'exhaust':\n            i.__setstate__(1000)\n        if 'exhaust' == 'raise':\n            raise ValueError('index failed')\n        if 'exhaust' == 'bad':\n            return 1.5\n        return 2\ntry:\n    actual = [('ok', i.__setstate__(Index()))]\nexcept Exception as e:\n    actual = [(type(e).__name__, e.args)]\nactual.extend([events, next(i, None), i.__length_hint__(), repr(i.__reduce__()[1][0])])\n",
+      "expected": "[('TypeError', ('state must be an int, not Index',)), [], 1267650600228229401496703205376, 399, 'range(1267650600228229401496703205378, 1267650600228229401496703206176, 2)']"
+    },
+    {
+      "name": "reentrant state range(2**100, 2**100+800, 2) raise",
+      "source": "i = iter(range(2**100, 2**100+800, 2))\nevents = []\nclass Index:\n    def __index__(self):\n        events.append('index')\n        if 'raise' == 'consume':\n            events.append(next(i))\n        if 'raise' == 'exhaust':\n            i.__setstate__(1000)\n        if 'raise' == 'raise':\n            raise ValueError('index failed')\n        if 'raise' == 'bad':\n            return 1.5\n        return 2\ntry:\n    actual = [('ok', i.__setstate__(Index()))]\nexcept Exception as e:\n    actual = [(type(e).__name__, e.args)]\nactual.extend([events, next(i, None), i.__length_hint__(), repr(i.__reduce__()[1][0])])\n",
+      "expected": "[('TypeError', ('state must be an int, not Index',)), [], 1267650600228229401496703205376, 399, 'range(1267650600228229401496703205378, 1267650600228229401496703206176, 2)']"
+    },
+    {
+      "name": "reentrant state range(2**100, 2**100+800, 2) bad",
+      "source": "i = iter(range(2**100, 2**100+800, 2))\nevents = []\nclass Index:\n    def __index__(self):\n        events.append('index')\n        if 'bad' == 'consume':\n            events.append(next(i))\n        if 'bad' == 'exhaust':\n            i.__setstate__(1000)\n        if 'bad' == 'raise':\n            raise ValueError('index failed')\n        if 'bad' == 'bad':\n            return 1.5\n        return 2\ntry:\n    actual = [('ok', i.__setstate__(Index()))]\nexcept Exception as e:\n    actual = [(type(e).__name__, e.args)]\nactual.extend([events, next(i, None), i.__length_hint__(), repr(i.__reduce__()[1][0])])\n",
+      "expected": "[('TypeError', ('state must be an int, not Index',)), [], 1267650600228229401496703205376, 399, 'range(1267650600228229401496703205378, 1267650600228229401496703206176, 2)']"
+    },
+    {
+      "name": "builtin replacement range(2**100, 2**100+800, 2) False",
+      "source": "i = iter(range(2**100, 2**100+800, 2))\ndef reduce():\n    return i.__reduce__()\nb = reduce.__builtins__\noriginal = b['iter']\ntry:\n    if False:\n        del b['iter']\n    else:\n        b['iter'] = 42\n    try:\n        r = reduce()\n        actual = [('ok', r[0], repr(r[1][0]), r[2])]\n    except Exception as e:\n        actual = [(type(e).__name__, e.args)]\nfinally:\n    b['iter'] = original\nactual.extend([next(i), i.__length_hint__()])\n",
+      "expected": "[('ok', 42, 'range(1267650600228229401496703205376, 1267650600228229401496703206176, 2)', None), 1267650600228229401496703205376, 399]"
+    },
+    {
+      "name": "builtin replacement range(2**100, 2**100+800, 2) True",
+      "source": "i = iter(range(2**100, 2**100+800, 2))\ndef reduce():\n    return i.__reduce__()\nb = reduce.__builtins__\noriginal = b['iter']\ntry:\n    if True:\n        del b['iter']\n    else:\n        b['iter'] = 42\n    try:\n        r = reduce()\n        actual = [('ok', r[0], repr(r[1][0]), r[2])]\n    except Exception as e:\n        actual = [(type(e).__name__, e.args)]\nfinally:\n    b['iter'] = original\nactual.extend([next(i), i.__length_hint__()])\n",
+      "expected": "[('AttributeError', ('iter',)), 1267650600228229401496703205376, 399]"
+    },
+    {
+      "name": "cross layout descriptor __iter__",
+      "source": "a = iter(range(3))\nb = iter(range(2**100, 2**100+3))\nactual = []\nfor left, right in [(a,b),(b,a)]:\n    try:\n        getattr(type(left), '__iter__')(right)\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\nactual.extend([next(a), next(b)])\n",
+      "expected": "[('TypeError', (\"descriptor '__iter__' requires a 'range_iterator' object but received a 'longrange_iterator'\",)), ('TypeError', (\"descriptor '__iter__' requires a 'longrange_iterator' object but received a 'range_iterator'\",)), 0, 1267650600228229401496703205376]"
+    },
+    {
+      "name": "cross layout descriptor __next__",
+      "source": "a = iter(range(3))\nb = iter(range(2**100, 2**100+3))\nactual = []\nfor left, right in [(a,b),(b,a)]:\n    try:\n        getattr(type(left), '__next__')(right)\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\nactual.extend([next(a), next(b)])\n",
+      "expected": "[('TypeError', (\"descriptor '__next__' requires a 'range_iterator' object but received a 'longrange_iterator'\",)), ('TypeError', (\"descriptor '__next__' requires a 'longrange_iterator' object but received a 'range_iterator'\",)), 0, 1267650600228229401496703205376]"
+    },
+    {
+      "name": "cross layout descriptor __length_hint__",
+      "source": "a = iter(range(3))\nb = iter(range(2**100, 2**100+3))\nactual = []\nfor left, right in [(a,b),(b,a)]:\n    try:\n        getattr(type(left), '__length_hint__')(right)\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\nactual.extend([next(a), next(b)])\n",
+      "expected": "[('TypeError', (\"descriptor '__length_hint__' for 'range_iterator' objects doesn't apply to a 'longrange_iterator' object\",)), ('TypeError', (\"descriptor '__length_hint__' for 'longrange_iterator' objects doesn't apply to a 'range_iterator' object\",)), 0, 1267650600228229401496703205376]"
+    },
+    {
+      "name": "cross layout descriptor __reduce__",
+      "source": "a = iter(range(3))\nb = iter(range(2**100, 2**100+3))\nactual = []\nfor left, right in [(a,b),(b,a)]:\n    try:\n        getattr(type(left), '__reduce__')(right)\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\nactual.extend([next(a), next(b)])\n",
+      "expected": "[('TypeError', (\"descriptor '__reduce__' for 'range_iterator' objects doesn't apply to a 'longrange_iterator' object\",)), ('TypeError', (\"descriptor '__reduce__' for 'longrange_iterator' objects doesn't apply to a 'range_iterator' object\",)), 0, 1267650600228229401496703205376]"
+    },
+    {
+      "name": "cross layout descriptor __setstate__",
+      "source": "a = iter(range(3))\nb = iter(range(2**100, 2**100+3))\nactual = []\nfor left, right in [(a,b),(b,a)]:\n    try:\n        getattr(type(left), '__setstate__')(right, 1)\n    except Exception as e:\n        actual.append((type(e).__name__, e.args))\nactual.extend([next(a), next(b)])\n",
+      "expected": "[('TypeError', (\"descriptor '__setstate__' for 'range_iterator' objects doesn't apply to a 'longrange_iterator' object\",)), ('TypeError', (\"descriptor '__setstate__' for 'longrange_iterator' objects doesn't apply to a 'range_iterator' object\",)), 0, 1267650600228229401496703205376]"
+    },
+    {
+      "name": "canonical publication and immutable types",
+      "source": "a = iter(range(3))\nb = reversed(range(3))\nc = range.__iter__(range(4))\nd = range.__reversed__(range(4))\ne = iter(range(2**100))\nactual = [type(a) is type(b), type(a) is type(c), type(a) is type(d), type(a) is not type(e), isinstance(a, type(b)), isinstance(e, type(a))]\nfor i in (a,e):\n    try:\n        type(i).__next__ = None\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n    try:\n        i.state = 1\n    except Exception as error:\n        actual.append((type(error).__name__, error.args))\n",
+      "expected": "[True, True, True, True, True, False, ('TypeError', (\"cannot set '__next__' attribute of immutable type 'range_iterator'\",)), ('AttributeError', (\"'range_iterator' object has no attribute 'state' and no __dict__ for setting new attributes\",)), ('TypeError', (\"cannot set '__next__' attribute of immutable type 'longrange_iterator'\",)), ('AttributeError', (\"'longrange_iterator' object has no attribute 'state' and no __dict__ for setting new attributes\",))]"
+    },
+    {
+      "name": "qualified state error",
+      "source": "class State(int):\n    pass\nState.__module__ = 'package'\nState.__qualname__ = 'Outer.State'\ni = iter(range(2**100))\ntry:\n    i.__setstate__(State(0))\nexcept Exception as e:\n    actual = (type(e).__name__, e.args)\n",
+      "expected": "('TypeError', ('state must be an int, not package.Outer.State',))"
+    },
+    {
+      "name": "attribute mutation range(3)",
+      "source": "i = iter(range(3))\nactual = []\nfor name in ('unknown', '__next__', '__doc__', '__class__'):\n    for operation in (lambda: setattr(i, name, 1), lambda: delattr(i, name), lambda: object.__setattr__(i, name, 1), lambda: object.__delattr__(i, name)):\n        try:\n            operation()\n        except Exception as e:\n            actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('AttributeError', (\"'range_iterator' object has no attribute 'unknown' and no __dict__ for setting new attributes\",)), ('AttributeError', (\"'range_iterator' object has no attribute 'unknown' and no __dict__ for setting new attributes\",)), ('AttributeError', (\"'range_iterator' object has no attribute 'unknown' and no __dict__ for setting new attributes\",)), ('AttributeError', (\"'range_iterator' object has no attribute 'unknown' and no __dict__ for setting new attributes\",)), ('AttributeError', (\"'range_iterator' object attribute '__next__' is read-only\",)), ('AttributeError', (\"'range_iterator' object attribute '__next__' is read-only\",)), ('AttributeError', (\"'range_iterator' object attribute '__next__' is read-only\",)), ('AttributeError', (\"'range_iterator' object attribute '__next__' is read-only\",)), ('AttributeError', (\"'range_iterator' object attribute '__doc__' is read-only\",)), ('AttributeError', (\"'range_iterator' object attribute '__doc__' is read-only\",)), ('AttributeError', (\"'range_iterator' object attribute '__doc__' is read-only\",)), ('AttributeError', (\"'range_iterator' object attribute '__doc__' is read-only\",)), ('TypeError', (\"__class__ must be set to a class, not 'int' object\",)), ('TypeError', (\"can't delete __class__ attribute\",)), ('TypeError', (\"__class__ must be set to a class, not 'int' object\",)), ('TypeError', (\"can't delete __class__ attribute\",))]"
+    },
+    {
+      "name": "attribute mutation range(2**100)",
+      "source": "i = iter(range(2**100))\nactual = []\nfor name in ('unknown', '__next__', '__doc__', '__class__'):\n    for operation in (lambda: setattr(i, name, 1), lambda: delattr(i, name), lambda: object.__setattr__(i, name, 1), lambda: object.__delattr__(i, name)):\n        try:\n            operation()\n        except Exception as e:\n            actual.append((type(e).__name__, e.args))\n",
+      "expected": "[('AttributeError', (\"'longrange_iterator' object has no attribute 'unknown' and no __dict__ for setting new attributes\",)), ('AttributeError', (\"'longrange_iterator' object has no attribute 'unknown' and no __dict__ for setting new attributes\",)), ('AttributeError', (\"'longrange_iterator' object has no attribute 'unknown' and no __dict__ for setting new attributes\",)), ('AttributeError', (\"'longrange_iterator' object has no attribute 'unknown' and no __dict__ for setting new attributes\",)), ('AttributeError', (\"'longrange_iterator' object attribute '__next__' is read-only\",)), ('AttributeError', (\"'longrange_iterator' object attribute '__next__' is read-only\",)), ('AttributeError', (\"'longrange_iterator' object attribute '__next__' is read-only\",)), ('AttributeError', (\"'longrange_iterator' object attribute '__next__' is read-only\",)), ('AttributeError', (\"'longrange_iterator' object attribute '__doc__' is read-only\",)), ('AttributeError', (\"'longrange_iterator' object attribute '__doc__' is read-only\",)), ('AttributeError', (\"'longrange_iterator' object attribute '__doc__' is read-only\",)), ('AttributeError', (\"'longrange_iterator' object attribute '__doc__' is read-only\",)), ('TypeError', (\"__class__ must be set to a class, not 'int' object\",)), ('TypeError', (\"can't delete __class__ attribute\",)), ('TypeError', (\"__class__ must be set to a class, not 'int' object\",)), ('TypeError', (\"can't delete __class__ attribute\",))]"
+    }
+  ]
+}

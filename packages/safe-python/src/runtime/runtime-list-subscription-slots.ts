@@ -4,17 +4,18 @@ import { runtimeIndex } from "./runtime-index.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import { runtimeMutateItem } from "./runtime-mutation.js";
 import { runtimeListPayload } from "./runtime-list-payload.js";
+import { runtimeNativeMethodDiagnostic } from "./runtime-native-method-diagnostic.js";
 import type { RuntimeValues, TypeValue } from "./runtime-values.js";
 
 /** Explicit list subscriptions share the expression kernels, including guest
  * index conversion and materialization of iterable slice replacements. */
 export function installRuntimeListSubscriptionSlots(owner: TypeValue, values: RuntimeValues, meter: ExecutionMeter): void {
   meter.checkpoint(0, 192);
-  owner.value.namespace.items.set(values.string("__getitem__"), values.methodDescriptor({ owner, name: "__getitem__", doc: "Return self[index].", accepts: receiver => runtimeListPayload(receiver) !== undefined,
-    invoke(receiver, positional, keywords, meter, invocation) {
+  owner.value.namespace.items.set(values.string("__getitem__"), values.methodDescriptor({ owner, name: "__getitem__", doc: "Return self[index].", textSignature: "($self, index, /)", accepts: receiver => runtimeListPayload(receiver) !== undefined,
+    invoke(receiver, positional, keywords, meter, invocation, bound) {
       meter.checkpoint();
-      if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", "list.__getitem__() takes no keyword arguments");
-      if (positional.length !== 1) throw new PythonRuntimeError("TypeError", `list.__getitem__() takes exactly one argument (${positional.length} given)`);
+      if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", `${runtimeNativeMethodDiagnostic(receiver, owner, "__getitem__", bound, values, meter, invocation)} takes no keyword arguments`);
+      if (positional.length !== 1) throw new PythonRuntimeError("TypeError", `${runtimeNativeMethodDiagnostic(receiver, owner, "__getitem__", bound, values, meter, invocation)} takes exactly one argument (${positional.length} given)`);
       const list = runtimeListPayload(receiver);
       if (list === undefined) throw Error("list subscription requires list storage");
       return runtimeIndex(list, positional[0], values, meter, invocation?.integerIndex);

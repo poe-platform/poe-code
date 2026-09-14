@@ -1,3 +1,4 @@
+import { runtimeStringPayload } from "./runtime-string-payload.js";
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
@@ -11,7 +12,7 @@ export interface AttributeNameContext {
 
 /** Validate without converting the name, preserving guest identity/code points. */
 export function validateAttributeName(value: RuntimeValue, context: AttributeNameContext, meter: ExecutionMeter): void {
-  const string = value.kind === "str" || context.isString?.(value) === true;
+  const string = runtimeStringPayload(value) !== undefined || context.isString?.(value) === true;
   meter.checkpoint();
   if (string) return;
   const type = context.typeName?.(value) ?? (value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind);

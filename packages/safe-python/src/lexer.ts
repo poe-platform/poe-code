@@ -1,4 +1,5 @@
-import { PythonSource } from "./source.js";
+import { PythonSource, PythonSyntaxError } from "./source.js";
+import { isUnicodeCharacter } from "./runtime/unicode-character-classification.js";
 import type { SourcePosition,SourceMeter } from "./source.js";
 import { Indentation } from "./indentation.js";
 import { isIdentifierStart, readIdentifier } from "./identifiers.js";
@@ -32,6 +33,9 @@ export interface LexerOptions {
   readonly filename?: string;
   readonly onWarning?: (message: string, position: SourcePosition) => void;
   readonly onComment?: (span: SourceSpan) => void;
+  /** Shared cursor state: after grammar failure, scan literal boundaries
+   * without constructing their values or invoking decoder warnings. */
+  readonly tokenization?: { syntaxOnly: boolean; readonly implicitNewline?:boolean };
 }
 
 const operators = new Set([
@@ -46,18 +50,20 @@ const interpolatedPrefixes = new Set(["f", "fr", "rf", "t", "tr", "rt"]);
 
 /** Lazily emits significant tokens; comments and non-logical newlines are omitted. */
 export function* lex(text: string, options: LexerOptions = {}): Generator<Token, void> {
+  let interpolation: Interpolation | undefined;
   try {
   options.meter?.checkpoint(1,128);
   const source = new PythonSource(text, options.filename,options.meter);
   const indentation = new Indentation(options.meter);
-  const interpolation = new Interpolation(options.meter);
+  interpolation = new Interpolation(options.meter,options.tokenization!==undefined,options.tokenization?.implicitNewline??true);
   const delimiters: Array<{ text: string; start: SourcePosition }> = [];
   let lineStart = true;
   let lineHasCode = false;
   let pendingIndent: { text: string; start: SourcePosition; end: SourcePosition } | undefined;
   while (!source.done) {
     if (interpolation.inText) {
-      yield interpolation.readText(source, delimiters.length, options.onWarning);
+      const token = interpolation.readText(source, delimiters.length, options.onWarning, !options.tokenization?.syntaxOnly);
+      if (token !== undefined) yield token;
       continue;
     }
     if (lineStart) {
@@ -121,11 +127,16 @@ export function* lex(text: string, options: LexerOptions = {}): Generator<Token,
       continue;
     }
     if (prefix === "ordinary") {
-      yield readString(source, options.onWarning);
+      const token = readString(source, options.onWarning, !options.tokenization?.syntaxOnly);
+      if (token !== undefined) yield token;
       continue;
     }
     if (isIdentifierStart(character.codePointAt(0)!)) {
-      yield readIdentifier(source);
+      const identifier = readIdentifier(source);
+      // CPython validates the entire potential identifier before publishing a
+      // NAME token. A non-ASCII invalid suffix must not become a second token.
+      if ((source.peek().codePointAt(0) ?? 0) >= 128) throwInvalidSourceCharacter(source);
+      yield identifier;
       continue;
     }
     if ((character >= "0" && character <= "9") ||
@@ -136,7 +147,11 @@ export function* lex(text: string, options: LexerOptions = {}): Generator<Token,
     options.meter?.checkpoint(0,96);
     let operator = source.peek() + source.peek(1) + source.peek(2);
     while (operator && !operators.has(operator)) {options.meter?.checkpoint(1,32+2*operator.length);operator = operator.slice(0, -1);}
-    if (!operator) {options.meter?.checkpoint(0,128);throw source.error(`invalid character ${JSON.stringify(character)}`);}
+    if (!operator) {
+      const point = character.codePointAt(0)!;
+      if (point >= 128 || !isUnicodeCharacter(point, "isprintable", source.meter)) throwInvalidSourceCharacter(source);
+      options.meter?.checkpoint(0,128);throw source.error(`invalid character ${JSON.stringify(character)}`);
+    }
     const start = source.position;
     if (operator === "(" || operator === "[" || operator === "{") {
       if(delimiters.length+interpolation.replacementDepth>=maximumDelimiterDepth)throw source.error("too many nested parentheses",start);
@@ -162,14 +177,40 @@ export function* lex(text: string, options: LexerOptions = {}): Generator<Token,
   }
   interpolation.assertClosed(source);
   const unclosed = delimiters[delimiters.length - 1];
-  if (unclosed) {options.meter?.checkpoint(0,96);throw source.error(`'${unclosed.text}' was never closed`, unclosed.start);}
+  if (unclosed) {
+    options.meter?.checkpoint(0,192);
+    const error = new PythonSyntaxError(`'${unclosed.text}' was never closed`, source.filename,
+      unclosed.start, {...unclosed.start, column: -1});
+    error.tokenizerPriority = "earlier-line";
+    error.unclosedDelimiter = true;
+    throw error;
+  }
   const end = source.position;
   if (lineHasCode) {options.meter?.checkpoint(0,64);yield { kind: "newline", text: "", start: end, end };}
   const dedents = indentation.finish(options.meter).length;
   for (let index = 0; index < dedents; index++) {options.meter?.checkpoint(1,64);yield { kind: "dedent", text: "", start: end, end };}
   options.meter?.checkpoint(0,64);
   yield { kind: "end", text: "", start: end, end };
+  } catch (error) {
+    if (error instanceof PythonSyntaxError) error.tokenizerPriority ??= interpolation?.active ? "parser" : "always";
+    throw error;
   } finally {options.meter?.checkpoint();}
+}
+
+/** Tokenizer diagnostics use the first invalid point, an inclusive end column,
+ * and the physical line without its newline. Classification is Unicode 16. */
+function throwInvalidSourceCharacter(source: PythonSource): never {
+  const position = source.position, character = source.peek(), point = character.codePointAt(0)!;
+  const code = point.toString(16).toUpperCase().padStart(4, "0");
+  const message = isUnicodeCharacter(point, "isprintable", source.meter)
+    ? `invalid character '${character}' (U+${code})` : `invalid non-printable character U+${code}`;
+  let start = position.offset, end = position.offset;
+  while (start > 0 && source.text[start - 1] !== "\n" && source.text[start - 1] !== "\r") {source.meter?.checkpoint(); start--;}
+  while (end < source.text.length && source.text[end] !== "\n" && source.text[end] !== "\r") {source.meter?.checkpoint(); end++;}
+  if (start === 0 && source.text[0] === "\ufeff") start++;
+  source.meter?.checkpoint(1, 320 + 2 * (message.length + end - start));
+  throw new PythonSyntaxError(message, source.filename, position, position)
+    .withSourceLine(source.text.slice(start, end), source.meter);
 }
 
 function isSpace(character: string): boolean {

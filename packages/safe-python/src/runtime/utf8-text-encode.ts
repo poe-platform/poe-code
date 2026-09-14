@@ -1,7 +1,7 @@
 import { CodePointString } from "./code-point-string.js";
 import { encodeUtf8, type Utf8EncodeErrors } from "./utf8-encode.js";
 import type { ExecutionMeter } from "./execution-budget.js";
-import { PythonRuntimeError } from "./error.js";
+import { validateTextNewline } from "./text-newline-validation.js";
 
 export interface Utf8TextEncodeOptions {
   readonly newline?: string | null;
@@ -22,9 +22,7 @@ export interface Utf8TextWrite {
 export function encodeUtf8Text(input: CodePointString, options: Utf8TextEncodeOptions = {}, meter?: ExecutionMeter): Utf8TextWrite {
   meter?.checkpoint();
   const newline = options.newline ?? null;
-  if (newline !== null && !["", "\n", "\r", "\r\n"].includes(newline)) {
-    throw new PythonRuntimeError("ValueError", "illegal newline value");
-  }
+  validateTextNewline(newline, meter);
   const separator = newline === null ? options.lineSeparator ?? "\n" : newline;
   let feeds = 0, lineBreak = false;
   for (let index = 0; index < input.length; index++) {

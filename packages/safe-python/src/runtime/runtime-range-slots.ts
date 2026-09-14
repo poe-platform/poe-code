@@ -4,7 +4,7 @@ import { runtimeReceiverComparison } from "./runtime-receiver-comparison.js";
 import { runtimeLength } from "./runtime-length.js";
 import { runtimeIndex } from "./runtime-index.js";
 import { runtimeMembership } from "./runtime-membership.js";
-import { createRuntimeRangeIterator } from "./runtime-range-iterator.js";
+import { RuntimeRangeIterator } from "./runtime-range-iterator.js";
 import { callRuntimeRangeMethod } from "./runtime-range-attributes.js";
 import { runtimeNativeRepresentation } from "./runtime-native-representation-method.js";
 import { RuntimeHashError } from "./runtime-hash-error.js";
@@ -39,7 +39,7 @@ export function installRuntimeRangeSlots(owner: TypeValue, values: RuntimeValues
         if (operator !== undefined) return runtimeReceiverComparison(operator, receiver, positional[0], values, meter, undefined, invocation);
         if (name === "__bool__") return values.boolean(receiver.value.length !== 0n);
         if (name === "__len__") return values.integer(runtimeLength(receiver, meter));
-        if (name === "__iter__") return values.iterator(createRuntimeRangeIterator(receiver.value, false, values, meter));
+        if (name === "__iter__") return values.iterator(new RuntimeRangeIterator(receiver, false, values, meter));
         if (name === "__getitem__") return runtimeIndex(receiver, positional[0], values, meter, invocation?.integerIndex);
         if (name === "__contains__") return runtimeMembership("in", positional[0], receiver, values, meter, undefined, invocation);
         if (name === "__repr__") return runtimeNativeRepresentation(receiver, name, values, meter, invocation);

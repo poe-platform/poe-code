@@ -63,7 +63,9 @@ export class MemoryByteStream {
       }
     }
     const count = end - start;
-    meter?.checkpoint(count, count);
+    // Empty copies still own typed-array metadata. Admit it before allocating
+    // the result or advancing the cursor, including repeated reads at EOF.
+    meter?.checkpoint(count, 64 + count);
     const output = this.#buffer.slice(start, end);
     this.#position += BigInt(count);
     return output;
@@ -84,7 +86,9 @@ export class MemoryByteStream {
     this.#checkOpen();
     const start = Number(this.#position < BigInt(this.#length) ? this.#position : BigInt(this.#length));
     const count = Math.min(target.length, this.#length - start);
-    meter?.checkpoint(count);
+    // The borrowed source owns typed-array metadata even at EOF. Admit it
+    // before constructing the view or mutating the destination and cursor.
+    meter?.checkpoint(count, 64);
     const source = this.#buffer.subarray(start, start + count);
     if (target instanceof ByteBufferView) {
       const prefix = target.slice(0n, BigInt(count), 1n, meter);
@@ -142,13 +146,15 @@ export class MemoryByteStream {
   getvalue(meter?: ExecutionMeter): Uint8Array {
     meter?.checkpoint();
     this.#checkOpen();
-    meter?.checkpoint(this.#length, this.#length);
+    // getvalue returns independently owned storage even for an empty stream.
+    meter?.checkpoint(this.#length, 64 + this.#length);
     return this.#buffer.slice(0, this.#length);
   }
 
   getbuffer(meter?: ExecutionMeter): ByteBufferView {
     meter?.checkpoint();
     this.#checkOpen();
+    meter?.checkpoint(1, 96);
     return new ByteBufferView(this.#buffer.subarray(0, this.#length), this.#exports);
   }
 

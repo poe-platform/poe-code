@@ -1,0 +1,18 @@
+{
+  "source": "\nimport _codecs\nassert _codecs.unicode_escape_decode(br'\\q\\777') == ('\\\\q\\u01ff', 6)\n",
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "unicode": "16.0.0",
+  "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+  "warnings": [
+    {
+      "category": "DeprecationWarning",
+      "message": "\"\\q\" is an invalid escape sequence. Such sequences will not work in the future. ",
+      "filename": "native-escape.py",
+      "line": 3
+    }
+  ],
+  "oracle": "import sys,json,warnings,unicodedata,platform\ns=json.load(sys.stdin)\nwith warnings.catch_warnings(record=True) as caught:\n warnings.simplefilter(\"always\")\n exec(compile(s,\"native-escape.py\",\"exec\"))\nprint(json.dumps(dict(source=s,version=sys.version,unicode=unicodedata.unidata_version,platform=platform.platform(),warnings=[dict(category=w.category.__name__,message=str(w.message),filename=w.filename,line=w.lineno) for w in caught])))",
+  "invocation": "/opt/homebrew/bin/python3.14 -I -c <oracle>",
+  "stderr": "",
+  "status": 0
+}

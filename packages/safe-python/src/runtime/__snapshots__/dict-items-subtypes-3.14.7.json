@@ -1,0 +1,1002 @@
+[
+  {
+    "name": "tuple ('a',1) pair in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',1))\nview={'a':1}.items()\ntry:\n result=pair in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "tuple ('a',1) pair not in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',1))\nview={'a':1}.items()\ntry:\n result=pair not in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "tuple ('a',1) view.__contains__(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',1))\nview={'a':1}.items()\ntry:\n result=view.__contains__(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "tuple ('a',1) type(view).__contains__(view,pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',1))\nview={'a':1}.items()\ntry:\n result=type(view).__contains__(view,pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "tuple ('a',1) type(view).__dict__['__contains__'].__get__(view,type(view))(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',1))\nview={'a':1}.items()\ntry:\n result=type(view).__dict__['__contains__'].__get__(view,type(view))(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "tuple ('a',1) view.isdisjoint([pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',1))\nview={'a':1}.items()\ntry:\n result=view.isdisjoint([pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "tuple ('a',1) type(view).isdisjoint(view,[pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',1))\nview={'a':1}.items()\ntry:\n result=type(view).isdisjoint(view,[pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "tuple ('a',1) len(view & [pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',1))\nview={'a':1}.items()\ntry:\n result=len(view & [pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', 1, [])"
+  },
+  {
+    "name": "tuple ('a',1) len([pair] & view)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',1))\nview={'a':1}.items()\ntry:\n result=len([pair] & view)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', 1, [])"
+  },
+  {
+    "name": "tuple ('a',2) pair in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',2))\nview={'a':1}.items()\ntry:\n result=pair in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "tuple ('a',2) pair not in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',2))\nview={'a':1}.items()\ntry:\n result=pair not in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "tuple ('a',2) view.__contains__(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',2))\nview={'a':1}.items()\ntry:\n result=view.__contains__(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "tuple ('a',2) type(view).__contains__(view,pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',2))\nview={'a':1}.items()\ntry:\n result=type(view).__contains__(view,pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "tuple ('a',2) type(view).__dict__['__contains__'].__get__(view,type(view))(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',2))\nview={'a':1}.items()\ntry:\n result=type(view).__dict__['__contains__'].__get__(view,type(view))(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "tuple ('a',2) view.isdisjoint([pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',2))\nview={'a':1}.items()\ntry:\n result=view.isdisjoint([pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "tuple ('a',2) type(view).isdisjoint(view,[pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',2))\nview={'a':1}.items()\ntry:\n result=type(view).isdisjoint(view,[pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "tuple ('a',2) len(view & [pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',2))\nview={'a':1}.items()\ntry:\n result=len(view & [pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', 0, [])"
+  },
+  {
+    "name": "tuple ('a',2) len([pair] & view)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',2))\nview={'a':1}.items()\ntry:\n result=len([pair] & view)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', 0, [])"
+  },
+  {
+    "name": "tuple ('missing',1) pair in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('missing',1))\nview={'a':1}.items()\ntry:\n result=pair in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "tuple ('missing',1) pair not in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('missing',1))\nview={'a':1}.items()\ntry:\n result=pair not in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "tuple ('missing',1) view.__contains__(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('missing',1))\nview={'a':1}.items()\ntry:\n result=view.__contains__(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "tuple ('missing',1) type(view).__contains__(view,pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('missing',1))\nview={'a':1}.items()\ntry:\n result=type(view).__contains__(view,pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "tuple ('missing',1) type(view).__dict__['__contains__'].__get__(view,type(view))(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('missing',1))\nview={'a':1}.items()\ntry:\n result=type(view).__dict__['__contains__'].__get__(view,type(view))(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "tuple ('missing',1) view.isdisjoint([pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('missing',1))\nview={'a':1}.items()\ntry:\n result=view.isdisjoint([pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "tuple ('missing',1) type(view).isdisjoint(view,[pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('missing',1))\nview={'a':1}.items()\ntry:\n result=type(view).isdisjoint(view,[pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "tuple ('missing',1) len(view & [pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('missing',1))\nview={'a':1}.items()\ntry:\n result=len(view & [pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', 0, [])"
+  },
+  {
+    "name": "tuple ('missing',1) len([pair] & view)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('missing',1))\nview={'a':1}.items()\ntry:\n result=len([pair] & view)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', 0, [])"
+  },
+  {
+    "name": "tuple () pair in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(())\nview={'a':1}.items()\ntry:\n result=pair in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "tuple () pair not in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(())\nview={'a':1}.items()\ntry:\n result=pair not in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "tuple () view.__contains__(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(())\nview={'a':1}.items()\ntry:\n result=view.__contains__(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "tuple () type(view).__contains__(view,pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(())\nview={'a':1}.items()\ntry:\n result=type(view).__contains__(view,pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "tuple () type(view).__dict__['__contains__'].__get__(view,type(view))(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(())\nview={'a':1}.items()\ntry:\n result=type(view).__dict__['__contains__'].__get__(view,type(view))(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "tuple () view.isdisjoint([pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(())\nview={'a':1}.items()\ntry:\n result=view.isdisjoint([pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "tuple () type(view).isdisjoint(view,[pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(())\nview={'a':1}.items()\ntry:\n result=type(view).isdisjoint(view,[pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "tuple () len(view & [pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(())\nview={'a':1}.items()\ntry:\n result=len(view & [pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', 0, [])"
+  },
+  {
+    "name": "tuple () len([pair] & view)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(())\nview={'a':1}.items()\ntry:\n result=len([pair] & view)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', 0, [])"
+  },
+  {
+    "name": "tuple ('a',) pair in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',))\nview={'a':1}.items()\ntry:\n result=pair in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "tuple ('a',) pair not in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',))\nview={'a':1}.items()\ntry:\n result=pair not in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "tuple ('a',) view.__contains__(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',))\nview={'a':1}.items()\ntry:\n result=view.__contains__(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "tuple ('a',) type(view).__contains__(view,pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',))\nview={'a':1}.items()\ntry:\n result=type(view).__contains__(view,pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "tuple ('a',) type(view).__dict__['__contains__'].__get__(view,type(view))(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',))\nview={'a':1}.items()\ntry:\n result=type(view).__dict__['__contains__'].__get__(view,type(view))(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "tuple ('a',) view.isdisjoint([pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',))\nview={'a':1}.items()\ntry:\n result=view.isdisjoint([pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "tuple ('a',) type(view).isdisjoint(view,[pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',))\nview={'a':1}.items()\ntry:\n result=type(view).isdisjoint(view,[pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "tuple ('a',) len(view & [pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',))\nview={'a':1}.items()\ntry:\n result=len(view & [pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', 0, [])"
+  },
+  {
+    "name": "tuple ('a',) len([pair] & view)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',))\nview={'a':1}.items()\ntry:\n result=len([pair] & view)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', 0, [])"
+  },
+  {
+    "name": "tuple ('a',1,2) pair in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',1,2))\nview={'a':1}.items()\ntry:\n result=pair in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "tuple ('a',1,2) pair not in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',1,2))\nview={'a':1}.items()\ntry:\n result=pair not in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "tuple ('a',1,2) view.__contains__(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',1,2))\nview={'a':1}.items()\ntry:\n result=view.__contains__(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "tuple ('a',1,2) type(view).__contains__(view,pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',1,2))\nview={'a':1}.items()\ntry:\n result=type(view).__contains__(view,pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "tuple ('a',1,2) type(view).__dict__['__contains__'].__get__(view,type(view))(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',1,2))\nview={'a':1}.items()\ntry:\n result=type(view).__dict__['__contains__'].__get__(view,type(view))(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "tuple ('a',1,2) view.isdisjoint([pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',1,2))\nview={'a':1}.items()\ntry:\n result=view.isdisjoint([pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "tuple ('a',1,2) type(view).isdisjoint(view,[pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',1,2))\nview={'a':1}.items()\ntry:\n result=type(view).isdisjoint(view,[pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "tuple ('a',1,2) len(view & [pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',1,2))\nview={'a':1}.items()\ntry:\n result=len(view & [pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', 0, [])"
+  },
+  {
+    "name": "tuple ('a',1,2) len([pair] & view)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',1,2))\nview={'a':1}.items()\ntry:\n result=len([pair] & view)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', 0, [])"
+  },
+  {
+    "name": "tuple ([],1) pair in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(([],1))\nview={'a':1}.items()\ntry:\n result=pair in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"cannot use 'list' as a dict key (unhashable type: 'list')\",), [])"
+  },
+  {
+    "name": "tuple ([],1) pair not in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(([],1))\nview={'a':1}.items()\ntry:\n result=pair not in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"cannot use 'list' as a dict key (unhashable type: 'list')\",), [])"
+  },
+  {
+    "name": "tuple ([],1) view.__contains__(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(([],1))\nview={'a':1}.items()\ntry:\n result=view.__contains__(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"cannot use 'list' as a dict key (unhashable type: 'list')\",), [])"
+  },
+  {
+    "name": "tuple ([],1) type(view).__contains__(view,pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(([],1))\nview={'a':1}.items()\ntry:\n result=type(view).__contains__(view,pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"cannot use 'list' as a dict key (unhashable type: 'list')\",), [])"
+  },
+  {
+    "name": "tuple ([],1) type(view).__dict__['__contains__'].__get__(view,type(view))(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(([],1))\nview={'a':1}.items()\ntry:\n result=type(view).__dict__['__contains__'].__get__(view,type(view))(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"cannot use 'list' as a dict key (unhashable type: 'list')\",), [])"
+  },
+  {
+    "name": "tuple ([],1) view.isdisjoint([pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(([],1))\nview={'a':1}.items()\ntry:\n result=view.isdisjoint([pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"cannot use 'list' as a dict key (unhashable type: 'list')\",), [])"
+  },
+  {
+    "name": "tuple ([],1) type(view).isdisjoint(view,[pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(([],1))\nview={'a':1}.items()\ntry:\n result=type(view).isdisjoint(view,[pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"cannot use 'list' as a dict key (unhashable type: 'list')\",), [])"
+  },
+  {
+    "name": "tuple ([],1) len(view & [pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(([],1))\nview={'a':1}.items()\ntry:\n result=len(view & [pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"cannot use 'list' as a dict key (unhashable type: 'list')\",), [])"
+  },
+  {
+    "name": "tuple ([],1) len([pair] & view)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(([],1))\nview={'a':1}.items()\ntry:\n result=len([pair] & view)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"cannot use 'list' as a dict key (unhashable type: 'list')\",), [])"
+  },
+  {
+    "name": "tuple ('a',[]) pair in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',[]))\nview={'a':1}.items()\ntry:\n result=pair in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "tuple ('a',[]) pair not in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',[]))\nview={'a':1}.items()\ntry:\n result=pair not in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "tuple ('a',[]) view.__contains__(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',[]))\nview={'a':1}.items()\ntry:\n result=view.__contains__(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "tuple ('a',[]) type(view).__contains__(view,pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',[]))\nview={'a':1}.items()\ntry:\n result=type(view).__contains__(view,pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "tuple ('a',[]) type(view).__dict__['__contains__'].__get__(view,type(view))(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',[]))\nview={'a':1}.items()\ntry:\n result=type(view).__dict__['__contains__'].__get__(view,type(view))(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "tuple ('a',[]) view.isdisjoint([pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',[]))\nview={'a':1}.items()\ntry:\n result=view.isdisjoint([pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "tuple ('a',[]) type(view).isdisjoint(view,[pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',[]))\nview={'a':1}.items()\ntry:\n result=type(view).isdisjoint(view,[pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "tuple ('a',[]) len(view & [pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',[]))\nview={'a':1}.items()\ntry:\n result=len(view & [pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', 0, [])"
+  },
+  {
+    "name": "tuple ('a',[]) len([pair] & view)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',[]))\nview={'a':1}.items()\ntry:\n result=len([pair] & view)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', 0, [])"
+  },
+  {
+    "name": "Pair ('a',1) pair in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',1))\nview={'a':1}.items()\ntry:\n result=pair in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "Pair ('a',1) pair not in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',1))\nview={'a':1}.items()\ntry:\n result=pair not in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "Pair ('a',1) view.__contains__(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',1))\nview={'a':1}.items()\ntry:\n result=view.__contains__(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "Pair ('a',1) type(view).__contains__(view,pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',1))\nview={'a':1}.items()\ntry:\n result=type(view).__contains__(view,pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "Pair ('a',1) type(view).__dict__['__contains__'].__get__(view,type(view))(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',1))\nview={'a':1}.items()\ntry:\n result=type(view).__dict__['__contains__'].__get__(view,type(view))(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "Pair ('a',1) view.isdisjoint([pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',1))\nview={'a':1}.items()\ntry:\n result=view.isdisjoint([pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "Pair ('a',1) type(view).isdisjoint(view,[pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',1))\nview={'a':1}.items()\ntry:\n result=type(view).isdisjoint(view,[pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "Pair ('a',1) len(view & [pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',1))\nview={'a':1}.items()\ntry:\n result=len(view & [pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', 1, [])"
+  },
+  {
+    "name": "Pair ('a',1) len([pair] & view)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',1))\nview={'a':1}.items()\ntry:\n result=len([pair] & view)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', 1, [])"
+  },
+  {
+    "name": "Pair ('a',2) pair in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',2))\nview={'a':1}.items()\ntry:\n result=pair in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "Pair ('a',2) pair not in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',2))\nview={'a':1}.items()\ntry:\n result=pair not in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "Pair ('a',2) view.__contains__(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',2))\nview={'a':1}.items()\ntry:\n result=view.__contains__(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "Pair ('a',2) type(view).__contains__(view,pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',2))\nview={'a':1}.items()\ntry:\n result=type(view).__contains__(view,pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "Pair ('a',2) type(view).__dict__['__contains__'].__get__(view,type(view))(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',2))\nview={'a':1}.items()\ntry:\n result=type(view).__dict__['__contains__'].__get__(view,type(view))(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "Pair ('a',2) view.isdisjoint([pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',2))\nview={'a':1}.items()\ntry:\n result=view.isdisjoint([pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "Pair ('a',2) type(view).isdisjoint(view,[pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',2))\nview={'a':1}.items()\ntry:\n result=type(view).isdisjoint(view,[pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "Pair ('a',2) len(view & [pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',2))\nview={'a':1}.items()\ntry:\n result=len(view & [pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', 0, [])"
+  },
+  {
+    "name": "Pair ('a',2) len([pair] & view)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',2))\nview={'a':1}.items()\ntry:\n result=len([pair] & view)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', 0, [])"
+  },
+  {
+    "name": "Pair ('missing',1) pair in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('missing',1))\nview={'a':1}.items()\ntry:\n result=pair in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "Pair ('missing',1) pair not in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('missing',1))\nview={'a':1}.items()\ntry:\n result=pair not in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "Pair ('missing',1) view.__contains__(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('missing',1))\nview={'a':1}.items()\ntry:\n result=view.__contains__(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "Pair ('missing',1) type(view).__contains__(view,pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('missing',1))\nview={'a':1}.items()\ntry:\n result=type(view).__contains__(view,pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "Pair ('missing',1) type(view).__dict__['__contains__'].__get__(view,type(view))(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('missing',1))\nview={'a':1}.items()\ntry:\n result=type(view).__dict__['__contains__'].__get__(view,type(view))(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "Pair ('missing',1) view.isdisjoint([pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('missing',1))\nview={'a':1}.items()\ntry:\n result=view.isdisjoint([pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "Pair ('missing',1) type(view).isdisjoint(view,[pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('missing',1))\nview={'a':1}.items()\ntry:\n result=type(view).isdisjoint(view,[pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "Pair ('missing',1) len(view & [pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('missing',1))\nview={'a':1}.items()\ntry:\n result=len(view & [pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', 0, [])"
+  },
+  {
+    "name": "Pair ('missing',1) len([pair] & view)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('missing',1))\nview={'a':1}.items()\ntry:\n result=len([pair] & view)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', 0, [])"
+  },
+  {
+    "name": "Pair () pair in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(())\nview={'a':1}.items()\ntry:\n result=pair in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "Pair () pair not in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(())\nview={'a':1}.items()\ntry:\n result=pair not in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "Pair () view.__contains__(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(())\nview={'a':1}.items()\ntry:\n result=view.__contains__(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "Pair () type(view).__contains__(view,pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(())\nview={'a':1}.items()\ntry:\n result=type(view).__contains__(view,pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "Pair () type(view).__dict__['__contains__'].__get__(view,type(view))(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(())\nview={'a':1}.items()\ntry:\n result=type(view).__dict__['__contains__'].__get__(view,type(view))(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "Pair () view.isdisjoint([pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(())\nview={'a':1}.items()\ntry:\n result=view.isdisjoint([pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "Pair () type(view).isdisjoint(view,[pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(())\nview={'a':1}.items()\ntry:\n result=type(view).isdisjoint(view,[pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "Pair () len(view & [pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(())\nview={'a':1}.items()\ntry:\n result=len(view & [pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', 0, [])"
+  },
+  {
+    "name": "Pair () len([pair] & view)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(())\nview={'a':1}.items()\ntry:\n result=len([pair] & view)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', 0, [])"
+  },
+  {
+    "name": "Pair ('a',) pair in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',))\nview={'a':1}.items()\ntry:\n result=pair in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "Pair ('a',) pair not in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',))\nview={'a':1}.items()\ntry:\n result=pair not in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "Pair ('a',) view.__contains__(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',))\nview={'a':1}.items()\ntry:\n result=view.__contains__(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "Pair ('a',) type(view).__contains__(view,pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',))\nview={'a':1}.items()\ntry:\n result=type(view).__contains__(view,pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "Pair ('a',) type(view).__dict__['__contains__'].__get__(view,type(view))(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',))\nview={'a':1}.items()\ntry:\n result=type(view).__dict__['__contains__'].__get__(view,type(view))(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "Pair ('a',) view.isdisjoint([pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',))\nview={'a':1}.items()\ntry:\n result=view.isdisjoint([pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "Pair ('a',) type(view).isdisjoint(view,[pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',))\nview={'a':1}.items()\ntry:\n result=type(view).isdisjoint(view,[pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "Pair ('a',) len(view & [pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',))\nview={'a':1}.items()\ntry:\n result=len(view & [pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', 0, [])"
+  },
+  {
+    "name": "Pair ('a',) len([pair] & view)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',))\nview={'a':1}.items()\ntry:\n result=len([pair] & view)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', 0, [])"
+  },
+  {
+    "name": "Pair ('a',1,2) pair in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',1,2))\nview={'a':1}.items()\ntry:\n result=pair in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "Pair ('a',1,2) pair not in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',1,2))\nview={'a':1}.items()\ntry:\n result=pair not in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "Pair ('a',1,2) view.__contains__(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',1,2))\nview={'a':1}.items()\ntry:\n result=view.__contains__(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "Pair ('a',1,2) type(view).__contains__(view,pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',1,2))\nview={'a':1}.items()\ntry:\n result=type(view).__contains__(view,pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "Pair ('a',1,2) type(view).__dict__['__contains__'].__get__(view,type(view))(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',1,2))\nview={'a':1}.items()\ntry:\n result=type(view).__dict__['__contains__'].__get__(view,type(view))(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "Pair ('a',1,2) view.isdisjoint([pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',1,2))\nview={'a':1}.items()\ntry:\n result=view.isdisjoint([pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "Pair ('a',1,2) type(view).isdisjoint(view,[pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',1,2))\nview={'a':1}.items()\ntry:\n result=type(view).isdisjoint(view,[pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "Pair ('a',1,2) len(view & [pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',1,2))\nview={'a':1}.items()\ntry:\n result=len(view & [pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', 0, [])"
+  },
+  {
+    "name": "Pair ('a',1,2) len([pair] & view)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',1,2))\nview={'a':1}.items()\ntry:\n result=len([pair] & view)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', 0, [])"
+  },
+  {
+    "name": "Pair ([],1) pair in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(([],1))\nview={'a':1}.items()\ntry:\n result=pair in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"cannot use 'list' as a dict key (unhashable type: 'list')\",), [])"
+  },
+  {
+    "name": "Pair ([],1) pair not in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(([],1))\nview={'a':1}.items()\ntry:\n result=pair not in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"cannot use 'list' as a dict key (unhashable type: 'list')\",), [])"
+  },
+  {
+    "name": "Pair ([],1) view.__contains__(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(([],1))\nview={'a':1}.items()\ntry:\n result=view.__contains__(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"cannot use 'list' as a dict key (unhashable type: 'list')\",), [])"
+  },
+  {
+    "name": "Pair ([],1) type(view).__contains__(view,pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(([],1))\nview={'a':1}.items()\ntry:\n result=type(view).__contains__(view,pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"cannot use 'list' as a dict key (unhashable type: 'list')\",), [])"
+  },
+  {
+    "name": "Pair ([],1) type(view).__dict__['__contains__'].__get__(view,type(view))(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(([],1))\nview={'a':1}.items()\ntry:\n result=type(view).__dict__['__contains__'].__get__(view,type(view))(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"cannot use 'list' as a dict key (unhashable type: 'list')\",), [])"
+  },
+  {
+    "name": "Pair ([],1) view.isdisjoint([pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(([],1))\nview={'a':1}.items()\ntry:\n result=view.isdisjoint([pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"cannot use 'list' as a dict key (unhashable type: 'list')\",), [])"
+  },
+  {
+    "name": "Pair ([],1) type(view).isdisjoint(view,[pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(([],1))\nview={'a':1}.items()\ntry:\n result=type(view).isdisjoint(view,[pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"cannot use 'list' as a dict key (unhashable type: 'list')\",), [])"
+  },
+  {
+    "name": "Pair ([],1) len(view & [pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(([],1))\nview={'a':1}.items()\ntry:\n result=len(view & [pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"cannot use 'list' as a dict key (unhashable type: 'list')\",), [])"
+  },
+  {
+    "name": "Pair ([],1) len([pair] & view)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(([],1))\nview={'a':1}.items()\ntry:\n result=len([pair] & view)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('error', 'TypeError', (\"cannot use 'list' as a dict key (unhashable type: 'list')\",), [])"
+  },
+  {
+    "name": "Pair ('a',[]) pair in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',[]))\nview={'a':1}.items()\ntry:\n result=pair in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "Pair ('a',[]) pair not in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',[]))\nview={'a':1}.items()\ntry:\n result=pair not in view\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "Pair ('a',[]) view.__contains__(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',[]))\nview={'a':1}.items()\ntry:\n result=view.__contains__(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "Pair ('a',[]) type(view).__contains__(view,pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',[]))\nview={'a':1}.items()\ntry:\n result=type(view).__contains__(view,pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "Pair ('a',[]) type(view).__dict__['__contains__'].__get__(view,type(view))(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',[]))\nview={'a':1}.items()\ntry:\n result=type(view).__dict__['__contains__'].__get__(view,type(view))(pair)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', False, [])"
+  },
+  {
+    "name": "Pair ('a',[]) view.isdisjoint([pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',[]))\nview={'a':1}.items()\ntry:\n result=view.isdisjoint([pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "Pair ('a',[]) type(view).isdisjoint(view,[pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',[]))\nview={'a':1}.items()\ntry:\n result=type(view).isdisjoint(view,[pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', True, [])"
+  },
+  {
+    "name": "Pair ('a',[]) len(view & [pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',[]))\nview={'a':1}.items()\ntry:\n result=len(view & [pair])\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', 0, [])"
+  },
+  {
+    "name": "Pair ('a',[]) len([pair] & view)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',[]))\nview={'a':1}.items()\ntry:\n result=len([pair] & view)\n observation=('value',result,events)\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,events)",
+    "expected": "('value', 0, [])"
+  },
+  {
+    "name": "tuple equal pair in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  return True\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=tuple(('a',b))\ntry:\n result=pair in view\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', True, ['eq'], 1)"
+  },
+  {
+    "name": "tuple equal view.__contains__(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  return True\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=tuple(('a',b))\ntry:\n result=view.__contains__(pair)\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', True, ['eq'], 1)"
+  },
+  {
+    "name": "tuple equal type(view).__contains__(view,pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  return True\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=tuple(('a',b))\ntry:\n result=type(view).__contains__(view,pair)\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', True, ['eq'], 1)"
+  },
+  {
+    "name": "tuple equal view.isdisjoint([pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  return True\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=tuple(('a',b))\ntry:\n result=view.isdisjoint([pair])\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', False, ['eq'], 1)"
+  },
+  {
+    "name": "tuple unequal pair in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  return False\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=tuple(('a',b))\ntry:\n result=pair in view\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', False, ['eq'], 1)"
+  },
+  {
+    "name": "tuple unequal view.__contains__(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  return False\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=tuple(('a',b))\ntry:\n result=view.__contains__(pair)\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', False, ['eq'], 1)"
+  },
+  {
+    "name": "tuple unequal type(view).__contains__(view,pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  return False\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=tuple(('a',b))\ntry:\n result=type(view).__contains__(view,pair)\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', False, ['eq'], 1)"
+  },
+  {
+    "name": "tuple unequal view.isdisjoint([pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  return False\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=tuple(('a',b))\ntry:\n result=view.isdisjoint([pair])\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', True, ['eq'], 1)"
+  },
+  {
+    "name": "tuple raise pair in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  raise failure\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=tuple(('a',b))\ntry:\n result=pair in view\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('error', 'Failure', ('comparison',), True, ['eq'], 1)"
+  },
+  {
+    "name": "tuple raise view.__contains__(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  raise failure\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=tuple(('a',b))\ntry:\n result=view.__contains__(pair)\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('error', 'Failure', ('comparison',), True, ['eq'], 1)"
+  },
+  {
+    "name": "tuple raise type(view).__contains__(view,pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  raise failure\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=tuple(('a',b))\ntry:\n result=type(view).__contains__(view,pair)\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('error', 'Failure', ('comparison',), True, ['eq'], 1)"
+  },
+  {
+    "name": "tuple raise view.isdisjoint([pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  raise failure\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=tuple(('a',b))\ntry:\n result=view.isdisjoint([pair])\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('error', 'Failure', ('comparison',), True, ['eq'], 1)"
+  },
+  {
+    "name": "tuple mutate pair in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  d.clear()\n  return True\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=tuple(('a',b))\ntry:\n result=pair in view\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', True, ['eq'], 0)"
+  },
+  {
+    "name": "tuple mutate view.__contains__(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  d.clear()\n  return True\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=tuple(('a',b))\ntry:\n result=view.__contains__(pair)\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', True, ['eq'], 0)"
+  },
+  {
+    "name": "tuple mutate type(view).__contains__(view,pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  d.clear()\n  return True\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=tuple(('a',b))\ntry:\n result=type(view).__contains__(view,pair)\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', True, ['eq'], 0)"
+  },
+  {
+    "name": "tuple mutate view.isdisjoint([pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  d.clear()\n  return True\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=tuple(('a',b))\ntry:\n result=view.isdisjoint([pair])\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', False, ['eq'], 0)"
+  },
+  {
+    "name": "tuple truth_raise pair in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  return Truth()\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=tuple(('a',b))\ntry:\n result=pair in view\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('error', 'Failure', ('comparison',), True, ['eq', 'truth'], 1)"
+  },
+  {
+    "name": "tuple truth_raise view.__contains__(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  return Truth()\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=tuple(('a',b))\ntry:\n result=view.__contains__(pair)\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('error', 'Failure', ('comparison',), True, ['eq', 'truth'], 1)"
+  },
+  {
+    "name": "tuple truth_raise type(view).__contains__(view,pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  return Truth()\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=tuple(('a',b))\ntry:\n result=type(view).__contains__(view,pair)\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('error', 'Failure', ('comparison',), True, ['eq', 'truth'], 1)"
+  },
+  {
+    "name": "tuple truth_raise view.isdisjoint([pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  return Truth()\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=tuple(('a',b))\ntry:\n result=view.isdisjoint([pair])\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('error', 'Failure', ('comparison',), True, ['eq', 'truth'], 1)"
+  },
+  {
+    "name": "tuple identity pair in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  raise failure\na=Value()\nb=a\nd={'a':a}\nview=d.items()\npair=tuple(('a',b))\ntry:\n result=pair in view\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', True, [], 1)"
+  },
+  {
+    "name": "tuple identity view.__contains__(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  raise failure\na=Value()\nb=a\nd={'a':a}\nview=d.items()\npair=tuple(('a',b))\ntry:\n result=view.__contains__(pair)\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', True, [], 1)"
+  },
+  {
+    "name": "tuple identity type(view).__contains__(view,pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  raise failure\na=Value()\nb=a\nd={'a':a}\nview=d.items()\npair=tuple(('a',b))\ntry:\n result=type(view).__contains__(view,pair)\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', True, [], 1)"
+  },
+  {
+    "name": "tuple identity view.isdisjoint([pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  raise failure\na=Value()\nb=a\nd={'a':a}\nview=d.items()\npair=tuple(('a',b))\ntry:\n result=view.isdisjoint([pair])\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', False, [], 1)"
+  },
+  {
+    "name": "Pair equal pair in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  return True\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=Pair(('a',b))\ntry:\n result=pair in view\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', True, ['eq'], 1)"
+  },
+  {
+    "name": "Pair equal view.__contains__(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  return True\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=Pair(('a',b))\ntry:\n result=view.__contains__(pair)\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', True, ['eq'], 1)"
+  },
+  {
+    "name": "Pair equal type(view).__contains__(view,pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  return True\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=Pair(('a',b))\ntry:\n result=type(view).__contains__(view,pair)\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', True, ['eq'], 1)"
+  },
+  {
+    "name": "Pair equal view.isdisjoint([pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  return True\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=Pair(('a',b))\ntry:\n result=view.isdisjoint([pair])\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', False, ['eq'], 1)"
+  },
+  {
+    "name": "Pair unequal pair in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  return False\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=Pair(('a',b))\ntry:\n result=pair in view\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', False, ['eq'], 1)"
+  },
+  {
+    "name": "Pair unequal view.__contains__(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  return False\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=Pair(('a',b))\ntry:\n result=view.__contains__(pair)\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', False, ['eq'], 1)"
+  },
+  {
+    "name": "Pair unequal type(view).__contains__(view,pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  return False\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=Pair(('a',b))\ntry:\n result=type(view).__contains__(view,pair)\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', False, ['eq'], 1)"
+  },
+  {
+    "name": "Pair unequal view.isdisjoint([pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  return False\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=Pair(('a',b))\ntry:\n result=view.isdisjoint([pair])\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', True, ['eq'], 1)"
+  },
+  {
+    "name": "Pair raise pair in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  raise failure\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=Pair(('a',b))\ntry:\n result=pair in view\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('error', 'Failure', ('comparison',), True, ['eq'], 1)"
+  },
+  {
+    "name": "Pair raise view.__contains__(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  raise failure\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=Pair(('a',b))\ntry:\n result=view.__contains__(pair)\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('error', 'Failure', ('comparison',), True, ['eq'], 1)"
+  },
+  {
+    "name": "Pair raise type(view).__contains__(view,pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  raise failure\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=Pair(('a',b))\ntry:\n result=type(view).__contains__(view,pair)\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('error', 'Failure', ('comparison',), True, ['eq'], 1)"
+  },
+  {
+    "name": "Pair raise view.isdisjoint([pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  raise failure\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=Pair(('a',b))\ntry:\n result=view.isdisjoint([pair])\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('error', 'Failure', ('comparison',), True, ['eq'], 1)"
+  },
+  {
+    "name": "Pair mutate pair in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  d.clear()\n  return True\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=Pair(('a',b))\ntry:\n result=pair in view\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', True, ['eq'], 0)"
+  },
+  {
+    "name": "Pair mutate view.__contains__(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  d.clear()\n  return True\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=Pair(('a',b))\ntry:\n result=view.__contains__(pair)\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', True, ['eq'], 0)"
+  },
+  {
+    "name": "Pair mutate type(view).__contains__(view,pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  d.clear()\n  return True\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=Pair(('a',b))\ntry:\n result=type(view).__contains__(view,pair)\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', True, ['eq'], 0)"
+  },
+  {
+    "name": "Pair mutate view.isdisjoint([pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  d.clear()\n  return True\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=Pair(('a',b))\ntry:\n result=view.isdisjoint([pair])\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', False, ['eq'], 0)"
+  },
+  {
+    "name": "Pair truth_raise pair in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  return Truth()\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=Pair(('a',b))\ntry:\n result=pair in view\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('error', 'Failure', ('comparison',), True, ['eq', 'truth'], 1)"
+  },
+  {
+    "name": "Pair truth_raise view.__contains__(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  return Truth()\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=Pair(('a',b))\ntry:\n result=view.__contains__(pair)\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('error', 'Failure', ('comparison',), True, ['eq', 'truth'], 1)"
+  },
+  {
+    "name": "Pair truth_raise type(view).__contains__(view,pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  return Truth()\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=Pair(('a',b))\ntry:\n result=type(view).__contains__(view,pair)\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('error', 'Failure', ('comparison',), True, ['eq', 'truth'], 1)"
+  },
+  {
+    "name": "Pair truth_raise view.isdisjoint([pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  return Truth()\na=Value()\nb=Value()\nd={'a':a}\nview=d.items()\npair=Pair(('a',b))\ntry:\n result=view.isdisjoint([pair])\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('error', 'Failure', ('comparison',), True, ['eq', 'truth'], 1)"
+  },
+  {
+    "name": "Pair identity pair in view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  raise failure\na=Value()\nb=a\nd={'a':a}\nview=d.items()\npair=Pair(('a',b))\ntry:\n result=pair in view\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', True, [], 1)"
+  },
+  {
+    "name": "Pair identity view.__contains__(pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  raise failure\na=Value()\nb=a\nd={'a':a}\nview=d.items()\npair=Pair(('a',b))\ntry:\n result=view.__contains__(pair)\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', True, [], 1)"
+  },
+  {
+    "name": "Pair identity type(view).__contains__(view,pair)",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  raise failure\na=Value()\nb=a\nd={'a':a}\nview=d.items()\npair=Pair(('a',b))\ntry:\n result=type(view).__contains__(view,pair)\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', True, [], 1)"
+  },
+  {
+    "name": "Pair identity view.isdisjoint([pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\nclass Failure(ValueError): pass\nfailure=Failure('comparison')\nclass Truth:\n def __bool__(self):\n  events.append('truth')\n  raise failure\nclass Value:\n def __eq__(self,other):\n  events.append('eq')\n  raise failure\na=Value()\nb=a\nd={'a':a}\nview=d.items()\npair=Pair(('a',b))\ntry:\n result=view.isdisjoint([pair])\n observation=('value',result,events,len(d))\nexcept Exception as e:\n observation=('error',type(e).__name__,e.args,e is failure,events,len(d))",
+    "expected": "('value', False, [], 1)"
+  },
+  {
+    "name": "tuple result identity view & [pair]",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',1))\nview={'a':1}.items()\nresult=view & [pair]\nobservation=(len(result),next(iter(result)) is pair,events)",
+    "expected": "(1, True, [])"
+  },
+  {
+    "name": "tuple result identity [pair] & view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',1))\nview={'a':1}.items()\nresult=[pair] & view\nobservation=(len(result),next(iter(result)) is pair,events)",
+    "expected": "(1, True, [])"
+  },
+  {
+    "name": "tuple result identity view.__and__([pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',1))\nview={'a':1}.items()\nresult=view.__and__([pair])\nobservation=(len(result),next(iter(result)) is pair,events)",
+    "expected": "(1, True, [])"
+  },
+  {
+    "name": "tuple result identity type(view).__and__(view,[pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=tuple(('a',1))\nview={'a':1}.items()\nresult=type(view).__and__(view,[pair])\nobservation=(len(result),next(iter(result)) is pair,events)",
+    "expected": "(1, True, [])"
+  },
+  {
+    "name": "Pair result identity view & [pair]",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',1))\nview={'a':1}.items()\nresult=view & [pair]\nobservation=(len(result),next(iter(result)) is pair,events)",
+    "expected": "(1, True, [])"
+  },
+  {
+    "name": "Pair result identity [pair] & view",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',1))\nview={'a':1}.items()\nresult=[pair] & view\nobservation=(len(result),next(iter(result)) is pair,events)",
+    "expected": "(1, True, [])"
+  },
+  {
+    "name": "Pair result identity view.__and__([pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',1))\nview={'a':1}.items()\nresult=view.__and__([pair])\nobservation=(len(result),next(iter(result)) is pair,events)",
+    "expected": "(1, True, [])"
+  },
+  {
+    "name": "Pair result identity type(view).__and__(view,[pair])",
+    "source": "events=[]\nclass Pair(tuple):\n def __len__(self):\n  events.append('len')\n  raise ValueError('len override')\n def __getitem__(self,index):\n  events.append('getitem')\n  raise ValueError('getitem override')\n def __iter__(self):\n  events.append('iter')\n  raise ValueError('iter override')\npair=Pair(('a',1))\nview={'a':1}.items()\nresult=type(view).__and__(view,[pair])\nobservation=(len(result),next(iter(result)) is pair,events)",
+    "expected": "(1, True, [])"
+  }
+]

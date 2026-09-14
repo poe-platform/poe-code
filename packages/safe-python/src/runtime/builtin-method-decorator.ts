@@ -1,3 +1,4 @@
+import {methodDecoratorDocumentation} from "./runtime-method-decorator-documentation.js";
 import { PythonRuntimeError } from "./error.js";
 import { runtimeExceptionMatches } from "./runtime-exception-matches.js";
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
@@ -13,6 +14,7 @@ import { createRuntimeRepresentationContext } from "./runtime-representation.js"
  * ignores extra arguments and produces a None-backed, metadata-empty wrapper. */
 export function installMethodDecoratorBuiltins(kind: "staticmethod" | "classmethod", owner: TypeValue, values: RuntimeValues, meter: ExecutionMeter, keys: KeyOperations<RuntimeValue>, owns: (type: TypeValue) => boolean): void {
   meter.checkpoint(1, 192);
+  owner.value.namespace.items.set(values.string("__doc__"),values.string(methodDecoratorDocumentation[kind]));
   const accepts = (instance: RuntimeValue, meter: ExecutionMeter): boolean => {
     if (instance.kind !== kind) return false;
     if (instance.type === undefined) return true;

@@ -3,11 +3,17 @@ import { PythonRuntimeError } from "./error.js";
 import { invokeFunction, type FunctionInvocationContext } from "./function-invocation.js";
 import { OrderedKeyMap, type KeyOperations } from "./ordered-key-map.js";
 import { runtimeDictionaryStorage } from "./runtime-dictionary-storage.js";
+import { runtimeDictionaryPayload } from "./runtime-dictionary-payload.js";
+import { runtimeTuplePayload } from "./runtime-tuple-payload.js";
+import { runtimeStringPayload } from "./runtime-string-payload.js";
+import type { FormatContext } from "./format-protocol.js";
+import { representationObject } from "./representation-protocol.js";
 import type { DictionaryValue, FunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
 export interface RuntimeFunctionContext extends Pick<FunctionInvocationContext<RuntimeValue, RuntimeValue>, "calls" | "body" | "suspended" | "classBody" | "moduleBody"> {
   readonly values: RuntimeValues;
   readonly keys: KeyOperations<RuntimeValue>;
+  readonly formatting?: FormatContext<RuntimeValue>;
 }
 
 /** Host diagnostic/source-name text only. Original keyword records remain in
@@ -19,7 +25,7 @@ function stringText(value: Extract<RuntimeValue, { kind: "str" }>, meter: Execut
 }
 
 /** Invoke a captured concrete function using collected arguments. Binding keeps
- * original keyword records, matches only exact source spellings, and builds fresh
+ * original keyword records, uses guest string equality, and builds fresh
  * tuple/dictionary variadics. Surrogates cannot occur in source identifiers and
  * must not accidentally match an astral identifier after UTF-16 conversion.
  * Namespace/closure storage remains live. Definition installation, suspension
@@ -32,7 +38,6 @@ export function invokeRuntimeFunction(fn: FunctionValue, positional: readonly Ru
   const keywordValues = new Map<RuntimeValue, RuntimeValue>();
   for (const [key, value] of keywords.items.snapshot()) {
     meter.checkpoint(1, 48);
-    if (key.kind !== "str") throw new PythonRuntimeError("TypeError", "keywords must be strings");
     keywordValues.set(key, value);
   }
   const invocation: FunctionInvocationContext<RuntimeValue, RuntimeValue> = {
@@ -50,30 +55,50 @@ export function invokeRuntimeFunction(fn: FunctionValue, positional: readonly Ru
   if (context.moduleBody) invocation.moduleBody = context.moduleBody.bind(context);
   return invokeFunction(state.code, {
     name: stringText(state.qualifiedName, meter), positional, keywords: keywordValues, defaults: state.defaults,
-    defaultOverrides: state.positionalDefaults === undefined && state.keywordDefaults === undefined ? undefined : {
+    defaultOverrides: {
       get positional() {
         const value = state.positionalDefaults;
         if (value === undefined) return undefined;
         if (value.kind === "none") return null;
-        if (value.kind !== "tuple") throw Error("invalid positional default storage");
-        return value.items;
+        const payload = runtimeTuplePayload(value);
+        if (payload === undefined) throw Error("invalid positional default storage");
+        return payload.items;
       },
-      keyword: state.keywordDefaults === undefined ? undefined : name => {
-        const value = state.keywordDefaults;
-        if (value === undefined || value.kind === "none") return undefined;
-        if (value.kind !== "dict") throw Error("invalid keyword default storage");
-        return value.items.lookup(context.values.string(name));
+      get keyword() {
+        if (state.keywordDefaults === undefined) return undefined;
+        return (name: string) => {
+          const value = state.keywordDefaults;
+          if (value === undefined || value.kind === "none") return undefined;
+          const payload = runtimeDictionaryPayload(value);
+          if (payload === undefined) throw Error("invalid keyword default storage");
+          return payload.items.lookup(context.values.internString(name));
+        };
       }
     },
     keywordNames: {
       parameter(key) {
-        if (key.kind !== "str") throw new PythonRuntimeError("TypeError", "keywords must be strings");
-        for (const point of key.value) { meter.checkpoint(); if (point >= 0xd800 && point <= 0xdfff) return undefined; }
-        return stringText(key, meter);
+        const payload = runtimeStringPayload(key);
+        if (payload === undefined) throw new PythonRuntimeError("TypeError", "keywords must be strings");
+        for (const point of payload.value) { meter.checkpoint(); if (point >= 0xd800 && point <= 0xdfff) return undefined; }
+        return stringText(payload, meter);
       },
-      display(key) {
-        if (key.kind !== "str") throw new PythonRuntimeError("TypeError", "keywords must be strings");
-        return stringText(key, meter);
+      matches(key, name) {
+        // Parameter names belong to the code object's interned name pool.
+        // Keyword subclasses can retain the comparison operand and observe its
+        // identity, including when the function came from the codec library.
+        return context.keys.equal(key, context.values.internString(name));
+      },
+      display(key, mode) {
+        if (key.kind === "str" || mode === "native") {
+          const payload = runtimeStringPayload(key);
+          if (payload === undefined) throw new PythonRuntimeError("TypeError", "keywords must be strings");
+          return stringText(payload, meter);
+        }
+        if (context.formatting === undefined) throw Error("keyword diagnostic formatting is unavailable");
+        const displayed = representationObject(key, "str", context.formatting, meter);
+        const payload = runtimeStringPayload(displayed);
+        if (payload === undefined) throw Error("keyword diagnostic must be a string");
+        return stringText(payload, meter);
       }
     }
   }, invocation, meter);

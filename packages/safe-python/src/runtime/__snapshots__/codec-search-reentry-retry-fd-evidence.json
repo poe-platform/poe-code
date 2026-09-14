@@ -1,0 +1,265 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "node": "v22.23.2",
+  "limits": {
+    "maxSteps": 1000000,
+    "maxAllocatedBytes": 16000000,
+    "maxDepth": 100
+  },
+  "adapter": "Explicit fs.readSync line input; complete-write fs.writeSync output; fs.fsyncSync flush. Temporary files and descriptors cleaned in finally. No guest filesystem capability.",
+  "runs": [
+    {
+      "mode": "miss",
+      "cancellation": "none",
+      "source": "import codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\ninner = (None, None, None, None)\nfailure = ValueError('outer search failed')\nactive = False\ndef search(name):\n    global active\n    events.append(name)\n    if active:\n        return inner\n    active = True\n    assert codecs.lookup('REENTRY PROBE') is inner\n    assert input() == 'continue'\n    pass\n    return None\ncodecs.register(search)\ntry:\n    codecs.lookup('reentry-probe')\nexcept LookupError as error:\n    assert error.args == (\"unknown encoding: reentry-probe\",)\nelse:\n    assert False\nassert events == ['reentry_probe', 'reentry_probe']\nassert codecs.lookup('reentry_probe') is inner\nassert codecs.lookup('reentry_probe') is inner\nassert events == ['reentry_probe', 'reentry_probe']\ncodecs.unregister(search)\ncodecs.register(search)\nassert codecs.lookup('REENTRY PROBE') is inner\nassert events[-1] == 'reentry_probe'\nprint(\"miss\", events)\n",
+      "result": {
+        "status": "ok"
+      },
+      "retries": [],
+      "reads": 1,
+      "stdout": "miss ['reentry_probe', 'reentry_probe', 'reentry_probe']\n",
+      "passed": true
+    },
+    {
+      "mode": "miss",
+      "cancellation": "return",
+      "source": "import codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\ninner = (None, None, None, None)\nfailure = ValueError('outer search failed')\nactive = False\ndef search(name):\n    global active\n    events.append(name)\n    if active:\n        return inner\n    active = True\n    assert codecs.lookup('REENTRY PROBE') is inner\n    assert input() == 'continue'\n    pass\n    return None\ncodecs.register(search)\ntry:\n    codecs.lookup('reentry-probe')\nexcept LookupError as error:\n    assert error.args == (\"unknown encoding: reentry-probe\",)\nelse:\n    assert False\nassert events == ['reentry_probe', 'reentry_probe']\nassert codecs.lookup('reentry_probe') is inner\nassert codecs.lookup('reentry_probe') is inner\nassert events == ['reentry_probe', 'reentry_probe']\ncodecs.unregister(search)\ncodecs.register(search)\nassert codecs.lookup('REENTRY PROBE') is inner\nassert events[-1] == 'reentry_probe'\nprint(\"miss\", events)\n",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retries": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "mode": "miss",
+      "cancellation": "throw",
+      "source": "import codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\ninner = (None, None, None, None)\nfailure = ValueError('outer search failed')\nactive = False\ndef search(name):\n    global active\n    events.append(name)\n    if active:\n        return inner\n    active = True\n    assert codecs.lookup('REENTRY PROBE') is inner\n    assert input() == 'continue'\n    pass\n    return None\ncodecs.register(search)\ntry:\n    codecs.lookup('reentry-probe')\nexcept LookupError as error:\n    assert error.args == (\"unknown encoding: reentry-probe\",)\nelse:\n    assert False\nassert events == ['reentry_probe', 'reentry_probe']\nassert codecs.lookup('reentry_probe') is inner\nassert codecs.lookup('reentry_probe') is inner\nassert events == ['reentry_probe', 'reentry_probe']\ncodecs.unregister(search)\ncodecs.register(search)\nassert codecs.lookup('REENTRY PROBE') is inner\nassert events[-1] == 'reentry_probe'\nprint(\"miss\", events)\n",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retries": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "mode": "malformed",
+      "cancellation": "none",
+      "source": "import codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\ninner = (None, None, None, None)\nfailure = ValueError('outer search failed')\nactive = False\ndef search(name):\n    global active\n    events.append(name)\n    if active:\n        return inner\n    active = True\n    assert codecs.lookup('REENTRY PROBE') is inner\n    assert input() == 'continue'\n    pass\n    return [None, None, None, None]\ncodecs.register(search)\ntry:\n    codecs.lookup('reentry-probe')\nexcept TypeError as error:\n    assert error.args == (\"codec search functions must return 4-tuples\",)\nelse:\n    assert False\nassert events == ['reentry_probe', 'reentry_probe']\nassert codecs.lookup('reentry_probe') is inner\nassert codecs.lookup('reentry_probe') is inner\nassert events == ['reentry_probe', 'reentry_probe']\ncodecs.unregister(search)\ncodecs.register(search)\nassert codecs.lookup('REENTRY PROBE') is inner\nassert events[-1] == 'reentry_probe'\nprint(\"malformed\", events)\n",
+      "result": {
+        "status": "ok"
+      },
+      "retries": [],
+      "reads": 1,
+      "stdout": "malformed ['reentry_probe', 'reentry_probe', 'reentry_probe']\n",
+      "passed": true
+    },
+    {
+      "mode": "malformed",
+      "cancellation": "return",
+      "source": "import codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\ninner = (None, None, None, None)\nfailure = ValueError('outer search failed')\nactive = False\ndef search(name):\n    global active\n    events.append(name)\n    if active:\n        return inner\n    active = True\n    assert codecs.lookup('REENTRY PROBE') is inner\n    assert input() == 'continue'\n    pass\n    return [None, None, None, None]\ncodecs.register(search)\ntry:\n    codecs.lookup('reentry-probe')\nexcept TypeError as error:\n    assert error.args == (\"codec search functions must return 4-tuples\",)\nelse:\n    assert False\nassert events == ['reentry_probe', 'reentry_probe']\nassert codecs.lookup('reentry_probe') is inner\nassert codecs.lookup('reentry_probe') is inner\nassert events == ['reentry_probe', 'reentry_probe']\ncodecs.unregister(search)\ncodecs.register(search)\nassert codecs.lookup('REENTRY PROBE') is inner\nassert events[-1] == 'reentry_probe'\nprint(\"malformed\", events)\n",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retries": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "mode": "malformed",
+      "cancellation": "throw",
+      "source": "import codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\ninner = (None, None, None, None)\nfailure = ValueError('outer search failed')\nactive = False\ndef search(name):\n    global active\n    events.append(name)\n    if active:\n        return inner\n    active = True\n    assert codecs.lookup('REENTRY PROBE') is inner\n    assert input() == 'continue'\n    pass\n    return [None, None, None, None]\ncodecs.register(search)\ntry:\n    codecs.lookup('reentry-probe')\nexcept TypeError as error:\n    assert error.args == (\"codec search functions must return 4-tuples\",)\nelse:\n    assert False\nassert events == ['reentry_probe', 'reentry_probe']\nassert codecs.lookup('reentry_probe') is inner\nassert codecs.lookup('reentry_probe') is inner\nassert events == ['reentry_probe', 'reentry_probe']\ncodecs.unregister(search)\ncodecs.register(search)\nassert codecs.lookup('REENTRY PROBE') is inner\nassert events[-1] == 'reentry_probe'\nprint(\"malformed\", events)\n",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retries": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "mode": "failure",
+      "cancellation": "none",
+      "source": "import codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\ninner = (None, None, None, None)\nfailure = ValueError('outer search failed')\nactive = False\ndef search(name):\n    global active\n    events.append(name)\n    if active:\n        return inner\n    active = True\n    assert codecs.lookup('REENTRY PROBE') is inner\n    assert input() == 'continue'\n    pass\n    raise failure\ncodecs.register(search)\ntry:\n    codecs.lookup('reentry-probe')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    assert False\nassert events == ['reentry_probe', 'reentry_probe']\nassert codecs.lookup('reentry_probe') is inner\nassert codecs.lookup('reentry_probe') is inner\nassert events == ['reentry_probe', 'reentry_probe']\ncodecs.unregister(search)\ncodecs.register(search)\nassert codecs.lookup('REENTRY PROBE') is inner\nassert events[-1] == 'reentry_probe'\nprint(\"failure\", events)\n",
+      "result": {
+        "status": "ok"
+      },
+      "retries": [],
+      "reads": 1,
+      "stdout": "failure ['reentry_probe', 'reentry_probe', 'reentry_probe']\n",
+      "passed": true
+    },
+    {
+      "mode": "failure",
+      "cancellation": "return",
+      "source": "import codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\ninner = (None, None, None, None)\nfailure = ValueError('outer search failed')\nactive = False\ndef search(name):\n    global active\n    events.append(name)\n    if active:\n        return inner\n    active = True\n    assert codecs.lookup('REENTRY PROBE') is inner\n    assert input() == 'continue'\n    pass\n    raise failure\ncodecs.register(search)\ntry:\n    codecs.lookup('reentry-probe')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    assert False\nassert events == ['reentry_probe', 'reentry_probe']\nassert codecs.lookup('reentry_probe') is inner\nassert codecs.lookup('reentry_probe') is inner\nassert events == ['reentry_probe', 'reentry_probe']\ncodecs.unregister(search)\ncodecs.register(search)\nassert codecs.lookup('REENTRY PROBE') is inner\nassert events[-1] == 'reentry_probe'\nprint(\"failure\", events)\n",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retries": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "mode": "failure",
+      "cancellation": "throw",
+      "source": "import codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\ninner = (None, None, None, None)\nfailure = ValueError('outer search failed')\nactive = False\ndef search(name):\n    global active\n    events.append(name)\n    if active:\n        return inner\n    active = True\n    assert codecs.lookup('REENTRY PROBE') is inner\n    assert input() == 'continue'\n    pass\n    raise failure\ncodecs.register(search)\ntry:\n    codecs.lookup('reentry-probe')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    assert False\nassert events == ['reentry_probe', 'reentry_probe']\nassert codecs.lookup('reentry_probe') is inner\nassert codecs.lookup('reentry_probe') is inner\nassert events == ['reentry_probe', 'reentry_probe']\ncodecs.unregister(search)\ncodecs.register(search)\nassert codecs.lookup('REENTRY PROBE') is inner\nassert events[-1] == 'reentry_probe'\nprint(\"failure\", events)\n",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retries": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "mode": "invalidate",
+      "cancellation": "none",
+      "source": "import codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\ninner = (None, None, None, None)\nfailure = ValueError('outer search failed')\nactive = False\ndef search(name):\n    global active\n    events.append(name)\n    if active:\n        return inner\n    active = True\n    assert codecs.lookup('REENTRY PROBE') is inner\n    assert input() == 'continue'\n    codecs.unregister(search)\n    return None\ncodecs.register(search)\ntry:\n    codecs.lookup('reentry-probe')\nexcept LookupError as error:\n    assert error.args == (\"unknown encoding: reentry-probe\",)\nelse:\n    assert False\nassert events == ['reentry_probe', 'reentry_probe']\ntry:\n    codecs.lookup('reentry_probe')\nexcept LookupError as error:\n    assert error.args == (\"no codec search functions registered: can't find encoding\",)\nelse:\n    assert False\ncodecs.register(search)\nassert codecs.lookup('reentry_probe') is inner\nassert events == ['reentry_probe', 'reentry_probe', 'reentry_probe']\ncodecs.unregister(search)\ncodecs.register(search)\nassert codecs.lookup('REENTRY PROBE') is inner\nassert events[-1] == 'reentry_probe'\nprint(\"invalidate\", events)\n",
+      "result": {
+        "status": "ok"
+      },
+      "retries": [],
+      "reads": 1,
+      "stdout": "invalidate ['reentry_probe', 'reentry_probe', 'reentry_probe', 'reentry_probe']\n",
+      "passed": true
+    },
+    {
+      "mode": "invalidate",
+      "cancellation": "return",
+      "source": "import codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\ninner = (None, None, None, None)\nfailure = ValueError('outer search failed')\nactive = False\ndef search(name):\n    global active\n    events.append(name)\n    if active:\n        return inner\n    active = True\n    assert codecs.lookup('REENTRY PROBE') is inner\n    assert input() == 'continue'\n    codecs.unregister(search)\n    return None\ncodecs.register(search)\ntry:\n    codecs.lookup('reentry-probe')\nexcept LookupError as error:\n    assert error.args == (\"unknown encoding: reentry-probe\",)\nelse:\n    assert False\nassert events == ['reentry_probe', 'reentry_probe']\ntry:\n    codecs.lookup('reentry_probe')\nexcept LookupError as error:\n    assert error.args == (\"no codec search functions registered: can't find encoding\",)\nelse:\n    assert False\ncodecs.register(search)\nassert codecs.lookup('reentry_probe') is inner\nassert events == ['reentry_probe', 'reentry_probe', 'reentry_probe']\ncodecs.unregister(search)\ncodecs.register(search)\nassert codecs.lookup('REENTRY PROBE') is inner\nassert events[-1] == 'reentry_probe'\nprint(\"invalidate\", events)\n",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retries": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "stdout": "",
+      "passed": true
+    },
+    {
+      "mode": "invalidate",
+      "cancellation": "throw",
+      "source": "import codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\ninner = (None, None, None, None)\nfailure = ValueError('outer search failed')\nactive = False\ndef search(name):\n    global active\n    events.append(name)\n    if active:\n        return inner\n    active = True\n    assert codecs.lookup('REENTRY PROBE') is inner\n    assert input() == 'continue'\n    codecs.unregister(search)\n    return None\ncodecs.register(search)\ntry:\n    codecs.lookup('reentry-probe')\nexcept LookupError as error:\n    assert error.args == (\"unknown encoding: reentry-probe\",)\nelse:\n    assert False\nassert events == ['reentry_probe', 'reentry_probe']\ntry:\n    codecs.lookup('reentry_probe')\nexcept LookupError as error:\n    assert error.args == (\"no codec search functions registered: can't find encoding\",)\nelse:\n    assert False\ncodecs.register(search)\nassert codecs.lookup('reentry_probe') is inner\nassert events == ['reentry_probe', 'reentry_probe', 'reentry_probe']\ncodecs.unregister(search)\ncodecs.register(search)\nassert codecs.lookup('REENTRY PROBE') is inner\nassert events[-1] == 'reentry_probe'\nprint(\"invalidate\", events)\n",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "retries": [
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        },
+        {
+          "status": "terminated",
+          "reason": "cancelled",
+          "message": "execution cancelled"
+        }
+      ],
+      "reads": 1,
+      "stdout": "",
+      "passed": true
+    }
+  ]
+}

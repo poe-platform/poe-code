@@ -3,15 +3,18 @@ import type { Statement } from "../statement-ast.js";
 import { PythonSyntaxError } from "../source.js";
 import { PythonIndentationError, PythonTabError } from "../indentation.js";
 import { PythonRuntimeError } from "./error.js";
+import { PythonUnicodeMessageError,PythonUnicodeSyntaxError } from "./unicode-message-error.js";
+import { PythonNameError } from "./name-error.js";
 import { PythonEncodeError } from "./encode-error.js";
 import { PythonDecodeError } from "./decode-error.js";
-import type { ExecutionMeter } from "./execution-budget.js";
+import { ExecutionLimitError,type ExecutionMeter } from "./execution-budget.js";
 import { HandledExceptionState } from "./exception-state.js";
 import { matchExceptionType } from "./exception-matching.js";
 import { createRaiseContinuation, executeRaise, type RaiseContext } from "./raise-execution.js";
 import { normalizeRaisedException } from "./raise-normalization.js";
-import { representationObject } from "./representation-protocol.js";
+import { representationObject, type RepresentationContext } from "./representation-protocol.js";
 import { PythonKeyError } from "./runtime-dictionary-access.js";
+import { RuntimeHashError } from "./runtime-hash-error.js";
 import { RuntimeExceptionState, runtimeExceptionPayload } from "./runtime-exception-state.js";
 import { runtimeTuplePayload } from "./runtime-tuple-payload.js";
 import type { RuntimeFrame } from "./runtime-program.js";
@@ -67,6 +70,38 @@ export class RuntimeExceptionExecution {
     const value=this.native(name,[this.values.string(message)]),storage=runtimeExceptionPayload(value)!;
     storage.assignCause(original.value,this.meter);storage.assignContext(original.value,this.meter);
     return new RuntimeRaisedException(value,this.meter);
+  }
+
+  /** Execute the codec's `except UnicodeDecodeError` replacement using guest
+   * descriptors and the actual exception constructor. Attribute/index failures
+   * are raised while the original exception is handled, before suppression. */
+  rewriteDecodeError(error:unknown,encoding:string,source:RuntimeValue,invocation:BuiltinInvocationContext):never {
+    const original=this.prepare(error),{values,meter}=this;
+    if(!(original instanceof RuntimeRaisedException))throw original;
+    if(invocation.attribute===undefined)throw Error("codec exception rewriting requires guest attributes");
+    const restore=this.#handled.enter(original.value);
+    try {
+      meter.checkpoint();
+      const start=invocation.attribute(original.value,"start");
+      meter.checkpoint();
+      const end=invocation.attribute(original.value,"end");
+      meter.checkpoint();
+      const reason=invocation.attribute(original.value,"reason");
+      meter.checkpoint();
+      const replacement=invocation.call(this.registry.exceptionType("UnicodeDecodeError"),[values.string(encoding),source,start,end,reason]);
+      meter.checkpoint();
+      if(replacement.kind!=="instance")throw Error("UnicodeDecodeError construction requires an exception instance");
+      const state=runtimeExceptionPayload(replacement)!;
+      state.assignCause(null,meter);
+      throw this.chain(replacement);
+    }catch(failure){
+      // Descriptors and constructors can cancel and then return or fail. Do
+      // not invoke another guest boundary or expose a catchable failure after
+      // cancellation; preserve an existing fatal failure without rechecking.
+      if(!(failure instanceof ExecutionLimitError))meter.checkpoint();
+      throw this.prepare(failure);
+    }
+    finally{restore();}
   }
 
   /** Assemble an unstarted generator/coroutine around a trusted resumable body.
@@ -131,7 +166,9 @@ export class RuntimeExceptionExecution {
     }
     return undefined;
   }
-  private chain(value:InstanceValue,source:"active"|"local"="active"):RuntimeRaisedException {
+  /** A new raise, including native handlers raising an existing instance.
+   * Ordinary propagation must not replace the exception's existing context. */
+  chain(value:InstanceValue,source:"active"|"local"="active"):RuntimeRaisedException {
     this.#handled.chain(value,{
       get:error=>runtimeExceptionPayload(error)!.context,
       set:(error,context)=>runtimeExceptionPayload(error)!.assignContext(context,this.meter)
@@ -148,25 +185,75 @@ export class RuntimeExceptionExecution {
   private parserType(error:PythonSyntaxError):"SyntaxError"|"IndentationError"|"TabError" {
     return error instanceof PythonTabError?"TabError":error instanceof PythonIndentationError?"IndentationError":"SyntaxError";
   }
-  prepare(error:unknown,retained?:ExceptionPreparationValues):unknown {
+  /** _PyTokenizer_raise_init_error fetches the current error before calling
+   * guest code. It preserves SyntaxError instances/args and otherwise renders
+   * ValueError/LookupError descendants into a new native SyntaxError. Failures
+   * of rendering or filename assignment propagate without another translation. */
+  sourceFailure(error:unknown,filename:RuntimeValue,invocation:BuiltinInvocationContext):never {
+    let fatal=error instanceof ExecutionLimitError;
+    try {
+      if(fatal)throw error;
+      const {values,meter}=this;
+      meter.checkpoint();
+      const syntax=this.matches(error,"SyntaxError");
+      if(!syntax&&!this.matches(error,"ValueError")&&!this.matches(error,"LookupError"))throw error;
+      const prepared=this.prepare(error,{unraised:true,syntaxFilename:filename});
+      if(!(prepared instanceof RuntimeRaisedException))throw prepared;
+      if(syntax){
+        if(invocation.setAttribute===undefined)throw Error("source exceptions require guest attribute mutation");
+        invocation.setAttribute(prepared.value,"filename",filename);
+        meter.checkpoint();
+        throw prepared;
+      }
+      if(invocation.formatting===undefined)throw Error("source exceptions require guest formatting");
+      const message=representationObject(prepared.value,"str",invocation.formatting,meter);
+      meter.checkpoint();
+      const line=values.integer(0),offset=values.integer(-1);
+      const details=values.tuple([filename,line,offset,values.none]);
+      const replacement=this.native("SyntaxError",[message,details]),state=runtimeExceptionPayload(replacement)!;
+      for(const [name,value] of [["msg",message],["filename",filename],["lineno",line],["offset",offset],["text",values.none],["end_lineno",values.none],["end_offset",values.none]] as const)state.assignMember(name,value,meter);
+      throw this.chain(replacement);
+    }catch(failure){fatal=failure instanceof ExecutionLimitError;throw failure;}
+    finally{if(!fatal)this.meter.checkpoint();}
+  }
+  prepare(failure:unknown,retained?:ExceptionPreparationValues):unknown {
+    // Hash provenance is internal. Operations which do not add a container
+    // diagnostic must propagate the original exception without rendering it.
+    while(failure instanceof RuntimeHashError){this.meter.checkpoint();failure=failure.original;}
+    const error=failure;
     if(error instanceof PythonSyntaxError) {
       const {values,meter}=this;
       meter.checkpoint(0,64);
-      const message=values.string(error.message),filename=retained?.syntaxFilename??values.string(error.filename),line=values.integer(error.position.line),offset=values.integer(error.position.column+1);
+      const message=error instanceof PythonUnicodeSyntaxError?values.stringPoints(error.messagePoints):values.string(error.message);
+      const filename=retained?.syntaxFilename??values.string(error.filename),line=values.integer(error.position.line),offset=values.integer(error.position.column+1);
       const text=error.sourceLine===undefined?values.none:values.string(error.sourceLine);
       const endLine=error.endPosition===undefined?values.none:values.integer(error.endPosition.line),endOffset=error.endPosition===undefined?values.none:values.integer(error.endPosition.column+1);
-      const details=values.tuple(error.endPosition===undefined?[filename,line,offset,text]:[filename,line,offset,text,endLine,endOffset]);
+      const argumentFilename=error.argumentFilename===undefined?filename:error.argumentFilename===null?values.none:values.string(error.argumentFilename);
+      const details=values.tuple(error.endPosition===undefined?[argumentFilename,line,offset,text]:[argumentFilename,line,offset,text,endLine,endOffset]);
       const value=this.native(this.parserType(error),[message,details]),storage=runtimeExceptionPayload(value)!;
       storage.assignMember("msg",message,meter);storage.assignMember("filename",filename,meter);
       storage.assignMember("lineno",line,meter);storage.assignMember("offset",offset,meter);
       storage.assignMember("text",text,meter);storage.assignMember("end_lineno",endLine,meter);storage.assignMember("end_offset",endOffset,meter);
-      return this.chain(value);
+      return retained?.unraised?new RuntimeRaisedException(value,meter):this.chain(value);
     }
     if(!(error instanceof PythonRuntimeError)||!Object.hasOwn(standardExceptionCatalog,error.name))return error;
     const codec=error instanceof PythonEncodeError||error instanceof PythonDecodeError;
     this.meter.checkpoint(0,codec?80:0);
-    const args=codec?[this.values.string(error.encoding),retained?.unicodeObject??(error instanceof PythonEncodeError?this.values.stringPoints(error.object):this.values.bytes(error.object)),this.values.integer(error.start),this.values.integer(error.end),this.values.string(error.reason)]:error instanceof PythonKeyError?error.args:[this.values.string(error.message)];
-    const value=this.native(error.name as StandardExceptionName,args);
+    const args=codec?[this.values.string(error.encoding),retained?.unicodeObject??(error instanceof PythonEncodeError?this.values.stringPoints(error.object):this.values.bytes(error.object)),this.values.integer(error.start),this.values.integer(error.end),this.values.string(error.reason)]:error instanceof PythonKeyError?error.args:error instanceof PythonUnicodeMessageError?[this.values.stringPoints(error.messagePoints)]:error.argumentMessage===undefined?[]:[this.values.string(error.argumentMessage)];
+    // Built-in surrogate handlers reuse the first Unicode error. Its args
+    // retain that first fault while the live fields describe the final failure.
+    const initial=codec?error.initial:undefined;
+    this.meter.checkpoint(0,initial===undefined?0:40);
+    const value=this.native(error.name as StandardExceptionName,initial===undefined?args:[args[0],args[1],this.values.integer(initial.start),this.values.integer(initial.end),this.values.string(initial.reason)]);
+    // Syntax errors raised before parsing have only a message argument. They
+    // still initialize the native msg member, leaving all locations unset.
+    if(args.length!==0&&error.name==="SyntaxError")runtimeExceptionPayload(value)!.assignMember("msg",args[0],this.meter);
+    if(error instanceof PythonNameError)runtimeExceptionPayload(value)!.assignMember("name",this.values.string(error.identifier),this.meter);
+    if(error.name==="AttributeError"&&retained?.attribute!==undefined){
+      const storage=runtimeExceptionPayload(value)!;
+      storage.assignMember("name",retained.attribute.name,this.meter);
+      storage.assignMember("obj",retained.attribute.object,this.meter);
+    }
     if(codec) {
       const storage=runtimeExceptionPayload(value)!;
       const fields=["encoding","object","start","end","reason"];
@@ -178,7 +265,15 @@ export class RuntimeExceptionExecution {
       value.state.ensureDictionary(this.meter);
       value.state.dictionary!.items.set(this.values.string("__notes__"),notes);
     }
-    return this.chain(value);
+    const result=retained?.unraised?new RuntimeRaisedException(value,this.meter):this.chain(value);
+    if(error.chaining!==undefined){
+      const context=this.prepare(error.chaining.context);
+      if(!(context instanceof RuntimeRaisedException))throw context;
+      const storage=runtimeExceptionPayload(value)!;
+      storage.assignContext(context.value,this.meter);
+      storage.assignSuppression(error.chaining.suppressContext??false,this.meter);
+    }
+    return result;
   }
   matches(error:unknown,name:string):boolean {
     if(name!=="BaseException"&&!Object.hasOwn(standardExceptionCatalog,name))return false;
@@ -203,6 +298,17 @@ export class RuntimeExceptionExecution {
     if(error instanceof RuntimeRaisedException)return runtimeExceptionPayload(error.value)?.args.items;
     return error instanceof PythonKeyError?error.args:undefined;
   }
+  describe(error:unknown,name:"TypeError",formatting:RepresentationContext<RuntimeValue>):(()=>string)|undefined {
+    this.meter.checkpoint();
+    if(!(error instanceof RuntimeRaisedException)||error.value.type!==this.registry.exceptionType(name))return undefined;
+    this.meter.checkpoint(0,32);
+    return ()=>{
+      const rendered=representationObject(error.value,"str",formatting,this.meter);
+      let text="";
+      for(const point of formatting.string(rendered)!){this.meter.checkpoint(1,point>0xffff?4:2);text+=String.fromCodePoint(point);}
+      return text;
+    };
+  }
   addNote(error:unknown,build:()=>string,invocation:BuiltinInvocationContext):unknown {
     const prepared=this.prepare(error),{values,meter}=this;
     if(!(prepared instanceof RuntimeRaisedException)) {
@@ -213,8 +319,13 @@ export class RuntimeExceptionExecution {
     try {
       const note=build(),method=createExceptionAddNoteDescriptor(this.registry.baseExceptionType(),values,meter);
       invocation.call(method,[prepared.value,values.string(note)]);
+      meter.checkpoint();
       return prepared;
     } catch(failure) {
+      // Formatting and note attachment can cross explicit service boundaries.
+      // Observe cancellation before preparing or chaining their failures;
+      // already fatal failures retain their identity.
+      if(!(failure instanceof ExecutionLimitError))meter.checkpoint();
       // Native note diagnostics assign context directly, preserving even
       // self/cyclic links. Callbacks retain the outer handled exception.
       const replacement=this.prepare(failure);

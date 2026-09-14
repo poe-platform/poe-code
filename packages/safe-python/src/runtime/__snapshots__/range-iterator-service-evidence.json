@@ -1,0 +1,1354 @@
+{
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+  "unicode": "16.0.0",
+  "adapter": "Real explicit output capability owns a file descriptor using writeSync/fsyncSync; closed after replay. Host Python used only as an external differential oracle.",
+  "sourceSha256": "fc0c0eefc661c4f41ac877cf49fb0b64d02a163388a3b6217ea215e2f9149a82",
+  "runtimeFiles": [
+    {
+      "name": "runtime-range-iterator.ts",
+      "sha256": "976cb4fa04692e4d78599f0176fec1800c97e17b19cdb098a198c5add4ac091a"
+    },
+    {
+      "name": "runtime-range-iterator-descriptors.ts",
+      "sha256": "3b6d266486876a273f92ebbe6a63e1ddca274b5bc2e521520ebbbbda223cb701"
+    },
+    {
+      "name": "runtime-range-slots.ts",
+      "sha256": "9eaa58039e2cf42b1f813312d42565b27e0259d85950cc3e774d05987200402a"
+    },
+    {
+      "name": "runtime-range-attributes.ts",
+      "sha256": "d3b0e86f5f4af4b2e8fbbfb8a88d85741e90d90978793a6c09693ad490eef296"
+    },
+    {
+      "name": "runtime-iteration.ts",
+      "sha256": "d78b2cf8c8fff32a238d5bb7ae712c50b76898540ebd2b503de3b486c98a740a"
+    },
+    {
+      "name": "builtin-reversed.ts",
+      "sha256": "e72f525add913b062c753b0623a194d9b0b4163b8444ec3f7a307a02c093a907"
+    },
+    {
+      "name": "runtime-type-registry.ts",
+      "sha256": "0d882c635cd32fa15b340da695dd0a6a8e058951fb6809774baee62027b586c6"
+    },
+    {
+      "name": "runtime-native-attribute.ts",
+      "sha256": "d17ea9889edf559c4e22427b39c682b7e63af89eea9aeab33a045a6b4a5340f7"
+    },
+    {
+      "name": "runtime-method-descriptor.ts",
+      "sha256": "7a733edf9e22ae66dc6bbda65fcc1c4a26653cea5a16bb97deeb119aed3d06f0"
+    },
+    {
+      "name": "runtime-values.ts",
+      "sha256": "944f183288a68a760d57669bf9edf95026675a3a4a48f716fbdf92cb33e7f637"
+    },
+    {
+      "name": "runtime-object-attributes.ts",
+      "sha256": "684de696fb48824f29d950f69fce22f1806134f7592688dd70ae6e403b8d3d8b"
+    }
+  ],
+  "output": {
+    "bytes": 57485,
+    "sha256": "5c6f9304382cf92007dd382c400bb5e5ae11ebc59ba0671a6b471753dc2f7c65"
+  },
+  "results": [
+    {
+      "name": "iter range(0)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['range_iterator', True, True, True, True, (0, True, 'range(0, 0)', None, 'end'), (0, True, 'range(0, 0)', None, 'end'), (0, True, 'range(0, 0)', None, 'end'), (0, True, 'range(0, 0)', None, 'end'), (0, True, 'range(0, 0)', None, 'end')]",
+      "actual": "['range_iterator', True, True, True, True, (0, True, 'range(0, 0)', None, 'end'), (0, True, 'range(0, 0)', None, 'end'), (0, True, 'range(0, 0)', None, 'end'), (0, True, 'range(0, 0)', None, 'end'), (0, True, 'range(0, 0)', None, 'end')]"
+    },
+    {
+      "name": "reversed range(0)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['range_iterator', True, True, True, True, (0, True, 'range(-1, -1, -1)', None, 'end'), (0, True, 'range(-1, -1, -1)', None, 'end'), (0, True, 'range(-1, -1, -1)', None, 'end'), (0, True, 'range(-1, -1, -1)', None, 'end'), (0, True, 'range(-1, -1, -1)', None, 'end')]",
+      "actual": "['range_iterator', True, True, True, True, (0, True, 'range(-1, -1, -1)', None, 'end'), (0, True, 'range(-1, -1, -1)', None, 'end'), (0, True, 'range(-1, -1, -1)', None, 'end'), (0, True, 'range(-1, -1, -1)', None, 'end'), (0, True, 'range(-1, -1, -1)', None, 'end')]"
+    },
+    {
+      "name": "iter range(3)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['range_iterator', True, True, True, True, (3, True, 'range(0, 3)', None, 0), (2, True, 'range(1, 3)', None, 1), (1, True, 'range(2, 3)', None, 2), (0, True, 'range(3, 3)', None, 'end'), (0, True, 'range(3, 3)', None, 'end')]",
+      "actual": "['range_iterator', True, True, True, True, (3, True, 'range(0, 3)', None, 0), (2, True, 'range(1, 3)', None, 1), (1, True, 'range(2, 3)', None, 2), (0, True, 'range(3, 3)', None, 'end'), (0, True, 'range(3, 3)', None, 'end')]"
+    },
+    {
+      "name": "reversed range(3)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['range_iterator', True, True, True, True, (3, True, 'range(2, -1, -1)', None, 2), (2, True, 'range(1, -1, -1)', None, 1), (1, True, 'range(0, -1, -1)', None, 0), (0, True, 'range(-1, -1, -1)', None, 'end'), (0, True, 'range(-1, -1, -1)', None, 'end')]",
+      "actual": "['range_iterator', True, True, True, True, (3, True, 'range(2, -1, -1)', None, 2), (2, True, 'range(1, -1, -1)', None, 1), (1, True, 'range(0, -1, -1)', None, 0), (0, True, 'range(-1, -1, -1)', None, 'end'), (0, True, 'range(-1, -1, -1)', None, 'end')]"
+    },
+    {
+      "name": "iter range(2, 9, 3)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['range_iterator', True, True, True, True, (3, True, 'range(2, 11, 3)', None, 2), (2, True, 'range(5, 11, 3)', None, 5), (1, True, 'range(8, 11, 3)', None, 8), (0, True, 'range(11, 11, 3)', None, 'end'), (0, True, 'range(11, 11, 3)', None, 'end')]",
+      "actual": "['range_iterator', True, True, True, True, (3, True, 'range(2, 11, 3)', None, 2), (2, True, 'range(5, 11, 3)', None, 5), (1, True, 'range(8, 11, 3)', None, 8), (0, True, 'range(11, 11, 3)', None, 'end'), (0, True, 'range(11, 11, 3)', None, 'end')]"
+    },
+    {
+      "name": "reversed range(2, 9, 3)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['range_iterator', True, True, True, True, (3, True, 'range(8, -1, -3)', None, 8), (2, True, 'range(5, -1, -3)', None, 5), (1, True, 'range(2, -1, -3)', None, 2), (0, True, 'range(-1, -1, -3)', None, 'end'), (0, True, 'range(-1, -1, -3)', None, 'end')]",
+      "actual": "['range_iterator', True, True, True, True, (3, True, 'range(8, -1, -3)', None, 8), (2, True, 'range(5, -1, -3)', None, 5), (1, True, 'range(2, -1, -3)', None, 2), (0, True, 'range(-1, -1, -3)', None, 'end'), (0, True, 'range(-1, -1, -3)', None, 'end')]"
+    },
+    {
+      "name": "iter range(9, 2, -3)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['range_iterator', True, True, True, True, (3, True, 'range(9, 0, -3)', None, 9), (2, True, 'range(6, 0, -3)', None, 6), (1, True, 'range(3, 0, -3)', None, 3), (0, True, 'range(0, 0, -3)', None, 'end'), (0, True, 'range(0, 0, -3)', None, 'end')]",
+      "actual": "['range_iterator', True, True, True, True, (3, True, 'range(9, 0, -3)', None, 9), (2, True, 'range(6, 0, -3)', None, 6), (1, True, 'range(3, 0, -3)', None, 3), (0, True, 'range(0, 0, -3)', None, 'end'), (0, True, 'range(0, 0, -3)', None, 'end')]"
+    },
+    {
+      "name": "reversed range(9, 2, -3)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['range_iterator', True, True, True, True, (3, True, 'range(3, 12, 3)', None, 3), (2, True, 'range(6, 12, 3)', None, 6), (1, True, 'range(9, 12, 3)', None, 9), (0, True, 'range(12, 12, 3)', None, 'end'), (0, True, 'range(12, 12, 3)', None, 'end')]",
+      "actual": "['range_iterator', True, True, True, True, (3, True, 'range(3, 12, 3)', None, 3), (2, True, 'range(6, 12, 3)', None, 6), (1, True, 'range(9, 12, 3)', None, 9), (0, True, 'range(12, 12, 3)', None, 'end'), (0, True, 'range(12, 12, 3)', None, 'end')]"
+    },
+    {
+      "name": "iter range(5, 2, 1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['range_iterator', True, True, True, True, (0, True, 'range(5, 5)', None, 'end'), (0, True, 'range(5, 5)', None, 'end'), (0, True, 'range(5, 5)', None, 'end'), (0, True, 'range(5, 5)', None, 'end'), (0, True, 'range(5, 5)', None, 'end')]",
+      "actual": "['range_iterator', True, True, True, True, (0, True, 'range(5, 5)', None, 'end'), (0, True, 'range(5, 5)', None, 'end'), (0, True, 'range(5, 5)', None, 'end'), (0, True, 'range(5, 5)', None, 'end'), (0, True, 'range(5, 5)', None, 'end')]"
+    },
+    {
+      "name": "reversed range(5, 2, 1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['range_iterator', True, True, True, True, (0, True, 'range(4, 4, -1)', None, 'end'), (0, True, 'range(4, 4, -1)', None, 'end'), (0, True, 'range(4, 4, -1)', None, 'end'), (0, True, 'range(4, 4, -1)', None, 'end'), (0, True, 'range(4, 4, -1)', None, 'end')]",
+      "actual": "['range_iterator', True, True, True, True, (0, True, 'range(4, 4, -1)', None, 'end'), (0, True, 'range(4, 4, -1)', None, 'end'), (0, True, 'range(4, 4, -1)', None, 'end'), (0, True, 'range(4, 4, -1)', None, 'end'), (0, True, 'range(4, 4, -1)', None, 'end')]"
+    },
+    {
+      "name": "iter range(2**63-2, 2**63-1, 2)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['longrange_iterator', True, True, True, True, (1, True, 'range(9223372036854775806, 9223372036854775808, 2)', None, 9223372036854775806), (0, True, 'range(9223372036854775808, 9223372036854775808, 2)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808, 2)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808, 2)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808, 2)', None, 'end')]",
+      "actual": "['longrange_iterator', True, True, True, True, (1, True, 'range(9223372036854775806, 9223372036854775808, 2)', None, 9223372036854775806), (0, True, 'range(9223372036854775808, 9223372036854775808, 2)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808, 2)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808, 2)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808, 2)', None, 'end')]"
+    },
+    {
+      "name": "reversed range(2**63-2, 2**63-1, 2)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['range_iterator', True, True, True, True, (1, True, 'range(9223372036854775806, 9223372036854775804, -2)', None, 9223372036854775806), (0, True, 'range(9223372036854775804, 9223372036854775804, -2)', None, 'end'), (0, True, 'range(9223372036854775804, 9223372036854775804, -2)', None, 'end'), (0, True, 'range(9223372036854775804, 9223372036854775804, -2)', None, 'end'), (0, True, 'range(9223372036854775804, 9223372036854775804, -2)', None, 'end')]",
+      "actual": "['range_iterator', True, True, True, True, (1, True, 'range(9223372036854775806, 9223372036854775804, -2)', None, 9223372036854775806), (0, True, 'range(9223372036854775804, 9223372036854775804, -2)', None, 'end'), (0, True, 'range(9223372036854775804, 9223372036854775804, -2)', None, 'end'), (0, True, 'range(9223372036854775804, 9223372036854775804, -2)', None, 'end'), (0, True, 'range(9223372036854775804, 9223372036854775804, -2)', None, 'end')]"
+    },
+    {
+      "name": "iter range(-2**63+1, -2**63, -2)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['longrange_iterator', True, True, True, True, (1, True, 'range(-9223372036854775807, -9223372036854775809, -2)', None, -9223372036854775807), (0, True, 'range(-9223372036854775809, -9223372036854775809, -2)', None, 'end'), (0, True, 'range(-9223372036854775809, -9223372036854775809, -2)', None, 'end'), (0, True, 'range(-9223372036854775809, -9223372036854775809, -2)', None, 'end'), (0, True, 'range(-9223372036854775809, -9223372036854775809, -2)', None, 'end')]",
+      "actual": "['longrange_iterator', True, True, True, True, (1, True, 'range(-9223372036854775807, -9223372036854775809, -2)', None, -9223372036854775807), (0, True, 'range(-9223372036854775809, -9223372036854775809, -2)', None, 'end'), (0, True, 'range(-9223372036854775809, -9223372036854775809, -2)', None, 'end'), (0, True, 'range(-9223372036854775809, -9223372036854775809, -2)', None, 'end'), (0, True, 'range(-9223372036854775809, -9223372036854775809, -2)', None, 'end')]"
+    },
+    {
+      "name": "reversed range(-2**63+1, -2**63, -2)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['range_iterator', True, True, True, True, (1, True, 'range(-9223372036854775807, -9223372036854775805, 2)', None, -9223372036854775807), (0, True, 'range(-9223372036854775805, -9223372036854775805, 2)', None, 'end'), (0, True, 'range(-9223372036854775805, -9223372036854775805, 2)', None, 'end'), (0, True, 'range(-9223372036854775805, -9223372036854775805, 2)', None, 'end'), (0, True, 'range(-9223372036854775805, -9223372036854775805, 2)', None, 'end')]",
+      "actual": "['range_iterator', True, True, True, True, (1, True, 'range(-9223372036854775807, -9223372036854775805, 2)', None, -9223372036854775807), (0, True, 'range(-9223372036854775805, -9223372036854775805, 2)', None, 'end'), (0, True, 'range(-9223372036854775805, -9223372036854775805, 2)', None, 'end'), (0, True, 'range(-9223372036854775805, -9223372036854775805, 2)', None, 'end'), (0, True, 'range(-9223372036854775805, -9223372036854775805, 2)', None, 'end')]"
+    },
+    {
+      "name": "iter range(-2**63, -2**63+1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['range_iterator', True, True, True, True, (1, True, 'range(-9223372036854775808, -9223372036854775807)', None, -9223372036854775808), (0, True, 'range(-9223372036854775807, -9223372036854775807)', None, 'end'), (0, True, 'range(-9223372036854775807, -9223372036854775807)', None, 'end'), (0, True, 'range(-9223372036854775807, -9223372036854775807)', None, 'end'), (0, True, 'range(-9223372036854775807, -9223372036854775807)', None, 'end')]",
+      "actual": "['range_iterator', True, True, True, True, (1, True, 'range(-9223372036854775808, -9223372036854775807)', None, -9223372036854775808), (0, True, 'range(-9223372036854775807, -9223372036854775807)', None, 'end'), (0, True, 'range(-9223372036854775807, -9223372036854775807)', None, 'end'), (0, True, 'range(-9223372036854775807, -9223372036854775807)', None, 'end'), (0, True, 'range(-9223372036854775807, -9223372036854775807)', None, 'end')]"
+    },
+    {
+      "name": "reversed range(-2**63, -2**63+1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['longrange_iterator', True, True, True, True, (1, True, 'range(-9223372036854775808, -9223372036854775809, -1)', None, -9223372036854775808), (0, True, 'range(-9223372036854775809, -9223372036854775809, -1)', None, 'end'), (0, True, 'range(-9223372036854775809, -9223372036854775809, -1)', None, 'end'), (0, True, 'range(-9223372036854775809, -9223372036854775809, -1)', None, 'end'), (0, True, 'range(-9223372036854775809, -9223372036854775809, -1)', None, 'end')]",
+      "actual": "['longrange_iterator', True, True, True, True, (1, True, 'range(-9223372036854775808, -9223372036854775809, -1)', None, -9223372036854775808), (0, True, 'range(-9223372036854775809, -9223372036854775809, -1)', None, 'end'), (0, True, 'range(-9223372036854775809, -9223372036854775809, -1)', None, 'end'), (0, True, 'range(-9223372036854775809, -9223372036854775809, -1)', None, 'end'), (0, True, 'range(-9223372036854775809, -9223372036854775809, -1)', None, 'end')]"
+    },
+    {
+      "name": "iter range(2**63-1, 2**63-2, -1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['range_iterator', True, True, True, True, (1, True, 'range(9223372036854775807, 9223372036854775806, -1)', None, 9223372036854775807), (0, True, 'range(9223372036854775806, 9223372036854775806, -1)', None, 'end'), (0, True, 'range(9223372036854775806, 9223372036854775806, -1)', None, 'end'), (0, True, 'range(9223372036854775806, 9223372036854775806, -1)', None, 'end'), (0, True, 'range(9223372036854775806, 9223372036854775806, -1)', None, 'end')]",
+      "actual": "['range_iterator', True, True, True, True, (1, True, 'range(9223372036854775807, 9223372036854775806, -1)', None, 9223372036854775807), (0, True, 'range(9223372036854775806, 9223372036854775806, -1)', None, 'end'), (0, True, 'range(9223372036854775806, 9223372036854775806, -1)', None, 'end'), (0, True, 'range(9223372036854775806, 9223372036854775806, -1)', None, 'end'), (0, True, 'range(9223372036854775806, 9223372036854775806, -1)', None, 'end')]"
+    },
+    {
+      "name": "reversed range(2**63-1, 2**63-2, -1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['longrange_iterator', True, True, True, True, (1, True, 'range(9223372036854775807, 9223372036854775808)', None, 9223372036854775807), (0, True, 'range(9223372036854775808, 9223372036854775808)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808)', None, 'end')]",
+      "actual": "['longrange_iterator', True, True, True, True, (1, True, 'range(9223372036854775807, 9223372036854775808)', None, 9223372036854775807), (0, True, 'range(9223372036854775808, 9223372036854775808)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808)', None, 'end')]"
+    },
+    {
+      "name": "iter range(0, 1, -2**63)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['range_iterator', True, True, True, True, (0, True, 'range(0, 0, -9223372036854775808)', None, 'end'), (0, True, 'range(0, 0, -9223372036854775808)', None, 'end'), (0, True, 'range(0, 0, -9223372036854775808)', None, 'end'), (0, True, 'range(0, 0, -9223372036854775808)', None, 'end'), (0, True, 'range(0, 0, -9223372036854775808)', None, 'end')]",
+      "actual": "['range_iterator', True, True, True, True, (0, True, 'range(0, 0, -9223372036854775808)', None, 'end'), (0, True, 'range(0, 0, -9223372036854775808)', None, 'end'), (0, True, 'range(0, 0, -9223372036854775808)', None, 'end'), (0, True, 'range(0, 0, -9223372036854775808)', None, 'end'), (0, True, 'range(0, 0, -9223372036854775808)', None, 'end')]"
+    },
+    {
+      "name": "reversed range(0, 1, -2**63)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['longrange_iterator', True, True, True, True, (0, True, 'range(9223372036854775808, 9223372036854775808, 9223372036854775808)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808, 9223372036854775808)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808, 9223372036854775808)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808, 9223372036854775808)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808, 9223372036854775808)', None, 'end')]",
+      "actual": "['longrange_iterator', True, True, True, True, (0, True, 'range(9223372036854775808, 9223372036854775808, 9223372036854775808)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808, 9223372036854775808)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808, 9223372036854775808)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808, 9223372036854775808)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808, 9223372036854775808)', None, 'end')]"
+    },
+    {
+      "name": "iter range(0, 1, 2**63)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['longrange_iterator', True, True, True, True, (1, True, 'range(0, 9223372036854775808, 9223372036854775808)', None, 0), (0, True, 'range(9223372036854775808, 9223372036854775808, 9223372036854775808)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808, 9223372036854775808)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808, 9223372036854775808)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808, 9223372036854775808)', None, 'end')]",
+      "actual": "['longrange_iterator', True, True, True, True, (1, True, 'range(0, 9223372036854775808, 9223372036854775808)', None, 0), (0, True, 'range(9223372036854775808, 9223372036854775808, 9223372036854775808)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808, 9223372036854775808)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808, 9223372036854775808)', None, 'end'), (0, True, 'range(9223372036854775808, 9223372036854775808, 9223372036854775808)', None, 'end')]"
+    },
+    {
+      "name": "reversed range(0, 1, 2**63)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['longrange_iterator', True, True, True, True, (1, True, 'range(0, -9223372036854775808, -9223372036854775808)', None, 0), (0, True, 'range(-9223372036854775808, -9223372036854775808, -9223372036854775808)', None, 'end'), (0, True, 'range(-9223372036854775808, -9223372036854775808, -9223372036854775808)', None, 'end'), (0, True, 'range(-9223372036854775808, -9223372036854775808, -9223372036854775808)', None, 'end'), (0, True, 'range(-9223372036854775808, -9223372036854775808, -9223372036854775808)', None, 'end')]",
+      "actual": "['longrange_iterator', True, True, True, True, (1, True, 'range(0, -9223372036854775808, -9223372036854775808)', None, 0), (0, True, 'range(-9223372036854775808, -9223372036854775808, -9223372036854775808)', None, 'end'), (0, True, 'range(-9223372036854775808, -9223372036854775808, -9223372036854775808)', None, 'end'), (0, True, 'range(-9223372036854775808, -9223372036854775808, -9223372036854775808)', None, 'end'), (0, True, 'range(-9223372036854775808, -9223372036854775808, -9223372036854775808)', None, 'end')]"
+    },
+    {
+      "name": "iter range(2**63, 2**63+3)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['longrange_iterator', True, True, True, True, (3, True, 'range(9223372036854775808, 9223372036854775811)', None, 9223372036854775808), (2, True, 'range(9223372036854775809, 9223372036854775811)', None, 9223372036854775809), (1, True, 'range(9223372036854775810, 9223372036854775811)', None, 9223372036854775810), (0, True, 'range(9223372036854775811, 9223372036854775811)', None, 'end'), (0, True, 'range(9223372036854775811, 9223372036854775811)', None, 'end')]",
+      "actual": "['longrange_iterator', True, True, True, True, (3, True, 'range(9223372036854775808, 9223372036854775811)', None, 9223372036854775808), (2, True, 'range(9223372036854775809, 9223372036854775811)', None, 9223372036854775809), (1, True, 'range(9223372036854775810, 9223372036854775811)', None, 9223372036854775810), (0, True, 'range(9223372036854775811, 9223372036854775811)', None, 'end'), (0, True, 'range(9223372036854775811, 9223372036854775811)', None, 'end')]"
+    },
+    {
+      "name": "reversed range(2**63, 2**63+3)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['longrange_iterator', True, True, True, True, (3, True, 'range(9223372036854775810, 9223372036854775807, -1)', None, 9223372036854775810), (2, True, 'range(9223372036854775809, 9223372036854775807, -1)', None, 9223372036854775809), (1, True, 'range(9223372036854775808, 9223372036854775807, -1)', None, 9223372036854775808), (0, True, 'range(9223372036854775807, 9223372036854775807, -1)', None, 'end'), (0, True, 'range(9223372036854775807, 9223372036854775807, -1)', None, 'end')]",
+      "actual": "['longrange_iterator', True, True, True, True, (3, True, 'range(9223372036854775810, 9223372036854775807, -1)', None, 9223372036854775810), (2, True, 'range(9223372036854775809, 9223372036854775807, -1)', None, 9223372036854775809), (1, True, 'range(9223372036854775808, 9223372036854775807, -1)', None, 9223372036854775808), (0, True, 'range(9223372036854775807, 9223372036854775807, -1)', None, 'end'), (0, True, 'range(9223372036854775807, 9223372036854775807, -1)', None, 'end')]"
+    },
+    {
+      "name": "iter range(-2**63-3, -2**63)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['longrange_iterator', True, True, True, True, (3, True, 'range(-9223372036854775811, -9223372036854775808)', None, -9223372036854775811), (2, True, 'range(-9223372036854775810, -9223372036854775808)', None, -9223372036854775810), (1, True, 'range(-9223372036854775809, -9223372036854775808)', None, -9223372036854775809), (0, True, 'range(-9223372036854775808, -9223372036854775808)', None, 'end'), (0, True, 'range(-9223372036854775808, -9223372036854775808)', None, 'end')]",
+      "actual": "['longrange_iterator', True, True, True, True, (3, True, 'range(-9223372036854775811, -9223372036854775808)', None, -9223372036854775811), (2, True, 'range(-9223372036854775810, -9223372036854775808)', None, -9223372036854775810), (1, True, 'range(-9223372036854775809, -9223372036854775808)', None, -9223372036854775809), (0, True, 'range(-9223372036854775808, -9223372036854775808)', None, 'end'), (0, True, 'range(-9223372036854775808, -9223372036854775808)', None, 'end')]"
+    },
+    {
+      "name": "reversed range(-2**63-3, -2**63)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['longrange_iterator', True, True, True, True, (3, True, 'range(-9223372036854775809, -9223372036854775812, -1)', None, -9223372036854775809), (2, True, 'range(-9223372036854775810, -9223372036854775812, -1)', None, -9223372036854775810), (1, True, 'range(-9223372036854775811, -9223372036854775812, -1)', None, -9223372036854775811), (0, True, 'range(-9223372036854775812, -9223372036854775812, -1)', None, 'end'), (0, True, 'range(-9223372036854775812, -9223372036854775812, -1)', None, 'end')]",
+      "actual": "['longrange_iterator', True, True, True, True, (3, True, 'range(-9223372036854775809, -9223372036854775812, -1)', None, -9223372036854775809), (2, True, 'range(-9223372036854775810, -9223372036854775812, -1)', None, -9223372036854775810), (1, True, 'range(-9223372036854775811, -9223372036854775812, -1)', None, -9223372036854775811), (0, True, 'range(-9223372036854775812, -9223372036854775812, -1)', None, 'end'), (0, True, 'range(-9223372036854775812, -9223372036854775812, -1)', None, 'end')]"
+    },
+    {
+      "name": "iter range(-2**63, 2**63-1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['longrange_iterator', True, True, True, True, (18446744073709551615, True, 'range(-9223372036854775808, 9223372036854775807)', None, -9223372036854775808), (18446744073709551614, True, 'range(-9223372036854775807, 9223372036854775807)', None, -9223372036854775807), (18446744073709551613, True, 'range(-9223372036854775806, 9223372036854775807)', None, -9223372036854775806), (18446744073709551612, True, 'range(-9223372036854775805, 9223372036854775807)', None, -9223372036854775805), (18446744073709551611, True, 'range(-9223372036854775804, 9223372036854775807)', None, -9223372036854775804)]",
+      "actual": "['longrange_iterator', True, True, True, True, (18446744073709551615, True, 'range(-9223372036854775808, 9223372036854775807)', None, -9223372036854775808), (18446744073709551614, True, 'range(-9223372036854775807, 9223372036854775807)', None, -9223372036854775807), (18446744073709551613, True, 'range(-9223372036854775806, 9223372036854775807)', None, -9223372036854775806), (18446744073709551612, True, 'range(-9223372036854775805, 9223372036854775807)', None, -9223372036854775805), (18446744073709551611, True, 'range(-9223372036854775804, 9223372036854775807)', None, -9223372036854775804)]"
+    },
+    {
+      "name": "reversed range(-2**63, 2**63-1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['longrange_iterator', True, True, True, True, (18446744073709551615, True, 'range(9223372036854775806, -9223372036854775809, -1)', None, 9223372036854775806), (18446744073709551614, True, 'range(9223372036854775805, -9223372036854775809, -1)', None, 9223372036854775805), (18446744073709551613, True, 'range(9223372036854775804, -9223372036854775809, -1)', None, 9223372036854775804), (18446744073709551612, True, 'range(9223372036854775803, -9223372036854775809, -1)', None, 9223372036854775803), (18446744073709551611, True, 'range(9223372036854775802, -9223372036854775809, -1)', None, 9223372036854775802)]",
+      "actual": "['longrange_iterator', True, True, True, True, (18446744073709551615, True, 'range(9223372036854775806, -9223372036854775809, -1)', None, 9223372036854775806), (18446744073709551614, True, 'range(9223372036854775805, -9223372036854775809, -1)', None, 9223372036854775805), (18446744073709551613, True, 'range(9223372036854775804, -9223372036854775809, -1)', None, 9223372036854775804), (18446744073709551612, True, 'range(9223372036854775803, -9223372036854775809, -1)', None, 9223372036854775803), (18446744073709551611, True, 'range(9223372036854775802, -9223372036854775809, -1)', None, 9223372036854775802)]"
+    },
+    {
+      "name": "iter range(0, 2**100)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['longrange_iterator', True, True, True, True, (1267650600228229401496703205376, True, 'range(0, 1267650600228229401496703205376)', None, 0), (1267650600228229401496703205375, True, 'range(1, 1267650600228229401496703205376)', None, 1), (1267650600228229401496703205374, True, 'range(2, 1267650600228229401496703205376)', None, 2), (1267650600228229401496703205373, True, 'range(3, 1267650600228229401496703205376)', None, 3), (1267650600228229401496703205372, True, 'range(4, 1267650600228229401496703205376)', None, 4)]",
+      "actual": "['longrange_iterator', True, True, True, True, (1267650600228229401496703205376, True, 'range(0, 1267650600228229401496703205376)', None, 0), (1267650600228229401496703205375, True, 'range(1, 1267650600228229401496703205376)', None, 1), (1267650600228229401496703205374, True, 'range(2, 1267650600228229401496703205376)', None, 2), (1267650600228229401496703205373, True, 'range(3, 1267650600228229401496703205376)', None, 3), (1267650600228229401496703205372, True, 'range(4, 1267650600228229401496703205376)', None, 4)]"
+    },
+    {
+      "name": "reversed range(0, 2**100)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['longrange_iterator', True, True, True, True, (1267650600228229401496703205376, True, 'range(1267650600228229401496703205375, -1, -1)', None, 1267650600228229401496703205375), (1267650600228229401496703205375, True, 'range(1267650600228229401496703205374, -1, -1)', None, 1267650600228229401496703205374), (1267650600228229401496703205374, True, 'range(1267650600228229401496703205373, -1, -1)', None, 1267650600228229401496703205373), (1267650600228229401496703205373, True, 'range(1267650600228229401496703205372, -1, -1)', None, 1267650600228229401496703205372), (1267650600228229401496703205372, True, 'range(1267650600228229401496703205371, -1, -1)', None, 1267650600228229401496703205371)]",
+      "actual": "['longrange_iterator', True, True, True, True, (1267650600228229401496703205376, True, 'range(1267650600228229401496703205375, -1, -1)', None, 1267650600228229401496703205375), (1267650600228229401496703205375, True, 'range(1267650600228229401496703205374, -1, -1)', None, 1267650600228229401496703205374), (1267650600228229401496703205374, True, 'range(1267650600228229401496703205373, -1, -1)', None, 1267650600228229401496703205373), (1267650600228229401496703205373, True, 'range(1267650600228229401496703205372, -1, -1)', None, 1267650600228229401496703205372), (1267650600228229401496703205372, True, 'range(1267650600228229401496703205371, -1, -1)', None, 1267650600228229401496703205371)]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+6, 2)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['longrange_iterator', True, True, True, True, (3, True, 'range(1267650600228229401496703205376, 1267650600228229401496703205382, 2)', None, 1267650600228229401496703205376), (2, True, 'range(1267650600228229401496703205378, 1267650600228229401496703205382, 2)', None, 1267650600228229401496703205378), (1, True, 'range(1267650600228229401496703205380, 1267650600228229401496703205382, 2)', None, 1267650600228229401496703205380), (0, True, 'range(1267650600228229401496703205382, 1267650600228229401496703205382, 2)', None, 'end'), (0, True, 'range(1267650600228229401496703205382, 1267650600228229401496703205382, 2)', None, 'end')]",
+      "actual": "['longrange_iterator', True, True, True, True, (3, True, 'range(1267650600228229401496703205376, 1267650600228229401496703205382, 2)', None, 1267650600228229401496703205376), (2, True, 'range(1267650600228229401496703205378, 1267650600228229401496703205382, 2)', None, 1267650600228229401496703205378), (1, True, 'range(1267650600228229401496703205380, 1267650600228229401496703205382, 2)', None, 1267650600228229401496703205380), (0, True, 'range(1267650600228229401496703205382, 1267650600228229401496703205382, 2)', None, 'end'), (0, True, 'range(1267650600228229401496703205382, 1267650600228229401496703205382, 2)', None, 'end')]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+6, 2)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['longrange_iterator', True, True, True, True, (3, True, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', None, 1267650600228229401496703205380), (2, True, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', None, 1267650600228229401496703205378), (1, True, 'range(1267650600228229401496703205376, 1267650600228229401496703205374, -2)', None, 1267650600228229401496703205376), (0, True, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', None, 'end'), (0, True, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', None, 'end')]",
+      "actual": "['longrange_iterator', True, True, True, True, (3, True, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', None, 1267650600228229401496703205380), (2, True, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', None, 1267650600228229401496703205378), (1, True, 'range(1267650600228229401496703205376, 1267650600228229401496703205374, -2)', None, 1267650600228229401496703205376), (0, True, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', None, 'end'), (0, True, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', None, 'end')]"
+    },
+    {
+      "name": "iter range(2**100, 0, 1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['longrange_iterator', True, True, True, True, (0, True, 'range(1267650600228229401496703205376, 1267650600228229401496703205376)', None, 'end'), (0, True, 'range(1267650600228229401496703205376, 1267650600228229401496703205376)', None, 'end'), (0, True, 'range(1267650600228229401496703205376, 1267650600228229401496703205376)', None, 'end'), (0, True, 'range(1267650600228229401496703205376, 1267650600228229401496703205376)', None, 'end'), (0, True, 'range(1267650600228229401496703205376, 1267650600228229401496703205376)', None, 'end')]",
+      "actual": "['longrange_iterator', True, True, True, True, (0, True, 'range(1267650600228229401496703205376, 1267650600228229401496703205376)', None, 'end'), (0, True, 'range(1267650600228229401496703205376, 1267650600228229401496703205376)', None, 'end'), (0, True, 'range(1267650600228229401496703205376, 1267650600228229401496703205376)', None, 'end'), (0, True, 'range(1267650600228229401496703205376, 1267650600228229401496703205376)', None, 'end'), (0, True, 'range(1267650600228229401496703205376, 1267650600228229401496703205376)', None, 'end')]"
+    },
+    {
+      "name": "reversed range(2**100, 0, 1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['longrange_iterator', True, True, True, True, (0, True, 'range(1267650600228229401496703205375, 1267650600228229401496703205375, -1)', None, 'end'), (0, True, 'range(1267650600228229401496703205375, 1267650600228229401496703205375, -1)', None, 'end'), (0, True, 'range(1267650600228229401496703205375, 1267650600228229401496703205375, -1)', None, 'end'), (0, True, 'range(1267650600228229401496703205375, 1267650600228229401496703205375, -1)', None, 'end'), (0, True, 'range(1267650600228229401496703205375, 1267650600228229401496703205375, -1)', None, 'end')]",
+      "actual": "['longrange_iterator', True, True, True, True, (0, True, 'range(1267650600228229401496703205375, 1267650600228229401496703205375, -1)', None, 'end'), (0, True, 'range(1267650600228229401496703205375, 1267650600228229401496703205375, -1)', None, 'end'), (0, True, 'range(1267650600228229401496703205375, 1267650600228229401496703205375, -1)', None, 'end'), (0, True, 'range(1267650600228229401496703205375, 1267650600228229401496703205375, -1)', None, 'end'), (0, True, 'range(1267650600228229401496703205375, 1267650600228229401496703205375, -1)', None, 'end')]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state -2**100",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('OverflowError', ('Python int too large to convert to C long',)), (4, 'range(10, 18, 2)', 10), ('OverflowError', ('Python int too large to convert to C long',)), (3, 'range(12, 18, 2)', 12), ('OverflowError', ('Python int too large to convert to C long',)), (2, 'range(14, 18, 2)', 14), []]",
+      "actual": "[('OverflowError', ('Python int too large to convert to C long',)), (4, 'range(10, 18, 2)', 10), ('OverflowError', ('Python int too large to convert to C long',)), (3, 'range(12, 18, 2)', 12), ('OverflowError', ('Python int too large to convert to C long',)), (2, 'range(14, 18, 2)', 14), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state -2**63",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (4, 'range(10, 18, 2)', 10), ('ok', None), (3, 'range(12, 18, 2)', 12), ('ok', None), (2, 'range(14, 18, 2)', 14), []]",
+      "actual": "[('ok', None), (4, 'range(10, 18, 2)', 10), ('ok', None), (3, 'range(12, 18, 2)', 12), ('ok', None), (2, 'range(14, 18, 2)', 14), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state -1",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (4, 'range(10, 18, 2)', 10), ('ok', None), (3, 'range(12, 18, 2)', 12), ('ok', None), (2, 'range(14, 18, 2)', 14), []]",
+      "actual": "[('ok', None), (4, 'range(10, 18, 2)', 10), ('ok', None), (3, 'range(12, 18, 2)', 12), ('ok', None), (2, 'range(14, 18, 2)', 14), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state 0",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (4, 'range(10, 18, 2)', 10), ('ok', None), (3, 'range(12, 18, 2)', 12), ('ok', None), (2, 'range(14, 18, 2)', 14), []]",
+      "actual": "[('ok', None), (4, 'range(10, 18, 2)', 10), ('ok', None), (3, 'range(12, 18, 2)', 12), ('ok', None), (2, 'range(14, 18, 2)', 14), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state 1",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (3, 'range(12, 18, 2)', 12), ('ok', None), (1, 'range(16, 18, 2)', 16), ('ok', None), (0, 'range(18, 18, 2)', 'end'), []]",
+      "actual": "[('ok', None), (3, 'range(12, 18, 2)', 12), ('ok', None), (1, 'range(16, 18, 2)', 16), ('ok', None), (0, 'range(18, 18, 2)', 'end'), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state 2",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (2, 'range(14, 18, 2)', 14), ('ok', None), (0, 'range(18, 18, 2)', 'end'), ('ok', None), (0, 'range(18, 18, 2)', 'end'), []]",
+      "actual": "[('ok', None), (2, 'range(14, 18, 2)', 14), ('ok', None), (0, 'range(18, 18, 2)', 'end'), ('ok', None), (0, 'range(18, 18, 2)', 'end'), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state 4",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (0, 'range(18, 18, 2)', 'end'), ('ok', None), (0, 'range(18, 18, 2)', 'end'), ('ok', None), (0, 'range(18, 18, 2)', 'end'), []]",
+      "actual": "[('ok', None), (0, 'range(18, 18, 2)', 'end'), ('ok', None), (0, 'range(18, 18, 2)', 'end'), ('ok', None), (0, 'range(18, 18, 2)', 'end'), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state 10",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (0, 'range(18, 18, 2)', 'end'), ('ok', None), (0, 'range(18, 18, 2)', 'end'), ('ok', None), (0, 'range(18, 18, 2)', 'end'), []]",
+      "actual": "[('ok', None), (0, 'range(18, 18, 2)', 'end'), ('ok', None), (0, 'range(18, 18, 2)', 'end'), ('ok', None), (0, 'range(18, 18, 2)', 'end'), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state 2**63-1",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (0, 'range(18, 18, 2)', 'end'), ('ok', None), (0, 'range(18, 18, 2)', 'end'), ('ok', None), (0, 'range(18, 18, 2)', 'end'), []]",
+      "actual": "[('ok', None), (0, 'range(18, 18, 2)', 'end'), ('ok', None), (0, 'range(18, 18, 2)', 'end'), ('ok', None), (0, 'range(18, 18, 2)', 'end'), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state 2**63",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('OverflowError', ('Python int too large to convert to C long',)), (4, 'range(10, 18, 2)', 10), ('OverflowError', ('Python int too large to convert to C long',)), (3, 'range(12, 18, 2)', 12), ('OverflowError', ('Python int too large to convert to C long',)), (2, 'range(14, 18, 2)', 14), []]",
+      "actual": "[('OverflowError', ('Python int too large to convert to C long',)), (4, 'range(10, 18, 2)', 10), ('OverflowError', ('Python int too large to convert to C long',)), (3, 'range(12, 18, 2)', 12), ('OverflowError', ('Python int too large to convert to C long',)), (2, 'range(14, 18, 2)', 14), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state 2**100",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('OverflowError', ('Python int too large to convert to C long',)), (4, 'range(10, 18, 2)', 10), ('OverflowError', ('Python int too large to convert to C long',)), (3, 'range(12, 18, 2)', 12), ('OverflowError', ('Python int too large to convert to C long',)), (2, 'range(14, 18, 2)', 14), []]",
+      "actual": "[('OverflowError', ('Python int too large to convert to C long',)), (4, 'range(10, 18, 2)', 10), ('OverflowError', ('Python int too large to convert to C long',)), (3, 'range(12, 18, 2)', 12), ('OverflowError', ('Python int too large to convert to C long',)), (2, 'range(14, 18, 2)', 14), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state True",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (3, 'range(12, 18, 2)', 12), ('ok', None), (1, 'range(16, 18, 2)', 16), ('ok', None), (0, 'range(18, 18, 2)', 'end'), []]",
+      "actual": "[('ok', None), (3, 'range(12, 18, 2)', 12), ('ok', None), (1, 'range(16, 18, 2)', 16), ('ok', None), (0, 'range(18, 18, 2)', 'end'), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state False",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (4, 'range(10, 18, 2)', 10), ('ok', None), (3, 'range(12, 18, 2)', 12), ('ok', None), (2, 'range(14, 18, 2)', 14), []]",
+      "actual": "[('ok', None), (4, 'range(10, 18, 2)', 10), ('ok', None), (3, 'range(12, 18, 2)', 12), ('ok', None), (2, 'range(14, 18, 2)', 14), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state None",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', (\"'NoneType' object cannot be interpreted as an integer\",)), (4, 'range(10, 18, 2)', 10), ('TypeError', (\"'NoneType' object cannot be interpreted as an integer\",)), (3, 'range(12, 18, 2)', 12), ('TypeError', (\"'NoneType' object cannot be interpreted as an integer\",)), (2, 'range(14, 18, 2)', 14), []]",
+      "actual": "[('TypeError', (\"'NoneType' object cannot be interpreted as an integer\",)), (4, 'range(10, 18, 2)', 10), ('TypeError', (\"'NoneType' object cannot be interpreted as an integer\",)), (3, 'range(12, 18, 2)', 12), ('TypeError', (\"'NoneType' object cannot be interpreted as an integer\",)), (2, 'range(14, 18, 2)', 14), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state 1.0",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', (\"'float' object cannot be interpreted as an integer\",)), (4, 'range(10, 18, 2)', 10), ('TypeError', (\"'float' object cannot be interpreted as an integer\",)), (3, 'range(12, 18, 2)', 12), ('TypeError', (\"'float' object cannot be interpreted as an integer\",)), (2, 'range(14, 18, 2)', 14), []]",
+      "actual": "[('TypeError', (\"'float' object cannot be interpreted as an integer\",)), (4, 'range(10, 18, 2)', 10), ('TypeError', (\"'float' object cannot be interpreted as an integer\",)), (3, 'range(12, 18, 2)', 12), ('TypeError', (\"'float' object cannot be interpreted as an integer\",)), (2, 'range(14, 18, 2)', 14), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state '1'",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', (\"'str' object cannot be interpreted as an integer\",)), (4, 'range(10, 18, 2)', 10), ('TypeError', (\"'str' object cannot be interpreted as an integer\",)), (3, 'range(12, 18, 2)', 12), ('TypeError', (\"'str' object cannot be interpreted as an integer\",)), (2, 'range(14, 18, 2)', 14), []]",
+      "actual": "[('TypeError', (\"'str' object cannot be interpreted as an integer\",)), (4, 'range(10, 18, 2)', 10), ('TypeError', (\"'str' object cannot be interpreted as an integer\",)), (3, 'range(12, 18, 2)', 12), ('TypeError', (\"'str' object cannot be interpreted as an integer\",)), (2, 'range(14, 18, 2)', 14), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state I(1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (3, 'range(12, 18, 2)', 12), ('ok', None), (1, 'range(16, 18, 2)', 16), ('ok', None), (0, 'range(18, 18, 2)', 'end'), []]",
+      "actual": "[('ok', None), (3, 'range(12, 18, 2)', 12), ('ok', None), (1, 'range(16, 18, 2)', 16), ('ok', None), (0, 'range(18, 18, 2)', 'end'), []]"
+    },
+    {
+      "name": "iter range(10, 17, 2) state Index()",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (3, 'range(12, 18, 2)', 12), ('ok', None), (1, 'range(16, 18, 2)', 16), ('ok', None), (0, 'range(18, 18, 2)', 'end'), ['index', 'index', 'index']]",
+      "actual": "[('ok', None), (3, 'range(12, 18, 2)', 12), ('ok', None), (1, 'range(16, 18, 2)', 16), ('ok', None), (0, 'range(18, 18, 2)', 'end'), ['index', 'index', 'index']]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state -2**100",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('ok', None), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('ok', None), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]",
+      "actual": "[('ok', None), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('ok', None), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('ok', None), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state -2**63",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('ok', None), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('ok', None), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]",
+      "actual": "[('ok', None), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('ok', None), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('ok', None), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state -1",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('ok', None), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('ok', None), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]",
+      "actual": "[('ok', None), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('ok', None), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('ok', None), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state 0",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('ok', None), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('ok', None), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]",
+      "actual": "[('ok', None), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('ok', None), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('ok', None), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state 1",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('ok', None), (1, 'range(1267650600228229401496703205382, 1267650600228229401496703205384, 2)', 1267650600228229401496703205382), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), []]",
+      "actual": "[('ok', None), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('ok', None), (1, 'range(1267650600228229401496703205382, 1267650600228229401496703205384, 2)', 1267650600228229401496703205382), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state 2",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), []]",
+      "actual": "[('ok', None), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state 4",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), []]",
+      "actual": "[('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state 10",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), []]",
+      "actual": "[('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state 2**63-1",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), []]",
+      "actual": "[('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state 2**63",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), []]",
+      "actual": "[('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state 2**100",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), []]",
+      "actual": "[('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205384, 1267650600228229401496703205384, 2)', 'end'), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state True",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('state must be an int, not bool',)), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('TypeError', ('state must be an int, not bool',)), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('TypeError', ('state must be an int, not bool',)), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]",
+      "actual": "[('TypeError', ('state must be an int, not bool',)), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('TypeError', ('state must be an int, not bool',)), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('TypeError', ('state must be an int, not bool',)), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state False",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('state must be an int, not bool',)), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('TypeError', ('state must be an int, not bool',)), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('TypeError', ('state must be an int, not bool',)), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]",
+      "actual": "[('TypeError', ('state must be an int, not bool',)), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('TypeError', ('state must be an int, not bool',)), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('TypeError', ('state must be an int, not bool',)), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state None",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('state must be an int, not NoneType',)), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('TypeError', ('state must be an int, not NoneType',)), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('TypeError', ('state must be an int, not NoneType',)), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]",
+      "actual": "[('TypeError', ('state must be an int, not NoneType',)), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('TypeError', ('state must be an int, not NoneType',)), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('TypeError', ('state must be an int, not NoneType',)), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state 1.0",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('state must be an int, not float',)), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('TypeError', ('state must be an int, not float',)), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('TypeError', ('state must be an int, not float',)), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]",
+      "actual": "[('TypeError', ('state must be an int, not float',)), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('TypeError', ('state must be an int, not float',)), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('TypeError', ('state must be an int, not float',)), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state '1'",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('state must be an int, not str',)), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('TypeError', ('state must be an int, not str',)), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('TypeError', ('state must be an int, not str',)), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]",
+      "actual": "[('TypeError', ('state must be an int, not str',)), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('TypeError', ('state must be an int, not str',)), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('TypeError', ('state must be an int, not str',)), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state I(1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('state must be an int, not I',)), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('TypeError', ('state must be an int, not I',)), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('TypeError', ('state must be an int, not I',)), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]",
+      "actual": "[('TypeError', ('state must be an int, not I',)), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('TypeError', ('state must be an int, not I',)), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('TypeError', ('state must be an int, not I',)), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]"
+    },
+    {
+      "name": "iter range(2**100, 2**100+7, 2) state Index()",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('state must be an int, not Index',)), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('TypeError', ('state must be an int, not Index',)), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('TypeError', ('state must be an int, not Index',)), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]",
+      "actual": "[('TypeError', ('state must be an int, not Index',)), (4, 'range(1267650600228229401496703205376, 1267650600228229401496703205384, 2)', 1267650600228229401496703205376), ('TypeError', ('state must be an int, not Index',)), (3, 'range(1267650600228229401496703205378, 1267650600228229401496703205384, 2)', 1267650600228229401496703205378), ('TypeError', ('state must be an int, not Index',)), (2, 'range(1267650600228229401496703205380, 1267650600228229401496703205384, 2)', 1267650600228229401496703205380), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state -2**100",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('OverflowError', ('Python int too large to convert to C long',)), (4, 'range(16, 8, -2)', 16), ('OverflowError', ('Python int too large to convert to C long',)), (3, 'range(14, 8, -2)', 14), ('OverflowError', ('Python int too large to convert to C long',)), (2, 'range(12, 8, -2)', 12), []]",
+      "actual": "[('OverflowError', ('Python int too large to convert to C long',)), (4, 'range(16, 8, -2)', 16), ('OverflowError', ('Python int too large to convert to C long',)), (3, 'range(14, 8, -2)', 14), ('OverflowError', ('Python int too large to convert to C long',)), (2, 'range(12, 8, -2)', 12), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state -2**63",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (4, 'range(16, 8, -2)', 16), ('ok', None), (3, 'range(14, 8, -2)', 14), ('ok', None), (2, 'range(12, 8, -2)', 12), []]",
+      "actual": "[('ok', None), (4, 'range(16, 8, -2)', 16), ('ok', None), (3, 'range(14, 8, -2)', 14), ('ok', None), (2, 'range(12, 8, -2)', 12), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state -1",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (4, 'range(16, 8, -2)', 16), ('ok', None), (3, 'range(14, 8, -2)', 14), ('ok', None), (2, 'range(12, 8, -2)', 12), []]",
+      "actual": "[('ok', None), (4, 'range(16, 8, -2)', 16), ('ok', None), (3, 'range(14, 8, -2)', 14), ('ok', None), (2, 'range(12, 8, -2)', 12), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state 0",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (4, 'range(16, 8, -2)', 16), ('ok', None), (3, 'range(14, 8, -2)', 14), ('ok', None), (2, 'range(12, 8, -2)', 12), []]",
+      "actual": "[('ok', None), (4, 'range(16, 8, -2)', 16), ('ok', None), (3, 'range(14, 8, -2)', 14), ('ok', None), (2, 'range(12, 8, -2)', 12), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state 1",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (3, 'range(14, 8, -2)', 14), ('ok', None), (1, 'range(10, 8, -2)', 10), ('ok', None), (0, 'range(8, 8, -2)', 'end'), []]",
+      "actual": "[('ok', None), (3, 'range(14, 8, -2)', 14), ('ok', None), (1, 'range(10, 8, -2)', 10), ('ok', None), (0, 'range(8, 8, -2)', 'end'), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state 2",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (2, 'range(12, 8, -2)', 12), ('ok', None), (0, 'range(8, 8, -2)', 'end'), ('ok', None), (0, 'range(8, 8, -2)', 'end'), []]",
+      "actual": "[('ok', None), (2, 'range(12, 8, -2)', 12), ('ok', None), (0, 'range(8, 8, -2)', 'end'), ('ok', None), (0, 'range(8, 8, -2)', 'end'), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state 4",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (0, 'range(8, 8, -2)', 'end'), ('ok', None), (0, 'range(8, 8, -2)', 'end'), ('ok', None), (0, 'range(8, 8, -2)', 'end'), []]",
+      "actual": "[('ok', None), (0, 'range(8, 8, -2)', 'end'), ('ok', None), (0, 'range(8, 8, -2)', 'end'), ('ok', None), (0, 'range(8, 8, -2)', 'end'), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state 10",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (0, 'range(8, 8, -2)', 'end'), ('ok', None), (0, 'range(8, 8, -2)', 'end'), ('ok', None), (0, 'range(8, 8, -2)', 'end'), []]",
+      "actual": "[('ok', None), (0, 'range(8, 8, -2)', 'end'), ('ok', None), (0, 'range(8, 8, -2)', 'end'), ('ok', None), (0, 'range(8, 8, -2)', 'end'), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state 2**63-1",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (0, 'range(8, 8, -2)', 'end'), ('ok', None), (0, 'range(8, 8, -2)', 'end'), ('ok', None), (0, 'range(8, 8, -2)', 'end'), []]",
+      "actual": "[('ok', None), (0, 'range(8, 8, -2)', 'end'), ('ok', None), (0, 'range(8, 8, -2)', 'end'), ('ok', None), (0, 'range(8, 8, -2)', 'end'), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state 2**63",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('OverflowError', ('Python int too large to convert to C long',)), (4, 'range(16, 8, -2)', 16), ('OverflowError', ('Python int too large to convert to C long',)), (3, 'range(14, 8, -2)', 14), ('OverflowError', ('Python int too large to convert to C long',)), (2, 'range(12, 8, -2)', 12), []]",
+      "actual": "[('OverflowError', ('Python int too large to convert to C long',)), (4, 'range(16, 8, -2)', 16), ('OverflowError', ('Python int too large to convert to C long',)), (3, 'range(14, 8, -2)', 14), ('OverflowError', ('Python int too large to convert to C long',)), (2, 'range(12, 8, -2)', 12), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state 2**100",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('OverflowError', ('Python int too large to convert to C long',)), (4, 'range(16, 8, -2)', 16), ('OverflowError', ('Python int too large to convert to C long',)), (3, 'range(14, 8, -2)', 14), ('OverflowError', ('Python int too large to convert to C long',)), (2, 'range(12, 8, -2)', 12), []]",
+      "actual": "[('OverflowError', ('Python int too large to convert to C long',)), (4, 'range(16, 8, -2)', 16), ('OverflowError', ('Python int too large to convert to C long',)), (3, 'range(14, 8, -2)', 14), ('OverflowError', ('Python int too large to convert to C long',)), (2, 'range(12, 8, -2)', 12), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state True",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (3, 'range(14, 8, -2)', 14), ('ok', None), (1, 'range(10, 8, -2)', 10), ('ok', None), (0, 'range(8, 8, -2)', 'end'), []]",
+      "actual": "[('ok', None), (3, 'range(14, 8, -2)', 14), ('ok', None), (1, 'range(10, 8, -2)', 10), ('ok', None), (0, 'range(8, 8, -2)', 'end'), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state False",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (4, 'range(16, 8, -2)', 16), ('ok', None), (3, 'range(14, 8, -2)', 14), ('ok', None), (2, 'range(12, 8, -2)', 12), []]",
+      "actual": "[('ok', None), (4, 'range(16, 8, -2)', 16), ('ok', None), (3, 'range(14, 8, -2)', 14), ('ok', None), (2, 'range(12, 8, -2)', 12), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state None",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', (\"'NoneType' object cannot be interpreted as an integer\",)), (4, 'range(16, 8, -2)', 16), ('TypeError', (\"'NoneType' object cannot be interpreted as an integer\",)), (3, 'range(14, 8, -2)', 14), ('TypeError', (\"'NoneType' object cannot be interpreted as an integer\",)), (2, 'range(12, 8, -2)', 12), []]",
+      "actual": "[('TypeError', (\"'NoneType' object cannot be interpreted as an integer\",)), (4, 'range(16, 8, -2)', 16), ('TypeError', (\"'NoneType' object cannot be interpreted as an integer\",)), (3, 'range(14, 8, -2)', 14), ('TypeError', (\"'NoneType' object cannot be interpreted as an integer\",)), (2, 'range(12, 8, -2)', 12), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state 1.0",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', (\"'float' object cannot be interpreted as an integer\",)), (4, 'range(16, 8, -2)', 16), ('TypeError', (\"'float' object cannot be interpreted as an integer\",)), (3, 'range(14, 8, -2)', 14), ('TypeError', (\"'float' object cannot be interpreted as an integer\",)), (2, 'range(12, 8, -2)', 12), []]",
+      "actual": "[('TypeError', (\"'float' object cannot be interpreted as an integer\",)), (4, 'range(16, 8, -2)', 16), ('TypeError', (\"'float' object cannot be interpreted as an integer\",)), (3, 'range(14, 8, -2)', 14), ('TypeError', (\"'float' object cannot be interpreted as an integer\",)), (2, 'range(12, 8, -2)', 12), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state '1'",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', (\"'str' object cannot be interpreted as an integer\",)), (4, 'range(16, 8, -2)', 16), ('TypeError', (\"'str' object cannot be interpreted as an integer\",)), (3, 'range(14, 8, -2)', 14), ('TypeError', (\"'str' object cannot be interpreted as an integer\",)), (2, 'range(12, 8, -2)', 12), []]",
+      "actual": "[('TypeError', (\"'str' object cannot be interpreted as an integer\",)), (4, 'range(16, 8, -2)', 16), ('TypeError', (\"'str' object cannot be interpreted as an integer\",)), (3, 'range(14, 8, -2)', 14), ('TypeError', (\"'str' object cannot be interpreted as an integer\",)), (2, 'range(12, 8, -2)', 12), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state I(1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (3, 'range(14, 8, -2)', 14), ('ok', None), (1, 'range(10, 8, -2)', 10), ('ok', None), (0, 'range(8, 8, -2)', 'end'), []]",
+      "actual": "[('ok', None), (3, 'range(14, 8, -2)', 14), ('ok', None), (1, 'range(10, 8, -2)', 10), ('ok', None), (0, 'range(8, 8, -2)', 'end'), []]"
+    },
+    {
+      "name": "reversed range(10, 17, 2) state Index()",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (3, 'range(14, 8, -2)', 14), ('ok', None), (1, 'range(10, 8, -2)', 10), ('ok', None), (0, 'range(8, 8, -2)', 'end'), ['index', 'index', 'index']]",
+      "actual": "[('ok', None), (3, 'range(14, 8, -2)', 14), ('ok', None), (1, 'range(10, 8, -2)', 10), ('ok', None), (0, 'range(8, 8, -2)', 'end'), ['index', 'index', 'index']]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state -2**100",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('ok', None), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('ok', None), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]",
+      "actual": "[('ok', None), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('ok', None), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('ok', None), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state -2**63",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('ok', None), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('ok', None), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]",
+      "actual": "[('ok', None), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('ok', None), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('ok', None), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state -1",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('ok', None), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('ok', None), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]",
+      "actual": "[('ok', None), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('ok', None), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('ok', None), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state 0",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('ok', None), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('ok', None), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]",
+      "actual": "[('ok', None), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('ok', None), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('ok', None), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state 1",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('ok', None), (1, 'range(1267650600228229401496703205376, 1267650600228229401496703205374, -2)', 1267650600228229401496703205376), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), []]",
+      "actual": "[('ok', None), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('ok', None), (1, 'range(1267650600228229401496703205376, 1267650600228229401496703205374, -2)', 1267650600228229401496703205376), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state 2",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), []]",
+      "actual": "[('ok', None), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state 4",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), []]",
+      "actual": "[('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state 10",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), []]",
+      "actual": "[('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state 2**63-1",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), []]",
+      "actual": "[('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state 2**63",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), []]",
+      "actual": "[('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state 2**100",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), []]",
+      "actual": "[('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), ('ok', None), (0, 'range(1267650600228229401496703205374, 1267650600228229401496703205374, -2)', 'end'), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state True",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('state must be an int, not bool',)), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('TypeError', ('state must be an int, not bool',)), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('TypeError', ('state must be an int, not bool',)), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]",
+      "actual": "[('TypeError', ('state must be an int, not bool',)), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('TypeError', ('state must be an int, not bool',)), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('TypeError', ('state must be an int, not bool',)), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state False",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('state must be an int, not bool',)), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('TypeError', ('state must be an int, not bool',)), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('TypeError', ('state must be an int, not bool',)), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]",
+      "actual": "[('TypeError', ('state must be an int, not bool',)), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('TypeError', ('state must be an int, not bool',)), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('TypeError', ('state must be an int, not bool',)), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state None",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('state must be an int, not NoneType',)), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('TypeError', ('state must be an int, not NoneType',)), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('TypeError', ('state must be an int, not NoneType',)), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]",
+      "actual": "[('TypeError', ('state must be an int, not NoneType',)), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('TypeError', ('state must be an int, not NoneType',)), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('TypeError', ('state must be an int, not NoneType',)), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state 1.0",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('state must be an int, not float',)), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('TypeError', ('state must be an int, not float',)), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('TypeError', ('state must be an int, not float',)), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]",
+      "actual": "[('TypeError', ('state must be an int, not float',)), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('TypeError', ('state must be an int, not float',)), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('TypeError', ('state must be an int, not float',)), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state '1'",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('state must be an int, not str',)), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('TypeError', ('state must be an int, not str',)), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('TypeError', ('state must be an int, not str',)), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]",
+      "actual": "[('TypeError', ('state must be an int, not str',)), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('TypeError', ('state must be an int, not str',)), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('TypeError', ('state must be an int, not str',)), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state I(1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('state must be an int, not I',)), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('TypeError', ('state must be an int, not I',)), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('TypeError', ('state must be an int, not I',)), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]",
+      "actual": "[('TypeError', ('state must be an int, not I',)), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('TypeError', ('state must be an int, not I',)), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('TypeError', ('state must be an int, not I',)), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]"
+    },
+    {
+      "name": "reversed range(2**100, 2**100+7, 2) state Index()",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('state must be an int, not Index',)), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('TypeError', ('state must be an int, not Index',)), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('TypeError', ('state must be an int, not Index',)), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]",
+      "actual": "[('TypeError', ('state must be an int, not Index',)), (4, 'range(1267650600228229401496703205382, 1267650600228229401496703205374, -2)', 1267650600228229401496703205382), ('TypeError', ('state must be an int, not Index',)), (3, 'range(1267650600228229401496703205380, 1267650600228229401496703205374, -2)', 1267650600228229401496703205380), ('TypeError', ('state must be an int, not Index',)), (2, 'range(1267650600228229401496703205378, 1267650600228229401496703205374, -2)', 1267650600228229401496703205378), []]"
+    },
+    {
+      "name": "metadata range(3)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['range_iterator', None, ['__doc__', '__iter__', '__length_hint__', '__next__', '__reduce__', '__setstate__'], ('__iter__', 'wrapper_descriptor', '__iter__', 'range_iterator.__iter__', 'Implement iter(self).', '($self, /)', True, True), ('__next__', 'wrapper_descriptor', '__next__', 'range_iterator.__next__', 'Implement next(self).', '($self, /)', True, True), ('__length_hint__', 'method_descriptor', '__length_hint__', 'range_iterator.__length_hint__', 'Private method returning an estimate of len(list(it)).', '($self, /)', True, True), ('__reduce__', 'method_descriptor', '__reduce__', 'range_iterator.__reduce__', 'Return state information for pickling.', '($self, /)', True, True), ('__setstate__', 'method_descriptor', '__setstate__', 'range_iterator.__setstate__', 'Set state information for unpickling.', '($self, object, /)', True, True), ('TypeError', (\"cannot create 'range_iterator' instances\",)), ('TypeError', (\"cannot create 'range_iterator' instances\",)), ('TypeError', (\"cannot create 'range_iterator' instances\",)), ('TypeError', (\"type 'range_iterator' is not an acceptable base type\",))]",
+      "actual": "['range_iterator', None, ['__doc__', '__iter__', '__length_hint__', '__next__', '__reduce__', '__setstate__'], ('__iter__', 'wrapper_descriptor', '__iter__', 'range_iterator.__iter__', 'Implement iter(self).', '($self, /)', True, True), ('__next__', 'wrapper_descriptor', '__next__', 'range_iterator.__next__', 'Implement next(self).', '($self, /)', True, True), ('__length_hint__', 'method_descriptor', '__length_hint__', 'range_iterator.__length_hint__', 'Private method returning an estimate of len(list(it)).', '($self, /)', True, True), ('__reduce__', 'method_descriptor', '__reduce__', 'range_iterator.__reduce__', 'Return state information for pickling.', '($self, /)', True, True), ('__setstate__', 'method_descriptor', '__setstate__', 'range_iterator.__setstate__', 'Set state information for unpickling.', '($self, object, /)', True, True), ('TypeError', (\"cannot create 'range_iterator' instances\",)), ('TypeError', (\"cannot create 'range_iterator' instances\",)), ('TypeError', (\"cannot create 'range_iterator' instances\",)), ('TypeError', (\"type 'range_iterator' is not an acceptable base type\",))]"
+    },
+    {
+      "name": "binding range(3) __iter__()",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('self', True), ('self', True), ('TypeError', (\"descriptor '__iter__' requires a 'range_iterator' object but received a 'NoneType'\",))]",
+      "actual": "[('self', True), ('self', True), ('TypeError', (\"descriptor '__iter__' requires a 'range_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(3) __iter__(1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('expected 0 arguments, got 1',)), ('TypeError', ('expected 0 arguments, got 1',)), ('TypeError', (\"descriptor '__iter__' requires a 'range_iterator' object but received a 'NoneType'\",))]",
+      "actual": "[('TypeError', ('expected 0 arguments, got 1',)), ('TypeError', ('expected 0 arguments, got 1',)), ('TypeError', (\"descriptor '__iter__' requires a 'range_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(3) __iter__(1, 2)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('expected 0 arguments, got 2',)), ('TypeError', ('expected 0 arguments, got 2',)), ('TypeError', (\"descriptor '__iter__' requires a 'range_iterator' object but received a 'NoneType'\",))]",
+      "actual": "[('TypeError', ('expected 0 arguments, got 2',)), ('TypeError', ('expected 0 arguments, got 2',)), ('TypeError', (\"descriptor '__iter__' requires a 'range_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(3) __iter__(x=1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('wrapper __iter__() takes no keyword arguments',)), ('TypeError', ('wrapper __iter__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__iter__' requires a 'range_iterator' object but received a 'NoneType'\",))]",
+      "actual": "[('TypeError', ('wrapper __iter__() takes no keyword arguments',)), ('TypeError', ('wrapper __iter__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__iter__' requires a 'range_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(3) __iter__(1, x=2)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('wrapper __iter__() takes no keyword arguments',)), ('TypeError', ('wrapper __iter__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__iter__' requires a 'range_iterator' object but received a 'NoneType'\",))]",
+      "actual": "[('TypeError', ('wrapper __iter__() takes no keyword arguments',)), ('TypeError', ('wrapper __iter__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__iter__' requires a 'range_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(3) __next__()",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', 0), ('ok', 1), ('TypeError', (\"descriptor '__next__' requires a 'range_iterator' object but received a 'NoneType'\",))]",
+      "actual": "[('ok', 0), ('ok', 1), ('TypeError', (\"descriptor '__next__' requires a 'range_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(3) __next__(1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('expected 0 arguments, got 1',)), ('TypeError', ('expected 0 arguments, got 1',)), ('TypeError', (\"descriptor '__next__' requires a 'range_iterator' object but received a 'NoneType'\",))]",
+      "actual": "[('TypeError', ('expected 0 arguments, got 1',)), ('TypeError', ('expected 0 arguments, got 1',)), ('TypeError', (\"descriptor '__next__' requires a 'range_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(3) __next__(1, 2)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('expected 0 arguments, got 2',)), ('TypeError', ('expected 0 arguments, got 2',)), ('TypeError', (\"descriptor '__next__' requires a 'range_iterator' object but received a 'NoneType'\",))]",
+      "actual": "[('TypeError', ('expected 0 arguments, got 2',)), ('TypeError', ('expected 0 arguments, got 2',)), ('TypeError', (\"descriptor '__next__' requires a 'range_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(3) __next__(x=1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('wrapper __next__() takes no keyword arguments',)), ('TypeError', ('wrapper __next__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__next__' requires a 'range_iterator' object but received a 'NoneType'\",))]",
+      "actual": "[('TypeError', ('wrapper __next__() takes no keyword arguments',)), ('TypeError', ('wrapper __next__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__next__' requires a 'range_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(3) __next__(1, x=2)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('wrapper __next__() takes no keyword arguments',)), ('TypeError', ('wrapper __next__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__next__' requires a 'range_iterator' object but received a 'NoneType'\",))]",
+      "actual": "[('TypeError', ('wrapper __next__() takes no keyword arguments',)), ('TypeError', ('wrapper __next__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__next__' requires a 'range_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(3) __length_hint__()",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', 3), ('ok', 3), ('TypeError', (\"descriptor '__length_hint__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]",
+      "actual": "[('ok', 3), ('ok', 3), ('TypeError', (\"descriptor '__length_hint__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(3) __length_hint__(1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('range_iterator.__length_hint__() takes no arguments (1 given)',)), ('TypeError', ('range_iterator.__length_hint__() takes no arguments (1 given)',)), ('TypeError', (\"descriptor '__length_hint__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]",
+      "actual": "[('TypeError', ('range_iterator.__length_hint__() takes no arguments (1 given)',)), ('TypeError', ('range_iterator.__length_hint__() takes no arguments (1 given)',)), ('TypeError', (\"descriptor '__length_hint__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(3) __length_hint__(1, 2)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('range_iterator.__length_hint__() takes no arguments (2 given)',)), ('TypeError', ('range_iterator.__length_hint__() takes no arguments (2 given)',)), ('TypeError', (\"descriptor '__length_hint__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]",
+      "actual": "[('TypeError', ('range_iterator.__length_hint__() takes no arguments (2 given)',)), ('TypeError', ('range_iterator.__length_hint__() takes no arguments (2 given)',)), ('TypeError', (\"descriptor '__length_hint__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(3) __length_hint__(x=1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('range_iterator.__length_hint__() takes no keyword arguments',)), ('TypeError', ('range_iterator.__length_hint__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__length_hint__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]",
+      "actual": "[('TypeError', ('range_iterator.__length_hint__() takes no keyword arguments',)), ('TypeError', ('range_iterator.__length_hint__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__length_hint__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(3) __length_hint__(1, x=2)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('range_iterator.__length_hint__() takes no keyword arguments',)), ('TypeError', ('range_iterator.__length_hint__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__length_hint__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]",
+      "actual": "[('TypeError', ('range_iterator.__length_hint__() takes no keyword arguments',)), ('TypeError', ('range_iterator.__length_hint__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__length_hint__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(3) __reduce__()",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('reduction', True, 'range(0, 3)', None), ('reduction', True, 'range(0, 3)', None), ('TypeError', (\"descriptor '__reduce__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]",
+      "actual": "[('reduction', True, 'range(0, 3)', None), ('reduction', True, 'range(0, 3)', None), ('TypeError', (\"descriptor '__reduce__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(3) __reduce__(1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('range_iterator.__reduce__() takes no arguments (1 given)',)), ('TypeError', ('range_iterator.__reduce__() takes no arguments (1 given)',)), ('TypeError', (\"descriptor '__reduce__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]",
+      "actual": "[('TypeError', ('range_iterator.__reduce__() takes no arguments (1 given)',)), ('TypeError', ('range_iterator.__reduce__() takes no arguments (1 given)',)), ('TypeError', (\"descriptor '__reduce__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(3) __reduce__(1, 2)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('range_iterator.__reduce__() takes no arguments (2 given)',)), ('TypeError', ('range_iterator.__reduce__() takes no arguments (2 given)',)), ('TypeError', (\"descriptor '__reduce__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]",
+      "actual": "[('TypeError', ('range_iterator.__reduce__() takes no arguments (2 given)',)), ('TypeError', ('range_iterator.__reduce__() takes no arguments (2 given)',)), ('TypeError', (\"descriptor '__reduce__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(3) __reduce__(x=1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('range_iterator.__reduce__() takes no keyword arguments',)), ('TypeError', ('range_iterator.__reduce__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__reduce__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]",
+      "actual": "[('TypeError', ('range_iterator.__reduce__() takes no keyword arguments',)), ('TypeError', ('range_iterator.__reduce__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__reduce__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(3) __reduce__(1, x=2)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('range_iterator.__reduce__() takes no keyword arguments',)), ('TypeError', ('range_iterator.__reduce__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__reduce__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]",
+      "actual": "[('TypeError', ('range_iterator.__reduce__() takes no keyword arguments',)), ('TypeError', ('range_iterator.__reduce__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__reduce__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(3) __setstate__()",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('range_iterator.__setstate__() takes exactly one argument (0 given)',)), ('TypeError', ('range_iterator.__setstate__() takes exactly one argument (0 given)',)), ('TypeError', (\"descriptor '__setstate__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]",
+      "actual": "[('TypeError', ('range_iterator.__setstate__() takes exactly one argument (0 given)',)), ('TypeError', ('range_iterator.__setstate__() takes exactly one argument (0 given)',)), ('TypeError', (\"descriptor '__setstate__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(3) __setstate__(1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), ('ok', None), ('TypeError', (\"descriptor '__setstate__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]",
+      "actual": "[('ok', None), ('ok', None), ('TypeError', (\"descriptor '__setstate__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(3) __setstate__(1, 2)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('range_iterator.__setstate__() takes exactly one argument (2 given)',)), ('TypeError', ('range_iterator.__setstate__() takes exactly one argument (2 given)',)), ('TypeError', (\"descriptor '__setstate__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]",
+      "actual": "[('TypeError', ('range_iterator.__setstate__() takes exactly one argument (2 given)',)), ('TypeError', ('range_iterator.__setstate__() takes exactly one argument (2 given)',)), ('TypeError', (\"descriptor '__setstate__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(3) __setstate__(x=1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('range_iterator.__setstate__() takes no keyword arguments',)), ('TypeError', ('range_iterator.__setstate__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__setstate__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]",
+      "actual": "[('TypeError', ('range_iterator.__setstate__() takes no keyword arguments',)), ('TypeError', ('range_iterator.__setstate__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__setstate__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(3) __setstate__(1, x=2)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('range_iterator.__setstate__() takes no keyword arguments',)), ('TypeError', ('range_iterator.__setstate__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__setstate__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]",
+      "actual": "[('TypeError', ('range_iterator.__setstate__() takes no keyword arguments',)), ('TypeError', ('range_iterator.__setstate__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__setstate__' for 'range_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "reentrant reduction range(3)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[None, 'range(0, 3)', None, None, 'range(1, 3)', None, [0, 1], 1]",
+      "actual": "[None, 'range(0, 3)', None, None, 'range(1, 3)', None, [0, 1], 1]"
+    },
+    {
+      "name": "metadata range(2**100, 2**100+3)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "['longrange_iterator', None, ['__doc__', '__iter__', '__length_hint__', '__next__', '__reduce__', '__setstate__'], ('__iter__', 'wrapper_descriptor', '__iter__', 'longrange_iterator.__iter__', 'Implement iter(self).', '($self, /)', True, True), ('__next__', 'wrapper_descriptor', '__next__', 'longrange_iterator.__next__', 'Implement next(self).', '($self, /)', True, True), ('__length_hint__', 'method_descriptor', '__length_hint__', 'longrange_iterator.__length_hint__', 'Private method returning an estimate of len(list(it)).', '($self, /)', True, True), ('__reduce__', 'method_descriptor', '__reduce__', 'longrange_iterator.__reduce__', 'Return state information for pickling.', '($self, /)', True, True), ('__setstate__', 'method_descriptor', '__setstate__', 'longrange_iterator.__setstate__', 'Set state information for unpickling.', '($self, object, /)', True, True), ('TypeError', (\"cannot create 'longrange_iterator' instances\",)), ('TypeError', (\"cannot create 'longrange_iterator' instances\",)), ('TypeError', (\"cannot create 'longrange_iterator' instances\",)), ('TypeError', (\"type 'longrange_iterator' is not an acceptable base type\",))]",
+      "actual": "['longrange_iterator', None, ['__doc__', '__iter__', '__length_hint__', '__next__', '__reduce__', '__setstate__'], ('__iter__', 'wrapper_descriptor', '__iter__', 'longrange_iterator.__iter__', 'Implement iter(self).', '($self, /)', True, True), ('__next__', 'wrapper_descriptor', '__next__', 'longrange_iterator.__next__', 'Implement next(self).', '($self, /)', True, True), ('__length_hint__', 'method_descriptor', '__length_hint__', 'longrange_iterator.__length_hint__', 'Private method returning an estimate of len(list(it)).', '($self, /)', True, True), ('__reduce__', 'method_descriptor', '__reduce__', 'longrange_iterator.__reduce__', 'Return state information for pickling.', '($self, /)', True, True), ('__setstate__', 'method_descriptor', '__setstate__', 'longrange_iterator.__setstate__', 'Set state information for unpickling.', '($self, object, /)', True, True), ('TypeError', (\"cannot create 'longrange_iterator' instances\",)), ('TypeError', (\"cannot create 'longrange_iterator' instances\",)), ('TypeError', (\"cannot create 'longrange_iterator' instances\",)), ('TypeError', (\"type 'longrange_iterator' is not an acceptable base type\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __iter__()",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('self', True), ('self', True), ('TypeError', (\"descriptor '__iter__' requires a 'longrange_iterator' object but received a 'NoneType'\",))]",
+      "actual": "[('self', True), ('self', True), ('TypeError', (\"descriptor '__iter__' requires a 'longrange_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __iter__(1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('expected 0 arguments, got 1',)), ('TypeError', ('expected 0 arguments, got 1',)), ('TypeError', (\"descriptor '__iter__' requires a 'longrange_iterator' object but received a 'NoneType'\",))]",
+      "actual": "[('TypeError', ('expected 0 arguments, got 1',)), ('TypeError', ('expected 0 arguments, got 1',)), ('TypeError', (\"descriptor '__iter__' requires a 'longrange_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __iter__(1, 2)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('expected 0 arguments, got 2',)), ('TypeError', ('expected 0 arguments, got 2',)), ('TypeError', (\"descriptor '__iter__' requires a 'longrange_iterator' object but received a 'NoneType'\",))]",
+      "actual": "[('TypeError', ('expected 0 arguments, got 2',)), ('TypeError', ('expected 0 arguments, got 2',)), ('TypeError', (\"descriptor '__iter__' requires a 'longrange_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __iter__(x=1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('wrapper __iter__() takes no keyword arguments',)), ('TypeError', ('wrapper __iter__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__iter__' requires a 'longrange_iterator' object but received a 'NoneType'\",))]",
+      "actual": "[('TypeError', ('wrapper __iter__() takes no keyword arguments',)), ('TypeError', ('wrapper __iter__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__iter__' requires a 'longrange_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __iter__(1, x=2)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('wrapper __iter__() takes no keyword arguments',)), ('TypeError', ('wrapper __iter__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__iter__' requires a 'longrange_iterator' object but received a 'NoneType'\",))]",
+      "actual": "[('TypeError', ('wrapper __iter__() takes no keyword arguments',)), ('TypeError', ('wrapper __iter__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__iter__' requires a 'longrange_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __next__()",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', 1267650600228229401496703205376), ('ok', 1267650600228229401496703205377), ('TypeError', (\"descriptor '__next__' requires a 'longrange_iterator' object but received a 'NoneType'\",))]",
+      "actual": "[('ok', 1267650600228229401496703205376), ('ok', 1267650600228229401496703205377), ('TypeError', (\"descriptor '__next__' requires a 'longrange_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __next__(1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('expected 0 arguments, got 1',)), ('TypeError', ('expected 0 arguments, got 1',)), ('TypeError', (\"descriptor '__next__' requires a 'longrange_iterator' object but received a 'NoneType'\",))]",
+      "actual": "[('TypeError', ('expected 0 arguments, got 1',)), ('TypeError', ('expected 0 arguments, got 1',)), ('TypeError', (\"descriptor '__next__' requires a 'longrange_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __next__(1, 2)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('expected 0 arguments, got 2',)), ('TypeError', ('expected 0 arguments, got 2',)), ('TypeError', (\"descriptor '__next__' requires a 'longrange_iterator' object but received a 'NoneType'\",))]",
+      "actual": "[('TypeError', ('expected 0 arguments, got 2',)), ('TypeError', ('expected 0 arguments, got 2',)), ('TypeError', (\"descriptor '__next__' requires a 'longrange_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __next__(x=1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('wrapper __next__() takes no keyword arguments',)), ('TypeError', ('wrapper __next__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__next__' requires a 'longrange_iterator' object but received a 'NoneType'\",))]",
+      "actual": "[('TypeError', ('wrapper __next__() takes no keyword arguments',)), ('TypeError', ('wrapper __next__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__next__' requires a 'longrange_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __next__(1, x=2)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('wrapper __next__() takes no keyword arguments',)), ('TypeError', ('wrapper __next__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__next__' requires a 'longrange_iterator' object but received a 'NoneType'\",))]",
+      "actual": "[('TypeError', ('wrapper __next__() takes no keyword arguments',)), ('TypeError', ('wrapper __next__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__next__' requires a 'longrange_iterator' object but received a 'NoneType'\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __length_hint__()",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', 3), ('ok', 3), ('TypeError', (\"descriptor '__length_hint__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]",
+      "actual": "[('ok', 3), ('ok', 3), ('TypeError', (\"descriptor '__length_hint__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __length_hint__(1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('longrange_iterator.__length_hint__() takes no arguments (1 given)',)), ('TypeError', ('longrange_iterator.__length_hint__() takes no arguments (1 given)',)), ('TypeError', (\"descriptor '__length_hint__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]",
+      "actual": "[('TypeError', ('longrange_iterator.__length_hint__() takes no arguments (1 given)',)), ('TypeError', ('longrange_iterator.__length_hint__() takes no arguments (1 given)',)), ('TypeError', (\"descriptor '__length_hint__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __length_hint__(1, 2)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('longrange_iterator.__length_hint__() takes no arguments (2 given)',)), ('TypeError', ('longrange_iterator.__length_hint__() takes no arguments (2 given)',)), ('TypeError', (\"descriptor '__length_hint__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]",
+      "actual": "[('TypeError', ('longrange_iterator.__length_hint__() takes no arguments (2 given)',)), ('TypeError', ('longrange_iterator.__length_hint__() takes no arguments (2 given)',)), ('TypeError', (\"descriptor '__length_hint__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __length_hint__(x=1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('longrange_iterator.__length_hint__() takes no keyword arguments',)), ('TypeError', ('longrange_iterator.__length_hint__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__length_hint__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]",
+      "actual": "[('TypeError', ('longrange_iterator.__length_hint__() takes no keyword arguments',)), ('TypeError', ('longrange_iterator.__length_hint__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__length_hint__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __length_hint__(1, x=2)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('longrange_iterator.__length_hint__() takes no keyword arguments',)), ('TypeError', ('longrange_iterator.__length_hint__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__length_hint__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]",
+      "actual": "[('TypeError', ('longrange_iterator.__length_hint__() takes no keyword arguments',)), ('TypeError', ('longrange_iterator.__length_hint__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__length_hint__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __reduce__()",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('reduction', True, 'range(1267650600228229401496703205376, 1267650600228229401496703205379)', None), ('reduction', True, 'range(1267650600228229401496703205376, 1267650600228229401496703205379)', None), ('TypeError', (\"descriptor '__reduce__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]",
+      "actual": "[('reduction', True, 'range(1267650600228229401496703205376, 1267650600228229401496703205379)', None), ('reduction', True, 'range(1267650600228229401496703205376, 1267650600228229401496703205379)', None), ('TypeError', (\"descriptor '__reduce__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __reduce__(1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('longrange_iterator.__reduce__() takes no arguments (1 given)',)), ('TypeError', ('longrange_iterator.__reduce__() takes no arguments (1 given)',)), ('TypeError', (\"descriptor '__reduce__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]",
+      "actual": "[('TypeError', ('longrange_iterator.__reduce__() takes no arguments (1 given)',)), ('TypeError', ('longrange_iterator.__reduce__() takes no arguments (1 given)',)), ('TypeError', (\"descriptor '__reduce__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __reduce__(1, 2)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('longrange_iterator.__reduce__() takes no arguments (2 given)',)), ('TypeError', ('longrange_iterator.__reduce__() takes no arguments (2 given)',)), ('TypeError', (\"descriptor '__reduce__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]",
+      "actual": "[('TypeError', ('longrange_iterator.__reduce__() takes no arguments (2 given)',)), ('TypeError', ('longrange_iterator.__reduce__() takes no arguments (2 given)',)), ('TypeError', (\"descriptor '__reduce__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __reduce__(x=1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('longrange_iterator.__reduce__() takes no keyword arguments',)), ('TypeError', ('longrange_iterator.__reduce__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__reduce__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]",
+      "actual": "[('TypeError', ('longrange_iterator.__reduce__() takes no keyword arguments',)), ('TypeError', ('longrange_iterator.__reduce__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__reduce__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __reduce__(1, x=2)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('longrange_iterator.__reduce__() takes no keyword arguments',)), ('TypeError', ('longrange_iterator.__reduce__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__reduce__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]",
+      "actual": "[('TypeError', ('longrange_iterator.__reduce__() takes no keyword arguments',)), ('TypeError', ('longrange_iterator.__reduce__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__reduce__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __setstate__()",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('longrange_iterator.__setstate__() takes exactly one argument (0 given)',)), ('TypeError', ('longrange_iterator.__setstate__() takes exactly one argument (0 given)',)), ('TypeError', (\"descriptor '__setstate__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]",
+      "actual": "[('TypeError', ('longrange_iterator.__setstate__() takes exactly one argument (0 given)',)), ('TypeError', ('longrange_iterator.__setstate__() takes exactly one argument (0 given)',)), ('TypeError', (\"descriptor '__setstate__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __setstate__(1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), ('ok', None), ('TypeError', (\"descriptor '__setstate__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]",
+      "actual": "[('ok', None), ('ok', None), ('TypeError', (\"descriptor '__setstate__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __setstate__(1, 2)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('longrange_iterator.__setstate__() takes exactly one argument (2 given)',)), ('TypeError', ('longrange_iterator.__setstate__() takes exactly one argument (2 given)',)), ('TypeError', (\"descriptor '__setstate__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]",
+      "actual": "[('TypeError', ('longrange_iterator.__setstate__() takes exactly one argument (2 given)',)), ('TypeError', ('longrange_iterator.__setstate__() takes exactly one argument (2 given)',)), ('TypeError', (\"descriptor '__setstate__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __setstate__(x=1)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('longrange_iterator.__setstate__() takes no keyword arguments',)), ('TypeError', ('longrange_iterator.__setstate__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__setstate__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]",
+      "actual": "[('TypeError', ('longrange_iterator.__setstate__() takes no keyword arguments',)), ('TypeError', ('longrange_iterator.__setstate__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__setstate__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "binding range(2**100, 2**100+3) __setstate__(1, x=2)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('longrange_iterator.__setstate__() takes no keyword arguments',)), ('TypeError', ('longrange_iterator.__setstate__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__setstate__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]",
+      "actual": "[('TypeError', ('longrange_iterator.__setstate__() takes no keyword arguments',)), ('TypeError', ('longrange_iterator.__setstate__() takes no keyword arguments',)), ('TypeError', (\"descriptor '__setstate__' for 'longrange_iterator' objects doesn't apply to a 'NoneType' object\",))]"
+    },
+    {
+      "name": "reentrant reduction range(2**100, 2**100+3)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[None, 'range(1267650600228229401496703205376, 1267650600228229401496703205379)', None, None, 'range(1267650600228229401496703205377, 1267650600228229401496703205379)', None, [1267650600228229401496703205376, 1267650600228229401496703205377], 1]",
+      "actual": "[None, 'range(1267650600228229401496703205376, 1267650600228229401496703205379)', None, None, 'range(1267650600228229401496703205377, 1267650600228229401496703205379)', None, [1267650600228229401496703205376, 1267650600228229401496703205377], 1]"
+    },
+    {
+      "name": "payload identity range(1000, 1400, 2)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[False, False, True, False, False, True, True]",
+      "actual": "[False, False, True, False, False, True, True]"
+    },
+    {
+      "name": "reduction snapshot range(1000, 1400, 2)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[1000, 1002, 199, 198, None]",
+      "actual": "[1000, 1002, 199, 198, None]"
+    },
+    {
+      "name": "reentrant state range(1000, 1400, 2) consume",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), ['index', 1000], 1006, 196, 'range(1008, 1400, 2)']",
+      "actual": "[('ok', None), ['index', 1000], 1006, 196, 'range(1008, 1400, 2)']"
+    },
+    {
+      "name": "reentrant state range(1000, 1400, 2) exhaust",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', None), ['index'], None, 0, 'range(1400, 1400, 2)']",
+      "actual": "[('ok', None), ['index'], None, 0, 'range(1400, 1400, 2)']"
+    },
+    {
+      "name": "reentrant state range(1000, 1400, 2) raise",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ValueError', ('index failed',)), ['index'], 1000, 199, 'range(1002, 1400, 2)']",
+      "actual": "[('ValueError', ('index failed',)), ['index'], 1000, 199, 'range(1002, 1400, 2)']"
+    },
+    {
+      "name": "reentrant state range(1000, 1400, 2) bad",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('__index__ returned non-int (type float)',)), ['index'], 1000, 199, 'range(1002, 1400, 2)']",
+      "actual": "[('TypeError', ('__index__ returned non-int (type float)',)), ['index'], 1000, 199, 'range(1002, 1400, 2)']"
+    },
+    {
+      "name": "builtin replacement range(1000, 1400, 2) False",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', 42, 'range(1000, 1400, 2)', None), 1000, 199]",
+      "actual": "[('ok', 42, 'range(1000, 1400, 2)', None), 1000, 199]"
+    },
+    {
+      "name": "builtin replacement range(1000, 1400, 2) True",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('AttributeError', ('iter',)), 1000, 199]",
+      "actual": "[('AttributeError', ('iter',)), 1000, 199]"
+    },
+    {
+      "name": "payload identity range(2**100, 2**100+800, 2)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[False, True, True, True, True, True, True]",
+      "actual": "[False, True, True, True, True, True, True]"
+    },
+    {
+      "name": "reduction snapshot range(2**100, 2**100+800, 2)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[1267650600228229401496703205376, 1267650600228229401496703205378, 399, 398, None]",
+      "actual": "[1267650600228229401496703205376, 1267650600228229401496703205378, 399, 398, None]"
+    },
+    {
+      "name": "reentrant state range(2**100, 2**100+800, 2) consume",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('state must be an int, not Index',)), [], 1267650600228229401496703205376, 399, 'range(1267650600228229401496703205378, 1267650600228229401496703206176, 2)']",
+      "actual": "[('TypeError', ('state must be an int, not Index',)), [], 1267650600228229401496703205376, 399, 'range(1267650600228229401496703205378, 1267650600228229401496703206176, 2)']"
+    },
+    {
+      "name": "reentrant state range(2**100, 2**100+800, 2) exhaust",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('state must be an int, not Index',)), [], 1267650600228229401496703205376, 399, 'range(1267650600228229401496703205378, 1267650600228229401496703206176, 2)']",
+      "actual": "[('TypeError', ('state must be an int, not Index',)), [], 1267650600228229401496703205376, 399, 'range(1267650600228229401496703205378, 1267650600228229401496703206176, 2)']"
+    },
+    {
+      "name": "reentrant state range(2**100, 2**100+800, 2) raise",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('state must be an int, not Index',)), [], 1267650600228229401496703205376, 399, 'range(1267650600228229401496703205378, 1267650600228229401496703206176, 2)']",
+      "actual": "[('TypeError', ('state must be an int, not Index',)), [], 1267650600228229401496703205376, 399, 'range(1267650600228229401496703205378, 1267650600228229401496703206176, 2)']"
+    },
+    {
+      "name": "reentrant state range(2**100, 2**100+800, 2) bad",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', ('state must be an int, not Index',)), [], 1267650600228229401496703205376, 399, 'range(1267650600228229401496703205378, 1267650600228229401496703206176, 2)']",
+      "actual": "[('TypeError', ('state must be an int, not Index',)), [], 1267650600228229401496703205376, 399, 'range(1267650600228229401496703205378, 1267650600228229401496703206176, 2)']"
+    },
+    {
+      "name": "builtin replacement range(2**100, 2**100+800, 2) False",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('ok', 42, 'range(1267650600228229401496703205376, 1267650600228229401496703206176, 2)', None), 1267650600228229401496703205376, 399]",
+      "actual": "[('ok', 42, 'range(1267650600228229401496703205376, 1267650600228229401496703206176, 2)', None), 1267650600228229401496703205376, 399]"
+    },
+    {
+      "name": "builtin replacement range(2**100, 2**100+800, 2) True",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('AttributeError', ('iter',)), 1267650600228229401496703205376, 399]",
+      "actual": "[('AttributeError', ('iter',)), 1267650600228229401496703205376, 399]"
+    },
+    {
+      "name": "cross layout descriptor __iter__",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', (\"descriptor '__iter__' requires a 'range_iterator' object but received a 'longrange_iterator'\",)), ('TypeError', (\"descriptor '__iter__' requires a 'longrange_iterator' object but received a 'range_iterator'\",)), 0, 1267650600228229401496703205376]",
+      "actual": "[('TypeError', (\"descriptor '__iter__' requires a 'range_iterator' object but received a 'longrange_iterator'\",)), ('TypeError', (\"descriptor '__iter__' requires a 'longrange_iterator' object but received a 'range_iterator'\",)), 0, 1267650600228229401496703205376]"
+    },
+    {
+      "name": "cross layout descriptor __next__",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', (\"descriptor '__next__' requires a 'range_iterator' object but received a 'longrange_iterator'\",)), ('TypeError', (\"descriptor '__next__' requires a 'longrange_iterator' object but received a 'range_iterator'\",)), 0, 1267650600228229401496703205376]",
+      "actual": "[('TypeError', (\"descriptor '__next__' requires a 'range_iterator' object but received a 'longrange_iterator'\",)), ('TypeError', (\"descriptor '__next__' requires a 'longrange_iterator' object but received a 'range_iterator'\",)), 0, 1267650600228229401496703205376]"
+    },
+    {
+      "name": "cross layout descriptor __length_hint__",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', (\"descriptor '__length_hint__' for 'range_iterator' objects doesn't apply to a 'longrange_iterator' object\",)), ('TypeError', (\"descriptor '__length_hint__' for 'longrange_iterator' objects doesn't apply to a 'range_iterator' object\",)), 0, 1267650600228229401496703205376]",
+      "actual": "[('TypeError', (\"descriptor '__length_hint__' for 'range_iterator' objects doesn't apply to a 'longrange_iterator' object\",)), ('TypeError', (\"descriptor '__length_hint__' for 'longrange_iterator' objects doesn't apply to a 'range_iterator' object\",)), 0, 1267650600228229401496703205376]"
+    },
+    {
+      "name": "cross layout descriptor __reduce__",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', (\"descriptor '__reduce__' for 'range_iterator' objects doesn't apply to a 'longrange_iterator' object\",)), ('TypeError', (\"descriptor '__reduce__' for 'longrange_iterator' objects doesn't apply to a 'range_iterator' object\",)), 0, 1267650600228229401496703205376]",
+      "actual": "[('TypeError', (\"descriptor '__reduce__' for 'range_iterator' objects doesn't apply to a 'longrange_iterator' object\",)), ('TypeError', (\"descriptor '__reduce__' for 'longrange_iterator' objects doesn't apply to a 'range_iterator' object\",)), 0, 1267650600228229401496703205376]"
+    },
+    {
+      "name": "cross layout descriptor __setstate__",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('TypeError', (\"descriptor '__setstate__' for 'range_iterator' objects doesn't apply to a 'longrange_iterator' object\",)), ('TypeError', (\"descriptor '__setstate__' for 'longrange_iterator' objects doesn't apply to a 'range_iterator' object\",)), 0, 1267650600228229401496703205376]",
+      "actual": "[('TypeError', (\"descriptor '__setstate__' for 'range_iterator' objects doesn't apply to a 'longrange_iterator' object\",)), ('TypeError', (\"descriptor '__setstate__' for 'longrange_iterator' objects doesn't apply to a 'range_iterator' object\",)), 0, 1267650600228229401496703205376]"
+    },
+    {
+      "name": "canonical publication and immutable types",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[True, True, True, True, True, False, ('TypeError', (\"cannot set '__next__' attribute of immutable type 'range_iterator'\",)), ('AttributeError', (\"'range_iterator' object has no attribute 'state' and no __dict__ for setting new attributes\",)), ('TypeError', (\"cannot set '__next__' attribute of immutable type 'longrange_iterator'\",)), ('AttributeError', (\"'longrange_iterator' object has no attribute 'state' and no __dict__ for setting new attributes\",))]",
+      "actual": "[True, True, True, True, True, False, ('TypeError', (\"cannot set '__next__' attribute of immutable type 'range_iterator'\",)), ('AttributeError', (\"'range_iterator' object has no attribute 'state' and no __dict__ for setting new attributes\",)), ('TypeError', (\"cannot set '__next__' attribute of immutable type 'longrange_iterator'\",)), ('AttributeError', (\"'longrange_iterator' object has no attribute 'state' and no __dict__ for setting new attributes\",))]"
+    },
+    {
+      "name": "qualified state error",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "('TypeError', ('state must be an int, not package.Outer.State',))",
+      "actual": "('TypeError', ('state must be an int, not package.Outer.State',))"
+    },
+    {
+      "name": "attribute mutation range(3)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('AttributeError', (\"'range_iterator' object has no attribute 'unknown' and no __dict__ for setting new attributes\",)), ('AttributeError', (\"'range_iterator' object has no attribute 'unknown' and no __dict__ for setting new attributes\",)), ('AttributeError', (\"'range_iterator' object has no attribute 'unknown' and no __dict__ for setting new attributes\",)), ('AttributeError', (\"'range_iterator' object has no attribute 'unknown' and no __dict__ for setting new attributes\",)), ('AttributeError', (\"'range_iterator' object attribute '__next__' is read-only\",)), ('AttributeError', (\"'range_iterator' object attribute '__next__' is read-only\",)), ('AttributeError', (\"'range_iterator' object attribute '__next__' is read-only\",)), ('AttributeError', (\"'range_iterator' object attribute '__next__' is read-only\",)), ('AttributeError', (\"'range_iterator' object attribute '__doc__' is read-only\",)), ('AttributeError', (\"'range_iterator' object attribute '__doc__' is read-only\",)), ('AttributeError', (\"'range_iterator' object attribute '__doc__' is read-only\",)), ('AttributeError', (\"'range_iterator' object attribute '__doc__' is read-only\",)), ('TypeError', (\"__class__ must be set to a class, not 'int' object\",)), ('TypeError', (\"can't delete __class__ attribute\",)), ('TypeError', (\"__class__ must be set to a class, not 'int' object\",)), ('TypeError', (\"can't delete __class__ attribute\",))]",
+      "actual": "[('AttributeError', (\"'range_iterator' object has no attribute 'unknown' and no __dict__ for setting new attributes\",)), ('AttributeError', (\"'range_iterator' object has no attribute 'unknown' and no __dict__ for setting new attributes\",)), ('AttributeError', (\"'range_iterator' object has no attribute 'unknown' and no __dict__ for setting new attributes\",)), ('AttributeError', (\"'range_iterator' object has no attribute 'unknown' and no __dict__ for setting new attributes\",)), ('AttributeError', (\"'range_iterator' object attribute '__next__' is read-only\",)), ('AttributeError', (\"'range_iterator' object attribute '__next__' is read-only\",)), ('AttributeError', (\"'range_iterator' object attribute '__next__' is read-only\",)), ('AttributeError', (\"'range_iterator' object attribute '__next__' is read-only\",)), ('AttributeError', (\"'range_iterator' object attribute '__doc__' is read-only\",)), ('AttributeError', (\"'range_iterator' object attribute '__doc__' is read-only\",)), ('AttributeError', (\"'range_iterator' object attribute '__doc__' is read-only\",)), ('AttributeError', (\"'range_iterator' object attribute '__doc__' is read-only\",)), ('TypeError', (\"__class__ must be set to a class, not 'int' object\",)), ('TypeError', (\"can't delete __class__ attribute\",)), ('TypeError', (\"__class__ must be set to a class, not 'int' object\",)), ('TypeError', (\"can't delete __class__ attribute\",))]"
+    },
+    {
+      "name": "attribute mutation range(2**100)",
+      "liveOracleMatchesRetained": true,
+      "guestMatchesOracle": true,
+      "expected": "[('AttributeError', (\"'longrange_iterator' object has no attribute 'unknown' and no __dict__ for setting new attributes\",)), ('AttributeError', (\"'longrange_iterator' object has no attribute 'unknown' and no __dict__ for setting new attributes\",)), ('AttributeError', (\"'longrange_iterator' object has no attribute 'unknown' and no __dict__ for setting new attributes\",)), ('AttributeError', (\"'longrange_iterator' object has no attribute 'unknown' and no __dict__ for setting new attributes\",)), ('AttributeError', (\"'longrange_iterator' object attribute '__next__' is read-only\",)), ('AttributeError', (\"'longrange_iterator' object attribute '__next__' is read-only\",)), ('AttributeError', (\"'longrange_iterator' object attribute '__next__' is read-only\",)), ('AttributeError', (\"'longrange_iterator' object attribute '__next__' is read-only\",)), ('AttributeError', (\"'longrange_iterator' object attribute '__doc__' is read-only\",)), ('AttributeError', (\"'longrange_iterator' object attribute '__doc__' is read-only\",)), ('AttributeError', (\"'longrange_iterator' object attribute '__doc__' is read-only\",)), ('AttributeError', (\"'longrange_iterator' object attribute '__doc__' is read-only\",)), ('TypeError', (\"__class__ must be set to a class, not 'int' object\",)), ('TypeError', (\"can't delete __class__ attribute\",)), ('TypeError', (\"__class__ must be set to a class, not 'int' object\",)), ('TypeError', (\"can't delete __class__ attribute\",))]",
+      "actual": "[('AttributeError', (\"'longrange_iterator' object has no attribute 'unknown' and no __dict__ for setting new attributes\",)), ('AttributeError', (\"'longrange_iterator' object has no attribute 'unknown' and no __dict__ for setting new attributes\",)), ('AttributeError', (\"'longrange_iterator' object has no attribute 'unknown' and no __dict__ for setting new attributes\",)), ('AttributeError', (\"'longrange_iterator' object has no attribute 'unknown' and no __dict__ for setting new attributes\",)), ('AttributeError', (\"'longrange_iterator' object attribute '__next__' is read-only\",)), ('AttributeError', (\"'longrange_iterator' object attribute '__next__' is read-only\",)), ('AttributeError', (\"'longrange_iterator' object attribute '__next__' is read-only\",)), ('AttributeError', (\"'longrange_iterator' object attribute '__next__' is read-only\",)), ('AttributeError', (\"'longrange_iterator' object attribute '__doc__' is read-only\",)), ('AttributeError', (\"'longrange_iterator' object attribute '__doc__' is read-only\",)), ('AttributeError', (\"'longrange_iterator' object attribute '__doc__' is read-only\",)), ('AttributeError', (\"'longrange_iterator' object attribute '__doc__' is read-only\",)), ('TypeError', (\"__class__ must be set to a class, not 'int' object\",)), ('TypeError', (\"can't delete __class__ attribute\",)), ('TypeError', (\"__class__ must be set to a class, not 'int' object\",)), ('TypeError', (\"can't delete __class__ attribute\",))]"
+    }
+  ]
+}

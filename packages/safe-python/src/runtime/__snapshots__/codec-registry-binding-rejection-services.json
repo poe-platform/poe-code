@@ -1,0 +1,1285 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "adapter": "Explicit output.write uses fs.writeSync with partial-write handling; output.flush uses fs.fsyncSync on owned temporary file descriptors. Host Python used only as external oracle.",
+  "limits": {
+    "maxSteps": 1000000,
+    "maxAllocatedBytes": 16000000,
+    "maxDepth": 100
+  },
+  "cases": [
+    {
+      "name": "encode encoding: list_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter([])\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode(value),\n        lambda: data.encode(encoding=value),\n        lambda: str.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not list_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, value),\n        lambda: _codecs.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not list_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, value), \"list_iterator\"),\n        (lambda: bytes(data, encoding=value), \"list_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "fb1785b2c947087818d9e9d63587c7468bc2d09244415f32a1c2da4150f49186",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode encoding: tuple_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter(())\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode(value),\n        lambda: data.encode(encoding=value),\n        lambda: str.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not tuple_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, value),\n        lambda: _codecs.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not tuple_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, value), \"tuple_iterator\"),\n        (lambda: bytes(data, encoding=value), \"tuple_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "d43d8c45d2d2ce4a3128d33138d23dfe974ac95d6416102ca4f9203e543e214c",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode encoding: str_ascii_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter('')\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode(value),\n        lambda: data.encode(encoding=value),\n        lambda: str.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not str_ascii_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, value),\n        lambda: _codecs.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not str_ascii_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, value), \"str_ascii_iterator\"),\n        (lambda: bytes(data, encoding=value), \"str_ascii_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "8c320a7a5f3319e19e8bb35eaecc98f5278b4cc4cf999e936dddf392eded7b28",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode encoding: str_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter('é')\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode(value),\n        lambda: data.encode(encoding=value),\n        lambda: str.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not str_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, value),\n        lambda: _codecs.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not str_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, value), \"str_iterator\"),\n        (lambda: bytes(data, encoding=value), \"str_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "bbf9863ae533e366e52cd24e1c48b591de35b48cc790c47260dbee41023b0b72",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode encoding: bytes_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter(b'')\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode(value),\n        lambda: data.encode(encoding=value),\n        lambda: str.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not bytes_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, value),\n        lambda: _codecs.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not bytes_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, value), \"bytes_iterator\"),\n        (lambda: bytes(data, encoding=value), \"bytes_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "b3d7081ed856fbbcd8f93c961948f3dfce39144f039415ded3f89fd7ba81b09b",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode encoding: dict_keyiterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter({})\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode(value),\n        lambda: data.encode(encoding=value),\n        lambda: str.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not dict_keyiterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, value),\n        lambda: _codecs.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not dict_keyiterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, value), \"dict_keyiterator\"),\n        (lambda: bytes(data, encoding=value), \"dict_keyiterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "62ae1feb83e99e3e6f4ff0eeb3ac3c1469c1945c20696ce3c10c3bdeee370011",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode encoding: dict_valueiterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter({}.values())\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode(value),\n        lambda: data.encode(encoding=value),\n        lambda: str.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not dict_valueiterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, value),\n        lambda: _codecs.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not dict_valueiterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, value), \"dict_valueiterator\"),\n        (lambda: bytes(data, encoding=value), \"dict_valueiterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "6e36d9a71db29c72705e6f1d5153f1800cdd385c1ecc271e5c3938eb1adbbe8e",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode encoding: dict_itemiterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter({}.items())\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode(value),\n        lambda: data.encode(encoding=value),\n        lambda: str.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not dict_itemiterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, value),\n        lambda: _codecs.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not dict_itemiterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, value), \"dict_itemiterator\"),\n        (lambda: bytes(data, encoding=value), \"dict_itemiterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "d1e01526c3faca07478349a0f3c84c536e007edeb195c3abb352e75e0568dcdc",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode encoding: set_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter(set())\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode(value),\n        lambda: data.encode(encoding=value),\n        lambda: str.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not set_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, value),\n        lambda: _codecs.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not set_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, value), \"set_iterator\"),\n        (lambda: bytes(data, encoding=value), \"set_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "fbdccbfd4dcdf260be49f96e5301a96eb1f406699f9c878d5187f0607250f766",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode encoding: list_reverseiterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = reversed([])\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode(value),\n        lambda: data.encode(encoding=value),\n        lambda: str.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not list_reverseiterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, value),\n        lambda: _codecs.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not list_reverseiterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, value), \"list_reverseiterator\"),\n        (lambda: bytes(data, encoding=value), \"list_reverseiterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "a5ba4ebf94ca560b3cf3817a98ccf2254f6e96573f0be3333060f9432a2a6db9",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode encoding: range_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter(range(2))\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode(value),\n        lambda: data.encode(encoding=value),\n        lambda: str.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not range_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, value),\n        lambda: _codecs.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not range_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, value), \"range_iterator\"),\n        (lambda: bytes(data, encoding=value), \"range_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "aebd183802100050eaf8ab0eeab68b4189073ede6db4c81f1291c6f2fd1cee8f",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode encoding: callable_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter(lambda: None, None)\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode(value),\n        lambda: data.encode(encoding=value),\n        lambda: str.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not callable_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, value),\n        lambda: _codecs.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not callable_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, value), \"callable_iterator\"),\n        (lambda: bytes(data, encoding=value), \"callable_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "a75c40f4acfecac88e4a7d54a17b44bdaeafa9ebf6c2bf247af9d1a44c49b2b3",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode encoding: Meta",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = C\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode(value),\n        lambda: data.encode(encoding=value),\n        lambda: str.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not Meta\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, value),\n        lambda: _codecs.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not Meta\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, value), \"Meta\"),\n        (lambda: bytes(data, encoding=value), \"Meta\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "6777a2e2d7832f8e64e3a21fa00b2242f8fbc01912c1887eb5ffe51350b7d10f",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode encoding: None",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = None\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode(value),\n        lambda: data.encode(encoding=value),\n        lambda: str.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not None\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, value),\n        lambda: _codecs.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not None\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, value), \"None\"),\n        (lambda: bytes(data, encoding=value), \"None\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "846de1f189ac2a10d74ddac91d71204e8bbc64eba8f7e44707d9d50389312700",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode encoding: int",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = 42\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode(value),\n        lambda: data.encode(encoding=value),\n        lambda: str.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not int\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, value),\n        lambda: _codecs.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not int\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, value), \"int\"),\n        (lambda: bytes(data, encoding=value), \"int\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "1953b73ebaa2a4dd140884da2fee8e9c1a7a6006afdb463d1f86a371ec6818f1",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode encoding: builtin_function_or_method",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = len\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode(value),\n        lambda: data.encode(encoding=value),\n        lambda: str.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not builtin_function_or_method\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, value),\n        lambda: _codecs.encode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'encoding' must be str, not builtin_function_or_method\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, value), \"builtin_function_or_method\"),\n        (lambda: bytes(data, encoding=value), \"builtin_function_or_method\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "e1ec4be6e185e714a1bf2ce9ea3af30a5170d48dc7bc03184b3d040286c4fbcc",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode errors: list_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter([])\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode('ascii', value),\n        lambda: data.encode(errors=value),\n        lambda: str.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not list_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, 'ascii', value),\n        lambda: _codecs.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not list_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, 'ascii', value), \"list_iterator\"),\n        (lambda: bytes(data, errors=value), \"list_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "f7e4cfe37c86f87a93370772a0c696b227821f88e13f1c8a18f468ab7694521e",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode errors: tuple_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter(())\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode('ascii', value),\n        lambda: data.encode(errors=value),\n        lambda: str.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not tuple_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, 'ascii', value),\n        lambda: _codecs.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not tuple_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, 'ascii', value), \"tuple_iterator\"),\n        (lambda: bytes(data, errors=value), \"tuple_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "7a5cb9477b3ce1bbc24e4387fb10c133e7a780e34167ebe0153c1658257ffc38",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode errors: str_ascii_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter('')\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode('ascii', value),\n        lambda: data.encode(errors=value),\n        lambda: str.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not str_ascii_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, 'ascii', value),\n        lambda: _codecs.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not str_ascii_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, 'ascii', value), \"str_ascii_iterator\"),\n        (lambda: bytes(data, errors=value), \"str_ascii_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "fcb7ea1a543a93d4cd04f6ccb4909d0e57be04861f04866da5141701bbc9776d",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode errors: str_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter('é')\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode('ascii', value),\n        lambda: data.encode(errors=value),\n        lambda: str.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not str_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, 'ascii', value),\n        lambda: _codecs.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not str_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, 'ascii', value), \"str_iterator\"),\n        (lambda: bytes(data, errors=value), \"str_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "ea2f98623f3a2544fc197af6ba3c6a19241c904101435848f02a0e12e6128b99",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode errors: bytes_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter(b'')\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode('ascii', value),\n        lambda: data.encode(errors=value),\n        lambda: str.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not bytes_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, 'ascii', value),\n        lambda: _codecs.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not bytes_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, 'ascii', value), \"bytes_iterator\"),\n        (lambda: bytes(data, errors=value), \"bytes_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "895db15556a0683ea4f686766e4293b6dc068a8b6ac3393c044685116e98a2b3",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode errors: dict_keyiterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter({})\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode('ascii', value),\n        lambda: data.encode(errors=value),\n        lambda: str.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not dict_keyiterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, 'ascii', value),\n        lambda: _codecs.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not dict_keyiterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, 'ascii', value), \"dict_keyiterator\"),\n        (lambda: bytes(data, errors=value), \"dict_keyiterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "2a22612b2114f859b2f607b65183247d6fdf19e4ae3135824f30f3794db986b2",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode errors: dict_valueiterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter({}.values())\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode('ascii', value),\n        lambda: data.encode(errors=value),\n        lambda: str.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not dict_valueiterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, 'ascii', value),\n        lambda: _codecs.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not dict_valueiterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, 'ascii', value), \"dict_valueiterator\"),\n        (lambda: bytes(data, errors=value), \"dict_valueiterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "8371a594e08e6b85880f8f0f2203a611c3b28568b171b922312631cf186c7bee",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode errors: dict_itemiterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter({}.items())\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode('ascii', value),\n        lambda: data.encode(errors=value),\n        lambda: str.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not dict_itemiterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, 'ascii', value),\n        lambda: _codecs.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not dict_itemiterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, 'ascii', value), \"dict_itemiterator\"),\n        (lambda: bytes(data, errors=value), \"dict_itemiterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "a686b1b810a58734b8f48c0a15a60d5fd0a9014cccb2ceb74ce7b540f958a1cd",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode errors: set_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter(set())\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode('ascii', value),\n        lambda: data.encode(errors=value),\n        lambda: str.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not set_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, 'ascii', value),\n        lambda: _codecs.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not set_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, 'ascii', value), \"set_iterator\"),\n        (lambda: bytes(data, errors=value), \"set_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "69d023bf81c69b98fcce5d8939c121e260075fb1293866df529032630dee3e67",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode errors: list_reverseiterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = reversed([])\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode('ascii', value),\n        lambda: data.encode(errors=value),\n        lambda: str.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not list_reverseiterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, 'ascii', value),\n        lambda: _codecs.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not list_reverseiterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, 'ascii', value), \"list_reverseiterator\"),\n        (lambda: bytes(data, errors=value), \"list_reverseiterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "d99755cf3d397449cff6dbc23bd6a6fecf365e0288cb360628a1d3ae2c594129",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode errors: range_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter(range(2))\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode('ascii', value),\n        lambda: data.encode(errors=value),\n        lambda: str.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not range_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, 'ascii', value),\n        lambda: _codecs.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not range_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, 'ascii', value), \"range_iterator\"),\n        (lambda: bytes(data, errors=value), \"range_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "69c515b512b6adb6da11616a61410e7cd3a2d72cf165e03f5cdb4930c9bfd469",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode errors: callable_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter(lambda: None, None)\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode('ascii', value),\n        lambda: data.encode(errors=value),\n        lambda: str.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not callable_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, 'ascii', value),\n        lambda: _codecs.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not callable_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, 'ascii', value), \"callable_iterator\"),\n        (lambda: bytes(data, errors=value), \"callable_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "eb5849ae07439e97246c4d7bd684d2ef9fe3cc1c5a60ef4e672d6d2503f5e9b3",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode errors: Meta",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = C\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode('ascii', value),\n        lambda: data.encode(errors=value),\n        lambda: str.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not Meta\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, 'ascii', value),\n        lambda: _codecs.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not Meta\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, 'ascii', value), \"Meta\"),\n        (lambda: bytes(data, errors=value), \"Meta\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "1c106c46b17898575e4b266a83e7615b8f932c85c3f39abcd2f23256abbf4ded",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode errors: None",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = None\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode('ascii', value),\n        lambda: data.encode(errors=value),\n        lambda: str.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not None\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, 'ascii', value),\n        lambda: _codecs.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not None\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, 'ascii', value), \"None\"),\n        (lambda: bytes(data, errors=value), \"None\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "dbfb0d65dd895afdc81793300cb1756390ccf94321bf17392da7c0310040ec9d",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode errors: int",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = 42\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode('ascii', value),\n        lambda: data.encode(errors=value),\n        lambda: str.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not int\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, 'ascii', value),\n        lambda: _codecs.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not int\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, 'ascii', value), \"int\"),\n        (lambda: bytes(data, errors=value), \"int\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "9340421cb369081b0d0adad72c054eef46e4e5002e13a8fb4901d595e40ac6dc",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "encode errors: builtin_function_or_method",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = len\nfor data in ('', 'A', 'é'):\n    for invoke in (\n        lambda: data.encode('ascii', value),\n        lambda: data.encode(errors=value),\n        lambda: str.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not builtin_function_or_method\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.encode(data, 'ascii', value),\n        lambda: _codecs.encode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"encode() argument 'errors' must be str, not builtin_function_or_method\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: bytes(data, 'ascii', value), \"builtin_function_or_method\"),\n        (lambda: bytes(data, errors=value), \"builtin_function_or_method\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"bytes() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "2db90b294a0e911da9bf7dda5c9de62cb9bacd5dab2b57f3eb4b4b204a931a5b",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode encoding: list_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter([])\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode(value),\n        lambda: data.decode(encoding=value),\n        lambda: bytes.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not list_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, value),\n        lambda: _codecs.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not list_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, value), \"list_iterator\"),\n        (lambda: str(data, encoding=value), \"list_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "2cdca4e6f0848044af895a2d3a9ab9675481eac59c7787ab9e60ab90a62916ff",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode encoding: tuple_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter(())\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode(value),\n        lambda: data.decode(encoding=value),\n        lambda: bytes.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not tuple_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, value),\n        lambda: _codecs.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not tuple_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, value), \"tuple_iterator\"),\n        (lambda: str(data, encoding=value), \"tuple_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "ef50c42fb7c87369f69d92b40cca9098a7374099810d7274bfbe8e77cc02b74c",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode encoding: str_ascii_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter('')\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode(value),\n        lambda: data.decode(encoding=value),\n        lambda: bytes.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not str_ascii_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, value),\n        lambda: _codecs.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not str_ascii_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, value), \"str_ascii_iterator\"),\n        (lambda: str(data, encoding=value), \"str_ascii_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "539cd4f86edfb61c9609b8a9337939639f932a11005369c6c8adfb0220420516",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode encoding: str_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter('é')\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode(value),\n        lambda: data.decode(encoding=value),\n        lambda: bytes.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not str_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, value),\n        lambda: _codecs.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not str_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, value), \"str_iterator\"),\n        (lambda: str(data, encoding=value), \"str_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "04cb3a75866324381d09327b3c2d797b14b38c86007377036849317cb887b1f2",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode encoding: bytes_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter(b'')\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode(value),\n        lambda: data.decode(encoding=value),\n        lambda: bytes.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not bytes_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, value),\n        lambda: _codecs.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not bytes_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, value), \"bytes_iterator\"),\n        (lambda: str(data, encoding=value), \"bytes_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "9a1aafed35c54ba0c91d1628344e861a20da2b40f5f9f4c8d796751bd046d8fa",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode encoding: dict_keyiterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter({})\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode(value),\n        lambda: data.decode(encoding=value),\n        lambda: bytes.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not dict_keyiterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, value),\n        lambda: _codecs.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not dict_keyiterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, value), \"dict_keyiterator\"),\n        (lambda: str(data, encoding=value), \"dict_keyiterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "d929a01dd9336afe06df1da2b7b2f7eb93c3503d3c0d3ea46b788e2a4cc6bf4c",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode encoding: dict_valueiterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter({}.values())\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode(value),\n        lambda: data.decode(encoding=value),\n        lambda: bytes.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not dict_valueiterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, value),\n        lambda: _codecs.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not dict_valueiterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, value), \"dict_valueiterator\"),\n        (lambda: str(data, encoding=value), \"dict_valueiterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "35c483a1b20a3285156393bdb4acf3adea9b033a7d40cb4ba0000e08291697da",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode encoding: dict_itemiterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter({}.items())\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode(value),\n        lambda: data.decode(encoding=value),\n        lambda: bytes.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not dict_itemiterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, value),\n        lambda: _codecs.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not dict_itemiterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, value), \"dict_itemiterator\"),\n        (lambda: str(data, encoding=value), \"dict_itemiterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "f1cb3506ab13e3cbfbcb4d033c03f0cad56d18d067f591149f2e088241b75366",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode encoding: set_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter(set())\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode(value),\n        lambda: data.decode(encoding=value),\n        lambda: bytes.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not set_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, value),\n        lambda: _codecs.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not set_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, value), \"set_iterator\"),\n        (lambda: str(data, encoding=value), \"set_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "20abe049c786f573726bbdafa487f89b1f1e3f24f958c32f29029bfb82283171",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode encoding: list_reverseiterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = reversed([])\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode(value),\n        lambda: data.decode(encoding=value),\n        lambda: bytes.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not list_reverseiterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, value),\n        lambda: _codecs.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not list_reverseiterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, value), \"list_reverseiterator\"),\n        (lambda: str(data, encoding=value), \"list_reverseiterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "0280d8332dd3df0af1de32214d25f32c19bf209f225372a5ff81e60e3c70c607",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode encoding: range_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter(range(2))\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode(value),\n        lambda: data.decode(encoding=value),\n        lambda: bytes.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not range_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, value),\n        lambda: _codecs.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not range_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, value), \"range_iterator\"),\n        (lambda: str(data, encoding=value), \"range_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "2119dc9bdcfea8346833b159d479769f0214d9a9b33ad575bcae369d536820a5",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode encoding: callable_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter(lambda: None, None)\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode(value),\n        lambda: data.decode(encoding=value),\n        lambda: bytes.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not callable_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, value),\n        lambda: _codecs.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not callable_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, value), \"callable_iterator\"),\n        (lambda: str(data, encoding=value), \"callable_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "0e42f171b09eafb5197fec9cba55c493a30740285fffe513e6a4d8d9425c5524",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode encoding: Meta",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = C\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode(value),\n        lambda: data.decode(encoding=value),\n        lambda: bytes.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not Meta\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, value),\n        lambda: _codecs.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not Meta\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, value), \"Meta\"),\n        (lambda: str(data, encoding=value), \"Meta\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "cf3ba556dd4b69d4583f49cbb3eb800bd90caa7d7b4550a6db39fcd463fb45f2",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode encoding: None",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = None\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode(value),\n        lambda: data.decode(encoding=value),\n        lambda: bytes.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not None\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, value),\n        lambda: _codecs.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not None\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, value), \"NoneType\"),\n        (lambda: str(data, encoding=value), \"None\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "24245c648fd47c626ebe7ca1c8e510140740407cb823dc2183354a899ff7494e",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode encoding: int",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = 42\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode(value),\n        lambda: data.decode(encoding=value),\n        lambda: bytes.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not int\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, value),\n        lambda: _codecs.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not int\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, value), \"int\"),\n        (lambda: str(data, encoding=value), \"int\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "9daecbfdbd90c940f5a91958e10f348907c76d3e5630a9686ba46bf2bb02519d",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode encoding: builtin_function_or_method",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = len\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode(value),\n        lambda: data.decode(encoding=value),\n        lambda: bytes.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not builtin_function_or_method\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, value),\n        lambda: _codecs.decode(data, encoding=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'encoding' must be str, not builtin_function_or_method\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, value), \"builtin_function_or_method\"),\n        (lambda: str(data, encoding=value), \"builtin_function_or_method\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'encoding' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "6ef623aa324e42cb6251e2f84a20fab734a0f1e6fedd7b279f86d890df709857",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode errors: list_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter([])\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode('ascii', value),\n        lambda: data.decode(errors=value),\n        lambda: bytes.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not list_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, 'ascii', value),\n        lambda: _codecs.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not list_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, 'ascii', value), \"list_iterator\"),\n        (lambda: str(data, errors=value), \"list_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "916e662442682558d7236276c42aae6c828a55872ee5f1ce7ecfc6ca9f6cdc2c",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode errors: tuple_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter(())\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode('ascii', value),\n        lambda: data.decode(errors=value),\n        lambda: bytes.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not tuple_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, 'ascii', value),\n        lambda: _codecs.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not tuple_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, 'ascii', value), \"tuple_iterator\"),\n        (lambda: str(data, errors=value), \"tuple_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "b2199bf629d16f00a10f8e6c7f20504bb1a22a42e5515cf1b83876934153c6bc",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode errors: str_ascii_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter('')\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode('ascii', value),\n        lambda: data.decode(errors=value),\n        lambda: bytes.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not str_ascii_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, 'ascii', value),\n        lambda: _codecs.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not str_ascii_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, 'ascii', value), \"str_ascii_iterator\"),\n        (lambda: str(data, errors=value), \"str_ascii_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "41196c35bbb9255deb61160e487301c60dc2aa4572dc57da30ec1e8259d140da",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode errors: str_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter('é')\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode('ascii', value),\n        lambda: data.decode(errors=value),\n        lambda: bytes.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not str_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, 'ascii', value),\n        lambda: _codecs.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not str_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, 'ascii', value), \"str_iterator\"),\n        (lambda: str(data, errors=value), \"str_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "f1e1139b8a4fb2b001489a42ba398bca7ba75bab029c30e6f516b57b269a1e7e",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode errors: bytes_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter(b'')\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode('ascii', value),\n        lambda: data.decode(errors=value),\n        lambda: bytes.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not bytes_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, 'ascii', value),\n        lambda: _codecs.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not bytes_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, 'ascii', value), \"bytes_iterator\"),\n        (lambda: str(data, errors=value), \"bytes_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "d9bc0a8e2bc9a6e76af746c050a40476eb2c20ae48fbafa0c127b7d903293465",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode errors: dict_keyiterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter({})\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode('ascii', value),\n        lambda: data.decode(errors=value),\n        lambda: bytes.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not dict_keyiterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, 'ascii', value),\n        lambda: _codecs.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not dict_keyiterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, 'ascii', value), \"dict_keyiterator\"),\n        (lambda: str(data, errors=value), \"dict_keyiterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "c3bfce8e3e4ba2d4f14c1935335d6013748f25ce159549abbeebdb970ed00503",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode errors: dict_valueiterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter({}.values())\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode('ascii', value),\n        lambda: data.decode(errors=value),\n        lambda: bytes.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not dict_valueiterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, 'ascii', value),\n        lambda: _codecs.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not dict_valueiterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, 'ascii', value), \"dict_valueiterator\"),\n        (lambda: str(data, errors=value), \"dict_valueiterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "48bf0d83ea073c993ea3cdeb72584a791600c3fab79f12921398275fdd2f273f",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode errors: dict_itemiterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter({}.items())\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode('ascii', value),\n        lambda: data.decode(errors=value),\n        lambda: bytes.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not dict_itemiterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, 'ascii', value),\n        lambda: _codecs.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not dict_itemiterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, 'ascii', value), \"dict_itemiterator\"),\n        (lambda: str(data, errors=value), \"dict_itemiterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "0be3a2cb0800c603cb82f49e8759d331060b93f13d377657b764a24904ac2805",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode errors: set_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter(set())\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode('ascii', value),\n        lambda: data.decode(errors=value),\n        lambda: bytes.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not set_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, 'ascii', value),\n        lambda: _codecs.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not set_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, 'ascii', value), \"set_iterator\"),\n        (lambda: str(data, errors=value), \"set_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "ff6bea59b17d91505fb7f8fa8e369d96c8c04badda9d10a727e9495c80ad36f7",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode errors: list_reverseiterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = reversed([])\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode('ascii', value),\n        lambda: data.decode(errors=value),\n        lambda: bytes.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not list_reverseiterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, 'ascii', value),\n        lambda: _codecs.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not list_reverseiterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, 'ascii', value), \"list_reverseiterator\"),\n        (lambda: str(data, errors=value), \"list_reverseiterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "9dcb6dff655ed5e28de13b297403940c7819276b75f126dd60ed0eb178f3ad6b",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode errors: range_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter(range(2))\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode('ascii', value),\n        lambda: data.decode(errors=value),\n        lambda: bytes.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not range_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, 'ascii', value),\n        lambda: _codecs.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not range_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, 'ascii', value), \"range_iterator\"),\n        (lambda: str(data, errors=value), \"range_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "c8ab35cc6f5a9bcd3e36119ee148feea386f4ee5eeef6475704eb96233ccfeda",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode errors: callable_iterator",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = iter(lambda: None, None)\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode('ascii', value),\n        lambda: data.decode(errors=value),\n        lambda: bytes.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not callable_iterator\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, 'ascii', value),\n        lambda: _codecs.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not callable_iterator\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, 'ascii', value), \"callable_iterator\"),\n        (lambda: str(data, errors=value), \"callable_iterator\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "76390e1b68bfa9c783afcb82c938c498ddf637916e8444fc37a631fd02604913",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode errors: Meta",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = C\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode('ascii', value),\n        lambda: data.decode(errors=value),\n        lambda: bytes.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not Meta\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, 'ascii', value),\n        lambda: _codecs.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not Meta\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, 'ascii', value), \"Meta\"),\n        (lambda: str(data, errors=value), \"Meta\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "63697cb97a18a0aab3dce1a5f5c230039f1363b31f6408f0b0da63c5d04a6a3c",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode errors: None",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = None\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode('ascii', value),\n        lambda: data.decode(errors=value),\n        lambda: bytes.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not None\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, 'ascii', value),\n        lambda: _codecs.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not None\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, 'ascii', value), \"NoneType\"),\n        (lambda: str(data, errors=value), \"None\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "a70e81d8053d9b667295dee31d0bdbce5a951129a055cbe38e94c9a9cf9653af",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode errors: int",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = 42\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode('ascii', value),\n        lambda: data.decode(errors=value),\n        lambda: bytes.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not int\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, 'ascii', value),\n        lambda: _codecs.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not int\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, 'ascii', value), \"int\"),\n        (lambda: str(data, errors=value), \"int\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "3dbc3ac80f5c12ecbed1c3fe1ab151a3e572505bf5085066d8e79ceb57e30e20",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decode errors: builtin_function_or_method",
+      "source": "\nimport _codecs\nclass Meta(type):\n    def __getattribute__(self, name):\n        raise AssertionError('metaclass attribute lookup')\nclass C(metaclass=Meta):\n    pass\nvalue = len\nfor data in (b'', b'A', b'\\xff'):\n    for invoke in (\n        lambda: data.decode('ascii', value),\n        lambda: data.decode(errors=value),\n        lambda: bytes.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not builtin_function_or_method\",), error.args\n        else:\n            raise AssertionError('invalid codec argument accepted')\n    for invoke in (\n        lambda: _codecs.decode(data, 'ascii', value),\n        lambda: _codecs.decode(data, errors=value),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"decode() argument 'errors' must be str, not builtin_function_or_method\",), error.args\n        else:\n            raise AssertionError('invalid registry argument accepted')\n    for invoke, expected_type in (\n        (lambda: str(data, 'ascii', value), \"builtin_function_or_method\"),\n        (lambda: str(data, errors=value), \"builtin_function_or_method\"),\n    ):\n        try:\n            invoke()\n        except TypeError as error:\n            assert error.args == (\"str() argument 'errors' must be str, not \" + expected_type,), error.args\n        else:\n            raise AssertionError('invalid constructor argument accepted')\n",
+      "sha256": "0cbdfe97c37c2635016f1fc8bc621622de13e7929ed2a0f4cb9dedd664f66d56",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "byte escape types, argument precedence, warnings and buffer exports",
+      "source": "from _codecs import escape_encode, escape_decode\nimport warnings\n\nclass Buffer(bytes):\n    def __bytes__(self):\n        raise AssertionError('virtual bytes')\n    def __len__(self):\n        raise AssertionError('virtual length')\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual text')\nsource = Buffer(b\"A\\n\\xff'\")\nencoded = escape_encode(source, Text('unknown'))\nassert encoded == (b\"A\\\\n\\\\xff\\\\'\", 4)\nassert type(encoded) is tuple and type(encoded[0]) is bytes\nassert escape_decode(encoded[0]) == (source, len(encoded[0]))\nassert escape_decode(Text('é🐍')) == (b'\\xc3\\xa9\\xf0\\x9f\\x90\\x8d', 6)\nsingle = b'A'\nassert escape_encode(single)[0] is not single\nassert escape_decode(single)[0] is single\nempty = b''\nassert escape_encode(empty)[0] is empty\nassert escape_decode(empty)[0] is empty\nfor function in (escape_encode, escape_decode):\n    assert function.__module__ == '_codecs'\n    assert function.__doc__ is None\n    assert function.__text_signature__ == '($module, data, errors=None, /)'\n    try:\n        function(data=b'')\n    except TypeError as error:\n        assert error.args == ('_codecs.' + function.__name__ + '() takes no keyword arguments',)\n    else:\n        assert False\n    try:\n        function(b'', 'strict\\0')\n    except ValueError as error:\n        assert error.args == ('embedded null character',)\n    else:\n        assert False\nbad = Text('x\\ud800')\nfor args in [(bad, 42), (b'', bad)]:\n    try:\n        escape_decode(*args)\n    except UnicodeEncodeError as error:\n        assert error.object is bad\n        assert (error.encoding, error.start, error.end, error.reason) == ('utf-8', 1, 2, 'surrogates not allowed')\n        assert error.__traceback__ is not None\n    else:\n        assert False\ndata = bytearray(b'\\\\x41')\nassert escape_decode(data) == (b'A', 4)\ndata.extend(b'Z')\nassert escape_decode(memoryview(data)) == (b'AZ', 5)\ntry:\n    escape_decode(memoryview(data)[::2])\nexcept BufferError:\n    pass\nelse:\n    assert False\nview = memoryview(data)\nview.release()\ntry:\n    escape_decode(view)\nexcept ValueError:\n    pass\nelse:\n    assert False\nfor policy in ('strict', 'replace', 'ignore', 'unknown'):\n    try:\n        escape_decode(b'\\\\', policy)\n    except ValueError as error:\n        assert error.args == ('Trailing \\\\ in string',)\n    else:\n        assert False\nassert escape_decode(b'\\\\x0Z', 'replace') == (b'?Z', 4)\nassert escape_decode(b'\\\\x0Z', 'ignore') == (b'Z', 4)\nwith warnings.catch_warnings(record=True) as seen:\n    warnings.simplefilter('always')\n    assert escape_decode(b'\\\\q\\\\400') == (b'\\\\q\\x00', 6)\n    assert len(seen) == 1\n    assert seen[0].category is DeprecationWarning\n    assert str(seen[0].message) == 'b\"\\\\q\" is an invalid escape sequence. Such sequences will not work in the future. '\nwith warnings.catch_warnings(record=True) as seen:\n    warnings.simplefilter('always')\n    try:\n        escape_decode(b'\\\\q\\\\x')\n    except ValueError as error:\n        assert error.args == ('invalid \\\\x escape at position 2',)\n    else:\n        assert False\n    assert len(seen) == 0\nwith warnings.catch_warnings():\n    warnings.simplefilter('error')\n    try:\n        escape_decode(b'\\\\400')\n    except DeprecationWarning as error:\n        assert str(error) == 'b\"\\\\400\" is an invalid octal escape sequence. Such sequences will not work in the future. '\n        assert error.__traceback__ is not None\n    else:\n        assert False\n",
+      "sha256": "b4dc3a0ce0fde3e93a9b8e2b7fd438049c83ee281041daf89e17952a2ac1a870",
+      "actual": {
+        "status": "exception",
+        "diagnostic": "No module named 'warnings'",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": false
+    },
+    {
+      "name": "readbuffer_encode native copying, subtype and argument contracts",
+      "source": "from _codecs import readbuffer_encode\n\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual text')\nclass Buffer(bytes):\n    def __bytes__(self):\n        raise AssertionError('virtual bytes')\n    def __len__(self):\n        raise AssertionError('virtual length')\nfor source, expected in [(b'abc', b'abc'), (Buffer(b'abc'), b'abc'), (Text('é🐍'), b'\\xc3\\xa9\\xf0\\x9f\\x90\\x8d')]:\n    result = readbuffer_encode(source, Text('unknown'))\n    assert result == (expected, len(expected))\n    assert type(result[0]) is type(b'')\n    assert result[0] is not source\nempty = b''\nassert readbuffer_encode(empty, None)[0] is empty\nfor args, message in [((), 'readbuffer_encode expected at least 1 argument, got 0'), ((b'', None, None), 'readbuffer_encode expected at most 2 arguments, got 3'), ((None,), \"a bytes-like object is required, not 'NoneType'\"), (([],), \"a bytes-like object is required, not 'list'\"), ((b'', 42), 'readbuffer_encode() argument 2 must be str or None, not int')]:\n    try:\n        readbuffer_encode(*args)\n    except TypeError as error:\n        assert error.args == (message,)\n    else:\n        assert False\ntry:\n    readbuffer_encode(data=b'')\nexcept TypeError as error:\n    assert error.args == ('_codecs.readbuffer_encode() takes no keyword arguments',)\nelse:\n    assert False\ntry:\n    readbuffer_encode(b'', 'unknown\\0')\nexcept ValueError as error:\n    assert error.args == ('embedded null character',)\nelse:\n    assert False\nbad = Text('prefix\\ud800suffix')\nfor args in [(bad, 42), (bad, 'ignore'), (b'', bad)]:\n    try:\n        readbuffer_encode(*args)\n    except UnicodeEncodeError as error:\n        assert error.object is bad\n        assert error.args[1] is bad\n        assert (error.encoding, error.start, error.end, error.reason) == ('utf-8', 6, 7, 'surrogates not allowed')\n    else:\n        assert False\n",
+      "sha256": "b2cf84aaae58b0ba34b7d38089fcbd2d5d50a1af88bcbce7942042b04fe3aa9a",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "Punycode public decoder factories retain rewritten exception chains and tracebacks",
+      "source": "import codecs\nimport encodings.punycode\nfor decode in (lambda data: codecs.decode(data, 'punycode'), lambda data: codecs.getdecoder('punycode')(data), lambda data: codecs.getincrementaldecoder('punycode')().decode(data, True), lambda data: encodings.punycode.punycode_decode(data, 'strict')):\n    for data, inner_object, start, end, reason in (\n        (b'A\\xff-z', b'A\\xff', 1, 2, 'ordinal not in range(128)'),\n        (b'abc-z', b'Z', 1, 2, 'incomplete punycode string'),\n        (b'abc-?', b'?', 0, 1, \"Invalid extended code point '63'\"),\n    ):\n        outer = ValueError('active')\n        try:\n            try:\n                raise outer\n            except ValueError:\n                decode(data)\n        except UnicodeDecodeError as error:\n            assert error.__traceback__ is not None\n            assert error.__cause__ is None\n            assert error.__suppress_context__ is True\n            assert error.object == data\n            inner = error.__context__\n            assert type(inner) is UnicodeDecodeError\n            assert inner.args == (error.encoding, inner_object, start, end, reason)\n            assert inner.__traceback__ is not None\n            assert inner.__cause__ is None\n            assert inner.__suppress_context__ is False\n            if data == b'abc-z':\n                indexing = inner.__context__\n                assert type(indexing) is IndexError\n                assert indexing.args == ('index out of range',)\n                assert indexing.__traceback__ is not None\n                assert indexing.__context__ is outer\n            else:\n                assert inner.__context__ is outer\n        else:\n            assert False\n",
+      "sha256": "06edd02633e2705342f17aa955db991971d33a3aee14da55a8a46a9a14c52514",
+      "actual": {
+        "status": "exception",
+        "diagnostic": "name 'memoryview' is not defined",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": false
+    },
+    {
+      "name": "charmap surrogateescape retains original decode exception arguments",
+      "source": "import codecs\nfor mapping in ({}, '', '\\ufffe' * 256):\n    source = b'\\xff\\xfea'\n    try:\n        codecs.charmap_decode(source, 'surrogateescape', mapping)\n    except UnicodeDecodeError as error:\n        assert error.args == ('charmap', source, 0, 1, 'character maps to <undefined>')\n        assert (error.start, error.end, error.reason) == (2, 3, 'character maps to <undefined>')\n        assert error.object == source\n        assert error.__traceback__ is not None\n    else:\n        assert False\nsource = b'\\x80\\x70'\ntry:\n    source.decode('cp424', 'surrogateescape')\nexcept UnicodeDecodeError as error:\n    assert error.args == ('charmap', source, 0, 1, 'character maps to <undefined>')\n    assert (error.start, error.end) == (1, 2)\n    assert error.__traceback__ is not None\nelse:\n    assert False\n",
+      "sha256": "1affb1f419eca814afc6d02d4048bbd051568e11616013994f87df3fbe12d9d3",
+      "actual": {
+        "status": "exception",
+        "diagnostic": "",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": false
+    },
+    {
+      "name": "normalized search names retain identity across misses and cache invalidation",
+      "source": "import codecs\nseen = []\nmode = 'miss'\ninfo = (None, None, None, None)\ndef search(name):\n    seen.append(name)\n    if mode == 'failure':\n        raise ValueError('search failed')\n    if mode == 'success':\n        return info\ncodecs.register(search)\nfor spelling, mode in [('Codec-Identity-Probe', 'miss'), ('CODEC IDENTITY PROBE', 'failure'), ('codec_identity_probe', 'success')]:\n    try:\n        codecs.lookup(spelling)\n    except (LookupError, ValueError):\n        pass\ncodecs.unregister(search)\ncodecs.register(search)\nassert codecs.lookup('codec-identity-probe') is info\nassert len(seen) == 4\nfor name in seen:\n    assert name is seen[0]\n",
+      "sha256": "1dd66a167545a691042572c3d22147bc59ad21febef04536a8a76e6947364702",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "callback failures preserve identity, notes and guest traceback frames",
+      "source": "import codecs\nfailure = ValueError('callback failed')\ndef codec(value):\n    raise failure\ncodecs.register(lambda name: (codec, codec, None, None) if name == 'public_traceback' else None)\nfor operation, value in [(codecs.encode, 'x'), (codecs.decode, b'x')]:\n    failure.__traceback__ = None\n    try:\n        operation(value, 'public_traceback')\n    except ValueError as error:\n        assert error is failure and error.args == ('callback failed',)\n        traceback = error.__traceback__\n        assert traceback.tb_frame.f_code.co_name == '<module>'\n        assert traceback.tb_next.tb_frame.f_code.co_name == 'codec'\n        assert traceback.tb_next.tb_next is None\n    else:\n        assert False\nassert failure.__notes__ == [\"encoding with 'public_traceback' codec failed\", \"decoding with 'public_traceback' codec failed\"]\n",
+      "sha256": "4ccf68bae724758eff2fee16a772374a0db798c633f31997f12975748ff8c9d7",
+      "actual": {
+        "status": "exception",
+        "diagnostic": "'NoneType' object has no attribute 'tb_frame'",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": false
+    },
+    {
+      "name": "generator error callbacks are rejected without starting their body",
+      "source": "import codecs\nevents = []\ndef handler(error):\n    events.append('started')\n    yield ('?', 1)\ncodecs.register_error('public_generator', handler)\nfor operation, expected in [(lambda: b'\\xff'.decode('ascii', 'public_generator'), 'decoding error handler must return (str, int) tuple'), (lambda: 'é'.encode('ascii', 'public_generator'), 'encoding error handler must return (str/bytes, int) tuple')]:\n    try:\n        operation()\n    except TypeError as error:\n        assert error.args == (expected,)\n    else:\n        assert False\nassert events == []\n",
+      "sha256": "b34c121be767ee7a07bb98d18c17d4963a81cdd08c4087d04f234d93c8a4229f",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "handler result validation precedes index and mutated-object validation",
+      "source": "import codecs\nevents = []\nclass Index:\n    def __index__(self):\n        events.append('index')\n        return 1\ndef handler(error):\n    error.object = None\n    return (b'?', Index())\ncodecs.register_error('public_validation', handler)\ntry:\n    b'\\xff'.decode('ascii', 'public_validation')\nexcept TypeError as error:\n    assert error.args == ('decoding error handler must return (str, int) tuple',)\nelse:\n    assert False\nassert events == []\ndef handler(error):\n    error.object = None\n    return ('?', Index())\ncodecs.register_error('public_validation', handler)\ntry:\n    b'\\xff'.decode('ascii', 'public_validation')\nexcept TypeError as error:\n    assert error.args == (\"UnicodeError 'object' attribute must be a bytes\",)\nelse:\n    assert False\nassert events == ['index']\n",
+      "sha256": "f0fbc8e8a088a3c0b599f7d3eace511d785fe3c2d3a1af09aea37da7c4aee4fb",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "CodecInfo tuple layout, metadata, subclassing and attribute independence",
+      "source": "import codecs\ndef encode(value, errors='strict'):\n    return (b'encoded', len(value))\ndef decode(value, errors='strict'):\n    return ('decoded', len(value))\nclass Info(codecs.CodecInfo):\n    pass\ninfo = Info(encode, decode, name='custom')\nassert isinstance(info, tuple)\nassert type(info) is Info\nassert len(info) == 4\nassert tuple(info) == (encode, decode, None, None)\nassert info.encode is encode and info.decode is decode\nassert info.incrementalencoder is None and info.incrementaldecoder is None\nassert info.name == 'custom' and info._is_text_encoding is True\ninfo.encode = None\nassert info[0] is encode and info.encode is None\nassert codecs.CodecInfo.__module__ == 'codecs'\n",
+      "sha256": "8d0222742d9aeea47c8ad06cace3b55bdb1c71797f88578e3431181b69e77eac",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "search normalization, cache identity, duplicate registration and invalidation",
+      "source": "import codecs\nevents = []\ninfo = codecs.CodecInfo(lambda value: (value, 0), lambda value: (value, 0), name='public_test')\ndef search(name):\n    events.append(name)\n    if name == 'public_test':\n        return info\ncodecs.register(search)\ncodecs.register(search)\nassert codecs.lookup(' PUBLIC---TEST ') is info\nassert codecs.lookup('public_test') is info\nassert events == ['public_test']\ncodecs.unregister(search)\nassert codecs.lookup('public_test') is info\nassert events == ['public_test', 'public_test']\ncodecs.unregister(search)\ntry:\n    codecs.lookup('public_test')\nexcept LookupError as error:\n    assert error.args == ('unknown encoding: public_test',)\nelse:\n    assert False\n",
+      "sha256": "ed02632449481f95c1001f97b938ff7ac2d35f5060df3bd93f93a0c765149a5e",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "recursive handlers and exception.object mutation after __index__",
+      "source": "import codecs\nevents = []\nreplacement = b'ABCD'\nclass Index:\n    def __index__(self):\n        events[-1].object = replacement\n        return -2\ndef handler(error):\n    events.append(error)\n    if len(events) == 1:\n        assert b'\\xff'.decode('ascii', 'public_recursive') == '?CD'\n        error.object = b'WXYZ'\n        return ('!', -1)\n    return ('?', Index())\ncodecs.register_error('public_recursive', handler)\nassert b'\\xff'.decode('ascii', 'public_recursive') == '!Z'\nassert len(events) == 2\nassert events[0] is not events[1]\nassert events[0].args == ('ascii', b'\\xff', 0, 1, 'ordinal not in range(128)')\nassert events[1].object is replacement\n",
+      "sha256": "dac59e29041aa84953ca1bfef7a714a1a8eaa87aa703402a8e1a966d545b7509",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "all standard handlers through published registry identities",
+      "source": "import codecs\nimport _codecs\nerror = UnicodeEncodeError('ascii', 'é', 0, 1, 'reason')\nfor name, result in [('ignore', ''), ('replace', '?'), ('backslashreplace', '\\\\xe9'), ('xmlcharrefreplace', '&#233;'), ('namereplace', '\\\\N{LATIN SMALL LETTER E WITH ACUTE}')]:\n    handler = codecs.lookup_error(name)\n    assert handler(error) == (result, 1)\n    assert handler is getattr(codecs, name + '_errors')\n    assert handler is _codecs.lookup_error(name)\ntry:\n    codecs.lookup_error('strict')(error)\nexcept UnicodeEncodeError as caught:\n    assert caught is error\n    assert caught.__traceback__ is not None\nelse:\n    assert False\nassert codecs.lookup_error('surrogateescape')(UnicodeDecodeError('ascii', b'\\xff', 0, 1, 'reason')) == ('\\udcff', 1)\nassert codecs.lookup_error('surrogatepass')(UnicodeEncodeError('utf-8', '\\ud800', 0, 1, 'reason')) == (b'\\xed\\xa0\\x80', 1)\n",
+      "sha256": "692463013bca24736ce0f7c06ad2f9c10a718251132eaf4a923e025eb7fdfa48",
+      "actual": {
+        "status": "exception",
+        "diagnostic": "",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": false
+    },
+    {
+      "name": "standard handler rejection chains the active exception without changing cause",
+      "source": "import codecs\nfor name in ('strict', 'surrogatepass', 'surrogateescape'):\n    original = UnicodeEncodeError('ascii', 'é', 0, 1, 'original')\n    arguments = original.args\n    prior = ValueError('active')\n    cause = ValueError('explicit cause')\n    original.__cause__ = cause\n    try:\n        raise prior\n    except ValueError:\n        prior.__context__ = original\n        try:\n            codecs.lookup_error(name)(original)\n        except UnicodeEncodeError as caught:\n            assert caught is original\n            assert caught.__context__ is prior\n            assert prior.__context__ is None\n            assert caught.__cause__ is cause\n            assert caught.__suppress_context__ is True\n            assert caught.args is arguments\n        else:\n            assert False\n    try:\n        codecs.lookup_error(name)(original)\n    except UnicodeEncodeError as caught:\n        assert caught.__context__ is prior\n    else:\n        assert False\n",
+      "sha256": "abe2fad00cd23fe2ec23fc41b58825f52cf56a50ff6288e25237a7030cbe7897",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "custom codecs shared by encode/decode and str/bytes constructors",
+      "source": "import codecs\nevents = []\ndef encode(value, errors='strict'):\n    events.append(('encode', value, errors))\n    return (b'custom', len(value))\ndef decode(value, errors='strict'):\n    events.append(('decode', bytes(value), errors))\n    return ('custom', len(value))\ndef search(name):\n    if name == 'public_consumer':\n        return codecs.CodecInfo(encode, decode, name=name)\ncodecs.register(search)\nassert 'x'.encode('public_consumer') == b'custom'\nassert bytes('x', 'public_consumer') == b'custom'\nassert codecs.encode('x', 'public_consumer') == b'custom'\nassert b'x'.decode('public_consumer') == 'custom'\nassert str(b'x', 'public_consumer') == 'custom'\nassert codecs.decode(b'x', 'public_consumer') == 'custom'\nassert events == [('encode', 'x', 'strict')] * 3 + [('decode', b'x', 'strict')] * 3\n",
+      "sha256": "ec5011097bc79fc96305990e6bba74a089150280072cbba0070801eb289ee122",
+      "actual": {
+        "status": "exception",
+        "diagnostic": "unknown encoding: public_consumer",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": false
+    },
+    {
+      "name": "core fast paths survive codec shadowing and distinguish handler shadowing",
+      "source": "import codecs\nevents = []\ndef search(name):\n    events.append(name)\n    return (None, None, None, None)\ndef handler(error):\n    return ('!', error.end)\ncodecs.register(search)\nfor encoding in ('ascii', 'latin-1', 'utf-8'):\n    assert 'A'.encode(encoding) == b'A'\n    assert b'A'.decode(encoding) == 'A'\nassert events == []\ncodecs.register_error('replace', handler)\ncodecs.register_error('strict', handler)\nassert '\\ud800'.encode('utf-8', 'replace') == b'?'\nassert '\\ud800'.encode('utf-8', 'strict') == b'!'\ntry:\n    'é'.encode('ascii', 'strict')\nexcept UnicodeEncodeError as error:\n    assert (error.encoding, error.object, error.start, error.end, error.reason) == ('ascii', 'é', 0, 1, 'ordinal not in range(128)')\nelse:\n    assert False\n",
+      "sha256": "f6b389451e7d19d39c7cedaf17168a2f9ba9436fc323c5d35a07d0a930b681bb",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "decoder subtype identity and tuple override avoidance",
+      "source": "import codecs\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual str')\nclass Pair(tuple):\n    def __getitem__(self, key):\n        raise AssertionError('virtual item')\n    def __len__(self):\n        raise AssertionError('virtual length')\ndef decode(value, errors='strict'):\n    return Pair((result, None))\ncodecs.register(lambda name: codecs.CodecInfo(None, decode, name=name) if name == 'public_subtype' else None)\nfor content in ('', 'A', 'é', 'Ā', 'two', '\\ud800'):\n    result = Text(content)\n    assert codecs.decode(b'x', 'public_subtype') is result\n    for actual in (b'x'.decode('public_subtype'), str(b'x', 'public_subtype')):\n        if content in ('', 'A', 'é'):\n            assert type(actual) is str and actual is content\n        else:\n            assert actual is result\n",
+      "sha256": "709f2af8a478cbcb6ca24bb13413e9b6a21269f657253eed0e832c0c9f58dedf",
+      "actual": {
+        "status": "exception",
+        "diagnostic": "unknown encoding: public_subtype",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": false
+    },
+    {
+      "name": "incremental UTF-8 split input, state restoration, reset and final failure",
+      "source": "import codecs\nimport encodings.utf_8\nfactory = codecs.getincrementaldecoder('utf8')\nassert factory is encodings.utf_8.IncrementalDecoder\ndecoder = factory()\nassert isinstance(decoder, codecs.BufferedIncrementalDecoder)\nassert decoder.decode(b'\\xf0\\x9f') == ''\nstate = decoder.getstate()\nassert state == (b'\\xf0\\x9f', 0)\nassert decoder.decode(b'\\x90\\x8d', True) == '🐍'\ndecoder.setstate(state)\ntry:\n    decoder.decode(b'', True)\nexcept UnicodeDecodeError as error:\n    assert (error.object, error.start, error.end, error.reason) == (b'\\xf0\\x9f', 0, 2, 'unexpected end of data')\nelse:\n    assert False\nassert decoder.getstate() == state\ndecoder.reset()\nassert decoder.getstate() == (b'', 0)\n",
+      "sha256": "78911b138a9db3ed09e549826fed732dc36bcfeaec6ca2756057e1dffd6f0a21",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "stream reader/writer adapters over a real in-memory binary stream",
+      "source": "import codecs\nimport io\nstream = io.BytesIO()\nwriter = codecs.getwriter('utf8')(stream)\nwriter.write('é\\n🐍\\n')\nwriter.writelines(['A', 'B'])\nassert stream.getvalue() == b'\\xc3\\xa9\\n\\xf0\\x9f\\x90\\x8d\\nAB'\nstream.seek(0)\nreader = codecs.getreader('utf8')(stream)\nassert reader.readline() == 'é\\n'\nassert reader.readline() == '🐍\\n'\nassert reader.read() == 'AB'\nassert reader.read() == ''\nreader.seek(0)\nassert reader.read() == 'é\\n🐍\\nAB'\n",
+      "sha256": "77eb22952da0c102ef6d22b25ebdd8efc4121ce9da5e1e873d37f20a07374951",
+      "actual": {
+        "status": "exception",
+        "diagnostic": "No module named 'io'",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": false
+    },
+    {
+      "name": "owned charmap module and undefined-character recovery",
+      "source": "import codecs\nimport encodings.charmap\ninfo = encodings.charmap.getregentry()\nassert info.name == 'charmap'\nassert isinstance(info, codecs.CodecInfo)\nassert codecs.charmap_decode(b'\\x00\\x01', 'strict', 'BA') == ('BA', 2)\nassert codecs.charmap_encode('BA', 'strict', {66: 0, 65: 1}) == (b'\\x00\\x01', 2)\nevents = []\ndef handler(error):\n    events.append((error.encoding, error.object, error.start, error.end, error.reason))\n    return ('?', error.end)\ncodecs.register_error('public_charmap', handler)\nassert codecs.charmap_decode(b'\\x00\\x01', 'public_charmap', 'A\\ufffe') == ('A?', 2)\nassert events == [('charmap', b'\\x00\\x01', 1, 2, 'character maps to <undefined>')]\n",
+      "sha256": "3810d168ba19239f75e2fa2907722ae5dc56e3b3a829625edfb3e7d0784863f6",
+      "actual": {
+        "status": "ok",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": true
+    },
+    {
+      "name": "UTF-16/32 rejected replacements restore cached faults and retain incremental BOM state",
+      "source": "import codecs\nfor encoding in ('utf-16', 'utf-16-le', 'utf-16-be', 'utf-32', 'utf-32-le', 'utf-32-be'):\n    for replacement in ('\\ud800', b'!'):\n        for reused in (False, True):\n            source = '\\ud800A\\udfffZ'\n            seen = []\n            events = []\n            class Position:\n                def __index__(self):\n                    events.append('index')\n                    seen[-1].start = 90\n                    seen[-1].end = 91\n                    seen[-1].reason = 'index mutation'\n                    return -1\n            def handler(error):\n                seen.append(error)\n                if reused and len(seen) == 1:\n                    return ('?', error.end)\n                error.encoding = 'changed encoding'\n                error.object = 'changed object'\n                error.start = 42\n                error.end = 43\n                error.reason = 'changed reason'\n                return (replacement, Position())\n            codecs.register_error('public_wide_rejection', handler)\n            encoder = codecs.getincrementalencoder(encoding)('public_wide_rejection')\n            state = encoder.getstate()\n            try:\n                encoder.encode(source)\n            except UnicodeEncodeError as error:\n                assert error is seen[0] and error is seen[-1]\n                assert error.encoding == 'changed encoding'\n                assert error.object == 'changed object'\n                assert (error.start, error.end, error.reason) == ((2, 3, 'surrogates not allowed') if reused else (0, 1, 'surrogates not allowed'))\n                assert error.args == (encoding, source, 0, 1, 'surrogates not allowed')\n                assert error.__traceback__ is not None\n            else:\n                assert False\n            assert encoder.getstate() == state\n            assert events == ['index']\n            assert len(seen) == (2 if reused else 1)\n            assert encoder.encode('A') == 'A'.encode(encoding)\n",
+      "sha256": "55db968eec94db1eea8ae369cdd11178fc7ae9b536091f3ead4eee7445867d45",
+      "actual": {
+        "status": "exception",
+        "diagnostic": "unknown encoding: utf-16",
+        "stdout": ""
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "match": false
+    }
+  ]
+}

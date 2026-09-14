@@ -1,3 +1,5 @@
+import type {RuntimeCodecRegistry} from "./runtime-codec-registry.js";
+import type {LexicalFrame} from "./lexical-frame.js";
 import { ConstantValues, type PrimitiveConstant, type SliceConstant, type TupleConstant } from "./constant-values.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { IntegerProgression } from "./integer-sequence.js";
@@ -95,6 +97,10 @@ export function isRuntimeSetView(value: RuntimeValue): value is DictionaryViewVa
 export interface ExceptionPreparationValues {
   readonly syntaxFilename?:RuntimeValue;
   readonly unicodeObject?:RuntimeValue;
+  readonly attribute?:{readonly name:RuntimeValue;readonly object:RuntimeValue};
+  /** Construct an exception for a callback without raising it. Native codec
+   * recovery only chains this object if a handler or replacement raises it. */
+  readonly unraised?:boolean;
 }
 
 /** Trusted host implementation, installed explicitly by the runtime owner.
@@ -102,9 +108,24 @@ export interface ExceptionPreparationValues {
  * synchronous implementation owns its internal work and resource checkpoints.
  */
 export interface BuiltinInvocationContext {
+  /** Interpreter-owned codec search path and error handlers, shared by frames. */
+  readonly codecs?:RuntimeCodecRegistry;
+  /** Read the active frame's builtin namespace, preserving lookup side effects. */
+  lookupBuiltin?(name:string):RuntimeValue;
+  /** Calling optimized activation for zero-argument super; never a host frame. */
+  readonly functionFrame?:LexicalFrame<RuntimeValue>;
   /** Translate a native failure without rebuilding retained source/filename
    * objects from host diagnostic storage. */
   prepareException?(error:unknown,retained?:ExceptionPreparationValues):unknown;
+  /** Tokenizer initialization failure transport, using live guest exception
+   * rendering and filename setters instead of host diagnostic strings. */
+  sourceException?(error:unknown,filename:RuntimeValue):never;
+  /** Python codec exception rewriting, with live attribute lookup and a real
+   * handled-exception scope during construction of the replacement. */
+  rewriteDecodeError?(error:unknown,encoding:string,source:RuntimeValue,invocation:BuiltinInvocationContext):never;
+  /** Raise an existing native exception instance with the active guest context.
+   * Unlike propagation, a new native raise must update implicit chaining. */
+  chainException?(error:InstanceValue):unknown;
   /** Execution-owned canonical base object type for native sentinel allocation. */
   readonly objectType?:TypeValue;
   /** Replace a guest protocol failure while retaining explicit cause/context. */
@@ -117,6 +138,11 @@ export interface BuiltinInvocationContext {
   /** Borrow native exception args without virtual attribute lookup or copying.
    * Undefined means this execution does not expose arguments for this carrier. */
   exceptionArguments?(error: unknown): readonly RuntimeValue[] | undefined;
+  /** Exact native exception classification with deferred guest str rendering.
+   * Merely inspecting a hash failure must not invoke its argument callbacks. */
+  describeException?(error: unknown, name: "TypeError"): (() => string) | undefined;
+  /** Native %T diagnostic name; bypass metaclass hooks and read live metadata. */
+  hashErrorTypeName?(value: RuntimeValue): string;
   /** Add a native diagnostic note, bypassing an overridable add_note method.
    * Preserve the handled scope during callbacks; chain their failures to error.
    * Return the exception to propagate (native faults may become guest carriers). */
@@ -137,7 +163,7 @@ export interface BuiltinInvocationContext {
   formatting?: FormatContext<RuntimeValue>;
   /** Type-MRO presence only, without binding a descriptor. */
   hasSpecial?(object: RuntimeValue, name: string): boolean;
-  warn?(category: "DeprecationWarning", message: string): void;
+  warn?(category: "DeprecationWarning" | "ImportWarning", message: string): void;
   lookupSpecial?(object: RuntimeValue, name: string): RuntimeValue | undefined;
   /** Actual runtime type, bypassing instance attributes and virtual checks. */
   actualType?(value: RuntimeValue): TypeValue;
@@ -151,17 +177,20 @@ export interface BuiltinInvocationContext {
   /** Enter type.__call__ directly, bypassing metaclass __call__ overrides. */
   callTypeDefault?(type: TypeValue, positional: readonly RuntimeValue[], keywords: DictionaryValue): RuntimeValue;
   /** Default type attribute slots, without metaclass overrides or getattr. */
-  typeAttributeDefault?(type: TypeValue, name: string): RuntimeValue;
+  typeAttributeDefault?(type: TypeValue, name: string, lookupKey?: { value: RuntimeValue; hash: () => bigint }): RuntimeValue;
   mutateTypeAttributeDefault?(type: TypeValue, name: string, change: { readonly kind: "set"; readonly value: RuntimeValue } | { readonly kind: "delete" }): void;
   /** Base object slots, without guest attribute overrides or getattr fallback. */
-  objectAttributeDefault?(object: RuntimeValue, name: string): RuntimeValue;
-  mutateObjectAttributeDefault?(object: RuntimeValue, name: string, change: { readonly kind: "set"; readonly value: RuntimeValue } | { readonly kind: "delete" }): void;
+  objectAttributeDefault?(object: RuntimeValue, name: string, lookupKey?: { value: RuntimeValue; hash: () => bigint }): RuntimeValue;
+  mutateObjectAttributeDefault?(object: RuntimeValue, name: string, change: { readonly kind: "set"; readonly value: RuntimeValue } | { readonly kind: "delete" }, lookupKey?: { value: RuntimeValue; hash: () => bigint }): void;
   /** Adopt a validated actual type for extension-owned native/opaque storage. */
   assignClassDefault?(object: RuntimeValue, type: TypeValue): void;
   typeName?(value: RuntimeValue): string;
-  setAttribute?(object: RuntimeValue, name: string, value: RuntimeValue): void;
-  deleteAttribute?(object: RuntimeValue, name: string): void;
-  attribute?(object: RuntimeValue, name: string): RuntimeValue;
+  /** Preserve a guest attribute-name object and its live, non-contextual hash.
+   * MRO lookups consume hash failures; instance dictionaries own their errors. */
+  attributeKey?(value: RuntimeValue): { value: RuntimeValue; hash: () => bigint };
+  setAttribute?(object: RuntimeValue, name: string, value: RuntimeValue, lookupKey?: { value: RuntimeValue; hash: () => bigint }): void;
+  deleteAttribute?(object: RuntimeValue, name: string, lookupKey?: { value: RuntimeValue; hash: () => bigint }): void;
+  attribute?(object: RuntimeValue, name: string, lookupKey?: { value: RuntimeValue; hash: () => bigint }): RuntimeValue;
   readonly power?: RuntimePowerContext;
   /** Prepared numeric slots shared by operators and numeric builtins. */
   numeric?(operator: string, left: RuntimeValue, right: RuntimeValue): RuntimeNumericContext | undefined;
@@ -187,12 +216,19 @@ export interface BuiltinInvocationContext {
 }
 
 export interface NativeDocumentation {
+  readonly textSignature?: string;
   /** Native documentation text, never a guest attribute lookup or evaluator. */
   readonly doc?: string;
 }
 
 export interface BuiltinFunctionCapability extends NativeDocumentation {
   readonly name: string;
+  /** Standalone native callable metadata; null denotes an unbound C callback. */
+  readonly module?: string | null;
+  /** Retained module receiver, independent of writable __module__ metadata.
+   * Unlike a method receiver, this does not change native function qualnames. */
+  readonly moduleOwner?: InstanceValue;
+  readonly textSignature?: string;
   /** A fixed type receiver is metadata only; native allocators still receive
    * their requested allocation class explicitly in positional arguments. */
   readonly owner?: TypeValue;
@@ -234,7 +270,7 @@ export interface InstanceValue {
   readonly type: TypeValue;
   readonly dictionary?: DictionaryValue;
   readonly state: RuntimeInstanceState;
-  readonly native?: ListValue | SetValue | FrozenSetValue | TupleConstant<RuntimeValue> | DictionaryValue | RuntimeExceptionState | RuntimeGeneratorState | RuntimeCoroutineWrapperState | RuntimeAsyncGeneratorState | RuntimeAsyncGeneratorOperationState | RuntimeAnextAwaitableState | RuntimeFrameLocalsProxyState | RuntimeFrameState | RuntimeTracebackState | RuntimeCodeState | RuntimeUnionState | Extract<PrimitiveConstant, { kind: "int" | "float" | "complex" | "str" }>;
+  readonly native?: ListValue | SetValue | FrozenSetValue | TupleConstant<RuntimeValue> | DictionaryValue | RuntimeExceptionState | RuntimeGeneratorState | RuntimeCoroutineWrapperState | RuntimeAsyncGeneratorState | RuntimeAsyncGeneratorOperationState | RuntimeAnextAwaitableState | RuntimeFrameLocalsProxyState | RuntimeFrameState | RuntimeTracebackState | RuntimeCodeState | RuntimeUnionState | Extract<PrimitiveConstant, { kind: "int" | "float" | "complex" | "str" | "bytes" }>;
 }
 
 /** Native wrappers with published ownership use the same ordinary attribute
@@ -371,10 +407,14 @@ export type RuntimeValue =
  * separate concerns; this is not yet the complete Python object model.
  */
 export class RuntimeValues extends ConstantValues {
+  /** Exact CALL_FUNCTION_EX tuples retained through native argument forwarding.
+   * Offset counts native receiver/type prefixes, never guest tuple elements. */
+  readonly argumentTuples=new WeakMap<readonly RuntimeValue[],{readonly tuple:TupleConstant<RuntimeValue>;readonly offset:number}>();
   #cells?:WeakMap<CellStorage<RuntimeValue>,CellValue>;
   #identity?: ExecutionIdentity;
   #descriptorQualifiedNames?: WeakMap<NativeDescriptorValue, Extract<PrimitiveConstant, { kind: "str" }>>;
   #nativeImplementations?: WeakMap<MethodDescriptorCapability["invoke"], NativeMethodDescriptorValue>;
+  #builtinModules?: WeakMap<BuiltinFunctionValue, RuntimeValue>;
   constructor(private readonly runtimeMeter: ExecutionMeter) {
     super(runtimeMeter);
   }
@@ -407,7 +447,7 @@ export class RuntimeValues extends ConstantValues {
     });
   }
 
-  iterator(value: CompletionIterator<RuntimeValue>,typeName?:string): IteratorValue {
+  iterator(value: CompletionIterator<RuntimeValue> & { readonly typeName?: string },typeName = value.typeName): IteratorValue {
     this.runtimeMeter.checkpoint(1, typeName===undefined?32:40);
     return Object.freeze(typeName===undefined?{ kind: "iterator", value }:{kind:"iterator",value,typeName});
   }
@@ -433,6 +473,22 @@ export class RuntimeValues extends ConstantValues {
     }
     this.runtimeMeter.checkpoint(0, 48);
     return Object.freeze({ kind: "builtin_function_or_method", value, binding: Object.freeze({ descriptor: binding.descriptor, implementation, instance: binding.instance }) });
+  }
+
+  /** Native m_module is writable per callable object, including non-string
+   * values. Cache initial strings so repeated reads retain their identity. */
+  builtinFunctionModule(callable: BuiltinFunctionValue, replacement?: RuntimeValue): RuntimeValue {
+    this.runtimeMeter.checkpoint();
+    if (replacement === undefined) {
+      const stored = this.#builtinModules?.get(callable);
+      if (stored !== undefined) return stored;
+      if (typeof callable.value.module !== "string") return this.none;
+      replacement = this.string(callable.value.module);
+    }
+    if (this.#builtinModules === undefined) { this.runtimeMeter.checkpoint(0, 64); this.#builtinModules = new WeakMap(); }
+    this.runtimeMeter.checkpoint(0, this.#builtinModules.has(callable) ? 0 : 48);
+    this.#builtinModules.set(callable, replacement);
+    return replacement;
   }
 
   /** Raw method binding, also used by classmethod for non-callable payloads.

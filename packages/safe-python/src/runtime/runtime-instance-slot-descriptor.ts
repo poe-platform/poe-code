@@ -39,7 +39,7 @@ export function installRuntimeInstanceSlots(owner: TypeValue, values: RuntimeVal
   let inheritedWeakReferences = false, inheritedDictionary = false;
   for (const base of owner.value.bases) { meter.checkpoint(); inheritedWeakReferences ||= base.hasWeakReferences; inheritedDictionary ||= base.hasInstanceDictionary; }
   const dictionaryKey = values.string("__dict__");
-  if (owner.value.hasObjectLayout && owner.value.hasInstanceDictionary && (declaration?.dictionary || !inheritedDictionary && owner.value.namespace.items.lookup(dictionaryKey) === undefined)) {
+  if (owner.value.hasInstanceDictionary && (declaration?.dictionary || !inheritedDictionary && owner.value.namespace.items.lookup(dictionaryKey) === undefined)) {
     owner.value.namespace.items.set(dictionaryKey, createInstanceDictionaryDescriptor(owner, values, meter));
   }
   const weakKey = values.string("__weakref__");

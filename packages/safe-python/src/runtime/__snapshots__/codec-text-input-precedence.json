@@ -1,0 +1,176 @@
+{
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "unicode": "16.0.0",
+  "platform": "darwin",
+  "byteorder": "little",
+  "cases": [
+    {
+      "name": "ordinary: 0",
+      "source": "\nevents = []\nclass Text(str):\n    def __str__(self):\n        events.append('str')\n        raise AssertionError('unexpected str')\n    def __bytes__(self):\n        events.append('bytes')\n        raise AssertionError('unexpected bytes')\n    def __buffer__(self, flags):\n        events.append('buffer')\n        raise AssertionError('unexpected buffer')\ntext = Text('content')\ntry:\n    str(text, 'utf8', 'strict')\nexcept Exception as error:\n    print(type(error).__name__, str(error))\n    if isinstance(error, UnicodeEncodeError):\n        print(repr(error.object), error.start, error.end, error.reason)\nelse:\n    raise AssertionError('text decoding succeeded')\nprint(events)\n",
+      "stdout": "TypeError decoding str is not supported\n[]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "ordinary: 1",
+      "source": "\nevents = []\nclass Text(str):\n    def __str__(self):\n        events.append('str')\n        raise AssertionError('unexpected str')\n    def __bytes__(self):\n        events.append('bytes')\n        raise AssertionError('unexpected bytes')\n    def __buffer__(self, flags):\n        events.append('buffer')\n        raise AssertionError('unexpected buffer')\ntext = Text('content')\ntry:\n    str.__new__(str, text, 'utf8', 'strict')\nexcept Exception as error:\n    print(type(error).__name__, str(error))\n    if isinstance(error, UnicodeEncodeError):\n        print(repr(error.object), error.start, error.end, error.reason)\nelse:\n    raise AssertionError('text decoding succeeded')\nprint(events)\n",
+      "stdout": "TypeError decoding str is not supported\n[]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "ordinary: 2",
+      "source": "\nevents = []\nclass Text(str):\n    def __str__(self):\n        events.append('str')\n        raise AssertionError('unexpected str')\n    def __bytes__(self):\n        events.append('bytes')\n        raise AssertionError('unexpected bytes')\n    def __buffer__(self, flags):\n        events.append('buffer')\n        raise AssertionError('unexpected buffer')\ntext = Text('content')\ntry:\n    str(object=text, encoding='utf8', errors='strict')\nexcept Exception as error:\n    print(type(error).__name__, str(error))\n    if isinstance(error, UnicodeEncodeError):\n        print(repr(error.object), error.start, error.end, error.reason)\nelse:\n    raise AssertionError('text decoding succeeded')\nprint(events)\n",
+      "stdout": "TypeError decoding str is not supported\n[]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "unknown: 0",
+      "source": "\nevents = []\nclass Text(str):\n    def __str__(self):\n        events.append('str')\n        raise AssertionError('unexpected str')\n    def __bytes__(self):\n        events.append('bytes')\n        raise AssertionError('unexpected bytes')\n    def __buffer__(self, flags):\n        events.append('buffer')\n        raise AssertionError('unexpected buffer')\ntext = Text('content')\ntry:\n    str(text, 'not_a_codec', 'not_a_handler')\nexcept Exception as error:\n    print(type(error).__name__, str(error))\n    if isinstance(error, UnicodeEncodeError):\n        print(repr(error.object), error.start, error.end, error.reason)\nelse:\n    raise AssertionError('text decoding succeeded')\nprint(events)\n",
+      "stdout": "TypeError decoding str is not supported\n[]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "unknown: 1",
+      "source": "\nevents = []\nclass Text(str):\n    def __str__(self):\n        events.append('str')\n        raise AssertionError('unexpected str')\n    def __bytes__(self):\n        events.append('bytes')\n        raise AssertionError('unexpected bytes')\n    def __buffer__(self, flags):\n        events.append('buffer')\n        raise AssertionError('unexpected buffer')\ntext = Text('content')\ntry:\n    str.__new__(str, text, 'not_a_codec', 'not_a_handler')\nexcept Exception as error:\n    print(type(error).__name__, str(error))\n    if isinstance(error, UnicodeEncodeError):\n        print(repr(error.object), error.start, error.end, error.reason)\nelse:\n    raise AssertionError('text decoding succeeded')\nprint(events)\n",
+      "stdout": "TypeError decoding str is not supported\n[]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "unknown: 2",
+      "source": "\nevents = []\nclass Text(str):\n    def __str__(self):\n        events.append('str')\n        raise AssertionError('unexpected str')\n    def __bytes__(self):\n        events.append('bytes')\n        raise AssertionError('unexpected bytes')\n    def __buffer__(self, flags):\n        events.append('buffer')\n        raise AssertionError('unexpected buffer')\ntext = Text('content')\ntry:\n    str(object=text, encoding='not_a_codec', errors='not_a_handler')\nexcept Exception as error:\n    print(type(error).__name__, str(error))\n    if isinstance(error, UnicodeEncodeError):\n        print(repr(error.object), error.start, error.end, error.reason)\nelse:\n    raise AssertionError('text decoding succeeded')\nprint(events)\n",
+      "stdout": "TypeError decoding str is not supported\n[]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "encoding type: 0",
+      "source": "\nevents = []\nclass Text(str):\n    def __str__(self):\n        events.append('str')\n        raise AssertionError('unexpected str')\n    def __bytes__(self):\n        events.append('bytes')\n        raise AssertionError('unexpected bytes')\n    def __buffer__(self, flags):\n        events.append('buffer')\n        raise AssertionError('unexpected buffer')\ntext = Text('content')\ntry:\n    str(text, None, 'strict')\nexcept Exception as error:\n    print(type(error).__name__, str(error))\n    if isinstance(error, UnicodeEncodeError):\n        print(repr(error.object), error.start, error.end, error.reason)\nelse:\n    raise AssertionError('text decoding succeeded')\nprint(events)\n",
+      "stdout": "TypeError str() argument 'encoding' must be str, not NoneType\n[]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "encoding type: 1",
+      "source": "\nevents = []\nclass Text(str):\n    def __str__(self):\n        events.append('str')\n        raise AssertionError('unexpected str')\n    def __bytes__(self):\n        events.append('bytes')\n        raise AssertionError('unexpected bytes')\n    def __buffer__(self, flags):\n        events.append('buffer')\n        raise AssertionError('unexpected buffer')\ntext = Text('content')\ntry:\n    str.__new__(str, text, None, 'strict')\nexcept Exception as error:\n    print(type(error).__name__, str(error))\n    if isinstance(error, UnicodeEncodeError):\n        print(repr(error.object), error.start, error.end, error.reason)\nelse:\n    raise AssertionError('text decoding succeeded')\nprint(events)\n",
+      "stdout": "TypeError str() argument 'encoding' must be str, not None\n[]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "encoding type: 2",
+      "source": "\nevents = []\nclass Text(str):\n    def __str__(self):\n        events.append('str')\n        raise AssertionError('unexpected str')\n    def __bytes__(self):\n        events.append('bytes')\n        raise AssertionError('unexpected bytes')\n    def __buffer__(self, flags):\n        events.append('buffer')\n        raise AssertionError('unexpected buffer')\ntext = Text('content')\ntry:\n    str(object=text, encoding=None, errors='strict')\nexcept Exception as error:\n    print(type(error).__name__, str(error))\n    if isinstance(error, UnicodeEncodeError):\n        print(repr(error.object), error.start, error.end, error.reason)\nelse:\n    raise AssertionError('text decoding succeeded')\nprint(events)\n",
+      "stdout": "TypeError str() argument 'encoding' must be str, not None\n[]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "errors type: 0",
+      "source": "\nevents = []\nclass Text(str):\n    def __str__(self):\n        events.append('str')\n        raise AssertionError('unexpected str')\n    def __bytes__(self):\n        events.append('bytes')\n        raise AssertionError('unexpected bytes')\n    def __buffer__(self, flags):\n        events.append('buffer')\n        raise AssertionError('unexpected buffer')\ntext = Text('content')\ntry:\n    str(text, 'utf8', None)\nexcept Exception as error:\n    print(type(error).__name__, str(error))\n    if isinstance(error, UnicodeEncodeError):\n        print(repr(error.object), error.start, error.end, error.reason)\nelse:\n    raise AssertionError('text decoding succeeded')\nprint(events)\n",
+      "stdout": "TypeError str() argument 'errors' must be str, not NoneType\n[]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "errors type: 1",
+      "source": "\nevents = []\nclass Text(str):\n    def __str__(self):\n        events.append('str')\n        raise AssertionError('unexpected str')\n    def __bytes__(self):\n        events.append('bytes')\n        raise AssertionError('unexpected bytes')\n    def __buffer__(self, flags):\n        events.append('buffer')\n        raise AssertionError('unexpected buffer')\ntext = Text('content')\ntry:\n    str.__new__(str, text, 'utf8', None)\nexcept Exception as error:\n    print(type(error).__name__, str(error))\n    if isinstance(error, UnicodeEncodeError):\n        print(repr(error.object), error.start, error.end, error.reason)\nelse:\n    raise AssertionError('text decoding succeeded')\nprint(events)\n",
+      "stdout": "TypeError str() argument 'errors' must be str, not None\n[]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "errors type: 2",
+      "source": "\nevents = []\nclass Text(str):\n    def __str__(self):\n        events.append('str')\n        raise AssertionError('unexpected str')\n    def __bytes__(self):\n        events.append('bytes')\n        raise AssertionError('unexpected bytes')\n    def __buffer__(self, flags):\n        events.append('buffer')\n        raise AssertionError('unexpected buffer')\ntext = Text('content')\ntry:\n    str(object=text, encoding='utf8', errors=None)\nexcept Exception as error:\n    print(type(error).__name__, str(error))\n    if isinstance(error, UnicodeEncodeError):\n        print(repr(error.object), error.start, error.end, error.reason)\nelse:\n    raise AssertionError('text decoding succeeded')\nprint(events)\n",
+      "stdout": "TypeError str() argument 'errors' must be str, not None\n[]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "encoding null: 0",
+      "source": "\nevents = []\nclass Text(str):\n    def __str__(self):\n        events.append('str')\n        raise AssertionError('unexpected str')\n    def __bytes__(self):\n        events.append('bytes')\n        raise AssertionError('unexpected bytes')\n    def __buffer__(self, flags):\n        events.append('buffer')\n        raise AssertionError('unexpected buffer')\ntext = Text('content')\ntry:\n    str(text, 'utf8\\x00', 'strict')\nexcept Exception as error:\n    print(type(error).__name__, str(error))\n    if isinstance(error, UnicodeEncodeError):\n        print(repr(error.object), error.start, error.end, error.reason)\nelse:\n    raise AssertionError('text decoding succeeded')\nprint(events)\n",
+      "stdout": "ValueError embedded null character\n[]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "encoding null: 1",
+      "source": "\nevents = []\nclass Text(str):\n    def __str__(self):\n        events.append('str')\n        raise AssertionError('unexpected str')\n    def __bytes__(self):\n        events.append('bytes')\n        raise AssertionError('unexpected bytes')\n    def __buffer__(self, flags):\n        events.append('buffer')\n        raise AssertionError('unexpected buffer')\ntext = Text('content')\ntry:\n    str.__new__(str, text, 'utf8\\x00', 'strict')\nexcept Exception as error:\n    print(type(error).__name__, str(error))\n    if isinstance(error, UnicodeEncodeError):\n        print(repr(error.object), error.start, error.end, error.reason)\nelse:\n    raise AssertionError('text decoding succeeded')\nprint(events)\n",
+      "stdout": "ValueError embedded null character\n[]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "encoding null: 2",
+      "source": "\nevents = []\nclass Text(str):\n    def __str__(self):\n        events.append('str')\n        raise AssertionError('unexpected str')\n    def __bytes__(self):\n        events.append('bytes')\n        raise AssertionError('unexpected bytes')\n    def __buffer__(self, flags):\n        events.append('buffer')\n        raise AssertionError('unexpected buffer')\ntext = Text('content')\ntry:\n    str(object=text, encoding='utf8\\x00', errors='strict')\nexcept Exception as error:\n    print(type(error).__name__, str(error))\n    if isinstance(error, UnicodeEncodeError):\n        print(repr(error.object), error.start, error.end, error.reason)\nelse:\n    raise AssertionError('text decoding succeeded')\nprint(events)\n",
+      "stdout": "ValueError embedded null character\n[]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "errors null: 0",
+      "source": "\nevents = []\nclass Text(str):\n    def __str__(self):\n        events.append('str')\n        raise AssertionError('unexpected str')\n    def __bytes__(self):\n        events.append('bytes')\n        raise AssertionError('unexpected bytes')\n    def __buffer__(self, flags):\n        events.append('buffer')\n        raise AssertionError('unexpected buffer')\ntext = Text('content')\ntry:\n    str(text, 'utf8', 'strict\\x00')\nexcept Exception as error:\n    print(type(error).__name__, str(error))\n    if isinstance(error, UnicodeEncodeError):\n        print(repr(error.object), error.start, error.end, error.reason)\nelse:\n    raise AssertionError('text decoding succeeded')\nprint(events)\n",
+      "stdout": "ValueError embedded null character\n[]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "errors null: 1",
+      "source": "\nevents = []\nclass Text(str):\n    def __str__(self):\n        events.append('str')\n        raise AssertionError('unexpected str')\n    def __bytes__(self):\n        events.append('bytes')\n        raise AssertionError('unexpected bytes')\n    def __buffer__(self, flags):\n        events.append('buffer')\n        raise AssertionError('unexpected buffer')\ntext = Text('content')\ntry:\n    str.__new__(str, text, 'utf8', 'strict\\x00')\nexcept Exception as error:\n    print(type(error).__name__, str(error))\n    if isinstance(error, UnicodeEncodeError):\n        print(repr(error.object), error.start, error.end, error.reason)\nelse:\n    raise AssertionError('text decoding succeeded')\nprint(events)\n",
+      "stdout": "ValueError embedded null character\n[]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "errors null: 2",
+      "source": "\nevents = []\nclass Text(str):\n    def __str__(self):\n        events.append('str')\n        raise AssertionError('unexpected str')\n    def __bytes__(self):\n        events.append('bytes')\n        raise AssertionError('unexpected bytes')\n    def __buffer__(self, flags):\n        events.append('buffer')\n        raise AssertionError('unexpected buffer')\ntext = Text('content')\ntry:\n    str(object=text, encoding='utf8', errors='strict\\x00')\nexcept Exception as error:\n    print(type(error).__name__, str(error))\n    if isinstance(error, UnicodeEncodeError):\n        print(repr(error.object), error.start, error.end, error.reason)\nelse:\n    raise AssertionError('text decoding succeeded')\nprint(events)\n",
+      "stdout": "ValueError embedded null character\n[]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "encoding surrogate: 0",
+      "source": "\nevents = []\nclass Text(str):\n    def __str__(self):\n        events.append('str')\n        raise AssertionError('unexpected str')\n    def __bytes__(self):\n        events.append('bytes')\n        raise AssertionError('unexpected bytes')\n    def __buffer__(self, flags):\n        events.append('buffer')\n        raise AssertionError('unexpected buffer')\ntext = Text('content')\ntry:\n    str(text, '\\x00\\ud800', 'strict')\nexcept Exception as error:\n    print(type(error).__name__, str(error))\n    if isinstance(error, UnicodeEncodeError):\n        print(repr(error.object), error.start, error.end, error.reason)\nelse:\n    raise AssertionError('text decoding succeeded')\nprint(events)\n",
+      "stdout": "UnicodeEncodeError 'utf-8' codec can't encode character '\\ud800' in position 1: surrogates not allowed\n'\\x00\\ud800' 1 2 surrogates not allowed\n[]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "encoding surrogate: 1",
+      "source": "\nevents = []\nclass Text(str):\n    def __str__(self):\n        events.append('str')\n        raise AssertionError('unexpected str')\n    def __bytes__(self):\n        events.append('bytes')\n        raise AssertionError('unexpected bytes')\n    def __buffer__(self, flags):\n        events.append('buffer')\n        raise AssertionError('unexpected buffer')\ntext = Text('content')\ntry:\n    str.__new__(str, text, '\\x00\\ud800', 'strict')\nexcept Exception as error:\n    print(type(error).__name__, str(error))\n    if isinstance(error, UnicodeEncodeError):\n        print(repr(error.object), error.start, error.end, error.reason)\nelse:\n    raise AssertionError('text decoding succeeded')\nprint(events)\n",
+      "stdout": "UnicodeEncodeError 'utf-8' codec can't encode character '\\ud800' in position 1: surrogates not allowed\n'\\x00\\ud800' 1 2 surrogates not allowed\n[]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "encoding surrogate: 2",
+      "source": "\nevents = []\nclass Text(str):\n    def __str__(self):\n        events.append('str')\n        raise AssertionError('unexpected str')\n    def __bytes__(self):\n        events.append('bytes')\n        raise AssertionError('unexpected bytes')\n    def __buffer__(self, flags):\n        events.append('buffer')\n        raise AssertionError('unexpected buffer')\ntext = Text('content')\ntry:\n    str(object=text, encoding='\\x00\\ud800', errors='strict')\nexcept Exception as error:\n    print(type(error).__name__, str(error))\n    if isinstance(error, UnicodeEncodeError):\n        print(repr(error.object), error.start, error.end, error.reason)\nelse:\n    raise AssertionError('text decoding succeeded')\nprint(events)\n",
+      "stdout": "UnicodeEncodeError 'utf-8' codec can't encode character '\\ud800' in position 1: surrogates not allowed\n'\\x00\\ud800' 1 2 surrogates not allowed\n[]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "errors surrogate: 0",
+      "source": "\nevents = []\nclass Text(str):\n    def __str__(self):\n        events.append('str')\n        raise AssertionError('unexpected str')\n    def __bytes__(self):\n        events.append('bytes')\n        raise AssertionError('unexpected bytes')\n    def __buffer__(self, flags):\n        events.append('buffer')\n        raise AssertionError('unexpected buffer')\ntext = Text('content')\ntry:\n    str(text, 'utf8', '\\x00\\ud800')\nexcept Exception as error:\n    print(type(error).__name__, str(error))\n    if isinstance(error, UnicodeEncodeError):\n        print(repr(error.object), error.start, error.end, error.reason)\nelse:\n    raise AssertionError('text decoding succeeded')\nprint(events)\n",
+      "stdout": "UnicodeEncodeError 'utf-8' codec can't encode character '\\ud800' in position 1: surrogates not allowed\n'\\x00\\ud800' 1 2 surrogates not allowed\n[]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "errors surrogate: 1",
+      "source": "\nevents = []\nclass Text(str):\n    def __str__(self):\n        events.append('str')\n        raise AssertionError('unexpected str')\n    def __bytes__(self):\n        events.append('bytes')\n        raise AssertionError('unexpected bytes')\n    def __buffer__(self, flags):\n        events.append('buffer')\n        raise AssertionError('unexpected buffer')\ntext = Text('content')\ntry:\n    str.__new__(str, text, 'utf8', '\\x00\\ud800')\nexcept Exception as error:\n    print(type(error).__name__, str(error))\n    if isinstance(error, UnicodeEncodeError):\n        print(repr(error.object), error.start, error.end, error.reason)\nelse:\n    raise AssertionError('text decoding succeeded')\nprint(events)\n",
+      "stdout": "UnicodeEncodeError 'utf-8' codec can't encode character '\\ud800' in position 1: surrogates not allowed\n'\\x00\\ud800' 1 2 surrogates not allowed\n[]\n",
+      "stderr": "",
+      "exitCode": 0
+    },
+    {
+      "name": "errors surrogate: 2",
+      "source": "\nevents = []\nclass Text(str):\n    def __str__(self):\n        events.append('str')\n        raise AssertionError('unexpected str')\n    def __bytes__(self):\n        events.append('bytes')\n        raise AssertionError('unexpected bytes')\n    def __buffer__(self, flags):\n        events.append('buffer')\n        raise AssertionError('unexpected buffer')\ntext = Text('content')\ntry:\n    str(object=text, encoding='utf8', errors='\\x00\\ud800')\nexcept Exception as error:\n    print(type(error).__name__, str(error))\n    if isinstance(error, UnicodeEncodeError):\n        print(repr(error.object), error.start, error.end, error.reason)\nelse:\n    raise AssertionError('text decoding succeeded')\nprint(events)\n",
+      "stdout": "UnicodeEncodeError 'utf-8' codec can't encode character '\\ud800' in position 1: surrogates not allowed\n'\\x00\\ud800' 1 2 surrogates not allowed\n[]\n",
+      "stderr": "",
+      "exitCode": 0
+    }
+  ]
+}

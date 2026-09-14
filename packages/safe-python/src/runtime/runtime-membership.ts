@@ -1,6 +1,7 @@
 import type { ConstantValues, PrimitiveConstant } from "./constant-values.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import { PythonRuntimeError } from "./error.js";
+import { runtimeExceptionMatches } from "./runtime-exception-matches.js";
 import { rangeIndexOf } from "./integer-sequence.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import type { BuiltinInvocationContext, RuntimeValue } from "./runtime-values.js";
@@ -11,9 +12,10 @@ import { protocolContains, type ContainmentContext } from "./containment-protoco
 import { validateIndexResult } from "./index-protocol.js";
 import type { RuntimeBufferContext, RuntimeBufferLease } from "./runtime-buffer-context.js";
 import { diagnosticTypeName } from "./diagnostic-type-name.js";
+import { runtimeStringPayload } from "./runtime-string-payload.js";
 import { createRuntimeSearchEquality, type RuntimeSearchEqualityContext } from "./runtime-search-equality.js";
 
-export interface RuntimeMembershipContext extends RuntimeSearchEqualityContext, Pick<BuiltinInvocationContext, "isException"> {
+export interface RuntimeMembershipContext extends RuntimeSearchEqualityContext, Pick<BuiltinInvocationContext, "isException" | "actualType"> {
   readonly buffers?: RuntimeBufferContext;
 }
 
@@ -60,11 +62,13 @@ export function runtimeMembership(operator: string, needle: RuntimeValue, contai
       if (member === needle || equal(member, needle)) { found = true; break; }
     }
   } else if (container.kind === "str") {
-    if (needle.kind !== "str") {
-      const name = needle.kind === "none" ? "NoneType" : needle.kind === "not-implemented" ? "NotImplementedType" : needle.kind;
+    const text = runtimeStringPayload(needle);
+    if (text === undefined) {
+      const nativeName = needle.kind === "instance" ? needle.type.value.diagnosticName : needle.kind === "none" ? "NoneType" : needle.kind === "not-implemented" ? "NotImplementedType" : needle.kind;
+      const name = diagnosticTypeName(context?.actualType?.(needle).value.diagnosticName ?? nativeName, meter, 100);
       throw new PythonRuntimeError("TypeError", `'in <string>' requires string as left operand, not ${name}`);
     }
-    found = container.value.search(needle.value, "find", 0n, null, meter) !== -1;
+    found = container.value.search(text.value, "find", 0n, null, meter) !== -1;
   } else if (container.kind === "bytes") {
     if (needle.kind === "bytes") found = container.value.contains(needle.value, meter);
     else {
@@ -72,8 +76,15 @@ export function runtimeMembership(operator: string, needle: RuntimeValue, contai
       let integer = needle.kind === "int" ? needle.value : needle.kind === "bool" ? needle.value ? 1n : 0n : indices?.integer(needle);
       meter.checkpoint();
       if (integer === undefined && indices !== undefined) {
-        const slot = indices.lookupIndex(needle); meter.checkpoint();
-        if (slot !== undefined) integer = indices.integer(validateIndexResult(slot(), indices, meter));
+        // bytes containment clears failed index conversions before attempting
+        // a buffer export, including guest BaseException subclasses. Sandbox
+        // termination and host failures must still escape this conversion.
+        try {
+          const slot = indices.lookupIndex(needle); meter.checkpoint();
+          if (slot !== undefined) integer = indices.integer(validateIndexResult(slot(), indices, meter));
+        } catch (error) {
+          if (!(error instanceof PythonRuntimeError) && !runtimeExceptionMatches(error, "BaseException", context)) throw error;
+        }
         meter.checkpoint();
       }
       if (integer !== undefined) {

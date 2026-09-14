@@ -1,5 +1,6 @@
 import { CallableIterator, type CallableIterationContext } from "./callable-iterator.js";
 import { PythonRuntimeError } from "./error.js";
+import { diagnosticTypeName } from "./diagnostic-type-name.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { IterationContext } from "./protocol-iterator.js";
 import { acquireRuntimeIterator } from "./runtime-iterator-acquisition.js";
@@ -71,7 +72,7 @@ export function createNextBuiltin(values: RuntimeValues, meter: ExecutionMeter, 
         const valid = protocol?.hasNext(source) ?? false; meter.checkpoint();
         if (!valid) {
           const type = protocol ? protocol.typeName(source) : source.kind === "none" ? "NoneType" : source.kind === "not-implemented" ? "NotImplementedType" : source.kind;
-          meter.checkpoint(); throw new PythonRuntimeError("TypeError", `'${type}' object is not an iterator`);
+          meter.checkpoint(); throw new PythonRuntimeError("TypeError", `'${diagnosticTypeName(type, meter)}' object is not an iterator`);
         }
       }
       let step: CompletionResult<RuntimeValue> | undefined, result: RuntimeValue | undefined;
@@ -92,7 +93,7 @@ export function createNextBuiltin(values: RuntimeValues, meter: ExecutionMeter, 
       if (!step!.done) return step!.value;
       if (positional.length === 2) return positional[1];
       if (step!.done && step!.exception !== undefined) throw step!.exception.value;
-      throw new PythonRuntimeError("StopIteration", "");
+      throw new PythonRuntimeError("StopIteration");
     }
   });
 }

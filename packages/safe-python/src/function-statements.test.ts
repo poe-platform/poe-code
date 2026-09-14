@@ -15,13 +15,13 @@ describe("function definitions", () => {
       ], body: [{ kind: "return" }] }] });
   });
 
-  it("parses and discards annotations, including starred variadic annotations", () => {
+  it("parses and retains annotations, including starred variadic annotations", () => {
     const module = parseModule("def f(x: unknown() = 1, *args: *tuple[int, ...], **kw: Missing) -> another(): pass");
     const fn = module.body[0];
     expect(fn.kind).toBe("function");
-    expect(fn).not.toHaveProperty("returns");
+    expect(fn).toHaveProperty("returns");
     if (fn.kind === "function") {
-      for (const parameter of fn.parameters) expect(parameter).not.toHaveProperty("annotation");
+      for (const parameter of fn.parameters) expect(parameter).toHaveProperty("annotation");
       expect(fn.parameters[0].default).toMatchObject({ value: 1n });
     }
   });
@@ -32,12 +32,12 @@ describe("function definitions", () => {
         decorators: [{ name: "first" }, { kind: "call" }], body: [{ kind: "function" }, { kind: "return" }] }, { kind: "expression-statement" }] });
   });
 
-  it("validates decorators, defaults, and bodies but not ignored annotations", () => {
+  it("validates decorators, defaults, bodies and annotations", () => {
     const bad = "[(x:=1) for x in xs]";
     for (const source of [`@${bad}\ndef f(): pass`, `def f(a=${bad}): pass`, `def f(): ${bad}`]) {
       expect(() => parseModule(source)).toThrow(SyntaxError);
     }
-    expect(() => parseModule(`def f(a: ${bad}) -> ${bad}: pass`)).not.toThrow();
+    expect(() => parseModule(`def f(a: ${bad}) -> ${bad}: pass`)).toThrow(SyntaxError);
   });
 
   it.each(["def f:", "def f():", "def if(): pass", "def __debug__(): pass", "def f(a,a): pass", "def f(K,K): pass",

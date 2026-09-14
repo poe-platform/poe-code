@@ -1,0 +1,26 @@
+{
+  "scope": "Unresolved mismatches; not passing compatibility evidence or accepted exclusions.",
+  "rows": [
+    {
+      "name": "dynamic exact name retained in builtin setattr storage",
+      "source": "class C: pass\nobj=C()\nkey=''.join(['attr','field'])\nsetattr(obj,key,3)\nresult=next(iter(obj.__dict__)) is key\n",
+      "expected": "True",
+      "actual": "False",
+      "matches": false
+    },
+    {
+      "name": "dynamic exact name retained in object setattr storage",
+      "source": "class C: pass\nobj=C()\nkey=''.join(['attr','field'])\nobject.__setattr__(obj,key,3)\nresult=next(iter(obj.__dict__)) is key\n",
+      "expected": "True",
+      "actual": "False",
+      "matches": false
+    },
+    {
+      "name": "native tuple attribute name hash",
+      "source": "events=[]\nclass Name(str):\n def __hash__(self):\n  events.append('hash')\n  return str.__hash__(self)\ngetattr((),Name('__len__'))\nresult=events\n",
+      "expected": "['hash']",
+      "actual": "[]",
+      "matches": false
+    }
+  ]
+}

@@ -1,4 +1,5 @@
-import type { PythonSource, SourcePosition,SourceMeter } from "./source.js";
+import {decodeStringLiteral} from "./string-literal-decoding.js";
+import type { PythonSource, SourcePosition } from "./source.js";
 import { lookupUnicodeName } from "./unicode-names.js";
 
 export type StringToken = {
@@ -19,7 +20,13 @@ const simpleEscapes: Readonly<Record<string, number>> = {
 export function readString(
   source: PythonSource,
   onWarning?: (message: string, position: SourcePosition) => void
-): StringToken {
+): StringToken;
+export function readString(source: PythonSource, onWarning: ((message: string, position: SourcePosition) => void) | undefined, decode: boolean): StringToken | undefined;
+export function readString(
+  source: PythonSource,
+  onWarning?: (message: string, position: SourcePosition) => void,
+  decode = true
+): StringToken | undefined {
   try {
   source.meter?.checkpoint(1,240);
   const start = source.position;
@@ -37,61 +44,34 @@ export function readString(
   if (triple) { source.advance(); source.advance(); }
   const bytes = prefix.includes("b");
   const raw = prefix.includes("r");
-  const points: number[] = [];
-  let warning: { message: string; position: SourcePosition } | undefined;
-  const warn = (escape: string, position: SourcePosition, octal = false): void => {
-    if(warning)return;
-    source.meter?.checkpoint(0,48);
-    warning = {
-      message: escapeWarning(escape, octal,source.meter),
-      position
-    };
-  };
+  const contentStart = source.position;
   while (!source.done) {
     const character = source.peek();
     if (character === quote && (!triple || (source.peek(1) === quote && source.peek(2) === quote))) {
+      const contentEnd = source.position;
       source.advance();
       if (triple) { source.advance(); source.advance(); }
+      if (!decode) return;
       const end=source.position;
       source.meter?.checkpoint(1+end.offset-start.offset,32+2*(end.offset-start.offset));
       const span = { start, end, text: source.text.slice(start.offset, end.offset) };
-      if (warning) onWarning?.(warning.message, warning.position);
-      source.meter?.checkpoint(1+points.length,64+points.length*(bytes?1:4));
+      const value = decodeStringLiteral(source, contentStart, contentEnd, start, end, bytes, raw, onWarning);
+      source.meter?.checkpoint(0,64);
       return bytes
-        ? { ...span, kind: "bytes", value: Uint8Array.from(points) }
-        : { ...span, kind: "string", value: Uint32Array.from(points) };
+        ? { ...span, kind: "bytes", value: value as Uint8Array }
+        : { ...span, kind: "string", value: value as Uint32Array };
     }
     if (character === "\n" && !triple) throw source.error("unterminated string literal", start);
-    if (bytes && character.codePointAt(0)! > 127) {
-      throw source.error("bytes can only contain ASCII literal characters", start);
-    }
-    const position = source.position;
     source.advance();
-    if (character !== "\\") {
-      source.meter?.checkpoint(0,8);
-      points.push(character.codePointAt(0)!);
-    } else {
-      if (source.done) break;
-      if (bytes && source.peek().codePointAt(0)! > 127) {
-        throw source.error("bytes can only contain ASCII literal characters", start);
-      }
-      if (raw) {source.meter?.checkpoint(0,16);points.push(92, source.advance().codePointAt(0)!);}
-      else {
-        const escaped=readEscape(source,bytes,position,warn);
-        source.meter?.checkpoint(escaped.length,8*escaped.length);
-        for(let index=0;index<escaped.length;index++)points.push(escaped[index]);
-      }
-    }
+    // Establish the complete lexical token before decoding its bounded content.
+    // In particular, malformed named escapes cannot consume a closing quote.
+    if (character === "\\" && !source.done) source.advance();
   }
   throw source.error(triple ? "unterminated triple-quoted string literal" : "unterminated string literal", start);
   } finally {source.meter?.checkpoint();}
 }
 
-export function escapeWarning(escape: string, octal = false,meter?:SourceMeter): string {
-  meter?.checkpoint(1+escape.length,1024+8*escape.length);
-  return `"\\${escape}" is an invalid ${octal ? "octal " : ""}escape sequence. ` +
-    `Such sequences will not work in the future. Did you mean "\\\\${escape}"? A raw string is also an option.`;
-}
+export {escapeWarning} from "./string-literal-decoding.js";
 
 export function readEscape(
   source: PythonSource,

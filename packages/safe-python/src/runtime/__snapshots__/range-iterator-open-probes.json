@@ -1,0 +1,89 @@
+{
+  "scope": "Retained concrete unresolved inherited object and layout behavior. No mismatch accepted as a compatibility exception.",
+  "cases": [
+    {
+      "name": "range(3) i.__reduce_ex__(4)",
+      "source": "i = iter(range(3))\ntry:\n    actual = ('ok', i.__reduce_ex__(4))\nexcept BaseException as error:\n    actual = (type(error).__name__, error.args)",
+      "expected": "('ok', (<built-in function iter>, (range(0, 3),), None))",
+      "observed": "('AttributeError', (\"'range_iterator' object has no attribute '__reduce_ex__'\",))",
+      "matches": false
+    },
+    {
+      "name": "range(3) i.__getstate__()",
+      "source": "i = iter(range(3))\ntry:\n    actual = ('ok', i.__getstate__())\nexcept BaseException as error:\n    actual = (type(error).__name__, error.args)",
+      "expected": "('ok', None)",
+      "observed": "('AttributeError', (\"'range_iterator' object has no attribute '__getstate__'\",))",
+      "matches": false
+    },
+    {
+      "name": "range(3) i.__sizeof__()",
+      "source": "i = iter(range(3))\ntry:\n    actual = ('ok', i.__sizeof__())\nexcept BaseException as error:\n    actual = (type(error).__name__, error.args)",
+      "expected": "('ok', 40)",
+      "observed": "('AttributeError', (\"'range_iterator' object has no attribute '__sizeof__'\",))",
+      "matches": false
+    },
+    {
+      "name": "range(3) type(i).__basicsize__",
+      "source": "i = iter(range(3))\ntry:\n    actual = ('ok', type(i).__basicsize__)\nexcept BaseException as error:\n    actual = (type(error).__name__, error.args)",
+      "expected": "('ok', 40)",
+      "observed": "('AttributeError', (\"type object 'range_iterator' has no attribute '__basicsize__'\",))",
+      "matches": false
+    },
+    {
+      "name": "range(3) type(i).__itemsize__",
+      "source": "i = iter(range(3))\ntry:\n    actual = ('ok', type(i).__itemsize__)\nexcept BaseException as error:\n    actual = (type(error).__name__, error.args)",
+      "expected": "('ok', 0)",
+      "observed": "('AttributeError', (\"type object 'range_iterator' has no attribute '__itemsize__'\",))",
+      "matches": false
+    },
+    {
+      "name": "range(3) type(i).__flags__",
+      "source": "i = iter(range(3))\ntry:\n    actual = ('ok', type(i).__flags__)\nexcept BaseException as error:\n    actual = (type(error).__name__, error.args)",
+      "expected": "('ok', 4482)",
+      "observed": "('AttributeError', (\"type object 'range_iterator' has no attribute '__flags__'\",))",
+      "matches": false
+    },
+    {
+      "name": "range(2**100) i.__reduce_ex__(4)",
+      "source": "i = iter(range(2**100))\ntry:\n    actual = ('ok', i.__reduce_ex__(4))\nexcept BaseException as error:\n    actual = (type(error).__name__, error.args)",
+      "expected": "('ok', (<built-in function iter>, (range(0, 1267650600228229401496703205376),), None))",
+      "observed": "('AttributeError', (\"'longrange_iterator' object has no attribute '__reduce_ex__'\",))",
+      "matches": false
+    },
+    {
+      "name": "range(2**100) i.__getstate__()",
+      "source": "i = iter(range(2**100))\ntry:\n    actual = ('ok', i.__getstate__())\nexcept BaseException as error:\n    actual = (type(error).__name__, error.args)",
+      "expected": "('ok', None)",
+      "observed": "('AttributeError', (\"'longrange_iterator' object has no attribute '__getstate__'\",))",
+      "matches": false
+    },
+    {
+      "name": "range(2**100) i.__sizeof__()",
+      "source": "i = iter(range(2**100))\ntry:\n    actual = ('ok', i.__sizeof__())\nexcept BaseException as error:\n    actual = (type(error).__name__, error.args)",
+      "expected": "('ok', 40)",
+      "observed": "('AttributeError', (\"'longrange_iterator' object has no attribute '__sizeof__'\",))",
+      "matches": false
+    },
+    {
+      "name": "range(2**100) type(i).__basicsize__",
+      "source": "i = iter(range(2**100))\ntry:\n    actual = ('ok', type(i).__basicsize__)\nexcept BaseException as error:\n    actual = (type(error).__name__, error.args)",
+      "expected": "('ok', 40)",
+      "observed": "('AttributeError', (\"type object 'longrange_iterator' has no attribute '__basicsize__'\",))",
+      "matches": false
+    },
+    {
+      "name": "range(2**100) type(i).__itemsize__",
+      "source": "i = iter(range(2**100))\ntry:\n    actual = ('ok', type(i).__itemsize__)\nexcept BaseException as error:\n    actual = (type(error).__name__, error.args)",
+      "expected": "('ok', 0)",
+      "observed": "('AttributeError', (\"type object 'longrange_iterator' has no attribute '__itemsize__'\",))",
+      "matches": false
+    },
+    {
+      "name": "range(2**100) type(i).__flags__",
+      "source": "i = iter(range(2**100))\ntry:\n    actual = ('ok', type(i).__flags__)\nexcept BaseException as error:\n    actual = (type(error).__name__, error.args)",
+      "expected": "('ok', 4482)",
+      "observed": "('AttributeError', (\"type object 'longrange_iterator' has no attribute '__flags__'\",))",
+      "matches": false
+    }
+  ]
+}

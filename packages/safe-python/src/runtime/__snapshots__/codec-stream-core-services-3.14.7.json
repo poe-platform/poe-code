@@ -1,0 +1,18 @@
+{
+  "oracle": "/opt/homebrew/bin/python3.14",
+  "metadata": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0\nmacOS-26.4.1-arm64-arm-64bit-Mach-O\n",
+  "cases": [
+    {
+      "name": "ascii paired and recoded short-read streams",
+      "output": " 0\n'A\\n' 7\n['��', 'Z'] 7\nNone 0\n['A\\n', '��\\n', 'Z\\n'] 7\nNone b''\nwrite 413f\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['efbfbdefbfbd0a', '5a0a'] 7\nNone 410a\nNone\nwrite 413f\nwrite 5a0a\nNone None\nTrue False\nTrue\n"
+    },
+    {
+      "name": "latin-1 paired and recoded short-read streams",
+      "output": " 0\n'A\\n' 7\n['Ã©', 'Z'] 7\nNone 0\n['A\\n', 'Ã©\\n', 'Z\\n'] 7\nNone b''\nwrite 41e9\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['c383c2a90a', '5a0a'] 7\nNone 410a\nNone\nwrite 41e9\nwrite 5a0a\nNone None\nTrue False\nTrue\n"
+    },
+    {
+      "name": "utf-8 paired and recoded short-read streams",
+      "output": " 0\n'A\\n' 7\n['é', 'Z'] 7\nNone 0\n['A\\n', 'é\\n', 'Z\\n'] 7\nNone b''\nwrite 41c3a9\nwrite 5a0a\nNone None\nNone 0\n410a 7\n['c3a90a', '5a0a'] 7\nNone 410a\nNone\nwrite 41c3a9\nwrite 5a0a\nNone None\nTrue False\nTrue\n"
+    }
+  ]
+}

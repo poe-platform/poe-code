@@ -19,7 +19,7 @@ export interface RuntimeTypeFinalizationContext extends Pick<BuiltinInvocationCo
 export function finalizeRuntimeType(type: TypeValue, keywords: DictionaryValue, special: RuntimeSpecialMethodContext, values: RuntimeValues, meter: ExecutionMeter, context: RuntimeTypeFinalizationContext): void {
   meter.checkpoint(1, 128);
   if (type.value.mro.length === 0) throw Error("cannot finalize a type without an initialized MRO");
-  const entries = type.value.namespace.items.snapshot(), setName = values.string("__set_name__");
+  const entries = type.value.namespace.items.snapshot(), setName = values.internString("__set_name__");
   for (const [name, descriptor] of entries) {
     const actual = runtimeActualType(descriptor, special, meter);
     const hook = lookupRuntimeSpecialMethod(descriptor, actual, setName, special, values, meter); meter.checkpoint();
@@ -41,7 +41,7 @@ export function finalizeRuntimeType(type: TypeValue, keywords: DictionaryValue, 
       throw error;
     }
   }
-  const initName = values.string("__init_subclass__");
+  const initName = values.internString("__init_subclass__");
   for (let index = 1; index < type.value.mro.length; index++) {
     meter.checkpoint();
     const found = type.value.mro[index].namespace.items.lookup(initName);

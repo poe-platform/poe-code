@@ -38,3 +38,29 @@ it("charges output storage before decoding Latin-1",()=>{
   const {v,decode}=fixture(),meter=new ExecutionBudget({maxSteps:100000,maxAllocatedBytes:0}),bytes=v.bytes(new Uint8Array([255])).value;
   expect(()=>decode(bytes,"latin-1","strict",meter,undefined)).toThrow(ExecutionLimitError);
 });
+
+it.each(["u8","utf","cp65001","646","cp367","latin","l1","cp819","utf-8-sig","utf-16-le","utf-32-be","utf-7"])("routes registry spelling %s through the supplied decoder",encoding=>{
+  const {meter,v}=fixture(),bytes=v.bytes(new Uint8Array([65])).value;
+  const fallback=vi.fn(()=>v.string("override"));
+  expect(createRuntimeTextDecoder(v,fallback)(bytes,encoding,undefined,meter,undefined)).toEqual(v.string("override"));
+  expect(fallback).toHaveBeenCalledExactlyOnceWith(bytes,encoding,undefined,meter,undefined);
+});
+it.each(["cp819","utf-8-sig"])("propagates registry failure for native spelling %s",encoding=>{
+  const {meter,v}=fixture(),failure=new Error("guest decoder failed");
+  expect(()=>createRuntimeTextDecoder(v,()=>{throw failure;})(v.bytes(new Uint8Array([65])).value,encoding,undefined,meter,undefined)).toThrow(failure);
+});
+it.each(["cp819","utf-8-sig"])("checks cancellation after registry decoding %s",encoding=>{
+  const {v}=fixture(),controller=new AbortController(),meter=new ExecutionBudget({maxSteps:10000,maxAllocatedBytes:100000,signal:controller.signal});
+  const decode=createRuntimeTextDecoder(v,()=>{controller.abort();return v.string("override");});
+  expect(()=>decode(v.bytes(new Uint8Array([65])).value,encoding,undefined,meter,undefined)).toThrow(ExecutionLimitError);
+});
+it.each(["utf-8","ascii","latin-1"])("keeps native shortcut %s when a registry decoder is supplied",encoding=>{
+  const {meter,v}=fixture(),fallback=vi.fn(()=>v.string("override"));
+  expect(createRuntimeTextDecoder(v,fallback)(v.bytes(new Uint8Array([65])).value,encoding,undefined,meter,undefined)).toEqual(v.string("A"));
+  expect(fallback).not.toHaveBeenCalled();
+});
+it("skips the registry for empty alias input",()=>{
+  const {meter,v}=fixture(),fallback=vi.fn(()=>v.string("override"));
+  expect(createRuntimeTextDecoder(v,fallback)(v.bytes(new Uint8Array()).value,"cp819","custom",meter,undefined)).toEqual(v.string(""));
+  expect(fallback).not.toHaveBeenCalled();
+});

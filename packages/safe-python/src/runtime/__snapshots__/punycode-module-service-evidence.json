@@ -1,0 +1,127 @@
+{
+  "oracle": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "unicode": "16.0.0",
+    "byteorder": "little"
+  },
+  "moduleSha256": "1e8d57e06e9b527009c35f2a1486ab56b51540e817f5bd8f239dc71e3fc0b014",
+  "cases": [
+    {
+      "name": "integer decoding preserves guest indexing, input service and failure identity",
+      "source": "\nimport encodings.punycode as p\nseen = []\nfailure = ValueError('index callback')\nclass Digits:\n    def __getitem__(self, index):\n        seen.append(index)\n        assert input() == 'punycode'\n        if index == -1:\n            return 65\n        raise failure\nassert p.decode_generalized_number(Digits(), -1, 72, 'strict') == (0, 0)\nassert seen == [-1]\ntry:\n    p.decode_generalized_number(Digits(), 7, 72, 'strict')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    assert False\nassert seen == [-1, 7]\nprint('verified')\n",
+      "sha256": "636eab9e8badbdf121cdbeb04cdbbf41229e1e7a9ac1fff9bbc861f42f3d593c",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "reads": 2,
+        "writes": 2,
+        "stdout": "verified\n"
+      }
+    },
+    {
+      "name": "module ownership, registry identities and defaults",
+      "source": "\nimport codecs\nimport encodings\nimport encodings.punycode as p\nassert encodings.punycode is p\nassert p.codecs is codecs\nassert p.__package__ == 'encodings'\nassert p.punycode_decode.__module__ == 'encodings.punycode'\nassert p.punycode_decode.__name__ == p.punycode_decode.__qualname__ == 'punycode_decode'\nassert p.Codec.encode.__defaults__ == ('strict',)\nassert p.IncrementalDecoder.decode.__defaults__ == (False,)\ninfo = codecs.lookup('punycode')\nassert type(info) is codecs.CodecInfo and info.name == 'punycode'\nassert info.incrementalencoder is p.IncrementalEncoder\nassert info.incrementaldecoder is p.IncrementalDecoder\nassert info.streamreader is p.StreamReader and info.streamwriter is p.StreamWriter\nassert info.encode.__func__ is p.Codec.encode\nassert info.decode.__func__ is p.Codec.decode\nassert p.getregentry() is not info\n",
+      "sha256": "a901f2053464202f98c4ae706b0898909fb54bbbeeea877bb4e992011bfac4c2",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "reads": 0,
+        "writes": 0,
+        "stdout": ""
+      }
+    },
+    {
+      "name": "integer helpers, insertion ordering and strict failures",
+      "source": "\nimport encodings.punycode as p\nassert p.selective_len('bücher', 128) == 5\nassert p.selective_find('bücher', 'ü', -1, -1) == (1, 1)\nassert p.selective_find('bücher', 'ü', 1, 1) == (-1, -1)\nassert p.insertion_unsort('bücher', ['ü']) == [745]\nassert [p.T(j, 72) for j in range(4)] == [1, 1, 26, 26]\nassert p.adapt(745, True, 6) == 0\nassert p.decode_generalized_number(b'KVA', 0, 72, 'strict') == (3, 745)\nassert p.insertion_sort('bcher', b'KVA', 'strict') == 'bücher'\nassert p.decode_generalized_number(b'Z', 0, 72, 'ignore') == (2, None)\nassert p.decode_generalized_number(b'?', 0, 72, 'replace') == (1, None)\ntry:\n    p.decode_generalized_number(b'?', 0, 72, 'strict')\nexcept UnicodeDecodeError as error:\n    assert error.args == ('punycode', b'?', 0, 1, \"Invalid extended code point '63'\")\nelse:\n    assert False\n",
+      "sha256": "99962e8febcb324dbe16f7dca5da8f6465b22df0b6c7bf299a8cbfb0589afbdf",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "ok",
+        "reads": 0,
+        "writes": 0,
+        "stdout": ""
+      }
+    },
+    {
+      "name": "encoding helpers and public encoders including surrogates",
+      "source": "\nimport codecs\nimport encodings.punycode as p\nassert p.segregate('bücher') == (b'bcher', ['ü'])\nassert p.generate_generalized_integer(745, 72) == b'kva'\nassert p.generate_integers(5, [745]) == b'kva'\nfor text, expected in [('', b''), ('abc', b'abc-'), ('bücher', b'bcher-kva'), ('\\ud800', b'ib9b'), ('例え', b'r8jz45g')]:\n    assert p.punycode_encode(text) == expected\n    assert p.Codec().encode(text, 'unknown') == (expected, len(text))\n    assert codecs.encode(text, 'punycode') == expected\n    assert text.encode('punycode') == expected\n    encoder = p.IncrementalEncoder('unknown')\n    assert encoder.getstate() == 0\n    assert encoder.encode(text, False) == expected\n    assert encoder.encode(text, True) == expected\n    encoder.setstate(123)\n    encoder.reset()\n    assert encoder.getstate() == 0\n",
+      "sha256": "15ae1490c2460b2768286e0aa6f0686821c74932407b1a4179237638f5a63344",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "exception",
+        "error": "('NameError', \"name 'bytearray' is not defined\")",
+        "reads": 0,
+        "writes": 0,
+        "stdout": ""
+      }
+    },
+    {
+      "name": "decoder policies, input variants and stateless incremental splits",
+      "source": "\nimport codecs\nimport encodings.punycode as p\nfor value in (b'bcher-kva', 'bcher-kva', memoryview(b'bcher-kva'), bytearray(b'bcher-kva')):\n    assert p.punycode_decode(value, 'strict') == 'bücher'\n    assert p.Codec().decode(value) == ('bücher', 9)\nassert codecs.decode(b'bcher-kva', 'punycode') == 'bücher'\nfor policy in ('strict', 'replace', 'ignore'):\n    decoder = p.IncrementalDecoder(policy)\n    assert decoder.getstate() == (b'', 0)\n    for final in (False, True):\n        assert decoder.decode(b'abc-', final) == 'abc'\n    decoder.setstate((b'ignored', 123))\n    assert decoder.getstate() == (b'', 0)\n    decoder.reset()\nfor policy in ('ignore', 'replace'):\n    assert p.Codec().decode(b'abc-z', policy) == ('abc', 5)\nfor source in (b'', b'abc-', b'z'):\n    try:\n        p.IncrementalDecoder('surrogatepass').decode(source)\n    except UnicodeError as error:\n        assert error.args == ('Unsupported error handling: surrogatepass',)\n    else:\n        assert False\n# Each call is an independent Punycode unit; no partial input is buffered.\ndecoder = p.IncrementalDecoder()\nassert decoder.decode(b'abc-', False) == 'abc'\ntry:\n    decoder.decode(b'z', False)\nexcept UnicodeDecodeError as error:\n    assert error.args == ('punycode', b'z', 1, 2, 'incomplete punycode string')\nelse:\n    assert False\nassert decoder.getstate() == (b'', 0)\n",
+      "sha256": "3d1f55c5b3c9c83e287bf475602b692cdf8be9d9204d6ca88d34f66974c59db4",
+      "oracle": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "exception",
+        "error": "('NameError', \"name 'memoryview' is not defined\")",
+        "reads": 0,
+        "writes": 0,
+        "stdout": ""
+      }
+    },
+    {
+      "name": "stream adapters preserve serviced calls and guest failures",
+      "source": "\nimport codecs\nfailure = ValueError('stream service')\nclass Stream:\n    def read(self, size=-1):\n        assert input() == 'punycode'\n        return b'bcher-kva'\nreader = codecs.getreader('punycode')(Stream())\nassert reader.read(9, 6) == 'bücher'\nclass Sink:\n    def write(self, data):\n        assert data == b'bcher-kva'\n        raise failure\ntry:\n    codecs.getwriter('punycode')(Sink()).write('bücher')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    assert False\nprint('verified')\n",
+      "sha256": "89e16907275e6605be37ea11d8b46b645de5fe51546f3e3700edeaf75819aa61",
+      "oracle": {
+        "status": 0,
+        "stdout": "verified\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "exception",
+        "error": "('NameError', \"name 'memoryview' is not defined\")",
+        "reads": 1,
+        "writes": 0,
+        "stdout": ""
+      }
+    }
+  ],
+  "cancellation": {
+    "source": "import encodings.punycode as p\nclass Digits:\n    def __getitem__(self, index):\n        input()\n        print('continued')\n        return 65\ntry:\n    p.decode_generalized_number(Digits(), 0, 72, 'strict')\nexcept BaseException:\n    print('recovered')\n",
+    "sha256": "bbb74ebf38b751e0de00fa03cf794147b6da0f1dfc266153709c5b6a083d431c",
+    "result": {
+      "status": "terminated",
+      "reason": "cancelled",
+      "message": "execution cancelled"
+    },
+    "subsequent": {
+      "status": "terminated",
+      "reason": "cancelled",
+      "message": "execution cancelled"
+    },
+    "reads": 1,
+    "writes": 0,
+    "stdout": ""
+  }
+}

@@ -96,7 +96,7 @@ export class FileSystemAccess {
 
   async readText(path: string, options: Utf8FileReadOptions = {}): Promise<CodePointString> {
     this.#checkpoint();
-    const decoder = new Utf8TextDecoder(options.newline ?? null, options.errors);
+    const decoder = new Utf8TextDecoder(options.newline ?? null, options.errors, this.#meter);
     const bytes = await this.readFile(path);
     this.#checkpoint();
     const result = decoder.decode(bytes, true, this.#meter);

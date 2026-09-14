@@ -7,7 +7,7 @@ import { RuntimeValues, type RuntimeValue } from "./runtime-values.js";
 
 function fixture() {
   const meter = new ExecutionBudget({ maxSteps: 10000, maxAllocatedBytes: 100000 }), v = new RuntimeValues(meter);
-  const keywords = v.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>({ hash: () => 1n, equal: (a, b) => a === b }, meter));
+  const keywords = v.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>({ hash: () => 1n, equal: (a, b) => a === b || (a.kind === "str" && b.kind === "str" && a.value.compare(b.value, meter) === 0) }, meter));
   const empty = v.dictionary(new OrderedKeyMap<RuntimeValue, RuntimeValue>({ hash: () => 1n, equal: (a, b) => a === b }, meter));
   const context: MapBuiltinContext = {
     call(fn, args) {

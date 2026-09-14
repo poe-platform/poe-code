@@ -35,17 +35,17 @@ describe("range hashing", () => {
     expect(rangeHash(createRange(0n, end), v, context, meter)).toBe(constantHash(v.tuple([v.integer(end), v.integer(0n), v.integer(1n)]), context, meter));
     expect(meter.usage.steps).toBeLessThan(100);
   });
-  it("uses runtime None identity only for the canonical missing fields", () => {
+  it("matches CPython's fixed hashes without identity callbacks for missing fields", () => {
     const { meter, values: v, context } = fixture(), seen: unknown[] = [];
     const ctx = { ...context, identity: (value: unknown) => { seen.push(value); return 17n; } };
-    rangeHash(createRange(0n, 0n), v, ctx, meter);
-    rangeHash(createRange(1n, 2n), v, ctx, meter);
-    rangeHash(createRange(0n, 3n), v, ctx, meter);
-    expect(seen).toEqual([v.none, v.none, v.none]);
+    expect(rangeHash(createRange(0n, 0n), v, ctx, meter)).toBe(2676694398852732306n);
+    expect(rangeHash(createRange(1n, 2n), v, ctx, meter)).toBe(-1269592299258668772n);
+    expect(rangeHash(createRange(0n, 3n), v, ctx, meter)).toBe(-8338477496398685190n);
+    expect(seen).toEqual([]);
   });
-  it("propagates identity hash failures", () => {
+  it("does not require an identity service to hash ranges", () => {
     const { meter, values: v, context } = fixture(), failure = new Error("identity failed");
-    expect(() => rangeHash(createRange(0n, 0n), v, { ...context, identity: () => { throw failure; } }, meter)).toThrow(failure);
+    expect(rangeHash(createRange(0n, 0n), v, { ...context, identity: () => { throw failure; } }, meter)).toBe(2676694398852732306n);
   });
   it("checks entry limits before constructing the hash key", () => {
     const { values: v, context } = fixture();

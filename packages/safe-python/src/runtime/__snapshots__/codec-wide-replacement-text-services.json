@@ -1,0 +1,1017 @@
+{
+  "adapter": "Node readSync(0)/writeSync(1) over real subprocess pipes; fresh PythonSession per source",
+  "successful": 60,
+  "cancelled": 24,
+  "stdoutBytes": 972,
+  "stdoutSha256": "abf25a016d48551f97133f228e38209f7478c52a5c810ef44394bc64f9671a93",
+  "records": [
+    {
+      "name": "utf_16_encode via native",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 12
+    },
+    {
+      "name": "utf_16_encode via str",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 12
+    },
+    {
+      "name": "utf_16_encode via bytes",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 12
+    },
+    {
+      "name": "utf_16_le_encode via native",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 15
+    },
+    {
+      "name": "utf_16_le_encode via str",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 15
+    },
+    {
+      "name": "utf_16_le_encode via bytes",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 15
+    },
+    {
+      "name": "utf_16_be_encode via native",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 15
+    },
+    {
+      "name": "utf_16_be_encode via str",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 15
+    },
+    {
+      "name": "utf_16_be_encode via bytes",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 15
+    },
+    {
+      "name": "utf_32_encode via native",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 12
+    },
+    {
+      "name": "utf_32_encode via str",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 12
+    },
+    {
+      "name": "utf_32_encode via bytes",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 12
+    },
+    {
+      "name": "utf_32_le_encode via native",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 15
+    },
+    {
+      "name": "utf_32_le_encode via str",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 15
+    },
+    {
+      "name": "utf_32_le_encode via bytes",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 15
+    },
+    {
+      "name": "utf_32_be_encode via native",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 15
+    },
+    {
+      "name": "utf_32_be_encode via str",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 15
+    },
+    {
+      "name": "utf_32_be_encode via bytes",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 15
+    },
+    {
+      "name": "utf_16: position returns",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 2,
+      "bytes": 18
+    },
+    {
+      "name": "utf_16: position raises",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 2,
+      "bytes": 17
+    },
+    {
+      "name": "utf_16_le: position returns",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 2,
+      "bytes": 21
+    },
+    {
+      "name": "utf_16_le: position raises",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 2,
+      "bytes": 20
+    },
+    {
+      "name": "utf_16_be: position returns",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 2,
+      "bytes": 21
+    },
+    {
+      "name": "utf_16_be: position raises",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 2,
+      "bytes": 20
+    },
+    {
+      "name": "utf_32: position returns",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 2,
+      "bytes": 18
+    },
+    {
+      "name": "utf_32: position raises",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 2,
+      "bytes": 17
+    },
+    {
+      "name": "utf_32_le: position returns",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 2,
+      "bytes": 21
+    },
+    {
+      "name": "utf_32_le: position raises",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 2,
+      "bytes": 20
+    },
+    {
+      "name": "utf_32_be: position returns",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 2,
+      "bytes": 21
+    },
+    {
+      "name": "utf_32_be: position raises",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 2,
+      "bytes": 20
+    },
+    {
+      "name": "utf_16: position returns",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "bytes": 0
+    },
+    {
+      "name": "utf_16: position raises",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "bytes": 0
+    },
+    {
+      "name": "utf_16_le: position returns",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "bytes": 0
+    },
+    {
+      "name": "utf_16_le: position raises",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "bytes": 0
+    },
+    {
+      "name": "utf_16_be: position returns",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "bytes": 0
+    },
+    {
+      "name": "utf_16_be: position raises",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "bytes": 0
+    },
+    {
+      "name": "utf_32: position returns",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "bytes": 0
+    },
+    {
+      "name": "utf_32: position raises",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "bytes": 0
+    },
+    {
+      "name": "utf_32_le: position returns",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "bytes": 0
+    },
+    {
+      "name": "utf_32_le: position raises",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "bytes": 0
+    },
+    {
+      "name": "utf_32_be: position returns",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "bytes": 0
+    },
+    {
+      "name": "utf_32_be: position raises",
+      "seed": [
+        "1",
+        "2"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "bytes": 0
+    },
+    {
+      "name": "utf_16_encode via native",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 12
+    },
+    {
+      "name": "utf_16_encode via str",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 12
+    },
+    {
+      "name": "utf_16_encode via bytes",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 12
+    },
+    {
+      "name": "utf_16_le_encode via native",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 15
+    },
+    {
+      "name": "utf_16_le_encode via str",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 15
+    },
+    {
+      "name": "utf_16_le_encode via bytes",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 15
+    },
+    {
+      "name": "utf_16_be_encode via native",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 15
+    },
+    {
+      "name": "utf_16_be_encode via str",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 15
+    },
+    {
+      "name": "utf_16_be_encode via bytes",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 15
+    },
+    {
+      "name": "utf_32_encode via native",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 12
+    },
+    {
+      "name": "utf_32_encode via str",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 12
+    },
+    {
+      "name": "utf_32_encode via bytes",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 12
+    },
+    {
+      "name": "utf_32_le_encode via native",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 15
+    },
+    {
+      "name": "utf_32_le_encode via str",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 15
+    },
+    {
+      "name": "utf_32_le_encode via bytes",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 15
+    },
+    {
+      "name": "utf_32_be_encode via native",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 15
+    },
+    {
+      "name": "utf_32_be_encode via str",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 15
+    },
+    {
+      "name": "utf_32_be_encode via bytes",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 0,
+      "writes": 2,
+      "bytes": 15
+    },
+    {
+      "name": "utf_16: position returns",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 2,
+      "bytes": 18
+    },
+    {
+      "name": "utf_16: position raises",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 2,
+      "bytes": 17
+    },
+    {
+      "name": "utf_16_le: position returns",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 2,
+      "bytes": 21
+    },
+    {
+      "name": "utf_16_le: position raises",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 2,
+      "bytes": 20
+    },
+    {
+      "name": "utf_16_be: position returns",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 2,
+      "bytes": 21
+    },
+    {
+      "name": "utf_16_be: position raises",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 2,
+      "bytes": 20
+    },
+    {
+      "name": "utf_32: position returns",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 2,
+      "bytes": 18
+    },
+    {
+      "name": "utf_32: position raises",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 2,
+      "bytes": 17
+    },
+    {
+      "name": "utf_32_le: position returns",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 2,
+      "bytes": 21
+    },
+    {
+      "name": "utf_32_le: position raises",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 2,
+      "bytes": 20
+    },
+    {
+      "name": "utf_32_be: position returns",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 2,
+      "bytes": 21
+    },
+    {
+      "name": "utf_32_be: position raises",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": false,
+      "status": "ok",
+      "reads": 1,
+      "writes": 2,
+      "bytes": 20
+    },
+    {
+      "name": "utf_16: position returns",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "bytes": 0
+    },
+    {
+      "name": "utf_16: position raises",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "bytes": 0
+    },
+    {
+      "name": "utf_16_le: position returns",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "bytes": 0
+    },
+    {
+      "name": "utf_16_le: position raises",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "bytes": 0
+    },
+    {
+      "name": "utf_16_be: position returns",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "bytes": 0
+    },
+    {
+      "name": "utf_16_be: position raises",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "bytes": 0
+    },
+    {
+      "name": "utf_32: position returns",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "bytes": 0
+    },
+    {
+      "name": "utf_32: position raises",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "bytes": 0
+    },
+    {
+      "name": "utf_32_le: position returns",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "bytes": 0
+    },
+    {
+      "name": "utf_32_le: position raises",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "bytes": 0
+    },
+    {
+      "name": "utf_32_be: position returns",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "bytes": 0
+    },
+    {
+      "name": "utf_32_be: position raises",
+      "seed": [
+        "17",
+        "23"
+      ],
+      "cancel": true,
+      "status": "terminated",
+      "reads": 1,
+      "writes": 0,
+      "bytes": 0
+    }
+  ]
+}

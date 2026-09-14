@@ -1,4 +1,4 @@
-import type { CallArgument, Expression, Parameter, SourceSpan } from "./ast.js";
+import type { CallArgument, Expression, Parameter, SourceSpan, TypeParameter } from "./ast.js";
 import type { Pattern } from "./pattern-ast.js";
 
 export type DeclaredName = SourceSpan & { readonly name: string; readonly spelling: string };
@@ -10,9 +10,9 @@ export type MatchCase = SourceSpan & { readonly pattern: Pattern; readonly guard
 
 export type Statement = SourceSpan & (
   | { readonly kind: "match"; readonly subject: Expression; readonly cases: readonly MatchCase[] }
-  | { readonly kind: "type-alias"; readonly name: DeclaredName }
-  | { readonly kind: "class"; readonly name: DeclaredName; readonly arguments: readonly CallArgument[]; readonly decorators: readonly Expression[]; readonly body: readonly Statement[] }
-  | { readonly kind: "function"; readonly name: DeclaredName; readonly async: boolean; readonly parameters: readonly Parameter[]; readonly decorators: readonly Expression[]; readonly body: readonly Statement[] }
+  | { readonly kind: "type-alias"; readonly name: DeclaredName; readonly value: Expression; readonly typeParameters?: readonly TypeParameter[] }
+  | { readonly kind: "class"; readonly name: DeclaredName; readonly typeParameters?: readonly TypeParameter[]; readonly arguments: readonly CallArgument[]; readonly decorators: readonly Expression[]; readonly body: readonly Statement[] }
+  | { readonly kind: "function"; readonly name: DeclaredName; readonly typeParameters?: readonly TypeParameter[]; readonly returns?: Expression; readonly async: boolean; readonly parameters: readonly Parameter[]; readonly decorators: readonly Expression[]; readonly body: readonly Statement[] }
   | { readonly kind: "with"; readonly async: boolean; readonly items: readonly WithItem[]; readonly body: readonly Statement[] }
   | { readonly kind: "try"; readonly group: boolean; readonly body: readonly Statement[]; readonly handlers: readonly ExceptionHandler[]; readonly otherwise: readonly Statement[]; readonly finalizer: readonly Statement[] }
   | { readonly kind: "for"; readonly async: boolean; readonly target: Expression; readonly iterable: Expression; readonly body: readonly Statement[]; readonly otherwise: readonly Statement[] }
@@ -29,8 +29,8 @@ export type Statement = SourceSpan & (
   | { readonly kind: "expression-statement"; readonly expression: Expression }
   | { readonly kind: "assignment"; readonly targets: readonly Expression[]; readonly value: Expression }
   | { readonly kind: "augmented-assignment"; readonly target: Expression; readonly operator: string; readonly value: Expression }
-  // Annotation expressions are parsed but deliberately absent from executable trees.
-  | { readonly kind: "annotated-assignment"; readonly target: Expression; readonly simple: boolean; readonly value: Expression | null }
+  // Retained separately from the value evaluated by ordinary assignment.
+  | { readonly kind: "annotated-assignment"; readonly annotation: Expression; readonly target: Expression; readonly simple: boolean; readonly value: Expression | null }
 );
 
 export type Module = SourceSpan & { readonly kind: "module"; readonly body: readonly Statement[] };

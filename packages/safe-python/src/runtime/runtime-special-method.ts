@@ -1,6 +1,8 @@
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { RuntimeDescriptorContext } from "./runtime-descriptor.js";
+import { resolveRuntimeClassAttribute } from "./runtime-descriptor.js";
 import { resolveRuntimeTypeAttribute } from "./runtime-type-layout.js";
+import { getRuntimeMethodDescriptor } from "./runtime-method-descriptor.js";
 import type { RuntimeValue, RuntimeValues, TypeValue } from "./runtime-values.js";
 
 export interface RuntimeSpecialMethodContext extends RuntimeDescriptorContext {
@@ -30,9 +32,16 @@ export function lookupRuntimeSpecialMethod(
   descriptors: RuntimeDescriptorContext, values: RuntimeValues, meter: ExecutionMeter
 ): RuntimeValue | undefined {
   meter.checkpoint();
-  const found = resolveRuntimeTypeAttribute(type.value, name, descriptors, values, meter);
-  if (found === undefined) return undefined;
-  const attribute = found.attribute;
+  const slot = type.value.nativeSlots.methods.get(name);
+  if (slot?.kind === "absent") return undefined;
+  // Native wrapper slots have an intrinsic descriptor. Bind directly instead
+  // of allocating a class-attribute record and a one-use descriptor closure.
+  if (slot?.kind === "native" && slot.value.kind === "wrapper_descriptor") {
+    return getRuntimeMethodDescriptor(slot.value, receiver, type, values, meter, descriptors.typeOf?.bind(descriptors));
+  }
+  const attribute = slot?.kind === "native" ? resolveRuntimeClassAttribute(slot.value, descriptors, values, meter)
+    : resolveRuntimeTypeAttribute(type.value, name, descriptors, values, meter)?.attribute;
+  if (attribute === undefined) return undefined;
   if (attribute.slots?.get === undefined) return attribute.value;
   const bound = attribute.slots.get(receiver, type);
   meter.checkpoint();

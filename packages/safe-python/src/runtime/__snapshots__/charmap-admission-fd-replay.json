@@ -1,0 +1,230 @@
+{
+  "target": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "cases": [
+    {
+      "operation": "encode",
+      "answer": "resume",
+      "mode": "normal",
+      "source": "import codecs\nfailure = ValueError('mapping service')\nevents = []\nclass Mapping:\n    def __getitem__(self, point):\n        events.append(point)\n        if point == 90 or point == 63:\n            return point\n        return None\nclass Position:\n    def __index__(self):\n        answer = input()\n        if answer == 'failure':\n            raise failure\n        assert answer == 'resume'\n        return -1\ndef recover(error):\n    print(error.encoding, error.start, error.end, error.reason)\n    return ('?', Position())\ncodecs.register_error('charmap_service', recover)\ntry:\n    result = codecs.charmap_encode('\\ud800Z', 'charmap_service', Mapping())\nexcept ValueError as error:\n    assert error is failure\n    print('failure retained', error.args)\nelse:\n    print(result)\nprint(events)\n",
+      "oracle": {
+        "stdout": "charmap 0 1 character maps to <undefined>\n(b'?Z', 2)\n[55296, 90, 63, 90]\n",
+        "stderr": "",
+        "status": 0
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "charmap 0 1 character maps to <undefined>\n(b'?Z', 2)\n[55296, 90, 63, 90]\n",
+      "reads": 1,
+      "writes": 12
+    },
+    {
+      "operation": "encode",
+      "answer": "resume",
+      "mode": "cancel-return",
+      "source": "import codecs\nfailure = ValueError('mapping service')\nevents = []\nclass Mapping:\n    def __getitem__(self, point):\n        events.append(point)\n        if point == 90 or point == 63:\n            return point\n        return None\nclass Position:\n    def __index__(self):\n        answer = input()\n        if answer == 'failure':\n            raise failure\n        assert answer == 'resume'\n        return -1\ndef recover(error):\n    print(error.encoding, error.start, error.end, error.reason)\n    return ('?', Position())\ncodecs.register_error('charmap_service', recover)\ntry:\n    result = codecs.charmap_encode('\\ud800Z', 'charmap_service', Mapping())\nexcept ValueError as error:\n    assert error is failure\n    print('failure retained', error.args)\nelse:\n    print(result)\nprint(events)\n",
+      "oracle": {
+        "stdout": "charmap 0 1 character maps to <undefined>\n(b'?Z', 2)\n[55296, 90, 63, 90]\n",
+        "stderr": "",
+        "status": 0
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "charmap 0 1 character maps to <undefined>\n",
+      "reads": 1,
+      "writes": 8
+    },
+    {
+      "operation": "encode",
+      "answer": "resume",
+      "mode": "cancel-throw",
+      "source": "import codecs\nfailure = ValueError('mapping service')\nevents = []\nclass Mapping:\n    def __getitem__(self, point):\n        events.append(point)\n        if point == 90 or point == 63:\n            return point\n        return None\nclass Position:\n    def __index__(self):\n        answer = input()\n        if answer == 'failure':\n            raise failure\n        assert answer == 'resume'\n        return -1\ndef recover(error):\n    print(error.encoding, error.start, error.end, error.reason)\n    return ('?', Position())\ncodecs.register_error('charmap_service', recover)\ntry:\n    result = codecs.charmap_encode('\\ud800Z', 'charmap_service', Mapping())\nexcept ValueError as error:\n    assert error is failure\n    print('failure retained', error.args)\nelse:\n    print(result)\nprint(events)\n",
+      "oracle": {
+        "stdout": "charmap 0 1 character maps to <undefined>\n(b'?Z', 2)\n[55296, 90, 63, 90]\n",
+        "stderr": "",
+        "status": 0
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "charmap 0 1 character maps to <undefined>\n",
+      "reads": 1,
+      "writes": 8
+    },
+    {
+      "operation": "encode",
+      "answer": "failure",
+      "mode": "normal",
+      "source": "import codecs\nfailure = ValueError('mapping service')\nevents = []\nclass Mapping:\n    def __getitem__(self, point):\n        events.append(point)\n        if point == 90 or point == 63:\n            return point\n        return None\nclass Position:\n    def __index__(self):\n        answer = input()\n        if answer == 'failure':\n            raise failure\n        assert answer == 'resume'\n        return -1\ndef recover(error):\n    print(error.encoding, error.start, error.end, error.reason)\n    return ('?', Position())\ncodecs.register_error('charmap_service', recover)\ntry:\n    result = codecs.charmap_encode('\\ud800Z', 'charmap_service', Mapping())\nexcept ValueError as error:\n    assert error is failure\n    print('failure retained', error.args)\nelse:\n    print(result)\nprint(events)\n",
+      "oracle": {
+        "stdout": "charmap 0 1 character maps to <undefined>\nfailure retained ('mapping service',)\n[55296, 90]\n",
+        "stderr": "",
+        "status": 0
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "charmap 0 1 character maps to <undefined>\nfailure retained ('mapping service',)\n[55296, 90]\n",
+      "reads": 1,
+      "writes": 14
+    },
+    {
+      "operation": "encode",
+      "answer": "failure",
+      "mode": "cancel-return",
+      "source": "import codecs\nfailure = ValueError('mapping service')\nevents = []\nclass Mapping:\n    def __getitem__(self, point):\n        events.append(point)\n        if point == 90 or point == 63:\n            return point\n        return None\nclass Position:\n    def __index__(self):\n        answer = input()\n        if answer == 'failure':\n            raise failure\n        assert answer == 'resume'\n        return -1\ndef recover(error):\n    print(error.encoding, error.start, error.end, error.reason)\n    return ('?', Position())\ncodecs.register_error('charmap_service', recover)\ntry:\n    result = codecs.charmap_encode('\\ud800Z', 'charmap_service', Mapping())\nexcept ValueError as error:\n    assert error is failure\n    print('failure retained', error.args)\nelse:\n    print(result)\nprint(events)\n",
+      "oracle": {
+        "stdout": "charmap 0 1 character maps to <undefined>\nfailure retained ('mapping service',)\n[55296, 90]\n",
+        "stderr": "",
+        "status": 0
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "charmap 0 1 character maps to <undefined>\n",
+      "reads": 1,
+      "writes": 8
+    },
+    {
+      "operation": "encode",
+      "answer": "failure",
+      "mode": "cancel-throw",
+      "source": "import codecs\nfailure = ValueError('mapping service')\nevents = []\nclass Mapping:\n    def __getitem__(self, point):\n        events.append(point)\n        if point == 90 or point == 63:\n            return point\n        return None\nclass Position:\n    def __index__(self):\n        answer = input()\n        if answer == 'failure':\n            raise failure\n        assert answer == 'resume'\n        return -1\ndef recover(error):\n    print(error.encoding, error.start, error.end, error.reason)\n    return ('?', Position())\ncodecs.register_error('charmap_service', recover)\ntry:\n    result = codecs.charmap_encode('\\ud800Z', 'charmap_service', Mapping())\nexcept ValueError as error:\n    assert error is failure\n    print('failure retained', error.args)\nelse:\n    print(result)\nprint(events)\n",
+      "oracle": {
+        "stdout": "charmap 0 1 character maps to <undefined>\nfailure retained ('mapping service',)\n[55296, 90]\n",
+        "stderr": "",
+        "status": 0
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "charmap 0 1 character maps to <undefined>\n",
+      "reads": 1,
+      "writes": 8
+    },
+    {
+      "operation": "decode",
+      "answer": "resume",
+      "mode": "normal",
+      "source": "import codecs\nfailure = ValueError('mapping service')\nevents = []\nclass Mapping:\n    def __getitem__(self, point):\n        events.append(point)\n        if point == 90 or point == 63:\n            return chr(point)\n        return None\nclass Position:\n    def __index__(self):\n        answer = input()\n        if answer == 'failure':\n            raise failure\n        assert answer == 'resume'\n        return -1\ndef recover(error):\n    print(error.encoding, error.start, error.end, error.reason)\n    return ('?', Position())\ncodecs.register_error('charmap_service', recover)\ntry:\n    result = codecs.charmap_decode(b'\\xffZ', 'charmap_service', Mapping())\nexcept ValueError as error:\n    assert error is failure\n    print('failure retained', error.args)\nelse:\n    print(result)\nprint(events)\n",
+      "oracle": {
+        "stdout": "charmap 0 1 character maps to <undefined>\n('?Z', 2)\n[255, 90]\n",
+        "stderr": "",
+        "status": 0
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "charmap 0 1 character maps to <undefined>\n('?Z', 2)\n[255, 90]\n",
+      "reads": 1,
+      "writes": 12
+    },
+    {
+      "operation": "decode",
+      "answer": "resume",
+      "mode": "cancel-return",
+      "source": "import codecs\nfailure = ValueError('mapping service')\nevents = []\nclass Mapping:\n    def __getitem__(self, point):\n        events.append(point)\n        if point == 90 or point == 63:\n            return chr(point)\n        return None\nclass Position:\n    def __index__(self):\n        answer = input()\n        if answer == 'failure':\n            raise failure\n        assert answer == 'resume'\n        return -1\ndef recover(error):\n    print(error.encoding, error.start, error.end, error.reason)\n    return ('?', Position())\ncodecs.register_error('charmap_service', recover)\ntry:\n    result = codecs.charmap_decode(b'\\xffZ', 'charmap_service', Mapping())\nexcept ValueError as error:\n    assert error is failure\n    print('failure retained', error.args)\nelse:\n    print(result)\nprint(events)\n",
+      "oracle": {
+        "stdout": "charmap 0 1 character maps to <undefined>\n('?Z', 2)\n[255, 90]\n",
+        "stderr": "",
+        "status": 0
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "charmap 0 1 character maps to <undefined>\n",
+      "reads": 1,
+      "writes": 8
+    },
+    {
+      "operation": "decode",
+      "answer": "resume",
+      "mode": "cancel-throw",
+      "source": "import codecs\nfailure = ValueError('mapping service')\nevents = []\nclass Mapping:\n    def __getitem__(self, point):\n        events.append(point)\n        if point == 90 or point == 63:\n            return chr(point)\n        return None\nclass Position:\n    def __index__(self):\n        answer = input()\n        if answer == 'failure':\n            raise failure\n        assert answer == 'resume'\n        return -1\ndef recover(error):\n    print(error.encoding, error.start, error.end, error.reason)\n    return ('?', Position())\ncodecs.register_error('charmap_service', recover)\ntry:\n    result = codecs.charmap_decode(b'\\xffZ', 'charmap_service', Mapping())\nexcept ValueError as error:\n    assert error is failure\n    print('failure retained', error.args)\nelse:\n    print(result)\nprint(events)\n",
+      "oracle": {
+        "stdout": "charmap 0 1 character maps to <undefined>\n('?Z', 2)\n[255, 90]\n",
+        "stderr": "",
+        "status": 0
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "charmap 0 1 character maps to <undefined>\n",
+      "reads": 1,
+      "writes": 8
+    },
+    {
+      "operation": "decode",
+      "answer": "failure",
+      "mode": "normal",
+      "source": "import codecs\nfailure = ValueError('mapping service')\nevents = []\nclass Mapping:\n    def __getitem__(self, point):\n        events.append(point)\n        if point == 90 or point == 63:\n            return chr(point)\n        return None\nclass Position:\n    def __index__(self):\n        answer = input()\n        if answer == 'failure':\n            raise failure\n        assert answer == 'resume'\n        return -1\ndef recover(error):\n    print(error.encoding, error.start, error.end, error.reason)\n    return ('?', Position())\ncodecs.register_error('charmap_service', recover)\ntry:\n    result = codecs.charmap_decode(b'\\xffZ', 'charmap_service', Mapping())\nexcept ValueError as error:\n    assert error is failure\n    print('failure retained', error.args)\nelse:\n    print(result)\nprint(events)\n",
+      "oracle": {
+        "stdout": "charmap 0 1 character maps to <undefined>\nfailure retained ('mapping service',)\n[255]\n",
+        "stderr": "",
+        "status": 0
+      },
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "charmap 0 1 character maps to <undefined>\nfailure retained ('mapping service',)\n[255]\n",
+      "reads": 1,
+      "writes": 14
+    },
+    {
+      "operation": "decode",
+      "answer": "failure",
+      "mode": "cancel-return",
+      "source": "import codecs\nfailure = ValueError('mapping service')\nevents = []\nclass Mapping:\n    def __getitem__(self, point):\n        events.append(point)\n        if point == 90 or point == 63:\n            return chr(point)\n        return None\nclass Position:\n    def __index__(self):\n        answer = input()\n        if answer == 'failure':\n            raise failure\n        assert answer == 'resume'\n        return -1\ndef recover(error):\n    print(error.encoding, error.start, error.end, error.reason)\n    return ('?', Position())\ncodecs.register_error('charmap_service', recover)\ntry:\n    result = codecs.charmap_decode(b'\\xffZ', 'charmap_service', Mapping())\nexcept ValueError as error:\n    assert error is failure\n    print('failure retained', error.args)\nelse:\n    print(result)\nprint(events)\n",
+      "oracle": {
+        "stdout": "charmap 0 1 character maps to <undefined>\nfailure retained ('mapping service',)\n[255]\n",
+        "stderr": "",
+        "status": 0
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "charmap 0 1 character maps to <undefined>\n",
+      "reads": 1,
+      "writes": 8
+    },
+    {
+      "operation": "decode",
+      "answer": "failure",
+      "mode": "cancel-throw",
+      "source": "import codecs\nfailure = ValueError('mapping service')\nevents = []\nclass Mapping:\n    def __getitem__(self, point):\n        events.append(point)\n        if point == 90 or point == 63:\n            return chr(point)\n        return None\nclass Position:\n    def __index__(self):\n        answer = input()\n        if answer == 'failure':\n            raise failure\n        assert answer == 'resume'\n        return -1\ndef recover(error):\n    print(error.encoding, error.start, error.end, error.reason)\n    return ('?', Position())\ncodecs.register_error('charmap_service', recover)\ntry:\n    result = codecs.charmap_decode(b'\\xffZ', 'charmap_service', Mapping())\nexcept ValueError as error:\n    assert error is failure\n    print('failure retained', error.args)\nelse:\n    print(result)\nprint(events)\n",
+      "oracle": {
+        "stdout": "charmap 0 1 character maps to <undefined>\nfailure retained ('mapping service',)\n[255]\n",
+        "stderr": "",
+        "status": 0
+      },
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "charmap 0 1 character maps to <undefined>\n",
+      "reads": 1,
+      "writes": 8
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "target": "CPython 3.14.7 / Unicode 16.0.0",
+  "source": "import codecs\ndef nested(error):\n    return (input(), -1)\ndef outer(error):\n    return (('\\ud800' + 'Z').encode('ascii', 'nested_service'), -1)\ncodecs.register_error('nested_service', nested)\ncodecs.register_error('outer_service', outer)\nprint(('\\udfff' + 'A').encode('ascii', 'outer_service'))\n",
+  "stdin": "?\n",
+  "service": "Real Node fs.readSync stdin and fs.writeSync stdout in fresh public PythonSession processes. Cancellation driver asserts one read, zero writes, and terminated/cancelled on initial and subsequent evaluation.",
+  "results": [
+    {
+      "mode": "native",
+      "exit": 0,
+      "stdout": "b'?ZA'\n",
+      "stderr": ""
+    },
+    {
+      "mode": "normal",
+      "exit": 0,
+      "stdout": "b'?ZA'\n",
+      "stderr": ""
+    },
+    {
+      "mode": "return",
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "mode": "throw",
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "scope": "Public ASCII nested registry recovery regression; not multibyte module publication.",
+  "publicationBlocker": {
+    "source": "import codecs\nfor name in ('gb2312', 'gbk', 'big5', 'cp950'):\n    try:\n        print(codecs.lookup(name).name)\n    except LookupError as error:\n        print(type(error).__name__, str(error))\n",
+    "native": {
+      "exit": 0,
+      "stdout": "gb2312\ngbk\nbig5\ncp950\n",
+      "stderr": ""
+    },
+    "session": {
+      "exit": 0,
+      "stdout": "LookupError unknown encoding: gb2312\nLookupError unknown encoding: gbk\nLookupError unknown encoding: big5\nLookupError unknown encoding: cp950\n",
+      "stderr": ""
+    }
+  }
+}

@@ -1,0 +1,70 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "decode": {
+    "strict": {
+      "records": 32768,
+      "sha256": "ef776b82fd43bf2ea64744fe2aefdde714fcf250b048e49e9c568f1299f169f0"
+    },
+    "ignore": {
+      "records": 32768,
+      "sha256": "241122631615a343254b28da132af7c875a0fb25af0cad2d0211acefc00c02e9"
+    },
+    "replace": {
+      "records": 32768,
+      "sha256": "4ffddcc44c0ecd8f87ef510d9a2bcb1031b1333fdc09ae249231f72b05995994"
+    }
+  },
+  "incremental": {
+    "strict": {
+      "records": 131072,
+      "sha256": "6376f1f80ec13f07032353266d418072e0210c1f8ef02a162864d407cc4ceb87"
+    },
+    "ignore": {
+      "records": 131072,
+      "sha256": "ffb00fd00b55dc4c7eb21c5b61d7737c7c4f5299bae399bf9381df6836eac01d"
+    },
+    "replace": {
+      "records": 131072,
+      "sha256": "91b811e35d1938f99b39196ae39af12c45e943c99bdb4371363a9f014126975b"
+    }
+  },
+  "encode": {
+    "ignore": {
+      "length": 22587,
+      "sha256": "2c152a6ed34099c9c5934001feafc98c9e46fb5dc8480e147a57fccca3404064"
+    },
+    "replace": {
+      "length": 1125310,
+      "sha256": "1a627950f21a2c3ee357ef318a2c7db6fb5aafd40dae29bc20a77fdc6fd8af4f"
+    }
+  },
+  "strictEncode": {
+    "records": 1114112,
+    "sha256": "f5742a98326723776b220ef1a323bdfb9f18e1597e437f1eab82c9bed6955bf6",
+    "planes": [
+      "4aaa4d902129850f5077201fb00777c651450855582d85d8edf4037d5b571ece",
+      "384d0e6d390a55a970d0fd779aced5d578f1cf9f2a4f3602b0f4a113ec1594d5",
+      "cc448c2bbaec3541423e52f2c61215773004e54bee06ac954f80f1b42fabbdad",
+      "a9a3015432cd37405afc9a764835fe6ca5846bcada3999b2603f1cf5265b1b4f",
+      "51e84964437cbae7e506261fc16dc86b8136f60d3cc073f71c39ff5232036c97",
+      "ba2634b1ee0a6dcf8b65e23c151b630306b17794fe4a19ce0cb2eb31c9af2117",
+      "5146ab89ea24bf228738dc54de756b22c8867faad4eb5edde1e0cc6b4fceb21f",
+      "57e543a5fccd8e5f2b98d233b526d9cbcb7a75a7592b2e0ff24ecb2e429aa3b8",
+      "efbde528075de77de9697671b7dd5b1acbca051109a8e149dabea65592555fcc",
+      "01b3ea66639919f8bf1809f0c64d31f3a36bb0bbdd5cc6d6c6f429267ca2f58a",
+      "6f06cf2541c6efb2da2afdbfe5dd900fe1f83f475945963b747ce691f64bee3e",
+      "6b78d04bae9ce23578e21e394ae990207dc98cc37990acff200ed66b72e965a2",
+      "c9602fcf44951030b3af18f47790c8c90d1329de7d83494f44603761efa219d5",
+      "2e471a9310323ac3bcc0bf3f4721ee6a68aad915350f95888ebeb2387fdb0ed8",
+      "345ea9e734bd93a26e8d95910732f7a5a25561f3f7c7a3125402945008a7b374",
+      "dd6d9b412ca8d2690db3d4beeaf623bf093386731d665a41daaf7ff2f0d577e1",
+      "a3a011f5371dc149559273c46144435cea2cbca9baa134fb42f02a515206e3d3"
+    ]
+  },
+  "oracleSource": "import codecs, hashlib, json, struct, sys, unicodedata\nassert sys.version_info[:3] == (3, 14, 7)\nassert unicodedata.unidata_version == '16.0.0'\nassert sys.platform == 'darwin' and sys.byteorder == 'little'\n\ndef digest(rows):\n    h = hashlib.sha256()\n    for row in rows:\n        h.update((json.dumps(row, separators=(',', ':'), ensure_ascii=True) + '\\n').encode())\n    return h.hexdigest()\n\ndef failure(e):\n    return ['error', e.encoding, list(e.object), e.start, e.end, e.reason]\n\ndef decode_rows(errors):\n    for first in range(128, 256):\n        for second in range(256):\n            try:\n                text, consumed = codecs.getdecoder('shift_jisx0213')(bytes([first, second]), errors)\n                yield ['ok', list(map(ord, text)), consumed]\n            except UnicodeDecodeError as e:\n                yield failure(e)\n\ndef state(d):\n    pending, flags = d.getstate()\n    return [list(pending), str(flags)]\n\ndef call(d, data, final):\n    try:\n        result = ['ok', list(map(ord, d.decode(data, final)))]\n    except UnicodeDecodeError as e:\n        result = failure(e)\n    return [result, state(d)]\n\ndef split_row(data, split, final, errors):\n    d = codecs.getincrementaldecoder('shift_jisx0213')(errors)\n    d.setstate((b'', 0x123456789abcdef0))\n    row = [call(d, data[:split], False), call(d, data[split:], final), call(d, b'', True)]\n    d.reset()\n    row.append(state(d))\n    return row\n\ndef incremental_rows(errors):\n    for first in range(256):\n        for second in range(256):\n            for final in (False, True):\n                yield split_row(bytes([first, second]), 1, final, errors)\n\nresult = {\n    'reference': {'version': sys.version, 'unicode': unicodedata.unidata_version, 'platform': sys.platform, 'byteorder': sys.byteorder},\n    'decode': {p: {'records':32768, 'sha256':digest(decode_rows(p))} for p in ('strict', 'ignore', 'replace')},\n    'incremental': {p: {'records':131072, 'sha256':digest(incremental_rows(p))} for p in ('strict', 'ignore', 'replace')},\n    'encode': {}\n}\ntext = ''.join(map(chr, range(0x110000)))\nfor p in ('ignore', 'replace'):\n    data = text.encode('shift_jisx0213', p)\n    result['encode'][p] = {'length':len(data), 'sha256':hashlib.sha256(data).hexdigest()}\n# Strict singletons preserve exact fault metadata and every successful spelling.\ndef encodings(start=0, end=0x110000):\n    for point in range(start, end):\n        try:\n            yield ['ok', list(chr(point).encode('shift_jisx0213'))]\n        except UnicodeEncodeError as e:\n            yield ['error', e.encoding, list(map(ord,e.object)), e.start, e.end, e.reason]\nresult['strictEncode'] = {'records':0x110000, 'sha256':digest(encodings())}\nresult['strictEncode']['planes'] = [digest(encodings(p*0x10000, (p+1)*0x10000)) for p in range(17)]\nprint(json.dumps(result, indent=2))\n"
+}

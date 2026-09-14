@@ -68,7 +68,7 @@ export interface RuntimeBuiltinContexts {
 }
 
 /** Assemble currently implemented builtin function/constructor capabilities and
- * singleton names. Native type objects, exception classes, module metadata and
+ * singleton names and builtin namespace text metadata. Native type objects, exception classes and
  * not-yet-implemented builtins still need object/stdlib assembly. Explicit
  * extensions may supply those objects or override entries. Each invocation
  * produces an independent mutable namespace with stable values inside it. */
@@ -112,6 +112,21 @@ export function createRuntimeBuiltins(values: RuntimeValues, meter: ExecutionMet
   register(createZipBuiltin(values, meter, context.zip));
   meter.checkpoint(1, 512);
   for (const [name, value] of [["None", values.none], ["True", values.true], ["False", values.false], ["Ellipsis", values.ellipsis], ["NotImplemented", values.notImplemented], ["__debug__", values.true]] as const) namespace.set(name, value);
+  for (const [name, text] of [
+    ["__name__", "builtins"],
+    ["__package__", ""],
+    ["__doc__", "Built-in functions, types, exceptions, and other objects.\n\n" +
+      "This module provides direct access to all 'built-in'\n" +
+      "identifiers of Python; for example, builtins.len is\n" +
+      "the full name for the built-in function len().\n\n" +
+      "This module is not normally accessed explicitly by most\n" +
+      "applications, but can be useful in modules that provide\n" +
+      "objects with the same name as a built-in value, but in\n" +
+      "which the built-in of that name is also needed."]
+  ]) {
+    meter.checkpoint(1, 48 + name.length * 2);
+    namespace.set(name, values.string(text));
+  }
   if (extensions !== undefined) {
     try {
       for (const entry of extensions) {

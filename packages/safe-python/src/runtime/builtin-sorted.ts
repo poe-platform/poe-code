@@ -5,6 +5,8 @@ import { ListStorage } from "./list-storage.js";
 import { runtimeComparison } from "./runtime-comparison.js";
 import { runtimeIterate } from "./runtime-iteration.js";
 import { runtimeTruth } from "./runtime-truth.js";
+import { runtimeStringPayload } from "./runtime-string-payload.js";
+import { unexpectedBuiltinKeyword } from "./unexpected-builtin-keyword.js";
 import { bindSortOptions } from "./sort-options.js";
 import type { BuiltinFunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 
@@ -34,12 +36,17 @@ export function createSortedBuiltin(values: RuntimeValues, meter: ExecutionMeter
     if (keywords.items.size > 2) throw new PythonRuntimeError("TypeError", `sort() takes at most 2 keyword arguments (${keywords.items.size} given)`);
     meter.checkpoint(0, 64 + keywords.items.size * 32);
     const options = new Map<string, RuntimeValue>();
+    let unexpected = false;
     for (const [name, value] of keywords.items.snapshot()) {
-      if (name.kind !== "str") throw new PythonRuntimeError("TypeError", "keywords must be strings");
+      const payload = runtimeStringPayload(name);
+      if (payload === undefined) throw new PythonRuntimeError("TypeError", "keywords must be strings");
       let label = "";
-      for (const point of name.value) { meter.checkpoint(1, point > 0xffff ? 4 : 2); label += String.fromCodePoint(point); }
-      options.set(label, value);
+      for (const point of payload.value) { meter.checkpoint(1, point > 0xffff ? 4 : 2); label += String.fromCodePoint(point); }
+      if (options.has(label)) unexpected = true;
+      else options.set(label, value);
+      if (label !== "key" && label !== "reverse") unexpected = true;
     }
+    if (unexpected) unexpectedBuiltinKeyword("sort", keywords, ["key", "reverse"], values, meter, invocation);
     result.sort(bindSortOptions([], options, {
       isNone: value => value.kind === "none",
       truth: value => context.truth !== undefined ? context.truth(value)

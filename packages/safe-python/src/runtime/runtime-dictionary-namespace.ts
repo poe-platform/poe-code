@@ -9,7 +9,9 @@ import type { BuiltinInvocationContext, DictionaryValue, RuntimeValue, RuntimeVa
 /** Dictionary globals use intrinsic writes/deletes but subclass item lookup.
  * Exact dictionaries also support ordinary locals and builtin namespaces.
  * Subclass locals require RuntimeMappingNamespace so their writes/deletes use
- * item slots too. Names are neither copied nor normalized by this adapter.
+ * item slots too. Compiler names use the interpreter's intern pool, matching
+ * code-name identity across loads/stores. Existing equal dictionary keys retain
+ * their own identity; names are never normalized by this adapter.
  */
 export class RuntimeDictionaryNamespace implements LocalNamespace<RuntimeValue> {
   private readonly storage: DictionaryValue;
@@ -27,7 +29,7 @@ export class RuntimeDictionaryNamespace implements LocalNamespace<RuntimeValue> 
   }
 
   lookup(name: string, access?: "intrinsic"): { readonly value: RuntimeValue } | undefined {
-    const key = this.values.string(name);
+    const key = this.values.internString(name);
     if (this.object.kind !== "dict" && access !== "intrinsic") {
       const invocation = this.invocation;
       if (invocation === undefined || !("call" in invocation)) throw new Error("dictionary-subclass lookup requires invocation context");
@@ -46,13 +48,13 @@ export class RuntimeDictionaryNamespace implements LocalNamespace<RuntimeValue> 
   }
 
   store(name: string, value: RuntimeValue): void {
-    const key = this.values.string(name);
+    const key = this.values.internString(name);
     this.storage.items.set(key, value);
     this.meter.checkpoint();
   }
 
   delete(name: string): boolean {
-    const key = this.values.string(name);
+    const key = this.values.internString(name);
     const result = this.storage.items.delete(key);
     this.meter.checkpoint();
     return result;

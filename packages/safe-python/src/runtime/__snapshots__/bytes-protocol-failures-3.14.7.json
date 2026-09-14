@@ -1,0 +1,507 @@
+{
+  "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+  "unicode": "16.0.0",
+  "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+  "rows": [
+    {
+      "name": "__bytes__ binding TypeError subclass=False",
+      "source": "events = []\nfailure = TypeError(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__bytes__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'TypeError', 'sentinel', True, ['binding'])"
+    },
+    {
+      "name": "__bytes__ binding TypeError subclass=True",
+      "source": "class Failure(TypeError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__bytes__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['binding'])"
+    },
+    {
+      "name": "__bytes__ call TypeError subclass=False",
+      "source": "events = []\nfailure = TypeError(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__bytes__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'TypeError', 'sentinel', True, ['call'])"
+    },
+    {
+      "name": "__bytes__ call TypeError subclass=True",
+      "source": "class Failure(TypeError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__bytes__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['call'])"
+    },
+    {
+      "name": "__bytes__ binding AttributeError subclass=False",
+      "source": "events = []\nfailure = AttributeError(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__bytes__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'AttributeError', 'sentinel', True, ['binding'])"
+    },
+    {
+      "name": "__bytes__ binding AttributeError subclass=True",
+      "source": "class Failure(AttributeError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__bytes__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['binding'])"
+    },
+    {
+      "name": "__bytes__ call AttributeError subclass=False",
+      "source": "events = []\nfailure = AttributeError(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__bytes__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'AttributeError', 'sentinel', True, ['call'])"
+    },
+    {
+      "name": "__bytes__ call AttributeError subclass=True",
+      "source": "class Failure(AttributeError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__bytes__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['call'])"
+    },
+    {
+      "name": "__bytes__ binding ValueError subclass=False",
+      "source": "events = []\nfailure = ValueError(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__bytes__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'ValueError', 'sentinel', True, ['binding'])"
+    },
+    {
+      "name": "__bytes__ binding ValueError subclass=True",
+      "source": "class Failure(ValueError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__bytes__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['binding'])"
+    },
+    {
+      "name": "__bytes__ call ValueError subclass=False",
+      "source": "events = []\nfailure = ValueError(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__bytes__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'ValueError', 'sentinel', True, ['call'])"
+    },
+    {
+      "name": "__bytes__ call ValueError subclass=True",
+      "source": "class Failure(ValueError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__bytes__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['call'])"
+    },
+    {
+      "name": "__bytes__ binding OverflowError subclass=False",
+      "source": "events = []\nfailure = OverflowError(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__bytes__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'OverflowError', 'sentinel', True, ['binding'])"
+    },
+    {
+      "name": "__bytes__ binding OverflowError subclass=True",
+      "source": "class Failure(OverflowError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__bytes__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['binding'])"
+    },
+    {
+      "name": "__bytes__ call OverflowError subclass=False",
+      "source": "events = []\nfailure = OverflowError(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__bytes__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'OverflowError', 'sentinel', True, ['call'])"
+    },
+    {
+      "name": "__bytes__ call OverflowError subclass=True",
+      "source": "class Failure(OverflowError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__bytes__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['call'])"
+    },
+    {
+      "name": "__bytes__ binding StopIteration subclass=False",
+      "source": "events = []\nfailure = StopIteration(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__bytes__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'StopIteration', 'sentinel', True, ['binding'])"
+    },
+    {
+      "name": "__bytes__ binding StopIteration subclass=True",
+      "source": "class Failure(StopIteration):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__bytes__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['binding'])"
+    },
+    {
+      "name": "__bytes__ call StopIteration subclass=False",
+      "source": "events = []\nfailure = StopIteration(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__bytes__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'StopIteration', 'sentinel', True, ['call'])"
+    },
+    {
+      "name": "__bytes__ call StopIteration subclass=True",
+      "source": "class Failure(StopIteration):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__bytes__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['call'])"
+    },
+    {
+      "name": "__index__ binding TypeError subclass=False",
+      "source": "events = []\nfailure = TypeError(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__index__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('ok', 'bytes', b'A', ['binding', 'iter'])"
+    },
+    {
+      "name": "__index__ binding TypeError subclass=True",
+      "source": "class Failure(TypeError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__index__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('ok', 'bytes', b'A', ['binding', 'iter'])"
+    },
+    {
+      "name": "__index__ call TypeError subclass=False",
+      "source": "events = []\nfailure = TypeError(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__index__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('ok', 'bytes', b'A', ['call', 'iter'])"
+    },
+    {
+      "name": "__index__ call TypeError subclass=True",
+      "source": "class Failure(TypeError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__index__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('ok', 'bytes', b'A', ['call', 'iter'])"
+    },
+    {
+      "name": "__index__ binding AttributeError subclass=False",
+      "source": "events = []\nfailure = AttributeError(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__index__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'AttributeError', 'sentinel', True, ['binding'])"
+    },
+    {
+      "name": "__index__ binding AttributeError subclass=True",
+      "source": "class Failure(AttributeError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__index__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['binding'])"
+    },
+    {
+      "name": "__index__ call AttributeError subclass=False",
+      "source": "events = []\nfailure = AttributeError(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__index__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'AttributeError', 'sentinel', True, ['call'])"
+    },
+    {
+      "name": "__index__ call AttributeError subclass=True",
+      "source": "class Failure(AttributeError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__index__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['call'])"
+    },
+    {
+      "name": "__index__ binding ValueError subclass=False",
+      "source": "events = []\nfailure = ValueError(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__index__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'ValueError', 'sentinel', True, ['binding'])"
+    },
+    {
+      "name": "__index__ binding ValueError subclass=True",
+      "source": "class Failure(ValueError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__index__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['binding'])"
+    },
+    {
+      "name": "__index__ call ValueError subclass=False",
+      "source": "events = []\nfailure = ValueError(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__index__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'ValueError', 'sentinel', True, ['call'])"
+    },
+    {
+      "name": "__index__ call ValueError subclass=True",
+      "source": "class Failure(ValueError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__index__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['call'])"
+    },
+    {
+      "name": "__index__ binding OverflowError subclass=False",
+      "source": "events = []\nfailure = OverflowError(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__index__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'OverflowError', 'sentinel', True, ['binding'])"
+    },
+    {
+      "name": "__index__ binding OverflowError subclass=True",
+      "source": "class Failure(OverflowError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__index__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['binding'])"
+    },
+    {
+      "name": "__index__ call OverflowError subclass=False",
+      "source": "events = []\nfailure = OverflowError(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__index__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'OverflowError', 'sentinel', True, ['call'])"
+    },
+    {
+      "name": "__index__ call OverflowError subclass=True",
+      "source": "class Failure(OverflowError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__index__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['call'])"
+    },
+    {
+      "name": "__index__ binding StopIteration subclass=False",
+      "source": "events = []\nfailure = StopIteration(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__index__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'StopIteration', 'sentinel', True, ['binding'])"
+    },
+    {
+      "name": "__index__ binding StopIteration subclass=True",
+      "source": "class Failure(StopIteration):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__index__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['binding'])"
+    },
+    {
+      "name": "__index__ call StopIteration subclass=False",
+      "source": "events = []\nfailure = StopIteration(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__index__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'StopIteration', 'sentinel', True, ['call'])"
+    },
+    {
+      "name": "__index__ call StopIteration subclass=True",
+      "source": "class Failure(StopIteration):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__index__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['call'])"
+    },
+    {
+      "name": "__iter__ binding TypeError subclass=False",
+      "source": "events = []\nfailure = TypeError(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__iter__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'TypeError', \"cannot convert 'Source' object to bytes\", False, ['binding'])"
+    },
+    {
+      "name": "__iter__ binding TypeError subclass=True",
+      "source": "class Failure(TypeError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__iter__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'TypeError', \"cannot convert 'Source' object to bytes\", False, ['binding'])"
+    },
+    {
+      "name": "__iter__ call TypeError subclass=False",
+      "source": "events = []\nfailure = TypeError(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__iter__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'TypeError', \"cannot convert 'Source' object to bytes\", False, ['call'])"
+    },
+    {
+      "name": "__iter__ call TypeError subclass=True",
+      "source": "class Failure(TypeError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__iter__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'TypeError', \"cannot convert 'Source' object to bytes\", False, ['call'])"
+    },
+    {
+      "name": "__iter__ binding AttributeError subclass=False",
+      "source": "events = []\nfailure = AttributeError(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__iter__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'TypeError', \"cannot convert 'Source' object to bytes\", False, ['binding'])"
+    },
+    {
+      "name": "__iter__ binding AttributeError subclass=True",
+      "source": "class Failure(AttributeError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__iter__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'TypeError', \"cannot convert 'Source' object to bytes\", False, ['binding'])"
+    },
+    {
+      "name": "__iter__ call AttributeError subclass=False",
+      "source": "events = []\nfailure = AttributeError(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__iter__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'AttributeError', 'sentinel', True, ['call'])"
+    },
+    {
+      "name": "__iter__ call AttributeError subclass=True",
+      "source": "class Failure(AttributeError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__iter__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['call'])"
+    },
+    {
+      "name": "__iter__ binding ValueError subclass=False",
+      "source": "events = []\nfailure = ValueError(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__iter__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'ValueError', 'sentinel', True, ['binding'])"
+    },
+    {
+      "name": "__iter__ binding ValueError subclass=True",
+      "source": "class Failure(ValueError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__iter__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['binding'])"
+    },
+    {
+      "name": "__iter__ call ValueError subclass=False",
+      "source": "events = []\nfailure = ValueError(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__iter__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'ValueError', 'sentinel', True, ['call'])"
+    },
+    {
+      "name": "__iter__ call ValueError subclass=True",
+      "source": "class Failure(ValueError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__iter__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['call'])"
+    },
+    {
+      "name": "__iter__ binding OverflowError subclass=False",
+      "source": "events = []\nfailure = OverflowError(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__iter__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'OverflowError', 'sentinel', True, ['binding'])"
+    },
+    {
+      "name": "__iter__ binding OverflowError subclass=True",
+      "source": "class Failure(OverflowError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__iter__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['binding'])"
+    },
+    {
+      "name": "__iter__ call OverflowError subclass=False",
+      "source": "events = []\nfailure = OverflowError(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__iter__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'OverflowError', 'sentinel', True, ['call'])"
+    },
+    {
+      "name": "__iter__ call OverflowError subclass=True",
+      "source": "class Failure(OverflowError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__iter__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['call'])"
+    },
+    {
+      "name": "__iter__ binding StopIteration subclass=False",
+      "source": "events = []\nfailure = StopIteration(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__iter__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'StopIteration', 'sentinel', True, ['binding'])"
+    },
+    {
+      "name": "__iter__ binding StopIteration subclass=True",
+      "source": "class Failure(StopIteration):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__iter__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['binding'])"
+    },
+    {
+      "name": "__iter__ call StopIteration subclass=False",
+      "source": "events = []\nfailure = StopIteration(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__iter__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'StopIteration', 'sentinel', True, ['call'])"
+    },
+    {
+      "name": "__iter__ call StopIteration subclass=True",
+      "source": "class Failure(StopIteration):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__iter__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['call'])"
+    },
+    {
+      "name": "__len__ binding TypeError subclass=False",
+      "source": "events = []\nfailure = TypeError(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__len__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('ok', 'bytes', b'A', ['iter', 'binding'])"
+    },
+    {
+      "name": "__len__ binding TypeError subclass=True",
+      "source": "class Failure(TypeError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__len__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('ok', 'bytes', b'A', ['iter', 'binding'])"
+    },
+    {
+      "name": "__len__ call TypeError subclass=False",
+      "source": "events = []\nfailure = TypeError(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__len__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('ok', 'bytes', b'A', ['iter', 'call'])"
+    },
+    {
+      "name": "__len__ call TypeError subclass=True",
+      "source": "class Failure(TypeError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__len__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('ok', 'bytes', b'A', ['iter', 'call'])"
+    },
+    {
+      "name": "__len__ binding AttributeError subclass=False",
+      "source": "events = []\nfailure = AttributeError(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__len__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'AttributeError', 'sentinel', True, ['iter', 'binding'])"
+    },
+    {
+      "name": "__len__ binding AttributeError subclass=True",
+      "source": "class Failure(AttributeError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__len__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['iter', 'binding'])"
+    },
+    {
+      "name": "__len__ call AttributeError subclass=False",
+      "source": "events = []\nfailure = AttributeError(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__len__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'AttributeError', 'sentinel', True, ['iter', 'call'])"
+    },
+    {
+      "name": "__len__ call AttributeError subclass=True",
+      "source": "class Failure(AttributeError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__len__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['iter', 'call'])"
+    },
+    {
+      "name": "__len__ binding ValueError subclass=False",
+      "source": "events = []\nfailure = ValueError(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__len__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'ValueError', 'sentinel', True, ['iter', 'binding'])"
+    },
+    {
+      "name": "__len__ binding ValueError subclass=True",
+      "source": "class Failure(ValueError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__len__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['iter', 'binding'])"
+    },
+    {
+      "name": "__len__ call ValueError subclass=False",
+      "source": "events = []\nfailure = ValueError(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__len__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'ValueError', 'sentinel', True, ['iter', 'call'])"
+    },
+    {
+      "name": "__len__ call ValueError subclass=True",
+      "source": "class Failure(ValueError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__len__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['iter', 'call'])"
+    },
+    {
+      "name": "__len__ binding OverflowError subclass=False",
+      "source": "events = []\nfailure = OverflowError(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__len__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'OverflowError', 'sentinel', True, ['iter', 'binding'])"
+    },
+    {
+      "name": "__len__ binding OverflowError subclass=True",
+      "source": "class Failure(OverflowError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__len__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['iter', 'binding'])"
+    },
+    {
+      "name": "__len__ call OverflowError subclass=False",
+      "source": "events = []\nfailure = OverflowError(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__len__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'OverflowError', 'sentinel', True, ['iter', 'call'])"
+    },
+    {
+      "name": "__len__ call OverflowError subclass=True",
+      "source": "class Failure(OverflowError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__len__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['iter', 'call'])"
+    },
+    {
+      "name": "__len__ binding StopIteration subclass=False",
+      "source": "events = []\nfailure = StopIteration(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__len__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'StopIteration', 'sentinel', True, ['iter', 'binding'])"
+    },
+    {
+      "name": "__len__ binding StopIteration subclass=True",
+      "source": "class Failure(StopIteration):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__len__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['iter', 'binding'])"
+    },
+    {
+      "name": "__len__ call StopIteration subclass=False",
+      "source": "events = []\nfailure = StopIteration(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__len__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'StopIteration', 'sentinel', True, ['iter', 'call'])"
+    },
+    {
+      "name": "__len__ call StopIteration subclass=True",
+      "source": "class Failure(StopIteration):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__len__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['iter', 'call'])"
+    },
+    {
+      "name": "__length_hint__ binding TypeError subclass=False",
+      "source": "events = []\nfailure = TypeError(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__length_hint__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'TypeError', 'sentinel', True, ['iter', 'binding'])"
+    },
+    {
+      "name": "__length_hint__ binding TypeError subclass=True",
+      "source": "class Failure(TypeError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__length_hint__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['iter', 'binding'])"
+    },
+    {
+      "name": "__length_hint__ call TypeError subclass=False",
+      "source": "events = []\nfailure = TypeError(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__length_hint__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('ok', 'bytes', b'A', ['iter', 'call'])"
+    },
+    {
+      "name": "__length_hint__ call TypeError subclass=True",
+      "source": "class Failure(TypeError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__length_hint__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('ok', 'bytes', b'A', ['iter', 'call'])"
+    },
+    {
+      "name": "__length_hint__ binding AttributeError subclass=False",
+      "source": "events = []\nfailure = AttributeError(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__length_hint__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'AttributeError', 'sentinel', True, ['iter', 'binding'])"
+    },
+    {
+      "name": "__length_hint__ binding AttributeError subclass=True",
+      "source": "class Failure(AttributeError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__length_hint__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['iter', 'binding'])"
+    },
+    {
+      "name": "__length_hint__ call AttributeError subclass=False",
+      "source": "events = []\nfailure = AttributeError(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__length_hint__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'AttributeError', 'sentinel', True, ['iter', 'call'])"
+    },
+    {
+      "name": "__length_hint__ call AttributeError subclass=True",
+      "source": "class Failure(AttributeError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__length_hint__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['iter', 'call'])"
+    },
+    {
+      "name": "__length_hint__ binding ValueError subclass=False",
+      "source": "events = []\nfailure = ValueError(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__length_hint__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'ValueError', 'sentinel', True, ['iter', 'binding'])"
+    },
+    {
+      "name": "__length_hint__ binding ValueError subclass=True",
+      "source": "class Failure(ValueError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__length_hint__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['iter', 'binding'])"
+    },
+    {
+      "name": "__length_hint__ call ValueError subclass=False",
+      "source": "events = []\nfailure = ValueError(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__length_hint__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'ValueError', 'sentinel', True, ['iter', 'call'])"
+    },
+    {
+      "name": "__length_hint__ call ValueError subclass=True",
+      "source": "class Failure(ValueError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__length_hint__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['iter', 'call'])"
+    },
+    {
+      "name": "__length_hint__ binding OverflowError subclass=False",
+      "source": "events = []\nfailure = OverflowError(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__length_hint__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'OverflowError', 'sentinel', True, ['iter', 'binding'])"
+    },
+    {
+      "name": "__length_hint__ binding OverflowError subclass=True",
+      "source": "class Failure(OverflowError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__length_hint__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['iter', 'binding'])"
+    },
+    {
+      "name": "__length_hint__ call OverflowError subclass=False",
+      "source": "events = []\nfailure = OverflowError(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__length_hint__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'OverflowError', 'sentinel', True, ['iter', 'call'])"
+    },
+    {
+      "name": "__length_hint__ call OverflowError subclass=True",
+      "source": "class Failure(OverflowError):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__length_hint__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['iter', 'call'])"
+    },
+    {
+      "name": "__length_hint__ binding StopIteration subclass=False",
+      "source": "events = []\nfailure = StopIteration(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__length_hint__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'StopIteration', 'sentinel', True, ['iter', 'binding'])"
+    },
+    {
+      "name": "__length_hint__ binding StopIteration subclass=True",
+      "source": "class Failure(StopIteration):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\nclass Slot:\n    def __get__(self, obj, owner):\n        events.append(\"binding\")\n        raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__length_hint__ = Slot()\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['iter', 'binding'])"
+    },
+    {
+      "name": "__length_hint__ call StopIteration subclass=False",
+      "source": "events = []\nfailure = StopIteration(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__length_hint__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'StopIteration', 'sentinel', True, ['iter', 'call'])"
+    },
+    {
+      "name": "__length_hint__ call StopIteration subclass=True",
+      "source": "class Failure(StopIteration):\n    pass\nevents = []\nfailure = Failure(\"sentinel\")\ndef callback(self):\n    events.append(\"call\")\n    raise failure\nclass Source:\n    def __iter__(self):\n        events.append(\"iter\")\n        return iter([65])\nSource.__length_hint__ = callback\ntry:\n    result = bytes(Source())\n    actual = (\"ok\", type(result).__name__, result, events)\nexcept BaseException as error:\n    actual = (\"error\", type(error).__name__, str(error), error is failure, events)\n",
+      "expected": "('error', 'Failure', 'sentinel', True, ['iter', 'call'])"
+    }
+  ]
+}

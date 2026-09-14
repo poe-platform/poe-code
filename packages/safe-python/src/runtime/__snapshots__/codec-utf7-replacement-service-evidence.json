@@ -1,0 +1,51 @@
+{
+  "oracle": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "adapter": "Explicit readSync/writeSync/fsyncSync file descriptor services; no host codec runtime delegation",
+  "records": [
+    {
+      "name": "replacement input retains the original final fault end and consumed count",
+      "sourceSha256": "358bab36330fefcc9d0109905f4f471f8c2500cbed51a90aa2250e0a021b2781",
+      "oracleExit": 0,
+      "oracleStderr": "",
+      "oracleStdout": "verified\n",
+      "guestStatus": "ok",
+      "guestStdout": "verified\n",
+      "reads": 1
+    },
+    {
+      "name": "negative resume positions use replacement length despite original fault end",
+      "sourceSha256": "8480c85f0e608139d44a849c858015733518b5c2f055aa2ddb53fa0a56a581bc",
+      "oracleExit": 0,
+      "oracleStderr": "",
+      "oracleStdout": "verified\n",
+      "guestStatus": "ok",
+      "guestStdout": "verified\n",
+      "reads": 1
+    },
+    {
+      "name": "nonfinal rollback keeps the original incremental input buffer",
+      "sourceSha256": "05f2a1d15bd8df57bb60f38961bb4c6f0d76359331fdccfe5f556fb193ac9ce3",
+      "oracleExit": 0,
+      "oracleStderr": "",
+      "oracleStdout": "verified\n",
+      "guestStatus": "ok",
+      "guestStdout": "verified\n",
+      "reads": 1
+    },
+    {
+      "name": "registry mutation preserves the active handler and guest failure identity",
+      "sourceSha256": "876ef6263f9f876dc164b456b8a95f2ce4cc51f8d6652dddcd10bc5425123144",
+      "oracleExit": 0,
+      "oracleStderr": "",
+      "oracleStdout": "verified\n",
+      "guestStatus": "ok",
+      "guestStdout": "verified\n",
+      "reads": 1
+    }
+  ]
+}

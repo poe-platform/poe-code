@@ -1,0 +1,99 @@
+{
+  "metadata": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0\ndarwin\nlittle\n",
+  "oracle": "/opt/homebrew/bin/python3.14",
+  "adapter": "PythonSession output.write uses fs.writeSync in at most 3-byte writes; output.flush uses fs.fsyncSync. Owned descriptors closed and temporary paths removed.",
+  "cases": [
+    {
+      "expression": "binascii.unhexlify(data)",
+      "source": "import binascii\nimport codecs\nfor data in (b'x', b'x0', b'0x', b'410x', b'41'):\n    try:\n        result = binascii.unhexlify(data)\n        print(data, result)\n    except BaseException as error:\n        print(data, type(error).__module__, type(error).__name__, error.args, error.__cause__, error.__context__, error.__suppress_context__, error.__traceback__ is not None)\n",
+      "sha256": "bb7e92133973c03cbcc2892805382b55e68f44cdf7c253b7ad8ceac35a777ac0",
+      "limits": {
+        "maxSteps": 2000000,
+        "maxAllocatedBytes": 32000000,
+        "maxDepth": 100
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "b'x' binascii Error ('Odd-length string',) None None False True\nb'x0' binascii Error ('Non-hexadecimal digit found',) None None False True\nb'0x' binascii Error ('Non-hexadecimal digit found',) None None False True\nb'410x' binascii Error ('Non-hexadecimal digit found',) None None False True\nb'41' b'A'\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "exception",
+        "diagnostic": "No module named 'binascii'",
+        "stdout": "",
+        "writes": 0,
+        "flushes": 0
+      },
+      "match": false
+    },
+    {
+      "expression": "codecs.decode(data, \"hex\")",
+      "source": "import binascii\nimport codecs\nfor data in (b'x', b'x0', b'0x', b'410x', b'41'):\n    try:\n        result = codecs.decode(data, \"hex\")\n        print(data, result)\n    except BaseException as error:\n        print(data, type(error).__module__, type(error).__name__, error.args, error.__cause__, error.__context__, error.__suppress_context__, error.__traceback__ is not None)\n",
+      "sha256": "c6e17a3ac2150c85085aa42364b3bd192f0f8f00ec3446c60bcdd7ffc104b518",
+      "limits": {
+        "maxSteps": 2000000,
+        "maxAllocatedBytes": 32000000,
+        "maxDepth": 100
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "b'x' binascii Error ('Odd-length string',) None None False True\nb'x0' binascii Error ('Non-hexadecimal digit found',) None None False True\nb'0x' binascii Error ('Non-hexadecimal digit found',) None None False True\nb'410x' binascii Error ('Non-hexadecimal digit found',) None None False True\nb'41' b'A'\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "exception",
+        "diagnostic": "No module named 'binascii'",
+        "stdout": "",
+        "writes": 0,
+        "flushes": 0
+      },
+      "match": false
+    },
+    {
+      "expression": "codecs.getdecoder(\"hex\")(data)",
+      "source": "import binascii\nimport codecs\nfor data in (b'x', b'x0', b'0x', b'410x', b'41'):\n    try:\n        result = codecs.getdecoder(\"hex\")(data)\n        print(data, result)\n    except BaseException as error:\n        print(data, type(error).__module__, type(error).__name__, error.args, error.__cause__, error.__context__, error.__suppress_context__, error.__traceback__ is not None)\n",
+      "sha256": "04b0619bfa4da6a0c6dbd36e10710ae63574098b717f68fb16f3f6611460d6ea",
+      "limits": {
+        "maxSteps": 2000000,
+        "maxAllocatedBytes": 32000000,
+        "maxDepth": 100
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "b'x' binascii Error ('Odd-length string',) None None False True\nb'x0' binascii Error ('Non-hexadecimal digit found',) None None False True\nb'0x' binascii Error ('Non-hexadecimal digit found',) None None False True\nb'410x' binascii Error ('Non-hexadecimal digit found',) None None False True\nb'41' (b'A', 2)\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "exception",
+        "diagnostic": "No module named 'binascii'",
+        "stdout": "",
+        "writes": 0,
+        "flushes": 0
+      },
+      "match": false
+    },
+    {
+      "expression": "codecs.getincrementaldecoder(\"hex\")().decode(data, True)",
+      "source": "import binascii\nimport codecs\nfor data in (b'x', b'x0', b'0x', b'410x', b'41'):\n    try:\n        result = codecs.getincrementaldecoder(\"hex\")().decode(data, True)\n        print(data, result)\n    except BaseException as error:\n        print(data, type(error).__module__, type(error).__name__, error.args, error.__cause__, error.__context__, error.__suppress_context__, error.__traceback__ is not None)\n",
+      "sha256": "658514c8dcd227500ea44a25ca74d687d3c843e6d27137a5544067783ce7f6b3",
+      "limits": {
+        "maxSteps": 2000000,
+        "maxAllocatedBytes": 32000000,
+        "maxDepth": 100
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "b'x' binascii Error ('Odd-length string',) None None False True\nb'x0' binascii Error ('Non-hexadecimal digit found',) None None False True\nb'0x' binascii Error ('Non-hexadecimal digit found',) None None False True\nb'410x' binascii Error ('Non-hexadecimal digit found',) None None False True\nb'41' b'A'\n",
+        "stderr": ""
+      },
+      "guest": {
+        "status": "exception",
+        "diagnostic": "No module named 'binascii'",
+        "stdout": "",
+        "writes": 0,
+        "flushes": 0
+      },
+      "match": false
+    }
+  ]
+}

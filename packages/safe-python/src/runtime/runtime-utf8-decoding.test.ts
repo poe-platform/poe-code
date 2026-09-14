@@ -5,8 +5,14 @@ import {RuntimeValues} from "./runtime-values.js";
 import {constructRuntimeString} from "./runtime-string-construction.js";
 import {createRuntimeStringDecoder} from "./runtime-string-decoding.js";
 import {OrderedKeyMap} from "./ordered-key-map.js";
+import {PythonRuntimeError} from "./error.js";
 
 function fixture(){const meter=new ExecutionBudget({maxSteps:100000,maxAllocatedBytes:1000000}),v=new RuntimeValues(meter);return {meter,v,decode:createRuntimeUtf8Decoder(v)};}
+it("decodes a UTF-8 signature through the text conversion adapter",()=>{
+  const {meter,v,decode}=fixture();
+  expect(decode(v.bytes(new Uint8Array([239,187,191,65])).value,"UTF 8 SIG","strict",meter,undefined)).toEqual(v.string("A"));
+  expect(()=>decode(v.bytes(new Uint8Array([239,187,191,255])).value,"utf-8-sig","strict",meter,undefined)).toThrow(expect.objectContaining({encoding:"utf-8",object:new Uint8Array([255]),start:0,end:1}));
+});
 it.each(["utf-8","UTF8"," utf---8 ","u8","utf8_ucs2","utf8_ucs4","üutf8","utf8☃éucs2"])("decodes the UTF-8 alias %s",encoding=>{
   const {meter,v,decode}=fixture();expect(decode(v.bytes(new Uint8Array([0xf0,0x9f,0x90,0x8d])).value,encoding,"strict",meter,undefined)).toEqual(v.string("🐍"));
 });
@@ -42,4 +48,40 @@ it("delegates custom error handling only when malformed data requires it",()=>{
 it.each([false,true])("preserves cancellation from codec extensions (throws=%s)",throws=>{
   const {v}=fixture(),controller=new AbortController(),meter=new ExecutionBudget({maxSteps:10000,maxAllocatedBytes:100000,signal:controller.signal}),bytes=v.bytes(new Uint8Array([120])).value;
   expect(()=>createRuntimeUtf8Decoder(v,()=>{controller.abort();if(throws)throw Error("extension failed");return v.none;})(bytes,"custom","strict",meter,undefined)).toThrow(ExecutionLimitError);
+});
+
+it.each(["u8","utf","cp65001","utf8_ucs2","utf8_ucs4","utf-8-sig","utf-16-le","utf-16-be","utf-32-le","utf-32-be","utf-7"])("uses the supplied decoder for registry spelling %s",encoding=>{
+  const {meter,v}=fixture(),bytes=v.bytes(new Uint8Array([65])).value,result=v.string("registry result");
+  const fallback=vi.fn(()=>result),decode=createRuntimeUtf8Decoder(v,fallback);
+  expect(decode(bytes,encoding,undefined,meter,undefined)).toBe(result);
+  expect(fallback).toHaveBeenCalledExactlyOnceWith(bytes,encoding,undefined,meter,undefined);
+});
+it.each(["utf-8-sig","utf-16-le","utf-7"])("preserves explicit errors and decoder failure identity for %s",encoding=>{
+  const {meter,v}=fixture(),bytes=v.bytes(new Uint8Array([65])).value;
+  const failure=new PythonRuntimeError("ValueError","guest decoder failed"),fallback=vi.fn(()=>{throw failure;});
+  let caught:unknown;
+  try{createRuntimeUtf8Decoder(v,fallback)(bytes,encoding,"guest-policy",meter,undefined);}catch(error){caught=error;}
+  expect(caught).toBe(failure);
+  expect(fallback).toHaveBeenCalledExactlyOnceWith(bytes,encoding,"guest-policy",meter,undefined);
+});
+it.each([false,true])("checks terminal cancellation after a known-codec extension (throws=%s)",throws=>{
+  const {v}=fixture(),controller=new AbortController(),meter=new ExecutionBudget({maxSteps:10000,maxAllocatedBytes:100000,signal:controller.signal});
+  const decode=createRuntimeUtf8Decoder(v,()=>{
+    controller.abort();
+    if(throws)throw new PythonRuntimeError("ValueError","guest decoder failed");
+    return v.string("registry result");
+  });
+  expect(()=>decode(v.bytes(new Uint8Array([65])).value,"utf-8-sig",undefined,meter,undefined)).toThrow(ExecutionLimitError);
+  expect(()=>meter.checkpoint()).toThrow(ExecutionLimitError);
+});
+it.each(["utf-8","UTF8","utf-16","utf16","utf-32","utf32"])("preserves native decoding shortcut %s with an extension",encoding=>{
+  const {meter,v}=fixture(),fallback=vi.fn(()=>v.string("registry result"));
+  const input=encoding.includes("16")?[65,0]:encoding.includes("32")?[65,0,0,0]:[65];
+  expect(createRuntimeUtf8Decoder(v,fallback)(v.bytes(new Uint8Array(input)).value,encoding,undefined,meter,undefined)).toEqual(v.string("A"));
+  expect(fallback).not.toHaveBeenCalled();
+});
+it.each(["u8","utf-8-sig","utf-16-le","utf-7"])("skips the supplied registry for empty %s input",encoding=>{
+  const {meter,v}=fixture(),fallback=vi.fn(()=>v.string("registry result"));
+  expect(createRuntimeUtf8Decoder(v,fallback)(v.bytes(new Uint8Array()).value,encoding,"guest-policy",meter,undefined)).toEqual(v.string(""));
+  expect(fallback).not.toHaveBeenCalled();
 });

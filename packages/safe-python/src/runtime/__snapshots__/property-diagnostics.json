@@ -1,0 +1,177 @@
+[
+  {
+    "expression": "property(1, 2, 3, 4, 5)",
+    "type": "TypeError",
+    "message": "property() takes at most 4 arguments (5 given)"
+  },
+  {
+    "expression": "property(a=1)",
+    "type": "TypeError",
+    "message": "property() got an unexpected keyword argument 'a'"
+  },
+  {
+    "expression": "property(fget=1, fsett=2)",
+    "type": "TypeError",
+    "message": "property() got an unexpected keyword argument 'fsett'. Did you mean 'fset'?"
+  },
+  {
+    "expression": "property(1, fget=2)",
+    "type": "TypeError",
+    "message": "argument for property() given by name ('fget') and position (1)"
+  },
+  {
+    "expression": "property.__new__()",
+    "type": "TypeError",
+    "message": "property.__new__(): not enough arguments"
+  },
+  {
+    "expression": "property.__new__(1)",
+    "type": "TypeError",
+    "message": "property.__new__(X): X is not a type object (int)"
+  },
+  {
+    "expression": "property.__new__(int)",
+    "type": "TypeError",
+    "message": "property.__new__(int): int is not a subtype of property"
+  },
+  {
+    "expression": "object.__new__(property)",
+    "type": "TypeError",
+    "message": "object.__new__(property) is not safe, use property.__new__()"
+  },
+  {
+    "expression": "property().getter()",
+    "type": "TypeError",
+    "message": "property.getter() takes exactly one argument (0 given)"
+  },
+  {
+    "expression": "property().getter(1, 2, 3)",
+    "type": "TypeError",
+    "message": "property.getter() takes exactly one argument (3 given)"
+  },
+  {
+    "expression": "property().getter(value=1)",
+    "type": "TypeError",
+    "message": "property.getter() takes no keyword arguments"
+  },
+  {
+    "expression": "property().setter()",
+    "type": "TypeError",
+    "message": "property.setter() takes exactly one argument (0 given)"
+  },
+  {
+    "expression": "property().setter(1, 2, 3)",
+    "type": "TypeError",
+    "message": "property.setter() takes exactly one argument (3 given)"
+  },
+  {
+    "expression": "property().setter(value=1)",
+    "type": "TypeError",
+    "message": "property.setter() takes no keyword arguments"
+  },
+  {
+    "expression": "property().deleter()",
+    "type": "TypeError",
+    "message": "property.deleter() takes exactly one argument (0 given)"
+  },
+  {
+    "expression": "property().deleter(1, 2, 3)",
+    "type": "TypeError",
+    "message": "property.deleter() takes exactly one argument (3 given)"
+  },
+  {
+    "expression": "property().deleter(value=1)",
+    "type": "TypeError",
+    "message": "property.deleter() takes no keyword arguments"
+  },
+  {
+    "expression": "property().__set_name__()",
+    "type": "TypeError",
+    "message": "__set_name__() takes 2 positional arguments but 0 were given"
+  },
+  {
+    "expression": "property().__set_name__(1, 2, 3)",
+    "type": "TypeError",
+    "message": "__set_name__() takes 2 positional arguments but 3 were given"
+  },
+  {
+    "expression": "property().__set_name__(value=1)",
+    "type": "TypeError",
+    "message": "property.__set_name__() takes no keyword arguments"
+  },
+  {
+    "expression": "property().__get__()",
+    "type": "TypeError",
+    "message": "__get__ expected at least 1 argument, got 0"
+  },
+  {
+    "expression": "property().__get__(1, 2, 3)",
+    "type": "TypeError",
+    "message": "__get__ expected at most 2 arguments, got 3"
+  },
+  {
+    "expression": "property().__get__(value=1)",
+    "type": "TypeError",
+    "message": "wrapper __get__() takes no keyword arguments"
+  },
+  {
+    "expression": "property().__set__()",
+    "type": "TypeError",
+    "message": "__set__ expected 2 arguments, got 0"
+  },
+  {
+    "expression": "property().__set__(1, 2, 3)",
+    "type": "TypeError",
+    "message": "__set__ expected 2 arguments, got 3"
+  },
+  {
+    "expression": "property().__set__(value=1)",
+    "type": "TypeError",
+    "message": "wrapper __set__() takes no keyword arguments"
+  },
+  {
+    "expression": "property().__delete__()",
+    "type": "TypeError",
+    "message": "expected 1 argument, got 0"
+  },
+  {
+    "expression": "property().__delete__(1, 2, 3)",
+    "type": "TypeError",
+    "message": "expected 1 argument, got 3"
+  },
+  {
+    "expression": "property().__delete__(value=1)",
+    "type": "TypeError",
+    "message": "wrapper __delete__() takes no keyword arguments"
+  },
+  {
+    "expression": "property.__dict__['fget'].__get__(object())",
+    "type": "TypeError",
+    "message": "descriptor 'fget' for 'property' objects doesn't apply to a 'object' object"
+  },
+  {
+    "expression": "property.__dict__['fset'].__get__(object())",
+    "type": "TypeError",
+    "message": "descriptor 'fset' for 'property' objects doesn't apply to a 'object' object"
+  },
+  {
+    "expression": "property.__dict__['fdel'].__get__(object())",
+    "type": "TypeError",
+    "message": "descriptor 'fdel' for 'property' objects doesn't apply to a 'object' object"
+  },
+  {
+    "expression": "property.__dict__['__doc__'].__get__(object())",
+    "type": "TypeError",
+    "message": "descriptor '__doc__' for 'property' objects doesn't apply to a 'object' object"
+  },
+  {
+    "expression": "property.__dict__['__name__'].__get__(object())",
+    "type": "TypeError",
+    "message": "descriptor '__name__' for 'property' objects doesn't apply to a 'object' object"
+  },
+  {
+    "expression": "property.__dict__['__isabstractmethod__'].__get__(object())",
+    "type": "TypeError",
+    "message": "descriptor '__isabstractmethod__' for 'property' objects doesn't apply to a 'object' object"
+  }
+]

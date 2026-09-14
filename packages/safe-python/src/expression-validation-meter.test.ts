@@ -24,7 +24,7 @@ it("meters comprehension bindings and scope-set work",()=>{
   expect(()=>validateExpression(node,"<string>",undefined,new ExecutionBudget({maxSteps:10000,maxAllocatedBytes:100}))).toThrow(ExecutionLimitError);
 });
 it("charges syntax diagnostic allocation before constructing the error",()=>{
-  const node=parseExpression("(yield 1)"),context={iterations:new Set<string>(),iterable:false,target:false,assignments:null,comprehension:true};
+  const node=parseExpression("(yield 1)"),context={iterations:new Set<string>(),iterable:false,target:false,assignments:null,comprehension:"list comprehension"};
   expect(()=>validateExpression(node,"<string>",context,new ExecutionBudget({maxSteps:100,maxAllocatedBytes:160}))).toThrow(ExecutionLimitError);
 });
 it("retains successful expression validation with an ordinary budget",()=>{

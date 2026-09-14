@@ -173,7 +173,10 @@ export function collectSymbols(module: Module,meter?:SourceMeter): SymbolScope {
           }
           yield statements(node.otherwise, scope); yield statements(node.finalizer, scope);
           break;
-        case "type-alias": case "pass": case "break": case "continue": break;
+        case "type-alias":
+          record(scope, "write", node.name);
+          break;
+        case "pass": case "break": case "continue": break;
         case "expression-statement": case "return": case "raise": case "assert":
           meter?.checkpoint(0,128);for (const item of statementExpressions(node, false,meter)) yield expression(item, scope);
           break;

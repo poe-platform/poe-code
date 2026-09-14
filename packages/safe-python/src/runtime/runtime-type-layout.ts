@@ -6,8 +6,14 @@ import { resolveRuntimeClassAttribute, type RuntimeDescriptorContext } from "./r
 import type { DictionaryValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { RuntimeTypeNames } from "./runtime-type-names.js";
 import { PythonRuntimeError } from "./error.js";
+import { RuntimeNativeClassSlots } from "./runtime-native-class-slots.js";
 
 export interface RuntimeTypeLayoutOptions {
+  /** Heap tp_doc captured at construction, independent of the live __doc__.
+   * Signature lookup parses it against the type's current native name. */
+  readonly internalDocumentation?: string;
+  /** Native tp_doc, independent of an instance __doc__ member. */
+  readonly nativeDocumentation?: {readonly doc:string;readonly textSignature?:string};
   /** Native tp_name may be module-qualified independently of __name__. */
   readonly nativeName?:string;
   /** Native single positional class pattern matches the whole subject. */
@@ -15,8 +21,9 @@ export interface RuntimeTypeLayoutOptions {
   /** Trusted structural-pattern classification, independent of slot presence. */
   readonly patternKind?:"sequence"|"mapping";
   /** Native allocation family can remain compatible while added native fields
-   * establish a distinct storage layout for multiple inheritance. */
-  readonly nativeAllocator?: RuntimeTypeLayout;
+   * establish a distinct storage layout for multiple inheritance. "self" gives
+   * a type its own allocator without introducing a different storage layout. */
+  readonly nativeAllocator?: RuntimeTypeLayout | "self";
   /** Static native types such as dictionary views cannot be allocated directly. */
   readonly instantiable?: boolean;
   /** Prepared, sorted/mangled own slot names; duplicates occupy separate cells. */
@@ -50,6 +57,9 @@ export interface RuntimeTypeLayoutOptions {
  * to class construction and the object layer.
  */
 export class RuntimeTypeLayout {
+  readonly nativeSlots = new RuntimeNativeClassSlots();
+  readonly internalDocumentation: string | undefined;
+  readonly nativeDocumentation:RuntimeTypeLayoutOptions["nativeDocumentation"];
   readonly nativeName:string|undefined;
   readonly matchSelf:boolean;
   readonly patternKind:"sequence"|"mapping"|undefined;
@@ -82,6 +92,8 @@ export class RuntimeTypeLayout {
     this.hasSequenceTable = options.sequenceTable ?? true;
     this.patternKind=options.patternKind;
     this.nativeName=options.nativeName;
+    this.nativeDocumentation=options.nativeDocumentation;
+    this.internalDocumentation=options.internalDocumentation;
     this.matchSelf=options.matchSelf??layoutBase?.matchSelf??false;
     this.isSubclassable = options.subclassable ?? true;
     this.isInstantiable = options.instantiable ?? true;
@@ -89,7 +101,7 @@ export class RuntimeTypeLayout {
     this.slotNames = Object.freeze([...(options.slots ?? [])]);
     this.slotCount = (layoutBase?.slotCount ?? 0) + this.slotNames.length;
     this.nativeStorage = options.objectLayout === false ? this : layoutBase?.nativeStorage;
-    this.nativeAllocator = options.nativeAllocator ?? (options.objectLayout === false ? this : layoutBase?.nativeAllocator);
+    this.nativeAllocator = options.nativeAllocator === "self" ? this : options.nativeAllocator ?? (options.objectLayout === false ? this : layoutBase?.nativeAllocator);
     this.solidLayout = options.objectLayout === false || this.slotNames.length !== 0 ? this : layoutBase?.solidLayout;
     this.variableSized = options.variableSized ?? layoutBase?.variableSized ?? false;
     let dictionary = options.instanceDictionary ?? true, objectLayout = options.objectLayout ?? true;
@@ -150,12 +162,23 @@ export function compatibleRuntimeLayouts(left: RuntimeTypeLayout, right: Runtime
  */
 export function resolveRuntimeTypeAttribute(
   layout: RuntimeTypeLayout,
-  name: Extract<RuntimeValue, { kind: "str" }>,
+  name: RuntimeValue,
   context: RuntimeDescriptorContext,
   values: RuntimeValues,
-  meter: ExecutionMeter
+  meter: ExecutionMeter,
+  nameHash?: () => bigint
 ): { readonly owner: RuntimeTypeLayout; readonly attribute: ClassAttribute<RuntimeValue, RuntimeValue, RuntimeValue> } | undefined {
-  const found = lookupMroAttribute(layout.mro, name, (owner, key) => owner.namespace.items.lookup(key), meter);
+  let found;
+  try {
+    const knownHash = nameHash?.();
+    found = lookupMroAttribute(layout.mro, name, (owner, key) => owner.namespace.items.lookup(key, knownHash), meter);
+  } catch (error) {
+    meter.checkpoint();
+    // CPython type-MRO lookup clears guest hash/equality failures. Descriptor
+    // invocation below is outside this boundary; cancellation is never cleared.
+    if (nameHash !== undefined && (error instanceof PythonRuntimeError || context.invocation?.isException?.(error, "BaseException"))) return undefined;
+    throw error;
+  }
   if (found === undefined) return undefined;
   meter.checkpoint(1, 32);
   const attribute = resolveRuntimeClassAttribute(found.value, context, values, meter);

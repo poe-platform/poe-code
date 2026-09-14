@@ -1,0 +1,716 @@
+{
+  "reference": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "darwin",
+    "byteorder": "little"
+  },
+  "node": "v22.23.2",
+  "adapters": "fs.readSync line input, complete fs.writeSync output, fs.fsyncSync flush; abort after first read; descriptors closed and temporary directory removed in finally",
+  "rows": [
+    {
+      "family": "source",
+      "name": "source decoder receives an ownerless buffer after newline translation",
+      "source": "\nimport codecs\nevents = []\nviews = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual source conversion')\nclass Pair(tuple):\n    def __getitem__(self, key):\n        raise AssertionError('virtual codec result indexing')\ndef decode(*args):\n    view = args[0]\n    views.append(view)\n    events.append((len(args), type(view).__name__, view.obj, view.readonly,\n                   view.format, view.shape, view.strides, view.suboffsets,\n                   view.tobytes()))\n    return Pair((Text('value = 42\\n'), object()))\ndef search(name):\n    events.append(name)\n    return codecs.CodecInfo(None, decode, name=name)\ncodecs.register(search)\nexec(compile(b'# coding: source-contract\\r\\nvalue = 1', 'source.py', 'exec'))\nprint(value)\nprint(events)\nview = views[0]\nview.release()\ntry:\n    view.tobytes()\nexcept ValueError as error:\n    print(type(error).__name__, error.args)\n",
+      "cancellation": "none",
+      "limits": {
+        "maxSteps": 1000000,
+        "maxAllocatedBytes": 16000000,
+        "maxDepth": 100
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "42\n['source_contract', (1, 'memoryview', None, True, 'B', (36,), (1,), (), b'# coding: source-contract\\nvalue = 1\\n')]\nValueError ('operation forbidden on released memoryview object',)\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "exception",
+        "diagnostic": "('SyntaxError', 'unknown encoding: source-contract (source.py, line 0)')",
+        "output": "",
+        "counts": {
+          "reads": 0,
+          "writes": 0,
+          "flushes": 0
+        }
+      },
+      "pass": false
+    },
+    {
+      "family": "source",
+      "name": "source decoder receives an ownerless buffer after newline translation",
+      "source": "\nimport codecs\nevents = []\nviews = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual source conversion')\nclass Pair(tuple):\n    def __getitem__(self, key):\n        raise AssertionError('virtual codec result indexing')\ndef decode(*args):\n    view = args[0]\n    views.append(view)\n    events.append((len(args), type(view).__name__, view.obj, view.readonly,\n                   view.format, view.shape, view.strides, view.suboffsets,\n                   view.tobytes()))\n    return Pair((Text('value = 42\\n'), object()))\ndef search(name):\n    events.append(name)\n    return codecs.CodecInfo(None, decode, name=name)\ncodecs.register(search)\nexec(compile(b'# coding: source-contract\\r\\nvalue = 1', 'source.py', 'exec'))\nprint(value)\nprint(events)\nview = views[0]\nview.release()\ntry:\n    view.tobytes()\nexcept ValueError as error:\n    print(type(error).__name__, error.args)\n",
+      "cancellation": "return",
+      "limits": {
+        "maxSteps": 1000000,
+        "maxAllocatedBytes": 16000000,
+        "maxDepth": 100
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "42\n['source_contract', (1, 'memoryview', None, True, 'B', (36,), (1,), (), b'# coding: source-contract\\nvalue = 1\\n')]\nValueError ('operation forbidden on released memoryview object',)\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "exception",
+        "diagnostic": "('SyntaxError', 'unknown encoding: source-contract (source.py, line 0)')",
+        "output": "",
+        "counts": {
+          "reads": 0,
+          "writes": 0,
+          "flushes": 0
+        }
+      },
+      "pass": false
+    },
+    {
+      "family": "source",
+      "name": "source decoder receives an ownerless buffer after newline translation",
+      "source": "\nimport codecs\nevents = []\nviews = []\nclass Text(str):\n    def __str__(self):\n        raise AssertionError('virtual source conversion')\nclass Pair(tuple):\n    def __getitem__(self, key):\n        raise AssertionError('virtual codec result indexing')\ndef decode(*args):\n    view = args[0]\n    views.append(view)\n    events.append((len(args), type(view).__name__, view.obj, view.readonly,\n                   view.format, view.shape, view.strides, view.suboffsets,\n                   view.tobytes()))\n    return Pair((Text('value = 42\\n'), object()))\ndef search(name):\n    events.append(name)\n    return codecs.CodecInfo(None, decode, name=name)\ncodecs.register(search)\nexec(compile(b'# coding: source-contract\\r\\nvalue = 1', 'source.py', 'exec'))\nprint(value)\nprint(events)\nview = views[0]\nview.release()\ntry:\n    view.tobytes()\nexcept ValueError as error:\n    print(type(error).__name__, error.args)\n",
+      "cancellation": "throw",
+      "limits": {
+        "maxSteps": 1000000,
+        "maxAllocatedBytes": 16000000,
+        "maxDepth": 100
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "42\n['source_contract', (1, 'memoryview', None, True, 'B', (36,), (1,), (), b'# coding: source-contract\\nvalue = 1\\n')]\nValueError ('operation forbidden on released memoryview object',)\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "exception",
+        "diagnostic": "('SyntaxError', 'unknown encoding: source-contract (source.py, line 0)')",
+        "output": "",
+        "counts": {
+          "reads": 0,
+          "writes": 0,
+          "flushes": 0
+        }
+      },
+      "pass": false
+    },
+    {
+      "family": "source",
+      "name": "source callback failures retain native tokenizer conversion",
+      "source": "\nimport codecs\nfailure = None\ndef decode(*args):\n    raise failure\ndef search(name):\n    return codecs.CodecInfo(None, decode, name=name)\ncodecs.register(search)\nfor failure in (ValueError('value failure'), LookupError('lookup failure'),\n                TypeError('type failure'), RuntimeError('runtime failure')):\n    try:\n        compile(b'# coding: source-failure\\nvalue = 1', 'source.py', 'exec')\n    except BaseException as error:\n        print(type(error).__name__, error.args, error is failure)\n        print(getattr(error, '__notes__', None), error.__context__ is None)\n        print(getattr(error, 'filename', None), getattr(error, 'lineno', None),\n              getattr(error, 'offset', None), getattr(error, 'text', None))\n",
+      "cancellation": "none",
+      "limits": {
+        "maxSteps": 1000000,
+        "maxAllocatedBytes": 16000000,
+        "maxDepth": 100
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "SyntaxError ('value failure', ('source.py', 0, -1, None)) False\nNone True\nsource.py 0 -1 None\nSyntaxError ('lookup failure', ('source.py', 0, -1, None)) False\nNone True\nsource.py 0 -1 None\nTypeError ('type failure',) True\n[\"decoding with 'source-failure' codec failed\"] True\nNone None None None\nRuntimeError ('runtime failure',) True\n[\"decoding with 'source-failure' codec failed\"] True\nNone None None None\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "output": "SyntaxError ('unknown encoding: source-failure', ('source.py', 0, -1, None)) False\nNone True\nsource.py 0 -1 None\nSyntaxError ('unknown encoding: source-failure', ('source.py', 0, -1, None)) False\nNone True\nsource.py 0 -1 None\nSyntaxError ('unknown encoding: source-failure', ('source.py', 0, -1, None)) False\nNone True\nsource.py 0 -1 None\nSyntaxError ('unknown encoding: source-failure', ('source.py', 0, -1, None)) False\nNone True\nsource.py 0 -1 None\n",
+        "counts": {
+          "reads": 0,
+          "writes": 72,
+          "flushes": 0
+        }
+      },
+      "pass": false
+    },
+    {
+      "family": "source",
+      "name": "source callback failures retain native tokenizer conversion",
+      "source": "\nimport codecs\nfailure = None\ndef decode(*args):\n    raise failure\ndef search(name):\n    return codecs.CodecInfo(None, decode, name=name)\ncodecs.register(search)\nfor failure in (ValueError('value failure'), LookupError('lookup failure'),\n                TypeError('type failure'), RuntimeError('runtime failure')):\n    try:\n        compile(b'# coding: source-failure\\nvalue = 1', 'source.py', 'exec')\n    except BaseException as error:\n        print(type(error).__name__, error.args, error is failure)\n        print(getattr(error, '__notes__', None), error.__context__ is None)\n        print(getattr(error, 'filename', None), getattr(error, 'lineno', None),\n              getattr(error, 'offset', None), getattr(error, 'text', None))\n",
+      "cancellation": "return",
+      "limits": {
+        "maxSteps": 1000000,
+        "maxAllocatedBytes": 16000000,
+        "maxDepth": 100
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "SyntaxError ('value failure', ('source.py', 0, -1, None)) False\nNone True\nsource.py 0 -1 None\nSyntaxError ('lookup failure', ('source.py', 0, -1, None)) False\nNone True\nsource.py 0 -1 None\nTypeError ('type failure',) True\n[\"decoding with 'source-failure' codec failed\"] True\nNone None None None\nRuntimeError ('runtime failure',) True\n[\"decoding with 'source-failure' codec failed\"] True\nNone None None None\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "output": "SyntaxError ('unknown encoding: source-failure', ('source.py', 0, -1, None)) False\nNone True\nsource.py 0 -1 None\nSyntaxError ('unknown encoding: source-failure', ('source.py', 0, -1, None)) False\nNone True\nsource.py 0 -1 None\nSyntaxError ('unknown encoding: source-failure', ('source.py', 0, -1, None)) False\nNone True\nsource.py 0 -1 None\nSyntaxError ('unknown encoding: source-failure', ('source.py', 0, -1, None)) False\nNone True\nsource.py 0 -1 None\n",
+        "counts": {
+          "reads": 0,
+          "writes": 72,
+          "flushes": 0
+        }
+      },
+      "pass": false
+    },
+    {
+      "family": "source",
+      "name": "source callback failures retain native tokenizer conversion",
+      "source": "\nimport codecs\nfailure = None\ndef decode(*args):\n    raise failure\ndef search(name):\n    return codecs.CodecInfo(None, decode, name=name)\ncodecs.register(search)\nfor failure in (ValueError('value failure'), LookupError('lookup failure'),\n                TypeError('type failure'), RuntimeError('runtime failure')):\n    try:\n        compile(b'# coding: source-failure\\nvalue = 1', 'source.py', 'exec')\n    except BaseException as error:\n        print(type(error).__name__, error.args, error is failure)\n        print(getattr(error, '__notes__', None), error.__context__ is None)\n        print(getattr(error, 'filename', None), getattr(error, 'lineno', None),\n              getattr(error, 'offset', None), getattr(error, 'text', None))\n",
+      "cancellation": "throw",
+      "limits": {
+        "maxSteps": 1000000,
+        "maxAllocatedBytes": 16000000,
+        "maxDepth": 100
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "SyntaxError ('value failure', ('source.py', 0, -1, None)) False\nNone True\nsource.py 0 -1 None\nSyntaxError ('lookup failure', ('source.py', 0, -1, None)) False\nNone True\nsource.py 0 -1 None\nTypeError ('type failure',) True\n[\"decoding with 'source-failure' codec failed\"] True\nNone None None None\nRuntimeError ('runtime failure',) True\n[\"decoding with 'source-failure' codec failed\"] True\nNone None None None\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "output": "SyntaxError ('unknown encoding: source-failure', ('source.py', 0, -1, None)) False\nNone True\nsource.py 0 -1 None\nSyntaxError ('unknown encoding: source-failure', ('source.py', 0, -1, None)) False\nNone True\nsource.py 0 -1 None\nSyntaxError ('unknown encoding: source-failure', ('source.py', 0, -1, None)) False\nNone True\nsource.py 0 -1 None\nSyntaxError ('unknown encoding: source-failure', ('source.py', 0, -1, None)) False\nNone True\nsource.py 0 -1 None\n",
+        "counts": {
+          "reads": 0,
+          "writes": 72,
+          "flushes": 0
+        }
+      },
+      "pass": false
+    },
+    {
+      "family": "source",
+      "name": "source codec callbacks use the supplied input and output services",
+      "source": "\nimport codecs\ndef decode(*args):\n    print('decode')\n    assert input() == 'continue'\n    return ('value = 42\\n', 0)\ndef search(name):\n    print('search', name)\n    return codecs.CodecInfo(None, decode, name=name)\ncodecs.register(search)\nexec(compile(b'# coding: source-service\\nvalue = 1', 'source.py', 'exec'))\nprint(value)\n",
+      "cancellation": "none",
+      "limits": {
+        "maxSteps": 1000000,
+        "maxAllocatedBytes": 16000000,
+        "maxDepth": 100
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "search source_service\ndecode\n42\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "exception",
+        "diagnostic": "('SyntaxError', 'unknown encoding: source-service (source.py, line 0)')",
+        "output": "",
+        "counts": {
+          "reads": 0,
+          "writes": 0,
+          "flushes": 0
+        }
+      },
+      "pass": false
+    },
+    {
+      "family": "source",
+      "name": "source codec callbacks use the supplied input and output services",
+      "source": "\nimport codecs\ndef decode(*args):\n    print('decode')\n    assert input() == 'continue'\n    return ('value = 42\\n', 0)\ndef search(name):\n    print('search', name)\n    return codecs.CodecInfo(None, decode, name=name)\ncodecs.register(search)\nexec(compile(b'# coding: source-service\\nvalue = 1', 'source.py', 'exec'))\nprint(value)\n",
+      "cancellation": "return",
+      "limits": {
+        "maxSteps": 1000000,
+        "maxAllocatedBytes": 16000000,
+        "maxDepth": 100
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "search source_service\ndecode\n42\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "exception",
+        "diagnostic": "('SyntaxError', 'unknown encoding: source-service (source.py, line 0)')",
+        "output": "",
+        "counts": {
+          "reads": 0,
+          "writes": 0,
+          "flushes": 0
+        }
+      },
+      "pass": false
+    },
+    {
+      "family": "source",
+      "name": "source codec callbacks use the supplied input and output services",
+      "source": "\nimport codecs\ndef decode(*args):\n    print('decode')\n    assert input() == 'continue'\n    return ('value = 42\\n', 0)\ndef search(name):\n    print('search', name)\n    return codecs.CodecInfo(None, decode, name=name)\ncodecs.register(search)\nexec(compile(b'# coding: source-service\\nvalue = 1', 'source.py', 'exec'))\nprint(value)\n",
+      "cancellation": "throw",
+      "limits": {
+        "maxSteps": 1000000,
+        "maxAllocatedBytes": 16000000,
+        "maxDepth": 100
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "search source_service\ndecode\n42\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "exception",
+        "diagnostic": "('SyntaxError', 'unknown encoding: source-service (source.py, line 0)')",
+        "output": "",
+        "counts": {
+          "reads": 0,
+          "writes": 0,
+          "flushes": 0
+        }
+      },
+      "pass": false
+    },
+    {
+      "family": "search",
+      "name": "miss",
+      "source": "import codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\ninner = (None, None, None, None)\nfailure = ValueError('outer search failed')\nactive = False\ndef search(name):\n    global active\n    events.append(name)\n    if active:\n        return inner\n    active = True\n    assert codecs.lookup('REENTRY PROBE') is inner\n    assert input() == 'continue'\n    pass\n    return None\ncodecs.register(search)\ntry:\n    codecs.lookup('reentry-probe')\nexcept LookupError as error:\n    assert error.args == (\"unknown encoding: reentry-probe\",)\nelse:\n    assert False\nassert events == ['reentry_probe', 'reentry_probe']\nassert codecs.lookup('reentry_probe') is inner\nassert codecs.lookup('reentry_probe') is inner\nassert events == ['reentry_probe', 'reentry_probe']\ncodecs.unregister(search)\ncodecs.register(search)\nassert codecs.lookup('REENTRY PROBE') is inner\nassert events[-1] == 'reentry_probe'\nprint(\"miss\", events)\n",
+      "cancellation": "none",
+      "limits": {
+        "maxSteps": 1000000,
+        "maxAllocatedBytes": 16000000,
+        "maxDepth": 100
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "miss ['reentry_probe', 'reentry_probe', 'reentry_probe']\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "output": "miss ['reentry_probe', 'reentry_probe', 'reentry_probe']\n",
+        "counts": {
+          "reads": 1,
+          "writes": 4,
+          "flushes": 1
+        }
+      },
+      "pass": true
+    },
+    {
+      "family": "search",
+      "name": "miss",
+      "source": "import codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\ninner = (None, None, None, None)\nfailure = ValueError('outer search failed')\nactive = False\ndef search(name):\n    global active\n    events.append(name)\n    if active:\n        return inner\n    active = True\n    assert codecs.lookup('REENTRY PROBE') is inner\n    assert input() == 'continue'\n    pass\n    return None\ncodecs.register(search)\ntry:\n    codecs.lookup('reentry-probe')\nexcept LookupError as error:\n    assert error.args == (\"unknown encoding: reentry-probe\",)\nelse:\n    assert False\nassert events == ['reentry_probe', 'reentry_probe']\nassert codecs.lookup('reentry_probe') is inner\nassert codecs.lookup('reentry_probe') is inner\nassert events == ['reentry_probe', 'reentry_probe']\ncodecs.unregister(search)\ncodecs.register(search)\nassert codecs.lookup('REENTRY PROBE') is inner\nassert events[-1] == 'reentry_probe'\nprint(\"miss\", events)\n",
+      "cancellation": "return",
+      "limits": {
+        "maxSteps": 1000000,
+        "maxAllocatedBytes": 16000000,
+        "maxDepth": 100
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "miss ['reentry_probe', 'reentry_probe', 'reentry_probe']\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled",
+        "output": "",
+        "counts": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "retry": {
+          "exec": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "eval": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "counts": {
+            "reads": 1,
+            "writes": 0,
+            "flushes": 1
+          }
+        }
+      },
+      "pass": true
+    },
+    {
+      "family": "search",
+      "name": "miss",
+      "source": "import codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\ninner = (None, None, None, None)\nfailure = ValueError('outer search failed')\nactive = False\ndef search(name):\n    global active\n    events.append(name)\n    if active:\n        return inner\n    active = True\n    assert codecs.lookup('REENTRY PROBE') is inner\n    assert input() == 'continue'\n    pass\n    return None\ncodecs.register(search)\ntry:\n    codecs.lookup('reentry-probe')\nexcept LookupError as error:\n    assert error.args == (\"unknown encoding: reentry-probe\",)\nelse:\n    assert False\nassert events == ['reentry_probe', 'reentry_probe']\nassert codecs.lookup('reentry_probe') is inner\nassert codecs.lookup('reentry_probe') is inner\nassert events == ['reentry_probe', 'reentry_probe']\ncodecs.unregister(search)\ncodecs.register(search)\nassert codecs.lookup('REENTRY PROBE') is inner\nassert events[-1] == 'reentry_probe'\nprint(\"miss\", events)\n",
+      "cancellation": "throw",
+      "limits": {
+        "maxSteps": 1000000,
+        "maxAllocatedBytes": 16000000,
+        "maxDepth": 100
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "miss ['reentry_probe', 'reentry_probe', 'reentry_probe']\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled",
+        "output": "",
+        "counts": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "retry": {
+          "exec": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "eval": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "counts": {
+            "reads": 1,
+            "writes": 0,
+            "flushes": 1
+          }
+        }
+      },
+      "pass": true
+    },
+    {
+      "family": "search",
+      "name": "malformed",
+      "source": "import codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\ninner = (None, None, None, None)\nfailure = ValueError('outer search failed')\nactive = False\ndef search(name):\n    global active\n    events.append(name)\n    if active:\n        return inner\n    active = True\n    assert codecs.lookup('REENTRY PROBE') is inner\n    assert input() == 'continue'\n    pass\n    return [None, None, None, None]\ncodecs.register(search)\ntry:\n    codecs.lookup('reentry-probe')\nexcept TypeError as error:\n    assert error.args == (\"codec search functions must return 4-tuples\",)\nelse:\n    assert False\nassert events == ['reentry_probe', 'reentry_probe']\nassert codecs.lookup('reentry_probe') is inner\nassert codecs.lookup('reentry_probe') is inner\nassert events == ['reentry_probe', 'reentry_probe']\ncodecs.unregister(search)\ncodecs.register(search)\nassert codecs.lookup('REENTRY PROBE') is inner\nassert events[-1] == 'reentry_probe'\nprint(\"malformed\", events)\n",
+      "cancellation": "none",
+      "limits": {
+        "maxSteps": 1000000,
+        "maxAllocatedBytes": 16000000,
+        "maxDepth": 100
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "malformed ['reentry_probe', 'reentry_probe', 'reentry_probe']\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "output": "malformed ['reentry_probe', 'reentry_probe', 'reentry_probe']\n",
+        "counts": {
+          "reads": 1,
+          "writes": 4,
+          "flushes": 1
+        }
+      },
+      "pass": true
+    },
+    {
+      "family": "search",
+      "name": "malformed",
+      "source": "import codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\ninner = (None, None, None, None)\nfailure = ValueError('outer search failed')\nactive = False\ndef search(name):\n    global active\n    events.append(name)\n    if active:\n        return inner\n    active = True\n    assert codecs.lookup('REENTRY PROBE') is inner\n    assert input() == 'continue'\n    pass\n    return [None, None, None, None]\ncodecs.register(search)\ntry:\n    codecs.lookup('reentry-probe')\nexcept TypeError as error:\n    assert error.args == (\"codec search functions must return 4-tuples\",)\nelse:\n    assert False\nassert events == ['reentry_probe', 'reentry_probe']\nassert codecs.lookup('reentry_probe') is inner\nassert codecs.lookup('reentry_probe') is inner\nassert events == ['reentry_probe', 'reentry_probe']\ncodecs.unregister(search)\ncodecs.register(search)\nassert codecs.lookup('REENTRY PROBE') is inner\nassert events[-1] == 'reentry_probe'\nprint(\"malformed\", events)\n",
+      "cancellation": "return",
+      "limits": {
+        "maxSteps": 1000000,
+        "maxAllocatedBytes": 16000000,
+        "maxDepth": 100
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "malformed ['reentry_probe', 'reentry_probe', 'reentry_probe']\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled",
+        "output": "",
+        "counts": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "retry": {
+          "exec": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "eval": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "counts": {
+            "reads": 1,
+            "writes": 0,
+            "flushes": 1
+          }
+        }
+      },
+      "pass": true
+    },
+    {
+      "family": "search",
+      "name": "malformed",
+      "source": "import codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\ninner = (None, None, None, None)\nfailure = ValueError('outer search failed')\nactive = False\ndef search(name):\n    global active\n    events.append(name)\n    if active:\n        return inner\n    active = True\n    assert codecs.lookup('REENTRY PROBE') is inner\n    assert input() == 'continue'\n    pass\n    return [None, None, None, None]\ncodecs.register(search)\ntry:\n    codecs.lookup('reentry-probe')\nexcept TypeError as error:\n    assert error.args == (\"codec search functions must return 4-tuples\",)\nelse:\n    assert False\nassert events == ['reentry_probe', 'reentry_probe']\nassert codecs.lookup('reentry_probe') is inner\nassert codecs.lookup('reentry_probe') is inner\nassert events == ['reentry_probe', 'reentry_probe']\ncodecs.unregister(search)\ncodecs.register(search)\nassert codecs.lookup('REENTRY PROBE') is inner\nassert events[-1] == 'reentry_probe'\nprint(\"malformed\", events)\n",
+      "cancellation": "throw",
+      "limits": {
+        "maxSteps": 1000000,
+        "maxAllocatedBytes": 16000000,
+        "maxDepth": 100
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "malformed ['reentry_probe', 'reentry_probe', 'reentry_probe']\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled",
+        "output": "",
+        "counts": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "retry": {
+          "exec": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "eval": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "counts": {
+            "reads": 1,
+            "writes": 0,
+            "flushes": 1
+          }
+        }
+      },
+      "pass": true
+    },
+    {
+      "family": "search",
+      "name": "failure",
+      "source": "import codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\ninner = (None, None, None, None)\nfailure = ValueError('outer search failed')\nactive = False\ndef search(name):\n    global active\n    events.append(name)\n    if active:\n        return inner\n    active = True\n    assert codecs.lookup('REENTRY PROBE') is inner\n    assert input() == 'continue'\n    pass\n    raise failure\ncodecs.register(search)\ntry:\n    codecs.lookup('reentry-probe')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    assert False\nassert events == ['reentry_probe', 'reentry_probe']\nassert codecs.lookup('reentry_probe') is inner\nassert codecs.lookup('reentry_probe') is inner\nassert events == ['reentry_probe', 'reentry_probe']\ncodecs.unregister(search)\ncodecs.register(search)\nassert codecs.lookup('REENTRY PROBE') is inner\nassert events[-1] == 'reentry_probe'\nprint(\"failure\", events)\n",
+      "cancellation": "none",
+      "limits": {
+        "maxSteps": 1000000,
+        "maxAllocatedBytes": 16000000,
+        "maxDepth": 100
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure ['reentry_probe', 'reentry_probe', 'reentry_probe']\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "output": "failure ['reentry_probe', 'reentry_probe', 'reentry_probe']\n",
+        "counts": {
+          "reads": 1,
+          "writes": 4,
+          "flushes": 1
+        }
+      },
+      "pass": true
+    },
+    {
+      "family": "search",
+      "name": "failure",
+      "source": "import codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\ninner = (None, None, None, None)\nfailure = ValueError('outer search failed')\nactive = False\ndef search(name):\n    global active\n    events.append(name)\n    if active:\n        return inner\n    active = True\n    assert codecs.lookup('REENTRY PROBE') is inner\n    assert input() == 'continue'\n    pass\n    raise failure\ncodecs.register(search)\ntry:\n    codecs.lookup('reentry-probe')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    assert False\nassert events == ['reentry_probe', 'reentry_probe']\nassert codecs.lookup('reentry_probe') is inner\nassert codecs.lookup('reentry_probe') is inner\nassert events == ['reentry_probe', 'reentry_probe']\ncodecs.unregister(search)\ncodecs.register(search)\nassert codecs.lookup('REENTRY PROBE') is inner\nassert events[-1] == 'reentry_probe'\nprint(\"failure\", events)\n",
+      "cancellation": "return",
+      "limits": {
+        "maxSteps": 1000000,
+        "maxAllocatedBytes": 16000000,
+        "maxDepth": 100
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure ['reentry_probe', 'reentry_probe', 'reentry_probe']\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled",
+        "output": "",
+        "counts": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "retry": {
+          "exec": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "eval": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "counts": {
+            "reads": 1,
+            "writes": 0,
+            "flushes": 1
+          }
+        }
+      },
+      "pass": true
+    },
+    {
+      "family": "search",
+      "name": "failure",
+      "source": "import codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\ninner = (None, None, None, None)\nfailure = ValueError('outer search failed')\nactive = False\ndef search(name):\n    global active\n    events.append(name)\n    if active:\n        return inner\n    active = True\n    assert codecs.lookup('REENTRY PROBE') is inner\n    assert input() == 'continue'\n    pass\n    raise failure\ncodecs.register(search)\ntry:\n    codecs.lookup('reentry-probe')\nexcept ValueError as error:\n    assert error is failure\nelse:\n    assert False\nassert events == ['reentry_probe', 'reentry_probe']\nassert codecs.lookup('reentry_probe') is inner\nassert codecs.lookup('reentry_probe') is inner\nassert events == ['reentry_probe', 'reentry_probe']\ncodecs.unregister(search)\ncodecs.register(search)\nassert codecs.lookup('REENTRY PROBE') is inner\nassert events[-1] == 'reentry_probe'\nprint(\"failure\", events)\n",
+      "cancellation": "throw",
+      "limits": {
+        "maxSteps": 1000000,
+        "maxAllocatedBytes": 16000000,
+        "maxDepth": 100
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "failure ['reentry_probe', 'reentry_probe', 'reentry_probe']\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled",
+        "output": "",
+        "counts": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "retry": {
+          "exec": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "eval": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "counts": {
+            "reads": 1,
+            "writes": 0,
+            "flushes": 1
+          }
+        }
+      },
+      "pass": true
+    },
+    {
+      "family": "search",
+      "name": "invalidate",
+      "source": "import codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\ninner = (None, None, None, None)\nfailure = ValueError('outer search failed')\nactive = False\ndef search(name):\n    global active\n    events.append(name)\n    if active:\n        return inner\n    active = True\n    assert codecs.lookup('REENTRY PROBE') is inner\n    assert input() == 'continue'\n    codecs.unregister(search)\n    return None\ncodecs.register(search)\ntry:\n    codecs.lookup('reentry-probe')\nexcept LookupError as error:\n    assert error.args == (\"unknown encoding: reentry-probe\",)\nelse:\n    assert False\nassert events == ['reentry_probe', 'reentry_probe']\ntry:\n    codecs.lookup('reentry_probe')\nexcept LookupError as error:\n    assert error.args == (\"no codec search functions registered: can't find encoding\",)\nelse:\n    assert False\ncodecs.register(search)\nassert codecs.lookup('reentry_probe') is inner\nassert events == ['reentry_probe', 'reentry_probe', 'reentry_probe']\ncodecs.unregister(search)\ncodecs.register(search)\nassert codecs.lookup('REENTRY PROBE') is inner\nassert events[-1] == 'reentry_probe'\nprint(\"invalidate\", events)\n",
+      "cancellation": "none",
+      "limits": {
+        "maxSteps": 1000000,
+        "maxAllocatedBytes": 16000000,
+        "maxDepth": 100
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "invalidate ['reentry_probe', 'reentry_probe', 'reentry_probe', 'reentry_probe']\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "ok",
+        "output": "invalidate ['reentry_probe', 'reentry_probe', 'reentry_probe', 'reentry_probe']\n",
+        "counts": {
+          "reads": 1,
+          "writes": 4,
+          "flushes": 1
+        }
+      },
+      "pass": true
+    },
+    {
+      "family": "search",
+      "name": "invalidate",
+      "source": "import codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\ninner = (None, None, None, None)\nfailure = ValueError('outer search failed')\nactive = False\ndef search(name):\n    global active\n    events.append(name)\n    if active:\n        return inner\n    active = True\n    assert codecs.lookup('REENTRY PROBE') is inner\n    assert input() == 'continue'\n    codecs.unregister(search)\n    return None\ncodecs.register(search)\ntry:\n    codecs.lookup('reentry-probe')\nexcept LookupError as error:\n    assert error.args == (\"unknown encoding: reentry-probe\",)\nelse:\n    assert False\nassert events == ['reentry_probe', 'reentry_probe']\ntry:\n    codecs.lookup('reentry_probe')\nexcept LookupError as error:\n    assert error.args == (\"no codec search functions registered: can't find encoding\",)\nelse:\n    assert False\ncodecs.register(search)\nassert codecs.lookup('reentry_probe') is inner\nassert events == ['reentry_probe', 'reentry_probe', 'reentry_probe']\ncodecs.unregister(search)\ncodecs.register(search)\nassert codecs.lookup('REENTRY PROBE') is inner\nassert events[-1] == 'reentry_probe'\nprint(\"invalidate\", events)\n",
+      "cancellation": "return",
+      "limits": {
+        "maxSteps": 1000000,
+        "maxAllocatedBytes": 16000000,
+        "maxDepth": 100
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "invalidate ['reentry_probe', 'reentry_probe', 'reentry_probe', 'reentry_probe']\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled",
+        "output": "",
+        "counts": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "retry": {
+          "exec": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "eval": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "counts": {
+            "reads": 1,
+            "writes": 0,
+            "flushes": 1
+          }
+        }
+      },
+      "pass": true
+    },
+    {
+      "family": "search",
+      "name": "invalidate",
+      "source": "import codecs\nimport encodings\ncodecs.unregister(encodings.search_function)\nevents = []\ninner = (None, None, None, None)\nfailure = ValueError('outer search failed')\nactive = False\ndef search(name):\n    global active\n    events.append(name)\n    if active:\n        return inner\n    active = True\n    assert codecs.lookup('REENTRY PROBE') is inner\n    assert input() == 'continue'\n    codecs.unregister(search)\n    return None\ncodecs.register(search)\ntry:\n    codecs.lookup('reentry-probe')\nexcept LookupError as error:\n    assert error.args == (\"unknown encoding: reentry-probe\",)\nelse:\n    assert False\nassert events == ['reentry_probe', 'reentry_probe']\ntry:\n    codecs.lookup('reentry_probe')\nexcept LookupError as error:\n    assert error.args == (\"no codec search functions registered: can't find encoding\",)\nelse:\n    assert False\ncodecs.register(search)\nassert codecs.lookup('reentry_probe') is inner\nassert events == ['reentry_probe', 'reentry_probe', 'reentry_probe']\ncodecs.unregister(search)\ncodecs.register(search)\nassert codecs.lookup('REENTRY PROBE') is inner\nassert events[-1] == 'reentry_probe'\nprint(\"invalidate\", events)\n",
+      "cancellation": "throw",
+      "limits": {
+        "maxSteps": 1000000,
+        "maxAllocatedBytes": 16000000,
+        "maxDepth": 100
+      },
+      "oracle": {
+        "status": 0,
+        "stdout": "invalidate ['reentry_probe', 'reentry_probe', 'reentry_probe', 'reentry_probe']\n",
+        "stderr": ""
+      },
+      "actual": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled",
+        "output": "",
+        "counts": {
+          "reads": 1,
+          "writes": 0,
+          "flushes": 1
+        },
+        "retry": {
+          "exec": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "eval": {
+            "status": "terminated",
+            "reason": "cancelled",
+            "message": "execution cancelled"
+          },
+          "counts": {
+            "reads": 1,
+            "writes": 0,
+            "flushes": 1
+          }
+        }
+      },
+      "pass": true
+    }
+  ]
+}

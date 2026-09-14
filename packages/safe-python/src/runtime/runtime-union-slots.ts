@@ -13,7 +13,7 @@ export function installRuntimeUnionOperators(owner:TypeValue,values:RuntimeValue
   const classReceiver=owner===owner.metaclass;
   for(const name of ["__or__","__ror__"] as const){
     meter.checkpoint(0,96);
-    owner.value.namespace.items.set(values.string(name),values.wrapperDescriptor({owner,name,doc:name==="__or__"?"Return self|value.":"Return value|self.",accepts:receiver=>classReceiver?receiver.kind==="type":runtimeUnionPayload(receiver)!==undefined,
+    owner.value.namespace.items.set(values.string(name),values.wrapperDescriptor({owner,name,doc:name==="__or__"?"Return self|value.":"Return value|self.",textSignature:"($self, value, /)",accepts:receiver=>classReceiver?receiver.kind==="type":runtimeUnionPayload(receiver)!==undefined,
       invoke(receiver,positional,keywords,meter,invocation){
         meter.checkpoint();
         if(keywords.items.size)throw new PythonRuntimeError("TypeError",`wrapper ${name}() takes no keyword arguments`);
@@ -28,13 +28,21 @@ export function installRuntimeUnionSlots(owner:TypeValue,values:RuntimeValues,me
   installRuntimeUnionOperators(owner,values,meter,keys,noneType,unionType);
   meter.checkpoint(0,96);
   owner.value.namespace.items.set(values.string("__args__"),values.memberDescriptor({owner,name:"__args__",accepts:receiver=>runtimeUnionPayload(receiver)!==undefined,get:receiver=>runtimeUnionPayload(receiver)!.args}));
-  for(const name of ["__repr__","__hash__","__eq__","__ne__"] as const){
+  for(const [name,doc] of [
+    ["__repr__","Return repr(self)."], ["__hash__","Return hash(self)."],
+    ["__eq__","Return self==value."], ["__ne__","Return self!=value."],
+    ["__lt__","Return self<value."], ["__le__","Return self<=value."],
+    ["__gt__","Return self>value."], ["__ge__","Return self>=value."]
+  ] as const){
     meter.checkpoint(0,96);
-    owner.value.namespace.items.set(values.string(name),values.wrapperDescriptor({owner,name,doc:name==="__repr__"?"Return repr(self).":name==="__hash__"?"Return hash(self).":name==="__eq__"?"Return self==value.":"Return self!=value.",accepts:receiver=>runtimeUnionPayload(receiver)!==undefined,
+    owner.value.namespace.items.set(values.string(name),values.wrapperDescriptor({owner,name,doc,textSignature:name==="__repr__"||name==="__hash__"?"($self, /)":"($self, value, /)",accepts:receiver=>runtimeUnionPayload(receiver)!==undefined,
       invoke(receiver,positional,keywords,meter,invocation){
-        meter.checkpoint();const count=name==="__eq__"||name==="__ne__"?1:0;
+        meter.checkpoint();const count=name==="__repr__"||name==="__hash__"?0:1;
         if(keywords.items.size)throw new PythonRuntimeError("TypeError",`wrapper ${name}() takes no keyword arguments`);
         if(positional.length!==count)throw new PythonRuntimeError("TypeError",`expected ${count} argument${count===1?"":"s"}, got ${positional.length}`);
+        // Union's rich-comparison slot declines ordering without inspecting
+        // either operand. Operator reflection belongs to the binary dispatcher.
+        if(name==="__lt__"||name==="__le__"||name==="__gt__"||name==="__ge__")return values.notImplemented;
         const state=runtimeUnionPayload(receiver)!;
         try{
           if(name==="__repr__"){
@@ -50,7 +58,7 @@ export function installRuntimeUnionSlots(owner:TypeValue,values:RuntimeValues,me
             return values.integer(state.hashable.items.keySetHash());
           }
           const other=runtimeUnionPayload(positional[0]);if(!other)return values.notImplemented;
-          let equal=state.hashable.items.size===other.hashable.items.size&&state.hashable.items.isKeySubsetOf(other.hashable.items);
+          let equal=state.hashable.items.hasEqualKeys(other.hashable.items);
           const a=state.unhashable?.items,b=other.unhashable?.items;
           if(equal&&a&&b){
             equal=a.length===b.length;

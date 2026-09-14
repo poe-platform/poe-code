@@ -7,7 +7,10 @@ import { runtimeSearchBound } from "./runtime-search-bound.js";
 import { runtimeSizeIndex } from "./runtime-size-index.js";
 import { createRuntimeSearchEquality, type RuntimeSearchEqualityContext } from "./runtime-search-equality.js";
 
-export type RuntimeListMethodContext = RuntimeSearchEqualityContext & Partial<Pick<ExpressionContext<RuntimeValue>, "iterate">>;
+export type RuntimeListMethodContext = RuntimeSearchEqualityContext & Partial<Pick<ExpressionContext<RuntimeValue>, "iterate">> & {
+  /** Bound-call diagnostics may read guest qualname metadata, only on error. */
+  diagnosticName?: () => string;
+};
 
 /** Exact list capabilities backed by owned, metered storage. Optional expression
  * capabilities supply guest iteration, equality, truth and integer indices.
@@ -15,11 +18,12 @@ export type RuntimeListMethodContext = RuntimeSearchEqualityContext & Partial<Pi
 export function createRuntimeListMethod(receiver: ListValue, name: "append" | "extend" | "insert" | "pop" | "clear" | "reverse" | "copy" | "count" | "remove" | "index" | "__reversed__", values: RuntimeValues, meter: ExecutionMeter, context: RuntimeListMethodContext = {}): BuiltinFunctionValue {
   meter.checkpoint(1, 64);
   const equal = createRuntimeSearchEquality(values, meter, context);
+  const diagnosticName = context.diagnosticName ?? (() => `list.${name}()`);
   return values.builtinFunction({
     name,
     invoke(positional, keywords, meter) {
       meter.checkpoint();
-      if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", `list.${name}() takes no keyword arguments`);
+      if (keywords.items.size !== 0) throw new PythonRuntimeError("TypeError", `${diagnosticName()} takes no keyword arguments`);
       if (name === "index") {
         if (positional.length < 1) throw new PythonRuntimeError("TypeError", "index expected at least 1 argument, got 0");
         if (positional.length > 3) throw new PythonRuntimeError("TypeError", `index expected at most 3 arguments, got ${positional.length}`);
@@ -41,14 +45,14 @@ export function createRuntimeListMethod(receiver: ListValue, name: "append" | "e
         return values.none;
       }
       if (name === "clear" || name === "reverse" || name === "copy" || name === "__reversed__") {
-        if (positional.length !== 0) throw new PythonRuntimeError("TypeError", `list.${name}() takes no arguments (${positional.length} given)`);
+        if (positional.length !== 0) throw new PythonRuntimeError("TypeError", `${diagnosticName()} takes no arguments (${positional.length} given)`);
         if (name === "__reversed__") return values.iterator(receiver.items.reversed());
         if (name === "copy") return values.list(receiver.items.slice());
         if (name === "clear") receiver.items.clear();
         else receiver.items.reverse();
         return values.none;
       }
-      if (positional.length !== 1) throw new PythonRuntimeError("TypeError", `list.${name}() takes exactly one argument (${positional.length} given)`);
+      if (positional.length !== 1) throw new PythonRuntimeError("TypeError", `${diagnosticName()} takes exactly one argument (${positional.length} given)`);
       const value = positional[0];
       if (name === "append") receiver.items.append(value);
       else if (name === "extend") {

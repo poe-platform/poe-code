@@ -17,7 +17,7 @@ export function installRuntimeExceptionTracebackDescriptors(owner:TypeValue,valu
     set,
     delete(_receiver,meter){meter.checkpoint();throw new PythonRuntimeError("TypeError","__traceback__ may not be deleted");}
   }));
-  owner.value.namespace.items.set(values.string("with_traceback"),values.methodDescriptor({owner,name:"with_traceback",accepts:value=>runtimeExceptionPayload(value)!==undefined,
+  owner.value.namespace.items.set(values.string("with_traceback"),values.methodDescriptor({owner,name:"with_traceback",doc:"Set self.__traceback__ to tb and return self.",textSignature:"($self, tb, /)",accepts:value=>runtimeExceptionPayload(value)!==undefined,
     invoke(receiver,positional,keywords,meter,_invocation,bound){
       meter.checkpoint();
       if(keywords.items.size!==0||positional.length!==1){

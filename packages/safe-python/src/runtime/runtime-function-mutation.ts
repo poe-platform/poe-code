@@ -3,6 +3,10 @@ import type { ExecutionMeter } from "./execution-budget.js";
 import type { BuiltinInvocationContext, FunctionValue, RuntimeValue, RuntimeValues } from "./runtime-values.js";
 import { hasRuntimeInstanceAttributes } from "./runtime-values.js";
 import { RuntimeAttributeStorage } from "./runtime-attribute-storage.js";
+import { runtimeCallable } from "./runtime-callability.js";
+import { lookupMroAttribute } from "./class-attributes.js";
+import { runtimeDictionaryPayload } from "./runtime-dictionary-payload.js";
+import { runtimeTuplePayload } from "./runtime-tuple-payload.js";
 import {replaceRuntimeFunctionCode} from "./runtime-function-code.js";
 import type {KeyOperations} from "./ordered-key-map.js";
 import type {RuntimeCodePrograms} from "./runtime-code-programs.js";
@@ -22,13 +26,25 @@ export function runtimeMutateFunctionAttribute(fn: FunctionValue, name: string, 
       replaceRuntimeFunctionCode(fn,code,values,meter,keys,warn);return true;
     }
     case "__class__":
-    case "__annotate__": case "__type_params__":
+    case "__type_params__":
       return false;
+    case "__annotate__": {
+      if (change.kind === "delete") throw new PythonRuntimeError("TypeError", "__annotate__ cannot be deleted");
+      const value = change.value;
+      if (value.kind !== "none") {
+        if (!runtimeCallable(value, meter, { callable(candidate) {
+          return hasRuntimeInstanceAttributes(candidate) && lookupMroAttribute(candidate.type.value.mro, values.string("__call__"), (owner, key) => owner.namespace.items.lookup(key), meter) !== undefined;
+        } })) throw new PythonRuntimeError("TypeError", "__annotate__ must be callable or None");
+        delete fn.value.annotations;
+      }
+      fn.value.annotate = value;
+      return true;
+    }
     case "__globals__": case "__builtins__": case "__closure__":
       throw new PythonRuntimeError("AttributeError","readonly attribute");
     case "__defaults__": case "__kwdefaults__": {
       const value = change.kind === "delete" ? values.none : change.value;
-      if (value.kind !== "none" && value.kind !== (name === "__defaults__" ? "tuple" : "dict")) throw new PythonRuntimeError("TypeError", `${name} must be set to a ${name === "__defaults__" ? "tuple" : "dict"} object`);
+      if (value.kind !== "none" && (name === "__defaults__" ? runtimeTuplePayload(value) : runtimeDictionaryPayload(value)) === undefined) throw new PythonRuntimeError("TypeError", `${name} must be set to a ${name === "__defaults__" ? "tuple" : "dict"} object`);
       if (name === "__defaults__") fn.value.positionalDefaults = value;
       else fn.value.keywordDefaults = value;
       return true;
@@ -57,9 +73,10 @@ export function runtimeMutateFunctionAttribute(fn: FunctionValue, name: string, 
     case "__annotations__":
       if (change.kind === "delete" || change.value.kind === "none") delete fn.value.annotations;
       else {
-        if (change.value.kind !== "dict") throw new PythonRuntimeError("TypeError", "__annotations__ must be set to a dict object");
+        if (runtimeDictionaryPayload(change.value) === undefined) throw new PythonRuntimeError("TypeError", "__annotations__ must be set to a dict object");
         fn.value.annotations = change.value;
       }
+      fn.value.annotate = values.none;
       return true;
   }
   if (change.kind === "set") {

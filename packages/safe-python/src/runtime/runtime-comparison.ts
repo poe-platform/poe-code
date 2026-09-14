@@ -86,7 +86,7 @@ export function runtimeComparison(operator: string, left: RuntimeValue, right: R
     if (isRuntimeSet(a) && isRuntimeSet(b)) {
       const aSize = a.items.size, bSize = b.items.size;
       if (op === "==" || op === "!=") {
-        const equal = aSize === bSize && a.items.isKeySubsetOf(b.items);
+        const equal = a.items.hasEqualKeys(b.items);
         result = op === "==" ? equal : !equal;
       } else if (op === "<" || op === "<=") result = (op === "<" ? aSize < bSize : aSize <= bSize) && a.items.isKeySubsetOf(b.items);
       else result = (op === ">" ? aSize > bSize : aSize >= bSize) && b.items.isKeySubsetOf(a.items);
@@ -169,7 +169,11 @@ export function runtimeComparison(operator: string, left: RuntimeValue, right: R
       const numeric = numericComparison(op, a, b, values, meter);
       if (numeric.kind === "bool") { result = numeric.value; continue; }
     }
-    if (a.kind === "str" && b.kind === "str") { result = orderedResult(op, a.value.compare(b.value, meter)); continue; }
+    if (a.kind === "str" && b.kind === "str") {
+      if (op === "==" || op === "!=") result = a.value.equals(b.value, meter) === (op === "==");
+      else result = orderedResult(op, a.value.compare(b.value, meter));
+      continue;
+    }
     if (a.kind === "bytes" && b.kind === "bytes") { result = orderedResult(op, a.value.compare(b.value, meter)); continue; }
     if (a.kind === "range" && b.kind === "range" && (op === "==" || op === "!=")) {
       const equal = rangesEqual(a.value, b.value);

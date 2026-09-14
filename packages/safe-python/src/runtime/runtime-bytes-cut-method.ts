@@ -1,3 +1,4 @@
+import {unsupportedBuffer} from "./runtime-buffer-error.js";
 import { PythonRuntimeError } from "./error.js";
 import type { ExecutionMeter } from "./execution-budget.js";
 import type { RuntimeBufferContext, RuntimeBufferLease } from "./runtime-buffer-context.js";
@@ -18,7 +19,7 @@ export function createRuntimeBytesCutMethod(receiver: Extract<RuntimeValue, { ki
       try {
         if (argument.kind !== "bytes") {
           lease = buffers?.acquireSimple(argument); meter.checkpoint();
-          if (lease === undefined) invalidBytesArgument(argument);
+          if (lease === undefined) unsupportedBuffer(argument,meter,buffers);
         }
         const separator = argument.kind === "bytes" ? argument.value : lease!.copy();
         meter.checkpoint();
@@ -42,9 +43,4 @@ export function createRuntimeBytesCutMethod(receiver: Extract<RuntimeValue, { ki
       }
     }
   });
-}
-
-function invalidBytesArgument(value: RuntimeValue): never {
-  const type = value.kind === "none" ? "NoneType" : value.kind === "not-implemented" ? "NotImplementedType" : value.kind;
-  throw new PythonRuntimeError("TypeError", `a bytes-like object is required, not '${type}'`);
 }

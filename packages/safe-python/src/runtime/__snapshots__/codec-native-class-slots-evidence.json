@@ -1,0 +1,1357 @@
+{
+  "date": "2026-09-13",
+  "target": {
+    "status": 0,
+    "stdout": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]\n16.0.0\nmacOS-26.4.1-arm64-arm-64bit-Mach-O\nlittle\n",
+    "stderr": ""
+  },
+  "typeobject": {
+    "url": "https://raw.githubusercontent.com/python/cpython/v3.14.7/Objects/typeobject.c",
+    "sha256": "fbfe5ac18847548ffd203a1b5e2d14f5464010c3cc6ecdc5adb790d4fd36ae8c"
+  },
+  "serviceDriver": "import fs from 'node:fs';import {PythonSession} from './packages/safe-python/src/index.ts';\nconst {source,cancel,throws}=JSON.parse(process.argv[1]);const controller=new AbortController();let reads=0,writes=0;\nconst session=new PythonSession({limits:{maxSteps:1000000,maxAllocatedBytes:16000000,maxDepth:100},hashSeed:[1n,2n],signal:controller.signal,\ninput:{readLine(){reads++;let line='';const byte=Buffer.alloc(1);while(fs.readSync(0,byte,0,1,null)){line+=byte.toString('utf8');if(byte[0]===10)break;}if(cancel){controller.abort();if(throws)throw Error('service cancelled');}return line;}},\noutput:{write(text){writes++;fs.writeSync(1,text);},flush(){}}});\nconst result=session.exec(source),usage=session.usage;let detail;\nif(result.status==='exception'){session.globals.set('failure',result.exception);const diagnostic=session.eval('str(failure)');if(diagnostic.status==='ok')detail=diagnostic.value.primitive;}\nconst repeated=cancel?session.eval('1'):undefined;\nfs.writeSync(2,JSON.stringify({result:result.status==='exception'?{status:result.status,detail}:result,usage,reads,writes,repeated})+'\\n');\nif(cancel?(result.status!=='terminated'||result.reason!=='cancelled'||repeated.status!=='terminated'||repeated.reason!=='cancelled'||reads!==1):result.status!=='ok')process.exitCode=1;",
+  "cases": [
+    {
+      "name": "type mutation retains the previous value before slot invalidation",
+      "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n        return str.__eq__(self, other)\nC = type('C', (codecs.IncrementalDecoder,), {Key('__hash__'): lambda self: 1})\nseen.clear()\nC.__hash__ = lambda self: 2\nassert seen == ['__hash__'] * 3, seen\nassert hash(C()) == 2\nseen.clear()\ndel C.__hash__\nassert seen == ['__hash__'] * 2, seen\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "exception",
+          "diagnostic": "['__hash__', '__hash__']"
+        },
+        "usage": {
+          "steps": 144841,
+          "allocatedBytes": 1938931
+        }
+      }
+    },
+    {
+      "name": "repr slot is initialized during native class readiness",
+      "source": "\nimport codecs\nseen = []\nexpected = '__repr__'\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nC = type('C', (codecs.IncrementalDecoder,), {Key(expected): lambda self: 'decoder'})\nassert seen == [True], seen\nassert repr(C()) == 'decoder'\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "exception",
+          "diagnostic": "[]"
+        },
+        "usage": {
+          "steps": 137660,
+          "allocatedBytes": 1790704
+        }
+      }
+    },
+    {
+      "name": "source mutation retains the copied namespace and original key",
+      "source": "\nimport codecs\nexpected = '__hash__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n            namespace.clear()\n            namespace['after_copy'] = 91\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: lambda self: 37}\nC = type('C', (codecs.IncrementalDecoder,), namespace)\nassert seen == [True] * 4\nassert namespace == {'after_copy': 91}\nassert next(key for key in C.__dict__ if key == expected) is key\nassert hash(C()) == 37\nassert 'after_copy' not in C.__dict__\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 151133,
+          "allocatedBytes": 2049865
+        }
+      }
+    },
+    {
+      "name": "real service callback observes initialization and invocation",
+      "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 4:\n                assert input() == 'ready'\n        return str.__eq__(self, other)\nC = type('C', (codecs.IncrementalDecoder,), {Key('__hash__'): lambda self: 43})\nassert len(seen) == 4\nassert hash(C()) == 43\nprint('native slot ready')\n",
+      "native": {
+        "status": 0,
+        "stdout": "native slot ready\n",
+        "stderr": ""
+      },
+      "interpreter": {
+        "status": 0,
+        "stdout": "native slot ready\n",
+        "stderr": "{\"result\":{\"status\":\"ok\"},\"usage\":{\"steps\":144029,\"allocatedBytes\":1924332},\"reads\":1,\"writes\":2}\n"
+      },
+      "realServices": true
+    },
+    {
+      "name": "comparison fixup retains the inherited native comparison family",
+      "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 4:\n                raise ValueError('comparison fixup')\n        return str.__eq__(self, other)\nC = type('C', (codecs.CodecInfo,), {Key('__eq__'): None})\nassert len(seen) == 4\nassert C(None, None) == C(None, None)\nassert C.__eq__ is None\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 148419,
+          "allocatedBytes": 1974226
+        }
+      }
+    },
+    {
+      "name": "CodecInfo __eq__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.CodecInfo\nexpected = '__eq__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = len(base.__mro__) + 1\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 149247,
+          "allocatedBytes": 2004787
+        }
+      }
+    },
+    {
+      "name": "CodecInfo __hash__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.CodecInfo\nexpected = '__hash__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = len(base.__mro__) + 2\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 150156,
+          "allocatedBytes": 2020807
+        }
+      }
+    },
+    {
+      "name": "CodecInfo __new__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.CodecInfo\nexpected = '__new__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = 2\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 146795,
+          "allocatedBytes": 1959969
+        }
+      }
+    },
+    {
+      "name": "CodecInfo __doc__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.CodecInfo\nexpected = '__doc__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = 2\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 146770,
+          "allocatedBytes": 1959753
+        }
+      }
+    },
+    {
+      "name": "IncrementalEncoder __eq__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.IncrementalEncoder\nexpected = '__eq__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = len(base.__mro__) + 1\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 148495,
+          "allocatedBytes": 1989073
+        }
+      }
+    },
+    {
+      "name": "IncrementalEncoder __hash__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.IncrementalEncoder\nexpected = '__hash__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = len(base.__mro__) + 2\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 149397,
+          "allocatedBytes": 2005093
+        }
+      }
+    },
+    {
+      "name": "IncrementalEncoder __new__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.IncrementalEncoder\nexpected = '__new__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = 2\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 146884,
+          "allocatedBytes": 1960251
+        }
+      }
+    },
+    {
+      "name": "IncrementalEncoder __doc__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.IncrementalEncoder\nexpected = '__doc__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = 2\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 146890,
+          "allocatedBytes": 1960099
+        }
+      }
+    },
+    {
+      "name": "IncrementalDecoder __eq__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.IncrementalDecoder\nexpected = '__eq__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = len(base.__mro__) + 1\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 148495,
+          "allocatedBytes": 1989073
+        }
+      }
+    },
+    {
+      "name": "IncrementalDecoder __hash__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.IncrementalDecoder\nexpected = '__hash__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = len(base.__mro__) + 2\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 149397,
+          "allocatedBytes": 2005093
+        }
+      }
+    },
+    {
+      "name": "IncrementalDecoder __new__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.IncrementalDecoder\nexpected = '__new__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = 2\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 146884,
+          "allocatedBytes": 1960251
+        }
+      }
+    },
+    {
+      "name": "IncrementalDecoder __doc__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.IncrementalDecoder\nexpected = '__doc__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = 2\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 146890,
+          "allocatedBytes": 1960099
+        }
+      }
+    },
+    {
+      "name": "BufferedIncrementalEncoder __eq__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.BufferedIncrementalEncoder\nexpected = '__eq__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = len(base.__mro__) + 1\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 149536,
+          "allocatedBytes": 2005429
+        }
+      }
+    },
+    {
+      "name": "BufferedIncrementalEncoder __hash__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.BufferedIncrementalEncoder\nexpected = '__hash__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = len(base.__mro__) + 2\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 150454,
+          "allocatedBytes": 2021449
+        }
+      }
+    },
+    {
+      "name": "BufferedIncrementalEncoder __new__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.BufferedIncrementalEncoder\nexpected = '__new__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = 2\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 147062,
+          "allocatedBytes": 1960547
+        }
+      }
+    },
+    {
+      "name": "BufferedIncrementalEncoder __doc__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.BufferedIncrementalEncoder\nexpected = '__doc__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = 2\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 147077,
+          "allocatedBytes": 1960395
+        }
+      }
+    },
+    {
+      "name": "BufferedIncrementalDecoder __eq__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.BufferedIncrementalDecoder\nexpected = '__eq__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = len(base.__mro__) + 1\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 149536,
+          "allocatedBytes": 2005429
+        }
+      }
+    },
+    {
+      "name": "BufferedIncrementalDecoder __hash__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.BufferedIncrementalDecoder\nexpected = '__hash__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = len(base.__mro__) + 2\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 150454,
+          "allocatedBytes": 2021449
+        }
+      }
+    },
+    {
+      "name": "BufferedIncrementalDecoder __new__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.BufferedIncrementalDecoder\nexpected = '__new__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = 2\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 147062,
+          "allocatedBytes": 1960547
+        }
+      }
+    },
+    {
+      "name": "BufferedIncrementalDecoder __doc__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.BufferedIncrementalDecoder\nexpected = '__doc__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = 2\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 147077,
+          "allocatedBytes": 1960395
+        }
+      }
+    },
+    {
+      "name": "StreamReader __eq__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.StreamReader\nexpected = '__eq__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = len(base.__mro__) + 1\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 149368,
+          "allocatedBytes": 2004953
+        }
+      }
+    },
+    {
+      "name": "StreamReader __hash__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.StreamReader\nexpected = '__hash__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = len(base.__mro__) + 2\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 150286,
+          "allocatedBytes": 2020973
+        }
+      }
+    },
+    {
+      "name": "StreamReader __new__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.StreamReader\nexpected = '__new__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = 2\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 146894,
+          "allocatedBytes": 1960071
+        }
+      }
+    },
+    {
+      "name": "StreamReader __doc__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.StreamReader\nexpected = '__doc__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = 2\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 146909,
+          "allocatedBytes": 1959919
+        }
+      }
+    },
+    {
+      "name": "StreamWriter __eq__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.StreamWriter\nexpected = '__eq__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = len(base.__mro__) + 1\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 149368,
+          "allocatedBytes": 2004953
+        }
+      }
+    },
+    {
+      "name": "StreamWriter __hash__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.StreamWriter\nexpected = '__hash__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = len(base.__mro__) + 2\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 150286,
+          "allocatedBytes": 2020973
+        }
+      }
+    },
+    {
+      "name": "StreamWriter __new__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.StreamWriter\nexpected = '__new__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = 2\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 146894,
+          "allocatedBytes": 1960071
+        }
+      }
+    },
+    {
+      "name": "StreamWriter __doc__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.StreamWriter\nexpected = '__doc__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = 2\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 146909,
+          "allocatedBytes": 1959919
+        }
+      }
+    },
+    {
+      "name": "StreamReaderWriter __eq__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.StreamReaderWriter\nexpected = '__eq__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = len(base.__mro__) + 1\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 148495,
+          "allocatedBytes": 1989073
+        }
+      }
+    },
+    {
+      "name": "StreamReaderWriter __hash__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.StreamReaderWriter\nexpected = '__hash__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = len(base.__mro__) + 2\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 149397,
+          "allocatedBytes": 2005093
+        }
+      }
+    },
+    {
+      "name": "StreamReaderWriter __new__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.StreamReaderWriter\nexpected = '__new__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = 2\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 146884,
+          "allocatedBytes": 1960251
+        }
+      }
+    },
+    {
+      "name": "StreamReaderWriter __doc__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.StreamReaderWriter\nexpected = '__doc__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = 2\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 146890,
+          "allocatedBytes": 1960099
+        }
+      }
+    },
+    {
+      "name": "StreamRecoder __eq__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.StreamRecoder\nexpected = '__eq__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = len(base.__mro__) + 1\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 148435,
+          "allocatedBytes": 1988903
+        }
+      }
+    },
+    {
+      "name": "StreamRecoder __hash__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.StreamRecoder\nexpected = '__hash__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = len(base.__mro__) + 2\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 149337,
+          "allocatedBytes": 2004923
+        }
+      }
+    },
+    {
+      "name": "StreamRecoder __new__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.StreamRecoder\nexpected = '__new__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = 2\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 146824,
+          "allocatedBytes": 1960081
+        }
+      }
+    },
+    {
+      "name": "StreamRecoder __doc__ inheritance probes",
+      "source": "\nimport codecs\nbase = codecs.StreamRecoder\nexpected = '__doc__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nC = type('C', (base,), namespace)\ncount = 2\nassert seen == [True] * count, seen\nassert next(iter(namespace)) is key\nassert C.__bases__ == (base,)\nassert C.__mro__ == (C,) + base.__mro__\nassert next(key for key in C.__dict__ if key == expected) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 146830,
+          "allocatedBytes": 1959929
+        }
+      }
+    },
+    {
+      "name": "hash inheritance failure 1",
+      "source": "\nimport codecs\nseen = []\nfailure = ValueError('inheritance')\ncell = (lambda value: lambda: value)(None).__closure__[0]\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 1:\n                raise failure\n        return str.__eq__(self, other)\ntry:\n    C = type('C', (codecs.IncrementalDecoder,), {Key('__hash__'): None, '__classcell__': cell})\nexcept ValueError as caught:\n    assert caught is failure\n    assert caught.args == ('inheritance',)\n    assert len(seen) == 1\n    assert cell.cell_contents.__name__ == 'C'\n    assert 'C' not in globals()\n    assert caught.__traceback__.tb_frame.f_code.co_name == '<module>'\n    assert caught.__traceback__.tb_next.tb_frame.f_code.co_name == '__eq__'\n    assert caught.__traceback__.tb_next.tb_next is None\nelse:\n    assert False\nassert len(seen) == 1\nassert cell.cell_contents.__name__ == 'C'\nassert 'C' not in globals()\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "exception",
+          "diagnostic": "'NoneType' object has no attribute 'tb_frame'"
+        },
+        "usage": {
+          "steps": 149817,
+          "allocatedBytes": 2012572
+        }
+      }
+    },
+    {
+      "name": "hash inheritance failure 2",
+      "source": "\nimport codecs\nseen = []\nfailure = ValueError('inheritance')\ncell = (lambda value: lambda: value)(None).__closure__[0]\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 2:\n                raise failure\n        return str.__eq__(self, other)\ntry:\n    C = type('C', (codecs.IncrementalDecoder,), {Key('__hash__'): None, '__classcell__': cell})\nexcept ValueError as caught:\n    assert caught is failure\n    assert caught.args == ('inheritance',)\n    assert len(seen) == 2\n    assert cell.cell_contents.__name__ == 'C'\n    assert 'C' not in globals()\n    assert caught.__traceback__.tb_frame.f_code.co_name == '<module>'\n    assert caught.__traceback__.tb_next.tb_frame.f_code.co_name == '__eq__'\n    assert caught.__traceback__.tb_next.tb_next is None\nelse:\n    assert False\nassert len(seen) == 2\nassert cell.cell_contents.__name__ == 'C'\nassert 'C' not in globals()\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "exception",
+          "diagnostic": "'NoneType' object has no attribute 'tb_frame'"
+        },
+        "usage": {
+          "steps": 150758,
+          "allocatedBytes": 2029808
+        }
+      }
+    },
+    {
+      "name": "hash inheritance failure 3",
+      "source": "\nimport codecs\nseen = []\nfailure = ValueError('inheritance')\ncell = (lambda value: lambda: value)(None).__closure__[0]\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 3:\n                raise failure\n        return str.__eq__(self, other)\ntry:\n    C = type('C', (codecs.IncrementalDecoder,), {Key('__hash__'): None, '__classcell__': cell})\nexcept ValueError as caught:\n    assert caught is failure\n    assert caught.args == ('inheritance',)\n    assert len(seen) == 3\n    assert cell.cell_contents.__name__ == 'C'\n    assert 'C' not in globals()\n    assert caught.__traceback__.tb_frame.f_code.co_name == '<module>'\n    assert caught.__traceback__.tb_next.tb_frame.f_code.co_name == '__eq__'\n    assert caught.__traceback__.tb_next.tb_next is None\nelse:\n    assert False\nassert len(seen) == 3\nassert cell.cell_contents.__name__ == 'C'\nassert 'C' not in globals()\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "exception",
+          "diagnostic": "'NoneType' object has no attribute 'tb_frame'"
+        },
+        "usage": {
+          "steps": 151691,
+          "allocatedBytes": 2047044
+        }
+      }
+    },
+    {
+      "name": "new fixup failure disables allocation",
+      "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 2:\n                raise ValueError('new fixup')\n        return str.__eq__(self, other)\ndef allocate(cls):\n    return object.__new__(cls)\nC = type('C', (codecs.IncrementalDecoder,), {Key('__new__'): staticmethod(allocate)})\nassert len(seen) == 2\ntry:\n    C()\nexcept TypeError as caught:\n    assert str(caught) == \"cannot create 'C' instances\"\nelse:\n    assert False\ntry:\n    C.__new__(C)\nexcept TypeError as caught:\n    assert str(caught) == \"cannot create 'C' instances\"\nelse:\n    assert False\nC.__new__ = staticmethod(allocate)\nassert type(C()) is C\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 154976,
+          "allocatedBytes": 2100666
+        }
+      }
+    },
+    {
+      "name": "published class uses inherited allocator before slot fixup",
+      "source": "\nimport codecs\ncell = (lambda value: lambda: value)(None).__closure__[0]\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append('doc')\n            if len(seen) == 2:\n                C = cell.cell_contents\n                seen.append(type(C()).__name__)\n        return str.__eq__(self, other)\nC = type('C', (codecs.IncrementalDecoder,), {Key('__doc__'): 'doc', '__classcell__': cell, '__new__': lambda cls: 17})\nassert seen == ['doc', 'doc', 'C'], seen\nassert C() == 17\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 144680,
+          "allocatedBytes": 1940350
+        }
+      }
+    },
+    {
+      "name": "ordered intrinsic probes",
+      "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n        return str.__eq__(self, other)\nnamespace = {Key('__doc__'): 'doc', Key('__eq__'): None, Key('__hash__'): None, Key('__new__'): None}\nC = type('C', (codecs.IncrementalDecoder,), namespace)\nassert seen == ['__doc__', '__new__', '__doc__', '__eq__', '__eq__', '__hash__', '__hash__', '__eq__', '__new__'], seen\nassert C.__doc__ == 'doc'\nassert C.__hash__ is None\nassert C.__new__ is None\nassert all(type(key) is Key for key in namespace)\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 155341,
+          "allocatedBytes": 2126660
+        }
+      }
+    },
+    {
+      "name": "hash fixup failure clears the native slot",
+      "source": "\nimport codecs\nseen = []\nfailure = ValueError('fixup')\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 4:\n                raise failure\n        return str.__eq__(self, other)\nC = type('C', (codecs.IncrementalDecoder,), {Key('__hash__'): lambda self: 41})\nassert len(seen) == 4, seen\nvalue = C()\ntry:\n    hash(value)\nexcept TypeError as caught:\n    assert str(caught) == \"unhashable type: 'C'\"\nelse:\n    assert False, 'missing native hash slot was ignored'\nassert C.__hash__(value) == 41\nC.__hash__ = lambda self: 42\nassert hash(value) == 42\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 152658,
+          "allocatedBytes": 2075274
+        }
+      }
+    },
+    {
+      "name": "inherited hash mutation",
+      "source": "\nimport codecs\nclass Base(codecs.IncrementalDecoder):\n    def __hash__(self):\n        return 11\nclass Child(Base):\n    pass\nvalue = Child()\nassert hash(value) == 11\nBase.__hash__ = lambda self: 12\nassert hash(value) == 12\nBase.__hash__ = None\ntry:\n    hash(value)\nexcept TypeError:\n    pass\nelse:\n    assert False\ndel Base.__hash__\nassert hash(value) == object.__hash__(value)\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 139131,
+          "allocatedBytes": 1828650
+        }
+      }
+    },
+    {
+      "name": "__slots__",
+      "source": "\nimport codecs\nexpected = '__slots__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: ()}\nDecoder = type('Decoder', (codecs.IncrementalDecoder,), namespace)\nassert seen and all(seen), seen\nassert seen == [True] * 1, seen\nassert next(iter(namespace)) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 140755,
+          "allocatedBytes": 1840627
+        }
+      }
+    },
+    {
+      "name": "__module__",
+      "source": "\nimport codecs\nexpected = '__module__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: 'codec_probe'}\nDecoder = type('Decoder', (codecs.IncrementalDecoder,), namespace)\nassert seen and all(seen), seen\nassert seen == [True] * 1, seen\nassert next(iter(namespace)) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 140823,
+          "allocatedBytes": 1840597
+        }
+      }
+    },
+    {
+      "name": "__doc__",
+      "source": "\nimport codecs\nexpected = '__doc__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: 'decoder documentation'}\nDecoder = type('Decoder', (codecs.IncrementalDecoder,), namespace)\nassert seen and all(seen), seen\nassert seen == [True] * 2, seen\nassert next(iter(namespace)) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 141761,
+          "allocatedBytes": 1857121
+        }
+      }
+    },
+    {
+      "name": "__eq__",
+      "source": "\nimport codecs\nexpected = '__eq__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nDecoder = type('Decoder', (codecs.IncrementalDecoder,), namespace)\nassert seen and all(seen), seen\nassert seen == [True] * 3, seen\nassert next(iter(namespace)) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 142408,
+          "allocatedBytes": 1871823
+        }
+      }
+    },
+    {
+      "name": "__hash__",
+      "source": "\nimport codecs\nexpected = '__hash__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nDecoder = type('Decoder', (codecs.IncrementalDecoder,), namespace)\nassert seen and all(seen), seen\nassert seen == [True] * 4, seen\nassert next(iter(namespace)) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 143318,
+          "allocatedBytes": 1887859
+        }
+      }
+    },
+    {
+      "name": "__new__",
+      "source": "\nimport codecs\nexpected = '__new__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nDecoder = type('Decoder', (codecs.IncrementalDecoder,), namespace)\nassert seen and all(seen), seen\nassert seen == [True] * 2, seen\nassert next(iter(namespace)) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 141544,
+          "allocatedBytes": 1855643
+        }
+      }
+    },
+    {
+      "name": "__init_subclass__",
+      "source": "\nimport codecs\nexpected = '__init_subclass__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nDecoder = type('Decoder', (codecs.IncrementalDecoder,), namespace)\nassert seen and all(seen), seen\nassert seen == [True] * 1, seen\nassert next(iter(namespace)) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 140813,
+          "allocatedBytes": 1840287
+        }
+      }
+    },
+    {
+      "name": "__class_getitem__",
+      "source": "\nimport codecs\nexpected = '__class_getitem__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: None}\nDecoder = type('Decoder', (codecs.IncrementalDecoder,), namespace)\nassert seen and all(seen), seen\nassert seen == [True] * 1, seen\nassert next(iter(namespace)) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 140813,
+          "allocatedBytes": 1840287
+        }
+      }
+    },
+    {
+      "name": "__qualname__",
+      "source": "\nimport codecs\nexpected = '__qualname__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: 'Qualified.Decoder'}\nDecoder = type('Decoder', (codecs.IncrementalDecoder,), namespace)\nassert seen and all(seen), seen\nassert seen == [True] * 2, seen\nassert next(iter(namespace)) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 141785,
+          "allocatedBytes": 1857327
+        }
+      }
+    },
+    {
+      "name": "__classcell__",
+      "source": "\nimport codecs\nexpected = '__classcell__'\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other is expected)\n        return str.__eq__(self, other)\nkey = Key(expected)\nnamespace = {key: (lambda value: lambda: value)(None).__closure__[0]}\nDecoder = type('Decoder', (codecs.IncrementalDecoder,), namespace)\nassert seen and all(seen), seen\nassert seen == [True] * 2, seen\nassert next(iter(namespace)) is key\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 143084,
+          "allocatedBytes": 1889028
+        }
+      }
+    },
+    {
+      "name": "retained namespace guest failure",
+      "source": "\nimport codecs\nexpected = '__slots__'\nclass Failure(Exception):\n    pass\nfailure = Failure('namespace lookup')\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if other is expected:\n            seen.append(other)\n            raise failure\n        return str.__eq__(self, other)\ntry:\n    type('Decoder', (codecs.IncrementalDecoder,), {Key(expected): ()})\nexcept Failure as caught:\n    assert caught is failure\nelse:\n    assert False, 'namespace callback failure was lost'\nassert seen == [expected]\n",
+      "native": {
+        "status": 0,
+        "stdout": "",
+        "stderr": ""
+      },
+      "interpreter": {
+        "result": {
+          "status": "ok"
+        },
+        "usage": {
+          "steps": 142318,
+          "allocatedBytes": 1852784
+        }
+      }
+    }
+  ],
+  "cancellations": [
+    {
+      "name": "__eq__",
+      "stage": 1,
+      "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 1:\n                input()\n        return str.__eq__(self, other)\ntry:\n    C = type('C', (codecs.IncrementalDecoder,), {Key('__eq__'): None})\nexcept BaseException:\n    raise AssertionError('fatal cancellation entered guest handling')\nraise AssertionError('fatal cancellation was lost')\n",
+      "throws": false,
+      "interpreter": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "{\"result\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"},\"usage\":{\"steps\":138407,\"allocatedBytes\":1806911},\"reads\":1,\"writes\":0,\"repeated\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"}}\n"
+      }
+    },
+    {
+      "name": "__eq__",
+      "stage": 1,
+      "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 1:\n                input()\n        return str.__eq__(self, other)\ntry:\n    C = type('C', (codecs.IncrementalDecoder,), {Key('__eq__'): None})\nexcept BaseException:\n    raise AssertionError('fatal cancellation entered guest handling')\nraise AssertionError('fatal cancellation was lost')\n",
+      "throws": true,
+      "interpreter": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "{\"result\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"},\"usage\":{\"steps\":138407,\"allocatedBytes\":1806911},\"reads\":1,\"writes\":0,\"repeated\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"}}\n"
+      }
+    },
+    {
+      "name": "__eq__",
+      "stage": 2,
+      "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 2:\n                input()\n        return str.__eq__(self, other)\ntry:\n    C = type('C', (codecs.IncrementalDecoder,), {Key('__eq__'): None})\nexcept BaseException:\n    raise AssertionError('fatal cancellation entered guest handling')\nraise AssertionError('fatal cancellation was lost')\n",
+      "throws": false,
+      "interpreter": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "{\"result\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"},\"usage\":{\"steps\":139341,\"allocatedBytes\":1824147},\"reads\":1,\"writes\":0,\"repeated\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"}}\n"
+      }
+    },
+    {
+      "name": "__eq__",
+      "stage": 2,
+      "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 2:\n                input()\n        return str.__eq__(self, other)\ntry:\n    C = type('C', (codecs.IncrementalDecoder,), {Key('__eq__'): None})\nexcept BaseException:\n    raise AssertionError('fatal cancellation entered guest handling')\nraise AssertionError('fatal cancellation was lost')\n",
+      "throws": true,
+      "interpreter": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "{\"result\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"},\"usage\":{\"steps\":139341,\"allocatedBytes\":1824147},\"reads\":1,\"writes\":0,\"repeated\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"}}\n"
+      }
+    },
+    {
+      "name": "__eq__",
+      "stage": 3,
+      "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 3:\n                input()\n        return str.__eq__(self, other)\ntry:\n    C = type('C', (codecs.IncrementalDecoder,), {Key('__eq__'): None})\nexcept BaseException:\n    raise AssertionError('fatal cancellation entered guest handling')\nraise AssertionError('fatal cancellation was lost')\n",
+      "throws": false,
+      "interpreter": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "{\"result\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"},\"usage\":{\"steps\":140403,\"allocatedBytes\":1841903},\"reads\":1,\"writes\":0,\"repeated\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"}}\n"
+      }
+    },
+    {
+      "name": "__eq__",
+      "stage": 3,
+      "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 3:\n                input()\n        return str.__eq__(self, other)\ntry:\n    C = type('C', (codecs.IncrementalDecoder,), {Key('__eq__'): None})\nexcept BaseException:\n    raise AssertionError('fatal cancellation entered guest handling')\nraise AssertionError('fatal cancellation was lost')\n",
+      "throws": true,
+      "interpreter": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "{\"result\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"},\"usage\":{\"steps\":140403,\"allocatedBytes\":1841903},\"reads\":1,\"writes\":0,\"repeated\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"}}\n"
+      }
+    },
+    {
+      "name": "__hash__",
+      "stage": 1,
+      "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 1:\n                input()\n        return str.__eq__(self, other)\ntry:\n    C = type('C', (codecs.IncrementalDecoder,), {Key('__hash__'): None})\nexcept BaseException:\n    raise AssertionError('fatal cancellation entered guest handling')\nraise AssertionError('fatal cancellation was lost')\n",
+      "throws": false,
+      "interpreter": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "{\"result\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"},\"usage\":{\"steps\":138434,\"allocatedBytes\":1807039},\"reads\":1,\"writes\":0,\"repeated\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"}}\n"
+      }
+    },
+    {
+      "name": "__hash__",
+      "stage": 1,
+      "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 1:\n                input()\n        return str.__eq__(self, other)\ntry:\n    C = type('C', (codecs.IncrementalDecoder,), {Key('__hash__'): None})\nexcept BaseException:\n    raise AssertionError('fatal cancellation entered guest handling')\nraise AssertionError('fatal cancellation was lost')\n",
+      "throws": true,
+      "interpreter": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "{\"result\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"},\"usage\":{\"steps\":138434,\"allocatedBytes\":1807039},\"reads\":1,\"writes\":0,\"repeated\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"}}\n"
+      }
+    },
+    {
+      "name": "__hash__",
+      "stage": 2,
+      "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 2:\n                input()\n        return str.__eq__(self, other)\ntry:\n    C = type('C', (codecs.IncrementalDecoder,), {Key('__hash__'): None})\nexcept BaseException:\n    raise AssertionError('fatal cancellation entered guest handling')\nraise AssertionError('fatal cancellation was lost')\n",
+      "throws": false,
+      "interpreter": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "{\"result\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"},\"usage\":{\"steps\":139375,\"allocatedBytes\":1824275},\"reads\":1,\"writes\":0,\"repeated\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"}}\n"
+      }
+    },
+    {
+      "name": "__hash__",
+      "stage": 2,
+      "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 2:\n                input()\n        return str.__eq__(self, other)\ntry:\n    C = type('C', (codecs.IncrementalDecoder,), {Key('__hash__'): None})\nexcept BaseException:\n    raise AssertionError('fatal cancellation entered guest handling')\nraise AssertionError('fatal cancellation was lost')\n",
+      "throws": true,
+      "interpreter": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "{\"result\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"},\"usage\":{\"steps\":139375,\"allocatedBytes\":1824275},\"reads\":1,\"writes\":0,\"repeated\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"}}\n"
+      }
+    },
+    {
+      "name": "__hash__",
+      "stage": 3,
+      "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 3:\n                input()\n        return str.__eq__(self, other)\ntry:\n    C = type('C', (codecs.IncrementalDecoder,), {Key('__hash__'): None})\nexcept BaseException:\n    raise AssertionError('fatal cancellation entered guest handling')\nraise AssertionError('fatal cancellation was lost')\n",
+      "throws": false,
+      "interpreter": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "{\"result\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"},\"usage\":{\"steps\":140308,\"allocatedBytes\":1841511},\"reads\":1,\"writes\":0,\"repeated\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"}}\n"
+      }
+    },
+    {
+      "name": "__hash__",
+      "stage": 3,
+      "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 3:\n                input()\n        return str.__eq__(self, other)\ntry:\n    C = type('C', (codecs.IncrementalDecoder,), {Key('__hash__'): None})\nexcept BaseException:\n    raise AssertionError('fatal cancellation entered guest handling')\nraise AssertionError('fatal cancellation was lost')\n",
+      "throws": true,
+      "interpreter": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "{\"result\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"},\"usage\":{\"steps\":140308,\"allocatedBytes\":1841511},\"reads\":1,\"writes\":0,\"repeated\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"}}\n"
+      }
+    },
+    {
+      "name": "__hash__",
+      "stage": 4,
+      "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 4:\n                input()\n        return str.__eq__(self, other)\ntry:\n    C = type('C', (codecs.IncrementalDecoder,), {Key('__hash__'): None})\nexcept BaseException:\n    raise AssertionError('fatal cancellation entered guest handling')\nraise AssertionError('fatal cancellation was lost')\n",
+      "throws": false,
+      "interpreter": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "{\"result\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"},\"usage\":{\"steps\":141243,\"allocatedBytes\":1858779},\"reads\":1,\"writes\":0,\"repeated\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"}}\n"
+      }
+    },
+    {
+      "name": "__hash__",
+      "stage": 4,
+      "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 4:\n                input()\n        return str.__eq__(self, other)\ntry:\n    C = type('C', (codecs.IncrementalDecoder,), {Key('__hash__'): None})\nexcept BaseException:\n    raise AssertionError('fatal cancellation entered guest handling')\nraise AssertionError('fatal cancellation was lost')\n",
+      "throws": true,
+      "interpreter": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "{\"result\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"},\"usage\":{\"steps\":141243,\"allocatedBytes\":1858779},\"reads\":1,\"writes\":0,\"repeated\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"}}\n"
+      }
+    },
+    {
+      "name": "__new__",
+      "stage": 1,
+      "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 1:\n                input()\n        return str.__eq__(self, other)\ntry:\n    C = type('C', (codecs.IncrementalDecoder,), {Key('__new__'): None})\nexcept BaseException:\n    raise AssertionError('fatal cancellation entered guest handling')\nraise AssertionError('fatal cancellation was lost')\n",
+      "throws": false,
+      "interpreter": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "{\"result\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"},\"usage\":{\"steps\":138271,\"allocatedBytes\":1805959},\"reads\":1,\"writes\":0,\"repeated\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"}}\n"
+      }
+    },
+    {
+      "name": "__new__",
+      "stage": 1,
+      "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 1:\n                input()\n        return str.__eq__(self, other)\ntry:\n    C = type('C', (codecs.IncrementalDecoder,), {Key('__new__'): None})\nexcept BaseException:\n    raise AssertionError('fatal cancellation entered guest handling')\nraise AssertionError('fatal cancellation was lost')\n",
+      "throws": true,
+      "interpreter": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "{\"result\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"},\"usage\":{\"steps\":138271,\"allocatedBytes\":1805959},\"reads\":1,\"writes\":0,\"repeated\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"}}\n"
+      }
+    },
+    {
+      "name": "__new__",
+      "stage": 2,
+      "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 2:\n                input()\n        return str.__eq__(self, other)\ntry:\n    C = type('C', (codecs.IncrementalDecoder,), {Key('__new__'): None})\nexcept BaseException:\n    raise AssertionError('fatal cancellation entered guest handling')\nraise AssertionError('fatal cancellation was lost')\n",
+      "throws": false,
+      "interpreter": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "{\"result\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"},\"usage\":{\"steps\":139712,\"allocatedBytes\":1825251},\"reads\":1,\"writes\":0,\"repeated\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"}}\n"
+      }
+    },
+    {
+      "name": "__new__",
+      "stage": 2,
+      "source": "\nimport codecs\nseen = []\nclass Key(str):\n    __hash__ = str.__hash__\n    def __eq__(self, other):\n        if str.__eq__(self, other):\n            seen.append(other)\n            if len(seen) == 2:\n                input()\n        return str.__eq__(self, other)\ntry:\n    C = type('C', (codecs.IncrementalDecoder,), {Key('__new__'): None})\nexcept BaseException:\n    raise AssertionError('fatal cancellation entered guest handling')\nraise AssertionError('fatal cancellation was lost')\n",
+      "throws": true,
+      "interpreter": {
+        "status": 0,
+        "stdout": "",
+        "stderr": "{\"result\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"},\"usage\":{\"steps\":139712,\"allocatedBytes\":1825251},\"reads\":1,\"writes\":0,\"repeated\":{\"status\":\"terminated\",\"reason\":\"cancelled\",\"message\":\"execution cancelled\"}}\n"
+      }
+    }
+  ],
+  "escape": {
+    "source": "for policy in ['strict', 'ignore', 'replace', 'surrogateescape', 'surrogatepass', 'backslashreplace', 'xmlcharrefreplace', 'namereplace', 'missing']:\n    assert '\\ud800'.encode('unicode_escape', policy) == b'\\\\ud800'\n    assert '\\ud800'.encode('raw_unicode_escape', policy) == b'\\\\ud800'",
+    "native": {
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    "interpreter": {
+      "status": "ok"
+    },
+    "usage": {
+      "steps": 199975,
+      "allocatedBytes": 2546662
+    }
+  },
+  "focusedGate": {
+    "command": "npm run test --workspace=@poe-code/safe-python -- session-codec-native-slots session-codec-type-name-interning runtime-type-new-integration runtime-type-attributes runtime-type-allocation runtime-special-method runtime-hash-context session-codec-class-documentation session-type-mutation-names session-type-immutable-mutation session-escape-encoding --maxWorkers=2 --reporter=json --outputFile=/tmp/safe-python-native-class-slots-final.json",
+    "passed": 1725,
+    "failed": 5,
+    "total": 1730,
+    "pending": 0,
+    "files": 10,
+    "failures": [
+      {
+        "file": "packages/safe-python/src/session-codec-native-slots.test.ts",
+        "name": "native codec slots: 'type mutation retains the previous va…'",
+        "messages": [
+          "AssertionError: ['__hash__', '__hash__']: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-slots.test.ts:15:41\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "packages/safe-python/src/session-codec-native-slots.test.ts",
+        "name": "native codec slots: 'repr slot is initialized during nativ…'",
+        "messages": [
+          "AssertionError: []: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-slots.test.ts:15:41\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "packages/safe-python/src/session-codec-native-slots.test.ts",
+        "name": "native codec slots: 'hash inheritance failure 1'",
+        "messages": [
+          "AssertionError: 'NoneType' object has no attribute 'tb_frame': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-slots.test.ts:15:41\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "packages/safe-python/src/session-codec-native-slots.test.ts",
+        "name": "native codec slots: 'hash inheritance failure 2'",
+        "messages": [
+          "AssertionError: 'NoneType' object has no attribute 'tb_frame': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-slots.test.ts:15:41\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      },
+      {
+        "file": "packages/safe-python/src/session-codec-native-slots.test.ts",
+        "name": "native codec slots: 'hash inheritance failure 3'",
+        "messages": [
+          "AssertionError: 'NoneType' object has no attribute 'tb_frame': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-slots.test.ts:15:41\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+        ]
+      }
+    ]
+  }
+}

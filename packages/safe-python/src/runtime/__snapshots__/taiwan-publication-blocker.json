@@ -1,0 +1,16 @@
+{
+  "target": "CPython 3.14.7 / Unicode 16.0.0 / Darwin arm64",
+  "source": "import codecs\nfor name in ('big5', 'cp950'):\n    try:\n        print(codecs.lookup(name).name)\n    except LookupError as error:\n        print(type(error).__name__, str(error))\n",
+  "oracle": {
+    "status": 0,
+    "stdout": "big5\ncp950\n",
+    "stderr": ""
+  },
+  "session": {
+    "status": 0,
+    "stdout": "LookupError unknown encoding: big5\nLookupError unknown encoding: cp950\n",
+    "stderr": ""
+  },
+  "verified": false,
+  "blocker": "Public encodings.big5/cp950 and native _codecs_tw/_multibytecodec guest publication are missing; internal kernels are not public compatibility completion."
+}

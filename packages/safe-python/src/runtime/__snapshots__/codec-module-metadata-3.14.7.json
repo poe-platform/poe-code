@@ -1,0 +1,46 @@
+[
+  {
+    "name": "codecs.__doc__",
+    "source": "import codecs\nassert codecs.__doc__ == 'codecs -- Python Codec Registry, API and helpers.\\n\\n\\nWritten by Marc-Andre Lemburg (mal@lemburg.com).\\n\\n(c) Copyright CNRI, All Rights Reserved. NO WARRANTY.\\n\\n'\n"
+  },
+  {
+    "name": "_codecs.__doc__",
+    "source": "import _codecs\nassert _codecs.__doc__ == None\n"
+  },
+  {
+    "name": "encodings.__doc__",
+    "source": "import encodings\nassert encodings.__doc__ == 'Standard \"encodings\" Package\\n\\n    Standard Python encoding modules are stored in this package\\n    directory.\\n\\n    Codec modules must have names corresponding to normalized encoding\\n    names as defined in the normalize_encoding() function below, e.g.\\n    \\'utf-8\\' must be implemented by the module \\'utf_8.py\\'.\\n\\n    Each codec module must export the following interface:\\n\\n    * getregentry() -> codecs.CodecInfo object\\n    The getregentry() API must return a CodecInfo object with encoder, decoder,\\n    incrementalencoder, incrementaldecoder, streamwriter and streamreader\\n    attributes which adhere to the Python Codec Interface Standard.\\n\\n    In addition, a module may optionally also define the following\\n    APIs which are then used by the package\\'s codec search function:\\n\\n    * getaliases() -> sequence of encoding name strings to use as aliases\\n\\n    Alias names returned by getaliases() must be normalized encoding\\n    names as defined by normalize_encoding().\\n\\nWritten by Marc-Andre Lemburg (mal@lemburg.com).\\n\\n(c) Copyright CNRI, All Rights Reserved. NO WARRANTY.\\n\\n'\n"
+  },
+  {
+    "name": "encodings.aliases.__doc__",
+    "source": "import encodings.aliases\nassert encodings.aliases.__doc__ == 'Encoding Aliases Support\\n\\nThis module is used by the encodings package search function to\\nmap encodings names to module names.\\n\\nNote that the search function normalizes the encoding names before\\ndoing the lookup, so the mapping will have to map normalized\\nencoding names to module names.\\n\\nContents:\\n\\n    The following aliases dictionary contains mappings of all IANA\\n    character set names for which the Python core library provides\\n    codecs. In addition to these, a few Python specific codec\\n    aliases have also been added.\\n\\n'\n"
+  },
+  {
+    "name": "encodings.ascii.__doc__",
+    "source": "import encodings.ascii\nassert encodings.ascii.__doc__ == \"Python 'ascii' Codec\\n\\n\\nWritten by Marc-Andre Lemburg (mal@lemburg.com).\\n\\n(c) Copyright CNRI, All Rights Reserved. NO WARRANTY.\\n\\n\"\n"
+  },
+  {
+    "name": "encodings.latin_1.__doc__",
+    "source": "import encodings.latin_1\nassert encodings.latin_1.__doc__ == \"Python 'latin-1' Codec\\n\\n\\nWritten by Marc-Andre Lemburg (mal@lemburg.com).\\n\\n(c) Copyright CNRI, All Rights Reserved. NO WARRANTY.\\n\\n\"\n"
+  },
+  {
+    "name": "encodings.utf_8.__doc__",
+    "source": "import encodings.utf_8\nassert encodings.utf_8.__doc__ == \"Python 'utf-8' Codec\\n\\n\\nWritten by Marc-Andre Lemburg (mal@lemburg.com).\\n\\n(c) Copyright CNRI, All Rights Reserved. NO WARRANTY.\\n\\n\"\n"
+  },
+  {
+    "name": "encodings.charmap.__doc__",
+    "source": "import encodings.charmap\nassert encodings.charmap.__doc__ == 'Generic Python Character Mapping Codec.\\n\\n    Use this codec directly rather than through the automatic\\n    conversion mechanisms supplied by unicode() and .encode().\\n\\n\\nWritten by Marc-Andre Lemburg (mal@lemburg.com).\\n\\n(c) Copyright CNRI, All Rights Reserved. NO WARRANTY.\\n\\n'\n"
+  },
+  {
+    "name": "encodings.CodecRegistryError.__firstlineno__",
+    "source": "import encodings\nassert encodings.CodecRegistryError.__firstlineno__ == 41\n"
+  },
+  {
+    "name": "encodings.normalize_encoding.__code__.co_firstlineno",
+    "source": "import encodings\nassert encodings.normalize_encoding.__code__.co_firstlineno == 44\n"
+  },
+  {
+    "name": "encodings.search_function.__code__.co_firstlineno",
+    "source": "import encodings\nassert encodings.search_function.__code__.co_firstlineno == 72\n"
+  }
+]

@@ -1,0 +1,2661 @@
+{
+  "reports": {
+    "focused": {
+      "path": "/tmp/codec-shift-focused.json",
+      "sha256": "92ce7d0861a82dde02066ac6d85be232ec4db1ecab42cc34307f6b705c5eac28",
+      "passed": 269,
+      "failed": 0,
+      "pending": 0,
+      "files": 10,
+      "slowestMs": 83.97604200000023,
+      "results": [
+        {
+          "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-stream-state.test.ts",
+          "cases": [
+            {
+              "name": "'base class state and buffer mutation'",
+              "status": "passed",
+              "duration": 83.97604200000023,
+              "failures": []
+            },
+            {
+              "name": "'concrete ASCII Latin-1 and UTF-8 adap…'",
+              "status": "passed",
+              "duration": 39.78045800000018,
+              "failures": []
+            },
+            {
+              "name": "'short reads, line buffers, positionin…'",
+              "status": "passed",
+              "duration": 43.63145899999927,
+              "failures": []
+            },
+            {
+              "name": "'paired reader writer and recoder prot…'",
+              "status": "passed",
+              "duration": 29.66033300000072,
+              "failures": []
+            },
+            {
+              "name": "'lazy iteration, final flush, kwargs, …'",
+              "status": "passed",
+              "duration": 46.023959000000104,
+              "failures": []
+            },
+            {
+              "name": "'reader firstline recovery, partial EO…'",
+              "status": "passed",
+              "duration": 24.50012499999957,
+              "failures": []
+            },
+            {
+              "name": "'writer failure order and captured get…'",
+              "status": "passed",
+              "duration": 22.974083000000064,
+              "failures": []
+            },
+            {
+              "name": "'buffer decode callback state replacem…'",
+              "status": "passed",
+              "duration": 20.472125000000233,
+              "failures": []
+            },
+            {
+              "name": "'iterator sees lazy factory mutation a…'",
+              "status": "passed",
+              "duration": 20.226833000000624,
+              "failures": []
+            }
+          ]
+        },
+        {
+          "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/codec-shift-stream-edge.test.ts",
+          "cases": [
+            {
+              "name": "matches pinned shift-stream edge rows +0 + 128",
+              "status": "passed",
+              "duration": 5.310125000000085,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 128 + 128",
+              "status": "passed",
+              "duration": 2.507791999999995,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 256 + 128",
+              "status": "passed",
+              "duration": 2.1257499999999254,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 384 + 128",
+              "status": "passed",
+              "duration": 2.004542000000015,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 512 + 128",
+              "status": "passed",
+              "duration": 2.824624999999969,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 640 + 128",
+              "status": "passed",
+              "duration": 2.087709000000018,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 768 + 128",
+              "status": "passed",
+              "duration": 2.0035409999999274,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 896 + 128",
+              "status": "passed",
+              "duration": 1.5170420000000604,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 1024 + 128",
+              "status": "passed",
+              "duration": 2.1661659999999756,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 1152 + 128",
+              "status": "passed",
+              "duration": 2.075290999999993,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 1280 + 128",
+              "status": "passed",
+              "duration": 1.4849169999999958,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 1408 + 128",
+              "status": "passed",
+              "duration": 1.4732500000000073,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 1536 + 128",
+              "status": "passed",
+              "duration": 2.5790419999999585,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 1664 + 128",
+              "status": "passed",
+              "duration": 1.1498749999999518,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 1792 + 128",
+              "status": "passed",
+              "duration": 1.1251670000000331,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 1920 + 128",
+              "status": "passed",
+              "duration": 1.3699169999999867,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 2048 + 128",
+              "status": "passed",
+              "duration": 1.0505830000000742,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 2176 + 128",
+              "status": "passed",
+              "duration": 1.0241250000000264,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 2304 + 128",
+              "status": "passed",
+              "duration": 1.5085000000000264,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 2432 + 128",
+              "status": "passed",
+              "duration": 1.6878749999999627,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 2560 + 128",
+              "status": "passed",
+              "duration": 1.25750000000005,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 2688 + 128",
+              "status": "passed",
+              "duration": 1.1225839999999607,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 2816 + 128",
+              "status": "passed",
+              "duration": 1.0879589999999553,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 2944 + 128",
+              "status": "passed",
+              "duration": 1.6960830000000442,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 3072 + 128",
+              "status": "passed",
+              "duration": 0.9740829999999505,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 3200 + 128",
+              "status": "passed",
+              "duration": 1.0218340000000126,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 3328 + 128",
+              "status": "passed",
+              "duration": 1.16375000000005,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 3456 + 128",
+              "status": "passed",
+              "duration": 1.2135000000000673,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 3584 + 128",
+              "status": "passed",
+              "duration": 0.8429579999999532,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 3712 + 128",
+              "status": "passed",
+              "duration": 0.8644590000000107,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 3840 + 128",
+              "status": "passed",
+              "duration": 1.2321249999999964,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 3968 + 128",
+              "status": "passed",
+              "duration": 1.1060420000000022,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 4096 + 128",
+              "status": "passed",
+              "duration": 0.9191669999999021,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 4224 + 128",
+              "status": "passed",
+              "duration": 1.1304589999999735,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 4352 + 128",
+              "status": "passed",
+              "duration": 1.1122500000000173,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 4480 + 128",
+              "status": "passed",
+              "duration": 1.5607089999999744,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 4608 + 128",
+              "status": "passed",
+              "duration": 0.9565829999999096,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 4736 + 128",
+              "status": "passed",
+              "duration": 1.391999999999939,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 4864 + 128",
+              "status": "passed",
+              "duration": 1.110416999999984,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 4992 + 128",
+              "status": "passed",
+              "duration": 1.2909159999999247,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 5120 + 128",
+              "status": "passed",
+              "duration": 1.0747499999999945,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 5248 + 128",
+              "status": "passed",
+              "duration": 1.1075409999999692,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 5376 + 128",
+              "status": "passed",
+              "duration": 0.7076670000000149,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 5504 + 128",
+              "status": "passed",
+              "duration": 0.6684580000001006,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 5632 + 128",
+              "status": "passed",
+              "duration": 0.8574579999999514,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 5760 + 128",
+              "status": "passed",
+              "duration": 1.057790999999952,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 5888 + 128",
+              "status": "passed",
+              "duration": 1.4534999999999627,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 6016 + 128",
+              "status": "passed",
+              "duration": 0.9888329999999996,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 6144 + 128",
+              "status": "passed",
+              "duration": 1.0812499999999545,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 6272 + 128",
+              "status": "passed",
+              "duration": 0.9617499999999382,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 6400 + 128",
+              "status": "passed",
+              "duration": 0.7847910000000411,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 6528 + 128",
+              "status": "passed",
+              "duration": 1.0780419999999822,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 6656 + 128",
+              "status": "passed",
+              "duration": 0.9580409999999802,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 6784 + 128",
+              "status": "passed",
+              "duration": 1.0089169999999967,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 6912 + 128",
+              "status": "passed",
+              "duration": 0.9746670000000677,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 7040 + 128",
+              "status": "passed",
+              "duration": 1.093499999999949,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 7168 + 128",
+              "status": "passed",
+              "duration": 0.8463329999999587,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 7296 + 128",
+              "status": "passed",
+              "duration": 1.5650830000000724,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 7424 + 128",
+              "status": "passed",
+              "duration": 1.045500000000061,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 7552 + 128",
+              "status": "passed",
+              "duration": 1.138208000000077,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 7680 + 128",
+              "status": "passed",
+              "duration": 1.1992500000000064,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 7808 + 128",
+              "status": "passed",
+              "duration": 0.8918330000000196,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 7936 + 128",
+              "status": "passed",
+              "duration": 1.7810419999999567,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 8064 + 128",
+              "status": "passed",
+              "duration": 1.8912500000000136,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 8192 + 128",
+              "status": "passed",
+              "duration": 0.9000829999999951,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 8320 + 128",
+              "status": "passed",
+              "duration": 1.071458000000007,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 8448 + 128",
+              "status": "passed",
+              "duration": 1.3196249999999736,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 8576 + 128",
+              "status": "passed",
+              "duration": 0.9570830000000115,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 8704 + 128",
+              "status": "passed",
+              "duration": 1.3606659999999238,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 8832 + 128",
+              "status": "passed",
+              "duration": 1.146333000000027,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 8960 + 128",
+              "status": "passed",
+              "duration": 1.056291999999985,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 9088 + 128",
+              "status": "passed",
+              "duration": 0.8909159999999474,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 9216 + 128",
+              "status": "passed",
+              "duration": 1.013417000000004,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 9344 + 128",
+              "status": "passed",
+              "duration": 1.5005419999999958,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 9472 + 128",
+              "status": "passed",
+              "duration": 0.9820829999999887,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 9600 + 128",
+              "status": "passed",
+              "duration": 0.8827919999999949,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 9728 + 128",
+              "status": "passed",
+              "duration": 0.7610839999999826,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 9856 + 128",
+              "status": "passed",
+              "duration": 0.8872080000001006,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 9984 + 128",
+              "status": "passed",
+              "duration": 0.8160420000000386,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 10112 + 128",
+              "status": "passed",
+              "duration": 0.8046249999999873,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 10240 + 128",
+              "status": "passed",
+              "duration": 1.3454590000000053,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 10368 + 128",
+              "status": "passed",
+              "duration": 0.8412500000000591,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 10496 + 128",
+              "status": "passed",
+              "duration": 1.0442919999999276,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 10624 + 128",
+              "status": "passed",
+              "duration": 0.9256249999999682,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 10752 + 128",
+              "status": "passed",
+              "duration": 0.9560420000000249,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 10880 + 128",
+              "status": "passed",
+              "duration": 1.0064589999999498,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 11008 + 128",
+              "status": "passed",
+              "duration": 0.8278330000000551,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 11136 + 128",
+              "status": "passed",
+              "duration": 0.7872079999999642,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 11264 + 128",
+              "status": "passed",
+              "duration": 0.8946670000000267,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 11392 + 128",
+              "status": "passed",
+              "duration": 0.98700000000008,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 11520 + 128",
+              "status": "passed",
+              "duration": 0.9824170000000549,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 11648 + 128",
+              "status": "passed",
+              "duration": 1.5666669999999385,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 11776 + 128",
+              "status": "passed",
+              "duration": 0.79262499999993,
+              "failures": []
+            },
+            {
+              "name": "matches pinned shift-stream edge rows 11904 + 96",
+              "status": "passed",
+              "duration": 0.5411669999999731,
+              "failures": []
+            }
+          ]
+        },
+        {
+          "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/double-byte-incremental-reentrancy.test.ts",
+          "cases": [
+            {
+              "name": "undefined incremental reentrancy matches the pinned oracle's callback/state/feed/flush matrix",
+              "status": "passed",
+              "duration": 7.984332999999992,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy cancellation wins after a state-mutating callback (throws=false)",
+              "status": "passed",
+              "duration": 0.714334000000008,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy cancellation wins after a state-mutating callback (throws=true)",
+              "status": "passed",
+              "duration": 0.2535840000000462,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy matches the pinned oracle's callback/state/feed/flush matrix",
+              "status": "passed",
+              "duration": 5.047041000000036,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy cancellation wins after a state-mutating callback (throws=false)",
+              "status": "passed",
+              "duration": 0.3285000000000764,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy cancellation wins after a state-mutating callback (throws=true)",
+              "status": "passed",
+              "duration": 0.28512499999999363,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy matches the pinned oracle's callback/state/feed/flush matrix",
+              "status": "passed",
+              "duration": 4.061874999999986,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy cancellation wins after a state-mutating callback (throws=false)",
+              "status": "passed",
+              "duration": 0.24074999999993452,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy cancellation wins after a state-mutating callback (throws=true)",
+              "status": "passed",
+              "duration": 0.4857080000000451,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy matches the pinned oracle's callback/state/feed/flush matrix",
+              "status": "passed",
+              "duration": 5.131458000000066,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy cancellation wins after a state-mutating callback (throws=false)",
+              "status": "passed",
+              "duration": 0.3580419999999549,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy cancellation wins after a state-mutating callback (throws=true)",
+              "status": "passed",
+              "duration": 0.14454200000000128,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy matches the pinned oracle's callback/state/feed/flush matrix",
+              "status": "passed",
+              "duration": 4.469457999999918,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy cancellation wins after a state-mutating callback (throws=false)",
+              "status": "passed",
+              "duration": 0.33570799999995415,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy cancellation wins after a state-mutating callback (throws=true)",
+              "status": "passed",
+              "duration": 0.2582909999999856,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy matches the pinned oracle's callback/state/feed/flush matrix",
+              "status": "passed",
+              "duration": 4.151749999999993,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy cancellation wins after a state-mutating callback (throws=false)",
+              "status": "passed",
+              "duration": 0.20600000000001728,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy cancellation wins after a state-mutating callback (throws=true)",
+              "status": "passed",
+              "duration": 0.2562080000000151,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy matches the pinned oracle's callback/state/feed/flush matrix",
+              "status": "passed",
+              "duration": 3.6237080000000788,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy cancellation wins after a state-mutating callback (throws=false)",
+              "status": "passed",
+              "duration": 0.19754199999999855,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy cancellation wins after a state-mutating callback (throws=true)",
+              "status": "passed",
+              "duration": 0.10366699999997309,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy matches the pinned oracle's callback/state/feed/flush matrix",
+              "status": "passed",
+              "duration": 3.668749999999932,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy cancellation wins after a state-mutating callback (throws=false)",
+              "status": "passed",
+              "duration": 0.2072920000000522,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy cancellation wins after a state-mutating callback (throws=true)",
+              "status": "passed",
+              "duration": 0.11237499999992906,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy matches the pinned oracle's callback/state/feed/flush matrix",
+              "status": "passed",
+              "duration": 4.270167000000015,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy cancellation wins after a state-mutating callback (throws=false)",
+              "status": "passed",
+              "duration": 0.2220829999999978,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy cancellation wins after a state-mutating callback (throws=true)",
+              "status": "passed",
+              "duration": 0.11558300000001509,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy matches the pinned oracle's callback/state/feed/flush matrix",
+              "status": "passed",
+              "duration": 5.4386670000000095,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy cancellation wins after a state-mutating callback (throws=false)",
+              "status": "passed",
+              "duration": 0.27300000000002456,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy cancellation wins after a state-mutating callback (throws=true)",
+              "status": "passed",
+              "duration": 0.09987499999999727,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy matches the pinned oracle's callback/state/feed/flush matrix",
+              "status": "passed",
+              "duration": 2.657459000000017,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy cancellation wins after a state-mutating callback (throws=false)",
+              "status": "passed",
+              "duration": 0.1752920000000131,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy cancellation wins after a state-mutating callback (throws=true)",
+              "status": "passed",
+              "duration": 0.08579199999996945,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy matches the pinned oracle's callback/state/feed/flush matrix",
+              "status": "passed",
+              "duration": 2.8352500000000873,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy cancellation wins after a state-mutating callback (throws=false)",
+              "status": "passed",
+              "duration": 0.15925000000004275,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy cancellation wins after a state-mutating callback (throws=true)",
+              "status": "passed",
+              "duration": 0.09979199999997945,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy matches the pinned oracle's callback/state/feed/flush matrix",
+              "status": "passed",
+              "duration": 2.8814590000000635,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy cancellation wins after a state-mutating callback (throws=false)",
+              "status": "passed",
+              "duration": 0.23462500000005093,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy cancellation wins after a state-mutating callback (throws=true)",
+              "status": "passed",
+              "duration": 0.17087500000002365,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy matches the pinned oracle's callback/state/feed/flush matrix",
+              "status": "passed",
+              "duration": 2.820875000000001,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy cancellation wins after a state-mutating callback (throws=false)",
+              "status": "passed",
+              "duration": 0.2406660000000329,
+              "failures": []
+            },
+            {
+              "name": "undefined incremental reentrancy cancellation wins after a state-mutating callback (throws=true)",
+              "status": "passed",
+              "duration": 0.0896659999999656,
+              "failures": []
+            }
+          ]
+        },
+        {
+          "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-preparation-cancellation.test.ts",
+          "cases": [
+            {
+              "name": "codec 'encode' preparation: 'return', cancellation=false",
+              "status": "passed",
+              "duration": 7.008874999999989,
+              "failures": []
+            },
+            {
+              "name": "codec 'encode' preparation: 'return', cancellation=true",
+              "status": "passed",
+              "duration": 2.021665999999982,
+              "failures": []
+            },
+            {
+              "name": "codec 'encode' preparation: 'ordinary failure', cancellation=false",
+              "status": "passed",
+              "duration": 1.3398329999999987,
+              "failures": []
+            },
+            {
+              "name": "codec 'encode' preparation: 'ordinary failure', cancellation=true",
+              "status": "passed",
+              "duration": 1.3977500000000873,
+              "failures": []
+            },
+            {
+              "name": "codec 'encode' preparation: 'guest failure', cancellation=false",
+              "status": "passed",
+              "duration": 1.0381250000000364,
+              "failures": []
+            },
+            {
+              "name": "codec 'encode' preparation: 'guest failure', cancellation=true",
+              "status": "passed",
+              "duration": 0.8762500000000273,
+              "failures": []
+            },
+            {
+              "name": "codec 'encode' preparation: 'fatal', cancellation=false",
+              "status": "passed",
+              "duration": 1.0039999999999054,
+              "failures": []
+            },
+            {
+              "name": "codec 'encode' preparation: 'fatal', cancellation=true",
+              "status": "passed",
+              "duration": 0.6207079999999223,
+              "failures": []
+            },
+            {
+              "name": "codec 'decode' preparation: 'return', cancellation=false",
+              "status": "passed",
+              "duration": 2.1453749999999445,
+              "failures": []
+            },
+            {
+              "name": "codec 'decode' preparation: 'return', cancellation=true",
+              "status": "passed",
+              "duration": 0.73275000000001,
+              "failures": []
+            },
+            {
+              "name": "codec 'decode' preparation: 'ordinary failure', cancellation=false",
+              "status": "passed",
+              "duration": 0.6784999999999854,
+              "failures": []
+            },
+            {
+              "name": "codec 'decode' preparation: 'ordinary failure', cancellation=true",
+              "status": "passed",
+              "duration": 0.7054159999999001,
+              "failures": []
+            },
+            {
+              "name": "codec 'decode' preparation: 'guest failure', cancellation=false",
+              "status": "passed",
+              "duration": 0.5199999999999818,
+              "failures": []
+            },
+            {
+              "name": "codec 'decode' preparation: 'guest failure', cancellation=true",
+              "status": "passed",
+              "duration": 0.4719160000000784,
+              "failures": []
+            },
+            {
+              "name": "codec 'decode' preparation: 'fatal', cancellation=false",
+              "status": "passed",
+              "duration": 0.25899999999990087,
+              "failures": []
+            },
+            {
+              "name": "codec 'decode' preparation: 'fatal', cancellation=true",
+              "status": "passed",
+              "duration": 0.27350000000001273,
+              "failures": []
+            }
+          ]
+        },
+        {
+          "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registration-cancellation.test.ts",
+          "cases": [
+            {
+              "name": "search registration observes callability-service cancellation and preserves failures",
+              "status": "passed",
+              "duration": 2.9394159999999943,
+              "failures": []
+            },
+            {
+              "name": "error registration observes callability-service cancellation and preserves failures",
+              "status": "passed",
+              "duration": 0.7670420000000036,
+              "failures": []
+            },
+            {
+              "name": "search registration preserves a fatal callability failure by identity",
+              "status": "passed",
+              "duration": 0.25679200000001856,
+              "failures": []
+            },
+            {
+              "name": "error registration preserves a fatal callability failure by identity",
+              "status": "passed",
+              "duration": 0.2696250000000191,
+              "failures": []
+            }
+          ]
+        },
+        {
+          "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry-functions.test.ts",
+          "cases": [
+            {
+              "name": "uses guest keyword diagnostics before encode registry lookup",
+              "status": "passed",
+              "duration": 41.316417,
+              "failures": []
+            },
+            {
+              "name": "uses guest keyword diagnostics before decode registry lookup",
+              "status": "passed",
+              "duration": 13.8568750000004,
+              "failures": []
+            },
+            {
+              "name": "preserves retained normalized name identity after failed searches and unregister",
+              "status": "passed",
+              "duration": 11.956624999999804,
+              "failures": []
+            },
+            {
+              "name": "canonicalizes only empty and Latin-1 decoder results without consulting guest conversion or tuple overrides",
+              "status": "passed",
+              "duration": 16.5181249999996,
+              "failures": []
+            },
+            {
+              "name": "binds search registration, normalized cache identity and error-handler lifetime through guest calls",
+              "status": "passed",
+              "duration": 8.058916999999383,
+              "failures": []
+            },
+            {
+              "name": "binds positional-only registry entry points before name and callable validation",
+              "status": "passed",
+              "duration": 10.313083000000006,
+              "failures": []
+            },
+            {
+              "name": "binds encode keyword validation and conversion order",
+              "status": "passed",
+              "duration": 5.3764170000004015,
+              "failures": []
+            },
+            {
+              "name": "binds decode keyword validation and conversion order",
+              "status": "passed",
+              "duration": 5.77941600000031,
+              "failures": []
+            },
+            {
+              "name": "reads native string subtype storage and keeps invalid-name source identity",
+              "status": "passed",
+              "duration": 8.703709000000345,
+              "failures": []
+            },
+            {
+              "name": "cancellation escapes the registry binding even when guest code catches failures (false)",
+              "status": "passed",
+              "duration": 7.128167000000758,
+              "failures": []
+            },
+            {
+              "name": "cancellation escapes the registry binding even when guest code catches failures (true)",
+              "status": "passed",
+              "duration": 5.92699999999968,
+              "failures": []
+            },
+            {
+              "name": "exposes pinned lookup metadata on the actual binding",
+              "status": "passed",
+              "duration": 3.457499999999527,
+              "failures": []
+            },
+            {
+              "name": "uses the same registry for binding dispatch and UTF-8 negative-position recovery",
+              "status": "passed",
+              "duration": 10.33191700000043,
+              "failures": []
+            },
+            {
+              "name": "isolates search paths and custom handler names between binding owners",
+              "status": "passed",
+              "duration": 9.502916999999798,
+              "failures": []
+            },
+            {
+              "name": "validates name boundaries before invoking search or replacing a registered handler",
+              "status": "passed",
+              "duration": 6.1866250000002765,
+              "failures": []
+            }
+          ]
+        },
+        {
+          "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/runtime-codec-registry.test.ts",
+          "cases": [
+            {
+              "name": "normalizes names, caches successful identity, and isolates registries",
+              "status": "passed",
+              "duration": 2.530124999999998,
+              "failures": []
+            },
+            {
+              "name": "retries failed initialization before returning an exact cached name",
+              "status": "passed",
+              "duration": 0.3541670000000181,
+              "failures": []
+            },
+            {
+              "name": "validates original spelling before using normalized cache: cached\u0000",
+              "status": "passed",
+              "duration": 0.31887499999999136,
+              "failures": []
+            },
+            {
+              "name": "validates original spelling before using normalized cache: cached\ud800",
+              "status": "passed",
+              "duration": 0.6089170000000195,
+              "failures": []
+            },
+            {
+              "name": "validates original spelling before using normalized cache: cached\u0000\ud800",
+              "status": "passed",
+              "duration": 0.47495900000001257,
+              "failures": []
+            },
+            {
+              "name": "validates original spelling before using normalized cache: 💥\ud800\ud801z",
+              "status": "passed",
+              "duration": 0.2482090000000028,
+              "failures": []
+            },
+            {
+              "name": "registration preserves cache; unregister removes only the first identity and clears hits only when found",
+              "status": "passed",
+              "duration": 0.5434999999999945,
+              "failures": []
+            },
+            {
+              "name": "does not cache misses or guest failures",
+              "status": "passed",
+              "duration": 0.7309590000000128,
+              "failures": []
+            },
+            {
+              "name": "retains normalized search-name identity across misses, failures and cache invalidation",
+              "status": "passed",
+              "duration": 1.2666250000000048,
+              "failures": []
+            },
+            {
+              "name": "rejects search tuples with 0 elements",
+              "status": "passed",
+              "duration": 0.3623750000000143,
+              "failures": []
+            },
+            {
+              "name": "rejects search tuples with 3 elements",
+              "status": "passed",
+              "duration": 0.25345799999999485,
+              "failures": []
+            },
+            {
+              "name": "rejects search tuples with 5 elements",
+              "status": "passed",
+              "duration": 0.10174999999998136,
+              "failures": []
+            },
+            {
+              "name": "rejects lists and noncallables without invoking guest equality",
+              "status": "passed",
+              "duration": 0.2948340000000087,
+              "failures": []
+            },
+            {
+              "name": "uses a fixed initial search length but live entries during mutation",
+              "status": "passed",
+              "duration": 0.1712090000000046,
+              "failures": []
+            },
+            {
+              "name": "validates NUL and surrogate encoding names before searching",
+              "status": "passed",
+              "duration": 0.19804199999998673,
+              "failures": []
+            },
+            {
+              "name": "keeps error handlers case sensitive, replaceable and separate from codec cache",
+              "status": "passed",
+              "duration": 0.2928330000000017,
+              "failures": []
+            },
+            {
+              "name": "bounds missing-handler diagnostics by UTF-8 bytes without truncating registration keys (case 0)",
+              "status": "passed",
+              "duration": 0.6733339999999828,
+              "failures": []
+            },
+            {
+              "name": "bounds missing-handler diagnostics by UTF-8 bytes without truncating registration keys (case 1)",
+              "status": "passed",
+              "duration": 0.32858300000000895,
+              "failures": []
+            },
+            {
+              "name": "bounds missing-handler diagnostics by UTF-8 bytes without truncating registration keys (case 2)",
+              "status": "passed",
+              "duration": 0.37308300000000827,
+              "failures": []
+            },
+            {
+              "name": "bounds missing-handler diagnostics by UTF-8 bytes without truncating registration keys (case 3)",
+              "status": "passed",
+              "duration": 0.17666600000001154,
+              "failures": []
+            },
+            {
+              "name": "bounds missing-handler diagnostics by UTF-8 bytes without truncating registration keys (case 4)",
+              "status": "passed",
+              "duration": 0.40995799999998894,
+              "failures": []
+            },
+            {
+              "name": "bounds missing-handler diagnostics by UTF-8 bytes without truncating registration keys (case 5)",
+              "status": "passed",
+              "duration": 0.20695900000001188,
+              "failures": []
+            },
+            {
+              "name": "bounds missing-handler diagnostics by UTF-8 bytes without truncating registration keys (case 6)",
+              "status": "passed",
+              "duration": 0.155666999999994,
+              "failures": []
+            },
+            {
+              "name": "bounds missing-handler diagnostics by UTF-8 bytes without truncating registration keys (case 7)",
+              "status": "passed",
+              "duration": 0.15670800000000895,
+              "failures": []
+            },
+            {
+              "name": "cancellation dominates search return or failure (throws=false)",
+              "status": "passed",
+              "duration": 0.2646249999999952,
+              "failures": []
+            },
+            {
+              "name": "cancellation dominates search return or failure (throws=true)",
+              "status": "passed",
+              "duration": 0.06679200000002083,
+              "failures": []
+            },
+            {
+              "name": "validates error handler names at the C-string boundary: x\u0000y",
+              "status": "passed",
+              "duration": 0.1207910000000254,
+              "failures": []
+            },
+            {
+              "name": "validates error handler names at the C-string boundary: \ud800",
+              "status": "passed",
+              "duration": 0.09537500000001842,
+              "failures": []
+            },
+            {
+              "name": "checks adjusted negative and positive resume bounds: -4n",
+              "status": "passed",
+              "duration": 0.20016699999999332,
+              "failures": []
+            },
+            {
+              "name": "checks adjusted negative and positive resume bounds: 4n",
+              "status": "passed",
+              "duration": 0.08070799999998712,
+              "failures": []
+            },
+            {
+              "name": "returns validated replacement identity and resume position: -1n",
+              "status": "passed",
+              "duration": 0.21279100000000994,
+              "failures": []
+            },
+            {
+              "name": "returns validated replacement identity and resume position: 1n",
+              "status": "passed",
+              "duration": 0.07033300000000509,
+              "failures": []
+            },
+            {
+              "name": "permits bytes only for encoding replacements and validates tuple shape before position",
+              "status": "passed",
+              "duration": 0.5288749999999993,
+              "failures": []
+            },
+            {
+              "name": "cancellation dominates custom error handlers (throws=false)",
+              "status": "passed",
+              "duration": 0.13587499999999864,
+              "failures": []
+            },
+            {
+              "name": "cancellation dominates custom error handlers (throws=true)",
+              "status": "passed",
+              "duration": 0.054957999999999174,
+              "failures": []
+            },
+            {
+              "name": "does not reenter a retained encode error handler after termination",
+              "status": "passed",
+              "duration": 0.18454199999999332,
+              "failures": []
+            },
+            {
+              "name": "does not reenter a retained decode error handler after termination",
+              "status": "passed",
+              "duration": 0.07329100000001176,
+              "failures": []
+            },
+            {
+              "name": "checks cancellation before invoking a retained encode error handler",
+              "status": "passed",
+              "duration": 0.21245799999999804,
+              "failures": []
+            },
+            {
+              "name": "checks cancellation before invoking a retained decode error handler",
+              "status": "passed",
+              "duration": 0.09904099999999971,
+              "failures": []
+            },
+            {
+              "name": "detects search-path shrinkage during lookup without taking a snapshot",
+              "status": "passed",
+              "duration": 0.1670000000000016,
+              "failures": []
+            },
+            {
+              "name": "rejects resume positions outside pinned Py_ssize_t: 9223372036854775808n",
+              "status": "passed",
+              "duration": 0.08029199999998582,
+              "failures": []
+            },
+            {
+              "name": "rejects resume positions outside pinned Py_ssize_t: -9223372036854775809n",
+              "status": "passed",
+              "duration": 0.04720900000000938,
+              "failures": []
+            },
+            {
+              "name": "accepts boolean positions and invokes __index__ through the explicit protocol",
+              "status": "passed",
+              "duration": 0.3148750000000007,
+              "failures": []
+            }
+          ]
+        },
+        {
+          "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental-commit.test.ts",
+          "cases": [
+            {
+              "name": "commits UTF-16 BOM order and buffered bytes together on 'cancelled' (order=-1)",
+              "status": "passed",
+              "duration": 3.110041999999993,
+              "failures": []
+            },
+            {
+              "name": "commits UTF-16 BOM order and buffered bytes together on 'allocation' (order=-1)",
+              "status": "passed",
+              "duration": 0.841124999999991,
+              "failures": []
+            },
+            {
+              "name": "commits UTF-16 BOM order and buffered bytes together on 'steps' (order=-1)",
+              "status": "passed",
+              "duration": 0.43912499999999,
+              "failures": []
+            },
+            {
+              "name": "commits UTF-16 BOM order and buffered bytes together on 'cancelled' (order=1)",
+              "status": "passed",
+              "duration": 0.36020899999999756,
+              "failures": []
+            },
+            {
+              "name": "commits UTF-16 BOM order and buffered bytes together on 'allocation' (order=1)",
+              "status": "passed",
+              "duration": 0.4403750000000173,
+              "failures": []
+            },
+            {
+              "name": "commits UTF-16 BOM order and buffered bytes together on 'steps' (order=1)",
+              "status": "passed",
+              "duration": 0.24541600000000585,
+              "failures": []
+            },
+            {
+              "name": "commits UTF-32 BOM order and buffered bytes together on 'cancelled' (order=-1)",
+              "status": "passed",
+              "duration": 0.4177079999999762,
+              "failures": []
+            },
+            {
+              "name": "commits UTF-32 BOM order and buffered bytes together on 'allocation' (order=-1)",
+              "status": "passed",
+              "duration": 0.23883299999999963,
+              "failures": []
+            },
+            {
+              "name": "commits UTF-32 BOM order and buffered bytes together on 'steps' (order=-1)",
+              "status": "passed",
+              "duration": 0.8964159999999879,
+              "failures": []
+            },
+            {
+              "name": "commits UTF-32 BOM order and buffered bytes together on 'cancelled' (order=1)",
+              "status": "passed",
+              "duration": 0.5742500000000064,
+              "failures": []
+            },
+            {
+              "name": "commits UTF-32 BOM order and buffered bytes together on 'allocation' (order=1)",
+              "status": "passed",
+              "duration": 0.51724999999999,
+              "failures": []
+            },
+            {
+              "name": "commits UTF-32 BOM order and buffered bytes together on 'steps' (order=1)",
+              "status": "passed",
+              "duration": 0.19220800000002214,
+              "failures": []
+            }
+          ]
+        },
+        {
+          "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf-wide-incremental.test.ts",
+          "cases": [
+            {
+              "name": "preserves reentrant byte-order changes from UTF-16 recovery",
+              "status": "passed",
+              "duration": 2.6678750000000093,
+              "failures": []
+            },
+            {
+              "name": "preserves reentrant byte-order changes from UTF-32 recovery",
+              "status": "passed",
+              "duration": 0.8397499999999809,
+              "failures": []
+            },
+            {
+              "name": "finishes initial UTF-16 BOM detection after reentrant recovery",
+              "status": "passed",
+              "duration": 0.6762910000000204,
+              "failures": []
+            },
+            {
+              "name": "finishes initial UTF-32 BOM detection after reentrant recovery",
+              "status": "passed",
+              "duration": 0.46529099999997925,
+              "failures": []
+            },
+            {
+              "name": "preserves reentrant UTF-16 encoder reset after initial selection",
+              "status": "passed",
+              "duration": 0.6856669999999951,
+              "failures": []
+            },
+            {
+              "name": "preserves reentrant UTF-32 encoder reset after initial selection",
+              "status": "passed",
+              "duration": 0.23016699999999446,
+              "failures": []
+            },
+            {
+              "name": "retains UTF-16 callback mutations when recovery raises or cancels",
+              "status": "passed",
+              "duration": 0.7493329999999787,
+              "failures": []
+            },
+            {
+              "name": "retains UTF-32 callback mutations when recovery raises or cancels",
+              "status": "passed",
+              "duration": 0.6734160000000031,
+              "failures": []
+            },
+            {
+              "name": "preserves every split, endian selection and owned state for UTF-16",
+              "status": "passed",
+              "duration": 2.325165999999996,
+              "failures": []
+            },
+            {
+              "name": "preserves every split, endian selection and owned state for UTF-32",
+              "status": "passed",
+              "duration": 3.299041999999986,
+              "failures": []
+            },
+            {
+              "name": "requires a BOM only for native incremental UTF-16 and leaves failures uncommitted",
+              "status": "passed",
+              "duration": 0.4641670000000033,
+              "failures": []
+            },
+            {
+              "name": "requires a BOM only for native incremental UTF-32 and leaves failures uncommitted",
+              "status": "passed",
+              "duration": 0.2564580000000092,
+              "failures": []
+            },
+            {
+              "name": "normalizes internal integer state and emits BOM only after successful UTF-16 encode",
+              "status": "passed",
+              "duration": 1.0589579999999899,
+              "failures": []
+            },
+            {
+              "name": "normalizes internal integer state and emits BOM only after successful UTF-32 encode",
+              "status": "passed",
+              "duration": 0.8502079999999808,
+              "failures": []
+            },
+            {
+              "name": "observes cancellation before mutation and budgets output storage",
+              "status": "passed",
+              "duration": 0.47341700000001197,
+              "failures": []
+            },
+            {
+              "name": "detects a big-endian BOM at every split for native UTF-16",
+              "status": "passed",
+              "duration": 0.5610839999999939,
+              "failures": []
+            },
+            {
+              "name": "detects a big-endian BOM at every split for native UTF-32",
+              "status": "passed",
+              "duration": 0.4677079999999876,
+              "failures": []
+            },
+            {
+              "name": "supports recovery across buffered input, including a replacement longer than the original bytes",
+              "status": "passed",
+              "duration": 0.49416700000000446,
+              "failures": []
+            }
+          ]
+        },
+        {
+          "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/runtime/utf8-incremental.test.ts",
+          "cases": [
+            {
+              "name": "incremental UTF-8 decoding handles every chunk boundary in 194,128",
+              "status": "passed",
+              "duration": 2.379417000000018,
+              "failures": []
+            },
+            {
+              "name": "incremental UTF-8 decoding handles every chunk boundary in 226,130,172",
+              "status": "passed",
+              "duration": 0.5738749999999868,
+              "failures": []
+            },
+            {
+              "name": "incremental UTF-8 decoding handles every chunk boundary in 240,144,128,128",
+              "status": "passed",
+              "duration": 0.19350000000000023,
+              "failures": []
+            },
+            {
+              "name": "incremental UTF-8 decoding handles every chunk boundary in 65,239,187,191,66",
+              "status": "passed",
+              "duration": 0.45691700000000424,
+              "failures": []
+            },
+            {
+              "name": "incremental UTF-8 decoding buffers one byte at a time and survives empty chunks",
+              "status": "passed",
+              "duration": 0.26329200000000696,
+              "failures": []
+            },
+            {
+              "name": "incremental UTF-8 decoding defers an unfinished surrogate prefix with strict",
+              "status": "passed",
+              "duration": 0.09762499999999363,
+              "failures": []
+            },
+            {
+              "name": "incremental UTF-8 decoding defers an unfinished surrogate prefix with replace",
+              "status": "passed",
+              "duration": 0.12616599999998357,
+              "failures": []
+            },
+            {
+              "name": "incremental UTF-8 decoding defers an unfinished surrogate prefix with surrogatepass",
+              "status": "passed",
+              "duration": 0.10466699999997786,
+              "failures": []
+            },
+            {
+              "name": "incremental UTF-8 decoding defers an unfinished surrogate prefix with surrogateescape",
+              "status": "passed",
+              "duration": 0.3194170000000156,
+              "failures": []
+            },
+            {
+              "name": "incremental UTF-8 decoding rejects already-invalid partial prefixes immediately",
+              "status": "passed",
+              "duration": 0.45683400000001484,
+              "failures": []
+            },
+            {
+              "name": "incremental UTF-8 decoding flushes incomplete bytes using the current error policy",
+              "status": "passed",
+              "duration": 0.24166700000000674,
+              "failures": []
+            },
+            {
+              "name": "incremental UTF-8 decoding keeps old pending state on failure and reports the complete combined input",
+              "status": "passed",
+              "duration": 0.12787499999998886,
+              "failures": []
+            },
+            {
+              "name": "incremental UTF-8 decoding copies input tails and state snapshots without aliasing",
+              "status": "passed",
+              "duration": 0.09679200000002197,
+              "failures": []
+            },
+            {
+              "name": "incremental UTF-8 decoding allows decoder state containing ordinary bytes and ignores auxiliary state",
+              "status": "passed",
+              "duration": 0.17279199999998696,
+              "failures": []
+            },
+            {
+              "name": "incremental UTF-8 decoding leaves state unchanged when buffer assembly exceeds its budget",
+              "status": "passed",
+              "duration": 0.21545900000000984,
+              "failures": []
+            },
+            {
+              "name": "incremental UTF-8 decoding does not commit pending-state replacement after a cancelled checkpoint",
+              "status": "passed",
+              "duration": 0.18824999999998226,
+              "failures": []
+            }
+          ]
+        }
+      ]
+    },
+    "public": {
+      "path": "/tmp/codec-shift-public-gates.json",
+      "sha256": "47545fa36a47b3a243778653d645063774b2e523eacc6017e398f7732a929517",
+      "passed": 102,
+      "failed": 40,
+      "pending": 0,
+      "files": 4,
+      "slowestMs": 90.16458300000068,
+      "results": [
+        {
+          "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts",
+          "cases": [
+            {
+              "name": "registered decoder consumer: 'source.decode(\\'decoder-contract\\'): …'",
+              "status": "failed",
+              "duration": 74.73937499999988,
+              "failures": [
+                "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "registered decoder consumer: 'source.decode(\\'decoder-contract\\'): …'",
+              "status": "failed",
+              "duration": 27.90295900000001,
+              "failures": [
+                "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "registered decoder consumer: 'bytes.decode(source, \\'decoder-contra…'",
+              "status": "failed",
+              "duration": 21.843875000000025,
+              "failures": [
+                "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "registered decoder consumer: 'bytes.decode(source, \\'decoder-contra…'",
+              "status": "failed",
+              "duration": 23.187167000000045,
+              "failures": [
+                "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "registered decoder consumer: 'str(source, \\'decoder-contract\\'): om…'",
+              "status": "failed",
+              "duration": 25.95745799999986,
+              "failures": [
+                "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "registered decoder consumer: 'str(source, \\'decoder-contract\\'): ex…'",
+              "status": "failed",
+              "duration": 22.663458999999875,
+              "failures": [
+                "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "registered decoder consumer: 'str.__new__(str, source, \\'decoder-co…'",
+              "status": "failed",
+              "duration": 18.4737090000001,
+              "failures": [
+                "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "registered decoder consumer: 'str.__new__(str, source, \\'decoder-co…'",
+              "status": "failed",
+              "duration": 21.810917000000018,
+              "failures": [
+                "AssertionError: unknown encoding: decoder-contract: expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-decoder-consumers.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts",
+          "cases": [
+            {
+              "name": "incremental callback user audit: 'ascii; reenter; return'",
+              "status": "passed",
+              "duration": 90.16458300000068,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'ascii; reenter; raise'",
+              "status": "passed",
+              "duration": 42.194249999999556,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'ascii; reenter; overflow'",
+              "status": "passed",
+              "duration": 28.449249999999665,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'ascii; reenter_once; return'",
+              "status": "passed",
+              "duration": 30.943083000000115,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'ascii; reenter_once; raise'",
+              "status": "passed",
+              "duration": 39.32208399999945,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'ascii; reenter_once; overflow'",
+              "status": "passed",
+              "duration": 27.343457999999373,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'ascii; reset; return'",
+              "status": "passed",
+              "duration": 22.91608300000007,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'ascii; reset; raise'",
+              "status": "passed",
+              "duration": 25.104957999999897,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'ascii; reset; overflow'",
+              "status": "passed",
+              "duration": 35.376124999999774,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'ascii; restore; return'",
+              "status": "passed",
+              "duration": 22.348917000000256,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'ascii; restore; raise'",
+              "status": "passed",
+              "duration": 25.628458000000137,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'ascii; restore; overflow'",
+              "status": "passed",
+              "duration": 21.870458000000326,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'ascii; replace_handler; return'",
+              "status": "passed",
+              "duration": 22.406458999999813,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'ascii; replace_handler; raise'",
+              "status": "passed",
+              "duration": 24.576082999999926,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'ascii; replace_handler; overflow'",
+              "status": "passed",
+              "duration": 24.878499999999804,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'cp1252; reenter; return'",
+              "status": "passed",
+              "duration": 30.87420800000018,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'cp1252; reenter; raise'",
+              "status": "passed",
+              "duration": 21.486667000000125,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'cp1252; reenter; overflow'",
+              "status": "passed",
+              "duration": 21.98687500000051,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'cp1252; reenter_once; return'",
+              "status": "passed",
+              "duration": 38.498875000000226,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'cp1252; reenter_once; raise'",
+              "status": "passed",
+              "duration": 17.801250000000437,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'cp1252; reenter_once; overflow'",
+              "status": "passed",
+              "duration": 19.616500000000087,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'cp1252; reset; return'",
+              "status": "passed",
+              "duration": 22.523832999999286,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'cp1252; reset; raise'",
+              "status": "passed",
+              "duration": 16.589500000000044,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'cp1252; reset; overflow'",
+              "status": "passed",
+              "duration": 20.20191700000032,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'cp1252; restore; return'",
+              "status": "passed",
+              "duration": 21.750082999999904,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'cp1252; restore; raise'",
+              "status": "passed",
+              "duration": 17.74433399999998,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'cp1252; restore; overflow'",
+              "status": "passed",
+              "duration": 20.86120800000026,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'cp1252; replace_handler; return'",
+              "status": "passed",
+              "duration": 17.144916999999623,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'cp1252; replace_handler; raise'",
+              "status": "passed",
+              "duration": 17.911959000000024,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'cp1252; replace_handler; overflow'",
+              "status": "passed",
+              "duration": 23.257000000000517,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-8; reenter; return'",
+              "status": "failed",
+              "duration": 68.05204200000026,
+              "failures": [
+                "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "incremental callback user audit: 'utf-8; reenter; raise'",
+              "status": "failed",
+              "duration": 63.54420800000025,
+              "failures": [
+                "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "incremental callback user audit: 'utf-8; reenter; overflow'",
+              "status": "failed",
+              "duration": 58.50220800000079,
+              "failures": [
+                "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "incremental callback user audit: 'utf-8; reenter_once; return'",
+              "status": "passed",
+              "duration": 18.984875000000102,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-8; reenter_once; raise'",
+              "status": "passed",
+              "duration": 19.444375000000036,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-8; reenter_once; overflow'",
+              "status": "passed",
+              "duration": 18.242708000000675,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-8; reset; return'",
+              "status": "passed",
+              "duration": 19.60991699999977,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-8; reset; raise'",
+              "status": "passed",
+              "duration": 21.457125000000815,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-8; reset; overflow'",
+              "status": "passed",
+              "duration": 17.38824999999997,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-8; restore; return'",
+              "status": "passed",
+              "duration": 19.909625000000233,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-8; restore; raise'",
+              "status": "passed",
+              "duration": 15.514500000000226,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-8; restore; overflow'",
+              "status": "passed",
+              "duration": 17.494042000000263,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-8; replace_handler; return'",
+              "status": "passed",
+              "duration": 22.318874999999935,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-8; replace_handler; raise'",
+              "status": "passed",
+              "duration": 17.190458000000035,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-8; replace_handler; overflow'",
+              "status": "passed",
+              "duration": 16.050000000000182,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-8-sig; reenter; return'",
+              "status": "failed",
+              "duration": 67.0450839999994,
+              "failures": [
+                "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "incremental callback user audit: 'utf-8-sig; reenter; raise'",
+              "status": "failed",
+              "duration": 63.15679199999977,
+              "failures": [
+                "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "incremental callback user audit: 'utf-8-sig; reenter; overflow'",
+              "status": "failed",
+              "duration": 74.71841700000004,
+              "failures": [
+                "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "incremental callback user audit: 'utf-8-sig; reenter_once; return'",
+              "status": "passed",
+              "duration": 21.614458000000013,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-8-sig; reenter_once; raise'",
+              "status": "passed",
+              "duration": 32.57291600000099,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-8-sig; reenter_once; overflow'",
+              "status": "passed",
+              "duration": 20.261708,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-8-sig; reset; return'",
+              "status": "passed",
+              "duration": 19.481041999999434,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-8-sig; reset; raise'",
+              "status": "passed",
+              "duration": 19.378999999998996,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-8-sig; reset; overflow'",
+              "status": "passed",
+              "duration": 18.319292000000132,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-8-sig; restore; return'",
+              "status": "passed",
+              "duration": 24.594332999999097,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-8-sig; restore; raise'",
+              "status": "passed",
+              "duration": 16.04554199999984,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-8-sig; restore; overflow'",
+              "status": "passed",
+              "duration": 23.91399999999885,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-8-sig; replace_handler; return'",
+              "status": "passed",
+              "duration": 16.704792000000452,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-8-sig; replace_handler; raise'",
+              "status": "passed",
+              "duration": 17.074499999998807,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-8-sig; replace_handler; overflow'",
+              "status": "passed",
+              "duration": 22.62658300000112,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-16-le; reenter; return'",
+              "status": "failed",
+              "duration": 49.73429100000067,
+              "failures": [
+                "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "incremental callback user audit: 'utf-16-le; reenter; raise'",
+              "status": "failed",
+              "duration": 57.91324999999961,
+              "failures": [
+                "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "incremental callback user audit: 'utf-16-le; reenter; overflow'",
+              "status": "failed",
+              "duration": 57.13812499999949,
+              "failures": [
+                "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "incremental callback user audit: 'utf-16-le; reenter_once; return'",
+              "status": "passed",
+              "duration": 23.736041000000114,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-16-le; reenter_once; raise'",
+              "status": "passed",
+              "duration": 34.73170800000116,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-16-le; reenter_once; overflow'",
+              "status": "passed",
+              "duration": 30.93720900000153,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-16-le; reset; return'",
+              "status": "passed",
+              "duration": 35.33679200000006,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-16-le; reset; raise'",
+              "status": "passed",
+              "duration": 20.4290830000009,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-16-le; reset; overflow'",
+              "status": "passed",
+              "duration": 17.282250000000204,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-16-le; restore; return'",
+              "status": "passed",
+              "duration": 18.416290999999546,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-16-le; restore; raise'",
+              "status": "passed",
+              "duration": 19.013750000000073,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-16-le; restore; overflow'",
+              "status": "passed",
+              "duration": 17.7007909999993,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-16-le; replace_handler; return'",
+              "status": "passed",
+              "duration": 16.409875000001193,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-16-le; replace_handler; raise'",
+              "status": "passed",
+              "duration": 19.77454200000102,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-16-le; replace_handler; overflow'",
+              "status": "passed",
+              "duration": 17.395916999999827,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-16-be; reenter; return'",
+              "status": "failed",
+              "duration": 49.85900000000038,
+              "failures": [
+                "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "incremental callback user audit: 'utf-16-be; reenter; raise'",
+              "status": "failed",
+              "duration": 55.137250000001586,
+              "failures": [
+                "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "incremental callback user audit: 'utf-16-be; reenter; overflow'",
+              "status": "failed",
+              "duration": 48.55195900000035,
+              "failures": [
+                "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "incremental callback user audit: 'utf-16-be; reenter_once; return'",
+              "status": "passed",
+              "duration": 16.165667000001122,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-16-be; reenter_once; raise'",
+              "status": "passed",
+              "duration": 17.596541999999317,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-16-be; reenter_once; overflow'",
+              "status": "passed",
+              "duration": 19.405374999998457,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-16-be; reset; return'",
+              "status": "passed",
+              "duration": 15.49199999999837,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-16-be; reset; raise'",
+              "status": "passed",
+              "duration": 17.887832999998864,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-16-be; reset; overflow'",
+              "status": "passed",
+              "duration": 19.14916599999924,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-16-be; restore; return'",
+              "status": "passed",
+              "duration": 17.15008300000045,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-16-be; restore; raise'",
+              "status": "passed",
+              "duration": 14.847667000000001,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-16-be; restore; overflow'",
+              "status": "passed",
+              "duration": 19.694166999999652,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-16-be; replace_handler; return'",
+              "status": "passed",
+              "duration": 15.242833000000246,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-16-be; replace_handler; raise'",
+              "status": "passed",
+              "duration": 16.06487500000003,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-16-be; replace_handler; overflow'",
+              "status": "passed",
+              "duration": 21.64916599999924,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-32-le; reenter; return'",
+              "status": "failed",
+              "duration": 52.37287500000093,
+              "failures": [
+                "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "incremental callback user audit: 'utf-32-le; reenter; raise'",
+              "status": "failed",
+              "duration": 56.09100000000035,
+              "failures": [
+                "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "incremental callback user audit: 'utf-32-le; reenter; overflow'",
+              "status": "failed",
+              "duration": 56.602208000000246,
+              "failures": [
+                "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "incremental callback user audit: 'utf-32-le; reenter_once; return'",
+              "status": "passed",
+              "duration": 15.325082999999722,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-32-le; reenter_once; raise'",
+              "status": "passed",
+              "duration": 18.898457999999664,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-32-le; reenter_once; overflow'",
+              "status": "passed",
+              "duration": 16.452167000001282,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-32-le; reset; return'",
+              "status": "passed",
+              "duration": 16.922749999999724,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-32-le; reset; raise'",
+              "status": "passed",
+              "duration": 20.330541999999696,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-32-le; reset; overflow'",
+              "status": "passed",
+              "duration": 20.548041000000012,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-32-le; restore; return'",
+              "status": "passed",
+              "duration": 17.603250000000116,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-32-le; restore; raise'",
+              "status": "passed",
+              "duration": 20.46979100000135,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-32-le; restore; overflow'",
+              "status": "passed",
+              "duration": 16.978499999999258,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-32-le; replace_handler; return'",
+              "status": "passed",
+              "duration": 15.118000000000393,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-32-le; replace_handler; raise'",
+              "status": "passed",
+              "duration": 18.766458000000057,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-32-le; replace_handler; overflow'",
+              "status": "passed",
+              "duration": 16.502582999999504,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-32-be; reenter; return'",
+              "status": "failed",
+              "duration": 53.97416599999997,
+              "failures": [
+                "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "incremental callback user audit: 'utf-32-be; reenter; raise'",
+              "status": "failed",
+              "duration": 50.32599999999911,
+              "failures": [
+                "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "incremental callback user audit: 'utf-32-be; reenter; overflow'",
+              "status": "failed",
+              "duration": 57.973541999999725,
+              "failures": [
+                "AssertionError: {\"status\":\"terminated\",\"reason\":\"internal\",\"message\":\"Maximum call stack size exceeded\"}: expected 'terminated' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-incremental-callback-user.test.ts:21:91\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "incremental callback user audit: 'utf-32-be; reenter_once; return'",
+              "status": "passed",
+              "duration": 19.649999999999636,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-32-be; reenter_once; raise'",
+              "status": "passed",
+              "duration": 20.740334000000075,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-32-be; reenter_once; overflow'",
+              "status": "passed",
+              "duration": 25.20495799999844,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-32-be; reset; return'",
+              "status": "passed",
+              "duration": 18.4307919999992,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-32-be; reset; raise'",
+              "status": "passed",
+              "duration": 17.082957999999053,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-32-be; reset; overflow'",
+              "status": "passed",
+              "duration": 16.562832999999955,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-32-be; restore; return'",
+              "status": "passed",
+              "duration": 20.987333999999464,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-32-be; restore; raise'",
+              "status": "passed",
+              "duration": 16.215040999999474,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-32-be; restore; overflow'",
+              "status": "passed",
+              "duration": 24.200458999999682,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-32-be; replace_handler; return'",
+              "status": "passed",
+              "duration": 19.256083999998737,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-32-be; replace_handler; raise'",
+              "status": "passed",
+              "duration": 16.928459000000657,
+              "failures": []
+            },
+            {
+              "name": "incremental callback user audit: 'utf-32-be; replace_handler; overflow'",
+              "status": "passed",
+              "duration": 19.534332999999606,
+              "failures": []
+            }
+          ]
+        },
+        {
+          "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts",
+          "cases": [
+            {
+              "name": "native wide codec module: 'utf-16 registry and module API'",
+              "status": "failed",
+              "duration": 71.67491699999937,
+              "failures": [
+                "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "native wide codec module: 'utf-16 incremental encoder state and …'",
+              "status": "failed",
+              "duration": 25.196249999999964,
+              "failures": [
+                "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "native wide codec module: 'utf-16 every incremental split and st…'",
+              "status": "failed",
+              "duration": 22.257458000000042,
+              "failures": [
+                "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "native wide codec module: 'utf-16 missing BOM and truncated inpu…'",
+              "status": "failed",
+              "duration": 17.52991699999984,
+              "failures": [
+                "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "native wide codec module: 'utf-16 stream adapters BOM and reset'",
+              "status": "failed",
+              "duration": 23.4076670000004,
+              "failures": [
+                "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "native wide codec module: 'utf-32 registry and module API'",
+              "status": "failed",
+              "duration": 19.068333999999595,
+              "failures": [
+                "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "native wide codec module: 'utf-32 incremental encoder state and …'",
+              "status": "failed",
+              "duration": 22.78899999999976,
+              "failures": [
+                "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "native wide codec module: 'utf-32 every incremental split and st…'",
+              "status": "failed",
+              "duration": 19.130749999999352,
+              "failures": [
+                "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "native wide codec module: 'utf-32 missing BOM and truncated inpu…'",
+              "status": "failed",
+              "duration": 32.53383300000041,
+              "failures": [
+                "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "native wide codec module: 'utf-32 stream adapters BOM and reset'",
+              "status": "failed",
+              "duration": 20.97399999999925,
+              "failures": [
+                "AssertionError: No module named 'sys': expected 'exception' to be 'ok' // Object.is equality\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-native-wide-modules.test.ts:14:33\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            }
+          ]
+        },
+        {
+          "name": "/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-source-registry.test.ts",
+          "cases": [
+            {
+              "name": "source registry: 'source decoder receives an ownerless …'",
+              "status": "failed",
+              "duration": 75.69754200000011,
+              "failures": [
+                "TypeError: guest value is not a primitive\n    at Object.get primitive [as primitive] (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session.ts:263:24)\n    at clone (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/helpers.js:186:28)\n    at clone (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/helpers.js:186:19)\n    at clone (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/helpers.js:186:19)\n    at deepClone (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/helpers.js:161:9)\n    at printDiffOrStringify (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/diff.js:2122:25)\n    at processError (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/error.js:19:14)\n    at failTask (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:3071:101)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2966:6\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+              ]
+            },
+            {
+              "name": "source registry: 'source callback failures retain nativ…'",
+              "status": "failed",
+              "duration": 32.014625000000024,
+              "failures": [
+                "AssertionError: expected { result: { status: 'ok' }, …(1) } to deeply equal { result: { status: 'ok' }, …(1) }\n    at /Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session-codec-source-registry.test.ts:15:28\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2027:60\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:302:11\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:26\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2326:20\n    at new Promise (<anonymous>)\n    at runWithCancel (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2323:10)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2305:20\n    at new Promise (<anonymous>)\n    at runWithTimeout (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2272:10)"
+              ]
+            },
+            {
+              "name": "source registry: 'source codec callbacks use the suppli…'",
+              "status": "failed",
+              "duration": 24.045459000000164,
+              "failures": [
+                "TypeError: guest value is not a primitive\n    at Object.get primitive [as primitive] (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session.ts:263:24)\n    at clone (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/helpers.js:186:28)\n    at clone (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/helpers.js:186:19)\n    at clone (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/helpers.js:186:19)\n    at deepClone (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/helpers.js:161:9)\n    at printDiffOrStringify (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/diff.js:2122:25)\n    at processError (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/utils/dist/error.js:19:14)\n    at failTask (file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:3071:101)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/@vitest/runner/dist/chunk-artifact.js:2966:6\n    at processTicksAndRejections (node:internal/process/task_queues:103:5)"
+              ]
+            },
+            {
+              "name": "keeps cancellation in source decoder callbacks terminal",
+              "status": "failed",
+              "duration": 26.75395800000001,
+              "failures": [
+                "TypeError: guest value is not a primitive\n    at Object.get primitive [as primitive] (/Users/kjopek/Workspace/poe-code-3/packages/safe-python/src/session.ts:263:24)\n    at file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:580:76\n    at Array.map (<anonymous>)\n    at inspectObject (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:580:51)\n    at Object.inspect (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:785:12)\n    at inspectProperty (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:372:19)\n    at inspectList (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:343:24)\n    at inspectObject (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:580:28)\n    at inspect (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:785:12)\n    at inspect (file:///Users/kjopek/Workspace/poe-code-3/node_modules/chai/index.js:920:10)"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "typecheck": {
+    "command": "npm run typecheck --workspace=@poe-code/safe-python",
+    "exitCode": 0
+  },
+  "lint": {
+    "command": "npx eslint packages/safe-python/src/runtime/codec-shift-stream-edge.test.ts",
+    "exitCode": 0
+  },
+  "invalidStateProbe": {
+    "command": "/opt/homebrew/bin/python3.14 -I -c 'import codecs\nfor name in (\"iso2022_jp\", \"iso2022_jp_2\", \"iso2022_kr\"):\n d=codecs.getincrementaldecoder(name)();d.setstate((b\"\",0))\n try: print(name,repr(d.decode(b\"A\",True)))\n except Exception as e: print(name,type(e).__name__,repr(str(e)),e.args)\n print(d.getstate())'",
+    "observedExitCode": 139,
+    "stdout": "",
+    "stderr": "",
+    "contract": "The first codec exits the oracle process; later loop entries do not execute. No guest exception contract inferred from the native crash."
+  },
+  "parentStatus": {
+    "implement": "open",
+    "test": "open"
+  }
+}

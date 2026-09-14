@@ -1,0 +1,47 @@
+{
+  "provenance": {
+    "version": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 21.0.0 (clang-2100.1.1.101)]",
+    "unicode": "16.0.0",
+    "platform": "macOS-26.4.1-arm64-arm-64bit-Mach-O",
+    "byteorder": "little"
+  },
+  "source": "import codecs\nimport _codecs\nseen = []\ndef search(name):\n    seen.append(name)\n    return None\ncodecs.register(search)\nfor name in ('bad\\0name', 'bad\\0\\ud800'):\n    for action in (lambda: codecs.lookup(name), lambda: codecs.lookup_error(name), lambda: codecs.register_error(name, None), lambda: _codecs._unregister_error(name), lambda: codecs.encode('', name), lambda: codecs.decode(b'', name), lambda: ''.encode(name), lambda: b''.decode(name), lambda: ''.encode('utf8', name), lambda: b''.decode('utf8', name)):\n        try:\n            action()\n        except Exception as error:\n            print(type(error).__name__, error.args)\nprint('searches', seen)\nclass Position:\n    def __index__(self):\n        print('index')\n        assert input() == 'continue'\n        return -1\ndef handler(error):\n    print('handler', error.encoding, error.start, error.end)\n    return ('?', Position())\ncodecs.register_error('name-service', handler)\nprint(codecs.decode(b'\\xffZ', 'ascii', 'name-service'))\nprint(codecs.lookup('UTF-8') is codecs.lookup('utf8'))\n",
+  "oracle": {
+    "status": 0,
+    "stdout": "ValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nsearches []\nhandler ascii 0 1\nindex\n?Z\nFalse\n",
+    "stderr": ""
+  },
+  "runs": [
+    {
+      "mode": "normal",
+      "result": {
+        "status": "ok"
+      },
+      "stdout": "ValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nsearches []\nhandler ascii 0 1\nindex\n?Z\nFalse\n",
+      "reads": 1,
+      "verified": true
+    },
+    {
+      "mode": "cancel-return",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "ValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nsearches []\nhandler ascii 0 1\nindex\n",
+      "reads": 1,
+      "verified": true
+    },
+    {
+      "mode": "cancel-throw",
+      "result": {
+        "status": "terminated",
+        "reason": "cancelled",
+        "message": "execution cancelled"
+      },
+      "stdout": "ValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nValueError ('embedded null character',)\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nUnicodeEncodeError ('utf-8', 'bad\\x00\\ud800', 4, 5, 'surrogates not allowed')\nsearches []\nhandler ascii 0 1\nindex\n",
+      "reads": 1,
+      "verified": true
+    }
+  ]
+}

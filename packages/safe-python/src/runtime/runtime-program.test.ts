@@ -1733,9 +1733,9 @@ describe("assembled concrete runtime programs", () => {
     };
     state.run(); expect(state.globals.get("result")).toEqual(state.values.integer(3));
   });
-  it("keeps unsupported leaves explicit and restores frames on failure", () => {
+  it("reports a missing import hook and restores frames on failure", () => {
     const state = fixture("x = 1\ndef f():\n import unavailable\nf()\n");
-    expect(state.run).toThrow(UnsupportedStatementError); expect(state.globals.get("x")).toEqual(state.values.integer(1)); expect(state.calls.depth).toBe(0);
+    expect(state.run).toThrow(expect.objectContaining({name:"ImportError",message:"__import__ not found"})); expect(state.globals.get("x")).toEqual(state.values.integer(1)); expect(state.calls.depth).toBe(0);
   });
   it("shares fatal budgets across execution and stops after hook cancellation", () => {
     const loop = fixture("while True:\n pass\n", 1000); expect(loop.run).toThrow(ExecutionLimitError); expect(loop.calls.depth).toBe(0);

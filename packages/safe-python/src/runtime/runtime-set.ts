@@ -32,7 +32,7 @@ export function runtimeSetAccess(set: SetValue | FrozenSetValue, key: RuntimeVal
     }
     if (!(error instanceof UnhashableRuntimeValueError) && !(error instanceof RuntimeHashError)) throw error;
     const type = error instanceof RuntimeHashError ? error.keyType : key.kind;
-    throw new PythonRuntimeError("TypeError", `cannot use '${type}' as a set element (${error.message})`);
+    throw new PythonRuntimeError("TypeError", `cannot use '${type}' as a set element (${error instanceof RuntimeHashError ? error.detail() : error.message})`);
   }
 }
 
@@ -76,7 +76,7 @@ export function subtractRuntimeSet(target: SetValue, source: RuntimeValue, value
       catch (error) {
         if (!(error instanceof UnhashableRuntimeValueError) && !(error instanceof RuntimeHashError)) throw error;
         const type = error instanceof RuntimeHashError ? error.keyType : item.value.kind;
-        throw new PythonRuntimeError("TypeError", `cannot use '${type}' as a set element (${error.message})`);
+        throw new PythonRuntimeError("TypeError", `cannot use '${type}' as a set element (${error instanceof RuntimeHashError ? error.detail() : error.message})`);
       }
     }
   }

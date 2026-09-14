@@ -55,3 +55,5 @@ export {
 export { validateDocumentArchive, documentValidationProfile, SemanticValidationError, type ValidationOptions, type ValidationData, type ValidationDiagnostic } from "./validation.js";
 
 export { writeDocumentArchive } from "./document-write.js";
+
+export { DocumentIo, type DocumentByteSource, type DocumentIoContext } from "./io.js";

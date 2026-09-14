@@ -94,6 +94,8 @@ Archive input reserves 8 work units per compressed byte and inflation reserves
 byte. XML decoding charges bytes and the parser charges its reported scanning
 and namespace work, plus retained-node traversal. Compatibility scope processing,
 semantic attribute/child scans and editor indexing/encoding also debit work.
+Unchanged archive snapshot payloads/comments and unchanged XML serialization
+charge one work unit per copied byte before allocating the owned copy.
 These units are conservative algorithmic counters, not milliseconds or CPU
 instruction measurements.
 

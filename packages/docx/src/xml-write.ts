@@ -226,6 +226,7 @@ export class DocumentXmlEditor {
       for (const [prefix, uri] of original) if (current.get(prefix) !== uri) unsupported();
     }
     if (!this.#patches.size) {
+      this.#budget.charge("work", this.#document.bytes.length);
       this.#budget.charge("retainedBytes", this.#document.bytes.length);
       return new Uint8Array(this.#document.bytes);
     }

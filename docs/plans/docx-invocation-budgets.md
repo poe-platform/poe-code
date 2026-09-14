@@ -51,3 +51,37 @@ scopes are tested as infrastructure; later operations are not claimed built.
 The bounded resource foundation is implemented and validated. Later pipeline
 tasks remain pending. No push, release, broad staging or ignored QA fixtures are
 authorized.
+
+## Verification follow-up — 2026-09-14
+
+Reviewed baseline `e70c4c77d`, the section 7 ceilings, shared CLI/SDK contracts,
+API audit/inventory and resource documentation. The historical red/green account
+above is preserved; raw historical red transcripts were not attached to this
+record, so its chronology is reported as recorded evidence, not independently
+replayed. Baseline maintained DOCX tests passed: 386 tests in 12 files.
+
+A new original memfs regression for each of the archive/XML unchanged-copy paths
+failed before product edits: copying `<r/>` left work at 536870908 rather than
+536870912. The red run had 386 passing and two failing tests. Both paths now
+charge copied bytes to the invocation work ledger before allocation. The tests
+admit a copy at the exact remaining work boundary, reject the next copy and
+verify the in-memory source is unchanged. No original tests were renamed.
+
+Post-correction verification:
+
+- `npm test --workspace=docx`: 388 tests passed in 12 files.
+- `npm run build:workspaces -- --workspace=docx`: passed the maintained
+  office-package/safe-fs/docx build closure.
+
+Acceptance gaps remain explicit: no DOCX command adapter currently exists under
+`packages/safe-bash/src/commands/docx`; actual operation options, schema,
+capabilities, plural command resources, matches, batch steps and diff inputs
+cannot be certified by ledger-only tests. Public model coverage remains pending
+in the API register. No downloaded-corpus, document renderer, CLI screenshot,
+packed-consumer or full-repository gate is claimed by this scoped verification.
+The correction changes no CLI surface. Counters remain conservative accounting,
+not RSS isolation. Unrelated pipeline/archive plan edits are left untouched.
+
+- `npm run lint --workspace=docx`: passed ESLint and both TypeScript checks.
+- Built ESM smoke: unchanged `<r/>` output, exactly four copied work units.
+- `git diff --check`: passed.

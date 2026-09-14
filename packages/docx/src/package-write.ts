@@ -57,8 +57,10 @@ export class DocumentArchiveEditor {
   }
 
   snapshot(): DocumentArchive {
-    this.#budget.charge("retainedBytes", this.#archive.comment.length + this.#archive.members.reduce(
-      (sum, member) => sum + (this.#editors.has(member.name) ? 0 : member.bytes.length), 0));
+    const copiedBytes = this.#archive.comment.length + this.#archive.members.reduce(
+      (sum, member) => sum + (this.#editors.has(member.name) ? 0 : member.bytes.length), 0);
+    this.#budget.charge("work", copiedBytes);
+    this.#budget.charge("retainedBytes", copiedBytes);
     const staged = {
       comment: new Uint8Array(this.#archive.comment),
       members: this.#archive.members.map(member => ({

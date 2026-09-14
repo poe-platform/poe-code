@@ -3,7 +3,7 @@ import { Volume } from "memfs";
 import {
   DocumentBudget, documentLimitDefaults, InvalidValueError, ResourceLimitError,
   readArchive, readDocumentArchive, createDocumentArchive, writeArchive, validateDocumentArchive,
-  parseDocumentXml, parseDocumentXmlAsync, DocumentArchiveEditor, MarkupCompatibility,
+  parseDocumentXml, parseDocumentXmlAsync, DocumentArchiveEditor, DocumentXmlEditor, MarkupCompatibility,
   type ArchiveLimits
 } from "./index.js";
 import { createDocumentFixture } from "../tests/fixtures/documents.js";
@@ -189,3 +189,22 @@ it("rejects writer retention before allocating encoded path copies", async () =>
     expect(encode).not.toHaveBeenCalled();
   } finally { encode.mockRestore(); }
 });
+
+for (const kind of ["archive", "xml"] as const) {
+  it(`charges unchanged ${kind} editor copies to work before allocation`, () => {
+    const volume = Volume.fromJSON({ "/part.xml": "<r/>" });
+    const input = new Uint8Array(volume.readFileSync("/part.xml") as Buffer);
+    const budget = new DocumentBudget();
+    const editor = kind === "archive"
+      ? new DocumentArchiveEditor({ members: [{ name: "part.xml", bytes: input,
+        directory: false, modified: new Date(0) }], comment: new Uint8Array() }, {}, undefined, budget)
+      : new DocumentXmlEditor(input, {}, undefined, budget);
+    const copy = () => editor instanceof DocumentArchiveEditor
+      ? editor.snapshot().members[0]!.bytes : editor.serialize();
+    budget.charge("work", budget.limits.work - budget.usage.work - input.length);
+    expect(copy()).toEqual(input);
+    expect(budget.usage.work).toBe(budget.limits.work);
+    expect(copy).toThrow(ResourceLimitError);
+    expect(volume.readFileSync("/part.xml", "utf8")).toBe("<r/>");
+  });
+}

@@ -2849,3 +2849,45 @@ This v9 increment's local commit, remote ancestry and publication receipts will 
 recorded after delivery; the earlier release does not publish this pending change.
 Original staging and unrelated dirty work remain preserved. No associated issue
 number was supplied.
+
+
+## qualify-realms-and-recovery — Bun shared-wrapper repair, 2026-09-14
+
+**The uncaptured shared-history acceptance blocker remains unresolved.** The
+[Bun repair report](qualify-realms-and-recovery/bun-shared-wrapper-20260914.md)
+records the native structured-clone defect, failing tests and bounded platform
+fallback. A private one-byte probe chooses the native fast path when it preserves
+brand/identity/sharing; otherwise a local MessageChannel creates a distinct wrapper
+with shared storage and closes both ports. No Worker, extra guest authority,
+user-buffer probe mutation or changed allocation limit is introduced. Workerd
+retains its native platform path. No execution marker or historical digest changes.
+
+Final source is delivered v9 `4e02e3fa84c2c6dc1437da63ddee717d63935657` plus the
+isolated fallback. The original dirty main and staged Safe Bash patch are preserved.
+Node 22.23.2 / ICU 78.2; ECMA-262 edition 16/ECMA-402 edition 12 and the pinned Test262
+and Temporal revisions are unchanged. TDD begins with three failures and one
+control pass. Eight focused fallback tests and 172 shared/atomic controls pass.
+The earlier RR-8-based package run passes 29,695/ 47 skips; after clean fast-forward,
+the fresh full package gate passes **30,003 / zero failures / 47 skips** in 1,384
+files, 687.17s. The report preserves the corrected matcher/probe mistakes and
+Worker mock integration failure, with no weakened assertions or timeouts.
+
+All **70** built shared-graph checks pass across six Node versions and Bun 1.3.11.
+Actual Workerd 2026-09-01 passes **nine** controls, including shared original/replay.
+The [portable installed-artifact QA](qualify-realms-and-recovery/installed-artifact-qa-20260914.md)
+grants only its required host capabilities. Source/command/runtime receipts and
+reproducible QA are retained alongside the report.
+
+The fresh Node/Bun history witness still gives **7 originally /0 recovered** and
+pending effects **[7,0]** for queued raw writes, while synchronous controls pass.
+The fallback fixes the Bun wrapper boundary, not unsupported-history admission.
+No arbitrary live-realm interoperability, native weak-lifetime determinism or
+exactly-once external effects are claimed. Full task completion is not claimed.
+
+This repair's local/remote commit and required publication receipts follow after
+delivery. The preceding v9 scoped/schema workflows succeeded and all three scoped
+packages 0.1.597 are independently verified, including integrity, provenance and
+installed controls (18 signatures / 12 attestations). Retained SafeJS registry 404s
+resolved at 11:30:58 UTC; its root release remains pending. Final scoped lint, 100
+type-contract cells and 71 harness/loader/smoke tests pass. No destructive rollback
+or local publication is used.

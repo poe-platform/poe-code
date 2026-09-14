@@ -12,7 +12,7 @@ import { restore } from "./restore.js";
 const schedule = vi.hoisted(() => ({ registrations: 0, failAt: Infinity, terminated: 0,
   terminationEntered: undefined as (() => void) | undefined,
   terminationGate: undefined as Promise<void> | undefined }));
-vi.mock("node:worker_threads", () => ({ Worker: class extends EventEmitter {
+vi.mock("node:worker_threads", async () => ({ ...await vi.importActual<typeof import("node:worker_threads")>("node:worker_threads"), Worker: class extends EventEmitter {
   private readonly views: Array<Int32Array | BigInt64Array> = [];
   postMessage(message: { id: number; buffer: SharedArrayBuffer; offset: number; bigint: boolean; expected: number | bigint; timeout: number }) {
     const view = message.bigint ? new BigInt64Array(message.buffer, message.offset, 1)

@@ -9,7 +9,7 @@ import { serialize } from "./serialize.js";
 import { restore } from "./restore.js";
 
 const schedule = vi.hoisted(() => ({ mutateBeforeRegistration: false, terminations: 0 }));
-vi.mock("node:worker_threads", () => ({ Worker: class extends EventEmitter {
+vi.mock("node:worker_threads", async () => ({ ...await vi.importActual<typeof import("node:worker_threads")>("node:worker_threads"), Worker: class extends EventEmitter {
   private readonly views: Int32Array[] = [];
   postMessage(message: { id: number; buffer: SharedArrayBuffer; offset: number; expected: number; timeout: number }) {
     const view = new Int32Array(message.buffer, message.offset, 1);

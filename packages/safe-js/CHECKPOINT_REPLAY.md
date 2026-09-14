@@ -398,6 +398,13 @@ extensibility follow their explicit copy paths; this is not arbitrary live-realm
 interoperability. Guest custom descriptors and prototypes are not generally
 admitted by plain host argument projection.
 
+Shared-buffer export preserves a distinct native wrapper over the same storage.
+Node-compatible hosts whose native structured clone loses that sharing use a
+local MessageChannel fallback, selected by a private one-byte capability probe.
+Both ports are closed after cloning; no Worker or additional guest authority is
+created. Workerd retains its native structured-clone path. Shared growability and
+existing allocation limits are preserved.
+
 Shared host argument records can carry `sharedGraph: true` to identify coverage
 of exported collection and named/symbol property edges beyond the historical
 argument digest. Older records without that coverage reject unless their shared

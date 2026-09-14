@@ -394,8 +394,18 @@ export function restore(
     finalizationActivation.rollback.length = 0;
     for (const dispatch of finalizationActivation.pending.splice(0)) dispatch();
     let activation: Promise<void> | undefined;
+    let activationOwner: ReturnType<typeof runResources.getStore>;
     restored = {
       activateAtomicWaits() {
+        if (state.atomicWaits.length > 0) {
+          const owner = runResources.getStore();
+          if (owner === undefined)
+            return Promise.reject(new TypeError("Atomic wait activation requires a run resource owner."));
+          if (activationOwner !== undefined && activationOwner !== owner)
+            return Promise.reject(new TypeError("Atomic wait activation belongs to another run resource owner."));
+          if (owner.signal.aborted) return Promise.reject(owner.signal.reason);
+          activationOwner = owner;
+        }
         return activation ??= (async () => {
           for (const wait of state.atomicWaits.sort((a, b) => a.order - b.order)) await wait.activate();
         })();
@@ -1357,6 +1367,8 @@ function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue
             const expected = Reflect.apply(Atomics.load, Atomics, [view, saved.index]) as number | bigint;
             const pending = await waitForAtomicValue(view, saved.index,
               expected, timeout, state.budget);
+            if (!pending.async && pending.value === "not-equal")
+              throw new TypeError("Concurrent shared mutation prevents atomic wait restoration.");
             atomicWaitOrders.set(state.budget, Math.max(atomicWaitOrders.get(state.budget) ?? 0, saved.order));
             waitState.startedAt = pending.async ? pending.startedAt ?? performance.now() : performance.now();
             const signal = runResources.getStore()?.signal;

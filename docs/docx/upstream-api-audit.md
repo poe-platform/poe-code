@@ -1,16 +1,25 @@
 # DOCX Public API Documentation Audit
 
-Status: Documentation and source reviewed; SDK implementation not started.
+Status: Pinned documentation/source reconciliation completed on 2026-09-13; SDK implementation not started.
 
 ## Sources and baseline
 
 - [Published API and user guides](https://python-docx.readthedocs.io/en/latest/).
 - Pinned source documentation at commit `e45454602b53e8e572b179ccf1c91093ec9f4ed7` in `/tmp/docx-upstream-review/docs`.
-- [Candidate API inventory](upstream-api-inventory.json): 331 member/type/protocol records from 39 pinned API/user-guide files, with hashes.
+- [Reconciled research inventory](upstream-api-inventory.json): schema version 2, preserving all 331 original IDs and expanding to 920 model/support/error records from 39 pinned API/user-guide files. The 262 nested enum values include value aliases; counts are research accounting, not a conformance denominator.
+- [Reconciliation evidence and language/security decisions](upstream-api-reconciliation.md): source/getter/setter/constructor evidence, inherited and returned interfaces, prose review, enum aliases and 23 resolved documentation/source discrepancies.
 - [Executed test baseline](upstream-test-audit.md) and [full case inventory](upstream-test-inventory.json).
 - [Counterpart API audit](../pptx/upstream-api-audit.md).
 
-The inventory expands local RST directives and source members; returned interfaces and protocols were supplemented during review. It is intentionally labeled a candidate inventory. It is not an exact Sphinx build and does not prove inherited/prose-only/alias closure is complete. The implementation plan requires reconciliation of every public member and an evidence-backed target signature. Published objects.inv downloads returned HTTP 403; no bypass was attempted.
+The inventory now reconciles 59 RST directives with static source declarations,
+inherited and built-in protocols, returned interfaces, guide prose and the
+corresponding published pages. Separate source getter/setter signatures preserve
+asymmetric read/write types. It is not an exact Sphinx build or an exhaustive
+certificate: counts include explicitly identified package support and erroneous
+documented symbols. The next task still owns each concrete target signature,
+CLI route and original acceptance case. Direct documentation downloads returned
+HTTP 403; published pages were read through the web research tool. No new
+objects.inv download, reference runtime execution or product test pass is claimed.
 
 ## Findings that change the requirements
 
@@ -21,11 +30,15 @@ The public model includes document/paragraph/run/formatting, sections and linked
 - Font formatting includes substantially more than bold/italic: hidden/complex-script/RTL/no-proof/outline/shadow and other flags, with explicit false versus inherited absence.
 - Latent styles expose defaults and individual visibility/priority/locking/gallery behavior. Tab-stop add/delete/clear and units including twips need public API coverage, not just XML preservation.
 - Comments are rich block containers and can contain paragraphs, tables and run content; restrictions on comment anchors and prohibited nesting/header/footer comments must be retained.
-- The user-guide comment example refers to id/date, while the verified current object exposes comment_id/timestamp. Record this as documentation drift instead of adding accidental aliases.
+- The user-guide comment example refers to id/date, while the pinned object exposes comment_id/timestamp. The reconciliation keeps explicit documentation-error rows instead of adding accidental aliases. It also resolves obsolete table-direction, style-lookup, style-priority, date and enum examples.
 - Public whole-text assignment may discard selected run formatting. Preserve that setter behavior explicitly and keep formatting-preserving literal replacement separate.
 - Image creation accepts more than the initial PNG/JPEG subset and defines native-size/DPI behavior. A full API plan must characterize the supported formats and defaults.
 
-Published docs identify version 1.2.0, consistent with the pinned package version. The review uses the actual pinned source to resolve guide inconsistencies.
+Published docs identify version 1.2.0, consistent with the pinned package version.
+That label alone does not prove source identity. Source hashes and the documented
+shared contracts resolve discrepancies, including source defects in linked-image
+predicates, per-axis DPI, and UTC date serialization. Shared rounding and typed
+validation differences are explicit in the reconciliation report.
 
 ## SDK decision
 
@@ -41,4 +54,9 @@ Every public member needs a row recording target signature/defaults/return/side 
 
 ## Validation status
 
-The documented API has been reviewed and candidate inventory recorded; no JavaScript API has been implemented or tested. Existing Python test passes establish only the pinned reference baseline. The plans now include complete API/feature/command mapping, original user-guide equivalents and paired command acceptance.
+The pinned inventory/reconciliation task is complete within its declared research
+scope; no JavaScript API has been implemented or tested. Existing Python test
+passes establish only the pinned reference baseline. All 2,259 source-test cases
+remain unmapped. API/feature/command mapping, original user-guide equivalents,
+paired acceptance and implementation remain pending. See the
+[owned review/check record](../plans/docx-public-api-reconciliation.md).

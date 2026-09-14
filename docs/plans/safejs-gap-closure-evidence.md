@@ -2891,3 +2891,33 @@ installed controls (18 signatures / 12 attestations). Retained SafeJS registry 4
 resolved at 11:30:58 UTC; its root release remains pending. Final scoped lint, 100
 type-contract cells and 71 harness/loader/smoke tests pass. No destructive rollback
 or local publication is used.
+
+## 2026-09-14 final transport repair delivery — acceptance remains open
+
+Source `0bba68687af792727e8ae86d158b2999e8990193` contains the separately committed
+RR-8 (`5ad2344e`), versioned host transport (`4e02e3fa`) and Bun shared-wrapper
+repair (`0bba6868`). Normal push hooks passed; fetch verified all on remote main.
+Original staging was compared byte-for-byte and preserved. No issue number was
+explicitly associated.
+
+[Final report](qualify-realms-and-recovery/final-delivery-20260914.md) records the
+unchanged ECMA-262 edition 16 / ECMA-402 edition 12 target, pinned Test262/Temporal
+revisions, commands, Node/ICU versions, failure/skip disposition and matrices.
+The final SafeJS gate passed 30,003 with 47 documented skips; supplementary Node26
+native controls passed 86 with no skips. Actual installed Workerd controls passed.
+
+[Publication receipts](qualify-realms-and-recovery/publication-receipts-20260914.json)
+separately verify all three scoped packages at 0.1.596, 0.1.597 and 0.1.598,
+poe-code15.0.39 at 5ad2344e, and poe-code15.0.40 at 0bba6868. The v9 root run
+34837374864 was green without publication because main advanced. Its verified
+successor [34838742171](https://github.com/poe-platform/poe-code/actions/runs/34838742171)
+succeeded and published 15.0.40. Registry integrity, downloaded tarball digest,
+SLSA subject/source/workflow and installed artifact checks agree. Root installed
+checks pass 70 graph plus 24 metadata cells; signature audit verifies 213 registry
+signatures and 42 attestations.
+
+**Task acceptance remains incomplete:** installed raw shared-write histories still
+recover 0 instead of 7 and may perform an effect with 0 before later rejection.
+The reproduction is retained and its zero process exit is not a semantic pass.
+An ownership/history or resumable-state design must resolve this before closure.
+No arbitrary live-realm interoperability or exactly-once side effects are claimed.

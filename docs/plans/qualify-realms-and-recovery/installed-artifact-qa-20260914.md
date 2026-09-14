@@ -47,3 +47,5 @@ TypeError. After correcting input encoding, an unregistered Shell correctly retu
 127 for the missing commands. The final fixture grants only printf/cat explicitly.
 Both independently installed 0.1.596 packages pass this corrected fixture. These
 probe mistakes are not product defects or passing tests of the invalid invocation.
+
+For the scoped Workerd artifact, repeat the [nine-control Workerd fixture](workerd-shared-wrapper-20260914.md) from the isolated installed consumer. Change only its import to `@poe-platform/safe-js/workerd`, bundle with the same Workerd conditions, and require all nine rows plus the installed package/version identifier. The captured metafile must select the SafeJS Workerd platform. Stop only the task-owned server and remove the generated entry/config/bundle after recording hashes. The actual installed 0.1.598 execution passes all nine controls on Workerd 2026-09-01 (ICU not exposed).

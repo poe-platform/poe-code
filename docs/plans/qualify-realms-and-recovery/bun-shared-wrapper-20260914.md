@@ -126,3 +126,45 @@ publication is claimed until that separate artifact is verified.
 Final scoped ESLint passes, all 100 filesystem type-contract cells pass, and the
 maintained harness/loader/smoke selection passes 71 tests in four files. The
 pre-gate source hashes still match. Required local verification is complete.
+
+## Native Bun getter control
+
+On the built source of commit `0bba68687af792727e8ae86d158b2999e8990193`, this
+additional direct Bun1.3.11 control passes all three sizes with zero getter reads:
+
+```js
+import assert from "node:assert/strict";
+import { cloneSharedBufferWrapper } from "./packages/safe-js/dist/platform/node.js";
+let reads = 0;
+for (const length of [0, 4, 65536]) {
+  const source = new SharedArrayBuffer(length);
+  Object.defineProperty(source, "constructor", {
+    get() {
+      reads++;
+      throw Error("getter ran");
+    }
+  });
+  const copy = cloneSharedBufferWrapper(source);
+  assert.equal(copy === source, false);
+  assert(copy instanceof SharedArrayBuffer);
+  assert.equal(copy.byteLength, length);
+  if (length) {
+    new Uint8Array(copy)[0] = 7;
+    assert.equal(new Uint8Array(source)[0], 7);
+  }
+  assert.equal(reads, 0);
+}
+```
+
+Execute as `bun run -` from the repository root after the maintained build.
+This supplements the Node-based fault-injection tests with the actual native Bun
+fallback. It is not a new public API or authority grant.
+
+## Additional native API comparisons
+
+Node 26.8.2 / ICU 78.3 exposes native Temporal and Math.f16round. Running the four
+maintained native Instant/structured-clone/f16round test files with that Node
+executable passes **86 tests / zero failures / zero skips**, including the 13
+comparisons unavailable in the main Node 22 gate. The original 47 skips are not
+retroactively changed. The exact command, source SHA and log hash are recorded
+in `bun-shared-wrapper-20260914/node26-native-comparators.json`.

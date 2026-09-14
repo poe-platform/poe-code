@@ -1,0 +1,8 @@
+{
+  "source_anchor": "d047e615a69ab8e2644f00230ec310410eb57077",
+  "base_hash_manifest": "source-before.json",
+  "overrides_and_additions": {
+    "packages/safe-js/src/snapshot/replay-inputs.ts": "8f39f1e3c4ade4b8cfebdab8074b45adf8df7fac6a06651b33f637737c6110dc",
+    "packages/safe-js/src/snapshot/replay-map-capability-path.test.ts": "510736c4a3df0ba442089c3e4e91fdbd1dffed08bf3f2d674ec4aa4b7664b459"
+  }
+}

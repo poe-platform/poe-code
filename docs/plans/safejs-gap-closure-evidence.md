@@ -3225,3 +3225,36 @@ none yet. Release receipts: none for this candidate.** Baseline registry version
 are `poe-code@15.0.40` and the three `@poe-platform/safe-*` packages at `0.1.598`.
 Do not equate the local commits, a green build, or these prior versions with
 publication of the candidate. No explicitly associated GitHub issue was supplied.
+
+
+## 2026-09-14 release-found module namespace regression
+
+Initial delivery `50e1872b83aaa2817fda34cc344da8f8bdfccda8` (code
+`0154ee1ffd492cd2b0a9890c440926c1f5ddcf85`) was pushed through normal hooks
+and verified as an ancestor of fetched remote main. Concurrent documentation
+commits through `9baf685284b3a089eaa3a22d1521b6dc391fccd9` were retained by
+fast-forwarding the isolated delivery checkout; the shared worktree/index was
+not reset. No explicitly associated issue was supplied.
+
+The [root release](https://github.com/poe-platform/poe-code/actions/runs/34872213657)
+failed its fresh unit job: 2 failed / 19,061 passed / 1 skipped in the shared
+workspace group. Both failures reject valid engine-created `time` module
+namespaces as caller Proxies. Local reproduction on `9baf685284b3a089eaa3a22d1521b6dc391fccd9`:
+`npx vitest run packages/agent-harness/src/loader/run.test.ts packages/agent-harness/src/testing/replay-equivalence.test.ts`
+produced **2 failed / 64 passed**, 12.36 s. A new deterministic in-memory SafeJS
+regression failed at `$.bindings.host` before the repair. Runtime validation now
+recognizes the existing private module-namespace WeakSet identity, including its
+engine-managed descriptor state. External records and caller-created wrappers
+remain rejected. A first partial repair still failed the new Proxy-wrapper
+assertion; this intermediate failure is retained.
+
+The same two integration files plus
+`packages/safe-js/src/snapshot/caller-mutated-nested-snapshot.test.ts` now pass
+**75/75**, 3 files, 12.83 s. The new test verifies unchanged replay results,
+no repeated host call, zero caller Proxy traps, rejection, then valid recovery.
+Scoped ESLint passes. Environment remains Node 22.23.2 / ICU 78.2; the pinned
+ECMAScript editions and all budgets, assertions and timeouts are unchanged.
+Raw red/green/CI logs are compressed in the delivery receipt directory.
+This is a separate release-repair commit; its remote delivery and successor
+publication remain pending. An additional portable-fallback accessor regression
+is being handled independently; qualification is not yet complete.

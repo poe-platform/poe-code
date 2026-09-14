@@ -17,6 +17,7 @@ import { restoreDateTime } from "../interp/date.js";
 import { validateBoxedProperties } from "./boxed.js";
 import { hasGuestObjectState, isGuestClosure } from "../interp/object-model.js";
 import { getIntrinsicIdentity } from "../interp/intrinsics.js";
+import { isSandboxModuleNamespace } from "../interp/module-namespace.js";
 import { isSandboxClosure, snapshotRuntimeGetters } from "../interp/values.js";
 import { validateGuestHeapNode, validateGuestHeapGraphs } from "./guest-heap-validation.js";
 import { validateGuestFunctionAst } from "./guest-ast-validation.js";
@@ -1013,11 +1014,13 @@ function validateGenericValue(
   depth: number,
   state: ValidationState
 ): void {
-  if (types.isProxy(value) && (state.dataPropertiesOnly || getIntrinsicIdentity(value as object) === undefined)) {
+  if (types.isProxy(value) && (state.dataPropertiesOnly ||
+      (getIntrinsicIdentity(value as object) === undefined && !isSandboxModuleNamespace(value)))) {
     fail("invalidType", path, "proxy objects are not snapshot data");
   }
   if (typeof value === "object" && value !== null && hasGuestObjectState(value) &&
-      !(state.allowHostFunctionState && isSandboxClosure(value) && !isGuestClosure(value))) {
+      !(state.allowHostFunctionState && (isSandboxModuleNamespace(value) ||
+        (isSandboxClosure(value) && !isGuestClosure(value))))) {
     fail("invalidState", path, "guest function properties, prototype links and custom descriptors cannot be restored");
   }
   if (depth > state.limits.maxDepth)

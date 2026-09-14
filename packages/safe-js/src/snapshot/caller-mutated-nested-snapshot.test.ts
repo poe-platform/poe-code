@@ -112,3 +112,31 @@ it("does not consult a caller-modified call method on an engine getter", async (
     Reflect.deleteProperty(getter, "call");
   }
 });
+
+it("replays engine-created module namespaces while rejecting caller Proxy replacements", async () => {
+  const source = 'import * as host from "host"; return host.read();';
+  let hostCalls = 0;
+  const modules = { host: { read: () => ++hostCalls } };
+  const result = await run(source, { modules });
+  expect(result).toMatchObject({ ok: true, returnValue: 1 });
+  expect(() => restore(result.snapshot, { source })).not.toThrow();
+  expect(await run(source, { snapshot: result.snapshot, modules }))
+    .toMatchObject({ ok: true, returnValue: 1 });
+  expect(hostCalls).toBe(1);
+
+  const bindings = result.snapshot.bindings as Record<string, unknown>;
+  const namespace = bindings.host;
+  let traps = 0;
+  bindings.host = new Proxy(namespace as object, {
+    ownKeys: target => { traps++; return Reflect.ownKeys(target); },
+    get: (target, key) => { traps++; return Reflect.get(target, key); }
+  });
+  await expect(run(source, { snapshot: result.snapshot, modules }))
+    .rejects.toMatchObject({ name: "SnapshotValidationError", code: "invalidType", path: "$.bindings.host" });
+  expect(traps).toBe(0);
+  expect(hostCalls).toBe(1);
+  bindings.host = namespace;
+  expect(await run(source, { snapshot: result.snapshot, modules }))
+    .toMatchObject({ ok: true, returnValue: 1 });
+  expect(hostCalls).toBe(1);
+});

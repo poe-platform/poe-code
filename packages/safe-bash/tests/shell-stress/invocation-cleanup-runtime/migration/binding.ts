@@ -180,7 +180,7 @@ function assertCommittedSourceInputs(capture: CapturedInputs, expected: Committe
 export function assertCommittedInputs(capture: CapturedInputs, expected: CommittedInputs, rootInputs?: ReadonlyMap<string, Buffer>): void {
   assertCommittedSourceInputs(capture, expected);
   const manifest = JSON.parse(capture.bytes.get("package.json")!.toString());
-  if (Object.hasOwn(manifest.dependencies ?? {}, "@poe-code/office-package") || expected.rootInputs !== undefined) {
+  if (Object.hasOwn(manifest.dependencies ?? {}, "@poe-code/office-package") || Object.hasOwn(manifest.devDependencies ?? {}, "@poe-code/office-package") || expected.rootInputs !== undefined) {
     assert.ok(rootInputs && expected.rootInputs, "Committed shared package requires explicit root input hashes");
     assert.deepEqual(Object.fromEntries([...rootInputs].map(([path, bytes]) => [path, digest(bytes)])), expected.rootInputs, "Executing root inputs do not match the explicit committed expectation");
   }
@@ -267,7 +267,7 @@ export async function preparePublicSnapshot(repository: string, expected?: Commi
   try {
     const { createPeerBinding } = await import(new URL("../../../../scripts/typecheck-consumers.mjs", import.meta.url).href);
     const { bindPeerArtifact, stagePeerArtifact, assertPeerArtifact, resolvePeerProfile } = await import(new URL("../../../plugins/qualified-current-release/peer.mjs", import.meta.url).href);
-    const { prepareArchiveDependencies, stageArchiveDependencies, assertArchiveDependencies, captureSharedArchiveSources, resolveTools } = await import(new URL("../../../integration/s3-http-exports/committed-archive.mjs", import.meta.url).href);
+    const { assertArchiveDependencyContract, prepareArchiveDependencies, stageArchiveDependencies, assertArchiveDependencies, captureSharedArchiveSources, resolveTools } = await import(new URL("../../../integration/s3-http-exports/committed-archive.mjs", import.meta.url).href);
     const manifest = JSON.parse(captured.bytes.get("package.json")!.toString());
     const profile = resolvePeerProfile(repository);
     const sourceInputs = new Map(Object.entries(captured.files).filter(([path]) => path.startsWith("src/")));
@@ -280,7 +280,7 @@ export async function preparePublicSnapshot(repository: string, expected?: Commi
       assert.equal(await realpath(filename), filename);
       rootInputs.set(path, await readFile(filename));
     }
-    if (Object.hasOwn(manifest.dependencies ?? {}, "@poe-code/office-package")) {
+    if (Object.hasOwn(assertArchiveDependencyContract(manifest), "@poe-code/office-package")) {
       for (const [path, bytes] of captureSharedArchiveSources(integrationRoot)) rootInputs.set(path, bytes);
     }
     if (expected) assertCommittedInputs(captured, expected, rootInputs);

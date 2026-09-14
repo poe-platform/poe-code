@@ -46,16 +46,19 @@ export function cleanEnvironment(directory) {
 }
 
 export function assertArchiveDependencyContract(manifest) {
-  if (Object.keys(manifest.dependencies ?? {}).length) assert.deepEqual(manifest.dependencies, {
+  const runtime = Object.keys(manifest.dependencies ?? {}).length > 0;
+  const dependencies = runtime ? manifest.dependencies : Object.fromEntries(
+    Object.entries(manifest.devDependencies ?? {}).filter(([name]) => Object.hasOwn(approvedDependencies, name) || name === sharedName));
+  if (Object.keys(dependencies).length) assert.deepEqual(dependencies, {
     ...Object.fromEntries(Object.entries(approvedDependencies).map(([name, entry]) => [name, entry.version])),
-    ...(Object.hasOwn(manifest.dependencies, sharedName) ? { [sharedName]: "*" } : {}),
-  }, "unapproved runtime dependency contract");
+    ...(Object.hasOwn(dependencies, sharedName) ? { [sharedName]: "*" } : {}),
+  }, runtime ? "unapproved runtime dependency contract" : "unapproved development dependency contract");
   for (const key of ["optionalDependencies", "bundledDependencies", "bundleDependencies"]) assert.equal(Object.keys(manifest[key] ?? {}).length, 0, `runtime dependency: ${key}`);
   if (Object.keys(manifest.peerDependencies ?? {}).length === 0) {
     assert.equal(manifest.devDependencies?.["poe-code"], undefined, "canonical development peer requires its published peer contract");
     assert.notEqual(manifest.poeCode?.integration?.peerProfile, "checkout-root", "checkout profile requires its published peer contract");
     assert.deepEqual(manifest.peerDependenciesMeta ?? {}, {}, "unbound peer metadata");
-    return;
+    return dependencies;
   }
   const yaml = Object.hasOwn(manifest.peerDependencies, "yaml");
   assert.deepEqual(manifest.peerDependencies, { "poe-code": ">=13.0.0", ...(yaml ? { yaml: "2.9.0" } : {}) }, "unapproved canonical peer contract");
@@ -63,14 +66,17 @@ export function assertArchiveDependencyContract(manifest) {
     ...(Object.hasOwn(manifest.peerDependenciesMeta ?? {}, "poe-code") ? { "poe-code": { optional: false } } : {}),
     ...(yaml ? { yaml: { optional: true } } : {}),
   }, "canonical peer must remain required and YAML must remain optional");
+  return dependencies;
 }
 
 export function assertArchiveDependencyLock(manifest, lock) {
-  assertArchiveDependencyContract(manifest);
-  if (!Object.keys(manifest.dependencies ?? {}).length) return;
+  const dependencies = assertArchiveDependencyContract(manifest);
+  if (!Object.keys(dependencies).length) return dependencies;
   assert.equal(lock?.lockfileVersion, 3, "dependency lock version");
   assert.deepEqual(lock.packages?.[packagePrefix]?.dependencies, manifest.dependencies, "dependency workspace lock drift");
-  if (Object.hasOwn(manifest.dependencies, sharedName)) {
+  if (!Object.keys(manifest.dependencies ?? {}).length)
+    assert.deepEqual(lock.packages?.[packagePrefix]?.devDependencies, manifest.devDependencies, "development dependency workspace lock drift");
+  if (Object.hasOwn(dependencies, sharedName)) {
     assert.deepEqual(lock.packages["node_modules/" + sharedName], { resolved: sharedPrefix, link: true }, "shared archive workspace lock link");
     const shared = lock.packages[sharedPrefix];
     assert.equal(shared?.name, sharedName, "shared archive workspace lock identity");
@@ -85,8 +91,9 @@ export function assertArchiveDependencyLock(manifest, lock) {
     for (const field of ["version", "resolved", "integrity"]) assert.equal(entry[field], approved[field], `dependency lock ${field}: ${name}`);
     for (const field of ["dependencies", "optionalDependencies", "peerDependencies", "bundledDependencies", "bundleDependencies"]) assert.equal(Object.keys(entry[field] ?? {}).length, 0, `transitive dependency ${field}: ${name}`);
     assert.ok(entry.link === undefined && entry.hasInstallScript !== true, `dependency link or install script: ${name}`);
-    for (const prefix of [packagePrefix, "packages", ...(Object.hasOwn(manifest.dependencies, sharedName) ? [sharedPrefix] : [])]) assert.equal(lock.packages[`${prefix}/node_modules/${name}`], undefined, `shadowed dependency lock: ${name}`);
+    for (const prefix of [packagePrefix, "packages", ...(Object.hasOwn(dependencies, sharedName) ? [sharedPrefix] : [])]) assert.equal(lock.packages[`${prefix}/node_modules/${name}`], undefined, `shadowed dependency lock: ${name}`);
   }
+  return dependencies;
 }
 
 export function captureSharedArchiveSources(repository, fileSystem) {
@@ -199,8 +206,7 @@ export function mirrorArchiveExportTargets(target) {
 }
 
 export async function prepareArchiveDependencies(candidate, tools, directory, { artifacts = {}, fileSystem = { lstatSync, readdirSync, readFileSync, mkdirSync, writeFileSync } } = {}) {
-  assertArchiveDependencyLock(candidate.manifest, candidate.lock);
-  const names = Object.keys(candidate.manifest.dependencies ?? {});
+  const names = Object.keys(assertArchiveDependencyLock(candidate.manifest, candidate.lock));
   const shared = names.includes(sharedName) ? sharedSourceInputs(candidate) : undefined;
   assert.ok(Object.keys(artifacts).every(name => names.includes(name)), "unapproved dependency artifact");
   if (!names.length) return Object.freeze([]);
@@ -533,8 +539,8 @@ export function inspectCommittedCandidate(repository, revision, directory, execu
         }
       }
       assert.deepEqual(lock.packages["node_modules/virtual-bash"], { resolved: packagePrefix, link: true }, "workspace lock link drift");
-      assertArchiveDependencyLock(manifest, lock);
-      if (Object.hasOwn(manifest.dependencies ?? {}, sharedName)) sharedSourceInputs({ files: bootstrap, lock });
+      const dependencies = assertArchiveDependencyLock(manifest, lock);
+      if (Object.hasOwn(dependencies, sharedName)) sharedSourceInputs({ files: bootstrap, lock });
     },
   });
   const blobReads = [...files.keys()];

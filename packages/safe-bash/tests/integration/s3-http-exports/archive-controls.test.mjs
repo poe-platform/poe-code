@@ -186,6 +186,34 @@ function dependencyFixture() {
   return { manifest, lock, tools, artifacts, fileSystem, files: sources };
 }
 
+test("development codec pins stage authenticated build inputs without runtime dependencies", async () => {
+  const fixture = dependencyFixture();
+  fixture.manifest.devDependencies = { ...fixture.manifest.devDependencies, ...fixture.manifest.dependencies };
+  fixture.manifest.dependencies = {};
+  fixture.lock.packages[packagePrefix].dependencies = {};
+  fixture.lock.packages[packagePrefix].devDependencies = structuredClone(fixture.manifest.devDependencies);
+  const bindings = await distChecks.prepareArchiveDependencies(fixture, fixture.tools, "/owned", fixture);
+  assert.deepEqual(bindings.map(binding => binding.name), ["@noble/hashes", "pako", "@poe-code/office-package"]);
+  fixture.fileSystem.mkdirSync("/snapshot");
+  distChecks.stageArchiveDependencies(bindings, "/snapshot", fixture.fileSystem);
+  distChecks.assertArchiveDependencies(bindings, "/snapshot", fixture.fileSystem);
+  assert.equal(fixture.fileSystem.existsSync("/snapshot/node_modules/pako/dist/pako.d.ts"), true);
+  assert.deepEqual(fixture.manifest.dependencies, {});
+});
+
+for (const defect of ["pin", "lock-pin", "lock-integrity"]) test(`development codec admission rejects ${defect}`, () => {
+  const fixture = dependencyFixture();
+  fixture.manifest.devDependencies = { ...fixture.manifest.devDependencies, ...fixture.manifest.dependencies };
+  fixture.manifest.dependencies = {};
+  fixture.lock.packages[packagePrefix].dependencies = {};
+  fixture.lock.packages[packagePrefix].devDependencies = structuredClone(fixture.manifest.devDependencies);
+  if (defect === "pin") fixture.manifest.devDependencies.pako = "^3.0.1";
+  if (defect === "lock-pin") fixture.lock.packages[packagePrefix].devDependencies.pako = "3.0.0";
+  if (defect === "lock-integrity") fixture.lock.packages["node_modules/pako"].integrity = "unapproved";
+  assert.throws(() => distChecks.assertArchiveDependencyLock(fixture.manifest, fixture.lock), /dependency/);
+  assert.deepEqual(fixture.fileSystem.readdirSync("/owned"), []);
+});
+
 test("shared archive dependencies require exact captured sources and never substitute host dist", async () => {
   const fixture = dependencyFixture();
   const omitted = { ...fixture, files: new Map(fixture.files) };

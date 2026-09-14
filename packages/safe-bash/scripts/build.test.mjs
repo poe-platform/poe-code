@@ -62,10 +62,10 @@ function afterInputRead(owned, path, action) {
   };
 }
 
-for (const defect of ["none", "version", "name", "dependency", "link", "unapproved-import"]) test(`build pinned portable dependency declaration admission: ${defect}`, async () => {
+for (const profile of ["dependencies", "devDependencies"]) for (const defect of ["none", "version", "name", "dependency", "link", "unapproved-import"]) test(`build pinned portable dependency declaration admission: ${defect}${profile === "devDependencies" ? " development profile" : ""}`, async () => {
   const dependencies = { "@noble/hashes": "2.4.0", pako: "3.0.1" };
   const owned = fixture({
-    "package.json": JSON.stringify({ name: "virtual-bash", type: "module", dependencies }),
+    "package.json": JSON.stringify({ name: "virtual-bash", type: "module", [profile]: dependencies }),
     "src/index.ts": 'import { value } from "@noble/hashes/sha2.js"; import { inflate } from "pako"; export const answer = inflate(value);',
     "node_modules/@noble/hashes/package.json": JSON.stringify({ name: "@noble/hashes", version: "2.4.0", type: "module", exports: { "./sha2.js": "./sha2.js" } }),
     "node_modules/@noble/hashes/sha2.d.ts": "export declare const value: number;",
@@ -96,7 +96,19 @@ for (const defect of ["none", "version", "name", "dependency", "link", "unapprov
   assert.equal(owned.descriptors.size, 0);
 });
 
-for (const defect of ["none", "version", "dependency", "export", "link", "source-import"]) test(`build shared archive declaration admission: ${defect}`, async () => {
+for (const dependency of ["@noble/hashes", "pako", "@poe-code/office-package"]) test(`build refuses changed development declaration pin: ${dependency}`, async () => {
+  const owned = fixture({
+    "package.json": JSON.stringify({ name: "virtual-bash", type: "module", devDependencies: {
+      "@noble/hashes": "2.4.0", pako: "3.0.1", "@poe-code/office-package": "*", [dependency]: "unapproved",
+    } }),
+  });
+  await assert.rejects(owned.run(), /portable dependency contract/);
+  assert.equal(owned.reads.some(path => path.includes("/node_modules/")), false);
+  assert.equal(owned.writes.length, 0);
+  noHeldReads(owned);
+});
+
+for (const profile of ["dependencies", "devDependencies"]) for (const defect of ["none", "version", "dependency", "export", "link", "source-import"]) test(`build shared archive declaration admission: ${defect}${profile === "devDependencies" ? " development profile" : ""}`, async () => {
   const shared = "node_modules/@poe-code/office-package";
   const metadata = {
     name: "@poe-code/office-package", version: "0.0.1", type: "module",
@@ -108,7 +120,7 @@ for (const defect of ["none", "version", "dependency", "export", "link", "source
     },
   };
   const owned = fixture({
-    "package.json": JSON.stringify({ name: "virtual-bash", type: "module", dependencies: { "@noble/hashes": "2.4.0", pako: "3.0.1", "@poe-code/office-package": "*" } }),
+    "package.json": JSON.stringify({ name: "virtual-bash", type: "module", [profile]: { "@noble/hashes": "2.4.0", pako: "3.0.1", "@poe-code/office-package": "*" } }),
     "src/index.ts": 'export { archive } from "@poe-code/office-package/zip";',
     "node_modules/@noble/hashes/package.json": JSON.stringify({ name: "@noble/hashes", version: "2.4.0" }),
     "node_modules/pako/package.json": JSON.stringify({ name: "pako", version: "3.0.1" }),

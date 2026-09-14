@@ -25,6 +25,20 @@ test("committed cleanup binds every shared source and root metadata byte", () =>
   assert.throws(() => assertCommittedInputs(captured, expected, roots), /root input/);
 });
 
+test("committed cleanup requires root source identities for pinned development codecs", () => {
+  const packageBytes = Buffer.from(JSON.stringify({ dependencies: {}, devDependencies: {
+    "@noble/hashes": "2.4.0", pako: "3.0.1", "@poe-code/office-package": "*"
+  } }));
+  const captured = { files: { "package.json": digest(packageBytes) }, bytes: new Map([["package.json", packageBytes]]) };
+  const roots = new Map([["packages/office-package/src/zip.ts", Buffer.from("export const size = 23;")]]);
+  const expected: CommittedInputs = { format: "public-cleanup-committed-v1", revision: "1".repeat(40), tree: "2".repeat(40), files: captured.files };
+  assert.throws(() => assertCommittedInputs(captured, expected, roots), /root input/);
+  expected.rootInputs = Object.fromEntries([...roots].map(([path, bytes]) => [path, digest(bytes)]));
+  assert.doesNotThrow(() => assertCommittedInputs(captured, expected, roots));
+  roots.set("packages/office-package/src/zip.ts", Buffer.from("export const size = 24;"));
+  assert.throws(() => assertCommittedInputs(captured, expected, roots), /root input/);
+});
+
 test("committed cleanup retains the original standalone dependency expectation", () => {
   const packageBytes = Buffer.from('{"dependencies":{"pako":"3.0.1"}}');
   const captured = { files: { "package.json": digest(packageBytes) }, bytes: new Map([["package.json", packageBytes]]) };

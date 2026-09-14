@@ -2305,6 +2305,7 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/capability-requirements.test.ts"));
   assert.ok(files.includes("tests/commands/filesystem-output.test.ts"));
   assert.ok(files.includes("tests/commands/docx/io.test.ts"));
+  assert.ok(files.includes("tests/commands/docx-registration.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/selectors.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/transitions.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/animation-inventory.test.ts"));
@@ -2531,7 +2532,10 @@ test("published root mirrors only declared subpaths and keeps the feature isolat
   assert.equal(source.engines.node, ">=22");
   assert.equal(source.name, "virtual-bash");
   assert.equal(source.private, true);
-  assert.deepEqual(source.dependencies, { "@noble/hashes": "2.4.0", pako: "3.0.1", "@poe-code/office-package": "*" });
+  assert.deepEqual(source.dependencies, {});
+  assert.equal(source.devDependencies["@noble/hashes"], "2.4.0");
+  assert.equal(source.devDependencies.pako, "3.0.1");
+  assert.equal(source.devDependencies["@poe-code/office-package"], "*");
   const archive = JSON.parse(readFileSync(new URL("../../office-package/package.json", import.meta.url), "utf8"));
   assert.equal(archive.name, "@poe-code/office-package");
   assert.deepEqual(archive.dependencies, { pako: "3.0.1" });

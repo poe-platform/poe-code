@@ -386,6 +386,15 @@
       "types": "./packages/safe-bash/dist/commands/python/node.d.ts",
       "browser": null,
       "import": "./packages/safe-bash/dist/commands/python/node.js"
+    },
+    "./docx": {
+      "types": "./packages/docx/dist/index.d.ts",
+      "import": "./packages/docx/dist/index.js"
+    },
+    "./safe-bash/commands/docx": {
+      "types": "./packages/safe-bash/dist/commands/docx/index.d.ts",
+      "browser": "./packages/safe-bash/dist/commands/docx/index.browser.js",
+      "import": "./packages/safe-bash/dist/commands/docx/index.js"
     }
   },
   "workspaces": [
@@ -601,7 +610,10 @@
     "packages/safe-fs/native/assets.json",
     "packages/safe-fs/native/seek.c",
     "packages/safe-fs/native/loader.mjs",
-    "packages/safe-fs/src/native/loader.d.ts"
+    "packages/safe-fs/src/native/loader.d.ts",
+    "packages/docx/dist",
+    "packages/docx/LICENSE",
+    "packages/docx/THIRD_PARTY_NOTICES.txt"
   ],
   "engines": {
     "node": ">=18.18"

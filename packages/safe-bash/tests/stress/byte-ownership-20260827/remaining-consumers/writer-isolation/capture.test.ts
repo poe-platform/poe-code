@@ -63,8 +63,8 @@ const sandbox = (sourceRoot = root) => {
     symlinkSync(peerRoot, join(directory, "node_modules/poe-code"), "dir");
     symlinkSync(dirname(fileURLToPath(import.meta.resolve("tsx/package.json"))), join(directory, "node_modules/tsx"), "dir");
     const manifest = JSON.parse(readFileSync(join(sourceRoot, "package.json"), "utf8"));
-    assertArchiveDependencyLock(manifest, dependencyLock);
-    if (Object.keys(manifest.dependencies ?? {}).length) {
+    const admittedDependencies = assertArchiveDependencyLock(manifest, dependencyLock);
+    if (Object.keys(admittedDependencies).length) {
       stageArchiveDependencies(dependencies, directory);
       assertArchiveDependencies(dependencies, directory);
     }

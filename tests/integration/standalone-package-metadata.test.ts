@@ -183,6 +183,7 @@ describe("standalone package publish metadata", () => {
       "./config",
       "./config/testing",
       "./credentials",
+      "./docx",
       "./memory",
       "./pptx",
       "./safe-bash",
@@ -190,6 +191,7 @@ describe("standalone package publish metadata", () => {
       "./safe-bash/commands/archive",
       "./safe-bash/commands/column",
       "./safe-bash/commands/csplit",
+      "./safe-bash/commands/docx",
       "./safe-bash/commands/du",
       "./safe-bash/commands/expr",
       "./safe-bash/commands/factor",
@@ -279,9 +281,11 @@ describe("standalone package publish metadata", () => {
     for (const [name, version] of Object.entries({ "@noble/hashes": "2.4.0", pako: "3.0.1" })) {
       expect(rootPackage.dependencies?.[name]).toBe(version);
     }
-    expect(shellPackage.dependencies).toEqual({
-      "@noble/hashes": "2.4.0", pako: "3.0.1", "@poe-code/office-package": "*"
-    });
+    expect(shellPackage.dependencies).toEqual({});
+    expect(shellPackage.private).toBe(true);
+    for (const [name, version] of Object.entries({ "@noble/hashes": "2.4.0", pako: "3.0.1", "@poe-code/office-package": "*" })) {
+      expect(shellPackage.devDependencies?.[name]).toBe(version);
+    }
     expect(readPackageJson("packages/office-package/package.json").dependencies).toEqual({ pako: "3.0.1" });
     expect(rootPackage.dependencies?.["@poe-code/office-package"]).toBeUndefined();
     expect(rootPackage.files).toContain("packages/office-package/dist");

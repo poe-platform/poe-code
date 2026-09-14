@@ -253,6 +253,21 @@ await publishBundleOutputs(shellBundle, {
 });
 consumerBuilds.push(shellBundle);
 
+consumerBuilds.push(await esbuild.build({
+  absWorkingDir: rootDir,
+  entryPoints: [path.join(rootDir, "packages/docx/src/index.ts")],
+  outfile: path.join(rootDir, "packages/docx/dist/index.js"),
+  alias: { ...workspaceAliases, "@poe-code/safe-fs/core": "poe-code/safe-fs/core", "@poe-code/safe-fs/xml": "poe-code/safe-fs/core" },
+  external: ["poe-code/safe-fs/core"],
+  bundle: true,
+  platform: "browser",
+  conditions: ["workerd", "worker", "browser"],
+  format: "esm",
+  target: "es2022",
+  sourcemap: true,
+  metafile: true
+}));
+
 const officePackage = packageJsons.find(({ dir }) => dir === "office-package");
 assert(officePackage, "Missing shared office package workspace");
 const officeRoutes = Object.fromEntries(

@@ -248,6 +248,11 @@
       "browser": "./dist/commands/line-endings/index.browser.js",
       "import": "./dist/commands/line-endings/index.js"
     },
+    "./commands/docx": {
+      "types": "./dist/commands/docx/index.d.ts",
+      "browser": "./dist/commands/docx/index.browser.js",
+      "import": "./dist/commands/docx/index.js"
+    },
     "./commands/pptx": {
       "types": "./dist/commands/pptx/index.d.ts",
       "import": "./dist/commands/pptx/index.js"
@@ -335,12 +340,11 @@
     "provision:python:integration": "npm --prefix tests/integration/pyodide-runtime ci && npm --prefix tests/integration/pyodide-runtime run provision:public",
     "test:python:integration": "npm --prefix tests/integration/pyodide-runtime run test:public"
   },
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "@noble/hashes": "2.4.0",
     "pako": "3.0.1",
-    "@poe-code/office-package": "*"
-  },
-  "devDependencies": {
+    "@poe-code/office-package": "*",
     "@types/node": "^22.20.1",
     "memfs": "4.56.10",
     "poe-code": "file:../..",

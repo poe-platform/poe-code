@@ -111,6 +111,10 @@ it.each([
       name: "pptx", exports: { ".": { import: "./dist/index.js" } }
     }));
     volume.writeFileSync(path.join(root, "packages/pptx/dist/index.js"), 'export { crc } from "@poe-code/office-package/zip";');
+    volume.mkdirSync(path.join(root, "packages/docx/dist"), { recursive: true });
+    volume.writeFileSync(path.join(root, "packages/docx/package.json"), JSON.stringify({
+      name: "docx", exports: { ".": { import: "./dist/index.js" } }
+    }));
     addNativeFixture(root, volume);
     const files = createFsFromVolume(volume).promises;
     const build = vi.fn(async (options: BuildOptions) => {
@@ -206,6 +210,10 @@ it.each([
         "packages/safe-js/dist/native/fs-seek/manifest.json"
       ]);
     }
+    const documentOptions = build.mock.calls.find(([options]) =>
+      options.outfile === path.join(root, "packages/docx/dist/index.js")
+    )?.[0];
+    expect(documentOptions).toMatchObject({ bundle: true, platform: "browser", external: ["poe-code/safe-fs/core"], alias: { "@poe-code/safe-fs/core": "poe-code/safe-fs/core", "@poe-code/safe-fs/xml": "poe-code/safe-fs/core" }, conditions: ["workerd", "worker", "browser"] });
     const mainOptions = build.mock.calls.find(([options]) =>
       Array.isArray(options.entryPoints) && options.entryPoints.includes(path.join(root, "src/index.ts"))
     )![0];
@@ -213,6 +221,7 @@ it.each([
     expect(mainOptions.outfile).toBeUndefined();
     for (const [options] of build.mock.calls) {
       if (options.splitting) continue;
+      if (options.outfile === path.join(root, "packages/docx/dist/index.js")) continue;
       if (options.platform === "browser") {
         expect(options.alias).not.toHaveProperty("poe-code/safe-fs");
         expect(options.external).toContain("poe-code/safe-fs/core");
@@ -225,6 +234,7 @@ it.each([
       .map(([options]) => options.entryPoints)).toEqual([
       {
         "core.browser": path.join(root, "packages/safe-bash/src/core.browser.ts"),
+        "commands/docx/index.browser": path.join(root, "packages/safe-bash/src/commands/docx/index.ts"),
         "commands/python/index.browser": path.join(root, "packages/safe-bash/src/commands/python/index.ts"),
         "commands/python/worker.browser": path.join(root, "packages/safe-bash/src/commands/python/worker.ts"),
         "commands/xml/index.browser": path.join(root, "packages/safe-bash/src/commands/xml/index.ts"),

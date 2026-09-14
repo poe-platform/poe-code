@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "task": "docx-format-grammar-refinement",
+  "status": "documentary-grammar-complete-product-acceptance-pending",
+  "date": "2026-09-14",
+  "inspected_head": "a7d25f42fc7b14ea8b24370117acd19bed43faf5",
+  "implemented_through": null,
+  "input_sha256": {
+    "docs/specs/office-cli.md": "cb5614e03c841f31d98efe4bcf2aabdb419926aa26775d17b401598d9a2d74ce",
+    "docs/specs/office-sdk.md": "a73354b0e643eef159f9bda0cb9b096234fb34f0d224c3fbead5a92f38e673b9",
+    "docs/docx/upstream-api-audit.md": "45d96a1bff39d66994194d1c8d66572b0869438d514bd7735465e79d733b9e8a",
+    "docs/docx/upstream-api-inventory.json": "10955a17b17ac1b334c5854ce7048970f9033ddb0408322bef3e3586d19e44ac",
+    "docs/docx/public-api-map.json": "b5d04eb79f7b24f00fee4abffef9f0a78998a02dfbadb0b2d009b68051dd87b1",
+    "docs/docx/upstream-api-reconciliation.md": "784967677f9444c8d2610372b44d59c0e3ca4256b2d357d7da70b925509600c3",
+    "docs/docx/standards-coverage.md": "d6f5d4c11eede641c490d48f3a164ff19406bbbaa22d984d897ed5b546a9df04"
+  },
+  "documentary_before": {
+    "exit": 1,
+    "failed_assertions": [
+      "authoritative direct grammar",
+      "closed structured content",
+      "fingerprint algorithm",
+      "typed per-operation results",
+      "concrete validation default",
+      "pack positional input"
+    ],
+    "product_tests": false
+  },
+  "documentary_after": {
+    "exit": 0,
+    "checks": {
+      "authoritative direct grammar": true,
+      "closed structured content": true,
+      "fingerprint algorithm": true,
+      "typed per-operation results": true,
+      "concrete validation default": true,
+      "pack positional input": true,
+      "operation identities retained": true,
+      "API identities retained": true,
+      "test identities retained": true,
+      "50 feature IDs": true,
+      "all API feature associations": true,
+      "prior drift resolutions retained": true,
+      "16 language mappings retained": true,
+      "historical input hashes retained": true,
+      "planned evidence only": true,
+      "no pixel grammar drift": true,
+      "JSON normalized": true,
+      "raw schema": true,
+      "operation-feature-test-and-model-pointers": true,
+      "owned Markdown local destinations": true,
+      "resource defaults exclude invalid scope placeholder": true
+    },
+    "resolved_model_pointers": 2776
+  },
+  "counts": {
+    "features": 50,
+    "operations": 1506,
+    "direct_operations": 113,
+    "typed_batch_operations": 1393,
+    "API_rows": 1337,
+    "source_inventory_records": 920,
+    "nested_enum_values": 262,
+    "language_mappings": 16,
+    "original_acceptance_records": 1538,
+    "new_QA_obligations": 25,
+    "passing_product_tests": 0
+  },
+  "maintained_checks": {
+    "spec_checker": "passed; zero warnings",
+    "scoped_prettier": "passed; repository-installed Prettier on exactly four owned files",
+    "git_diff_check": "passed; no whitespace errors"
+  },
+  "limitations": [
+    "No product code, README or runtime schema implementation.",
+    "No source tests adapted or product unit/build/screenshots executed in this documentation-only task.",
+    "No downloaded document or binary fixture acquired, edited, shipped or committed.",
+    "All later tasks pending; original failing tests remain required before implementation.",
+    "Historical evidence hashes retained as historical receipts; current input hashes recorded separately.",
+    "Local commit only; no push or release."
+  ]
+}

@@ -209,13 +209,1038 @@ no singular or metadata aliases. Exact format-only flags belong in this spec
 and its machine-readable register.
 
 Text defaults to the main body. Header/footer/note/comment/text-box scopes are
-explicit; all-story order follows the relationship graph with deterministic
-tie-breaking and shared-part deduplication. Final/original/all revision views
+explicit; all-story order follows section 6.3 with deterministic owner traversal and
+shared-part deduplication. Final/original/all revision views
 retain their distinct semantics.
 
 Both tools use ordinary exit statuses 0/1/2/3/4/130 as defined by the shared
 contract. For `diff`, 0 means equal, 1 means different, 2 means comparison trouble,
 and 130 means cancellation. A successful difference is not an SDK exception.
+
+### 6.1 Lexical grammar
+
+This section defines product choices, not requirements imposed by the file
+format. The shared contracts take precedence; this section supplies DOCX-specific
+arguments and effects. The [command register](../docx/command-coverage.json)
+records these declarations and their acceptance associations. It is an evidence
+register subordinate to this single specification, not a second contract.
+
+```text
+docx create [OPTIONS]
+docx PATH INPUT [OPTIONS]
+docx diff LEFT RIGHT [OPTIONS]
+docx pack INVENTORY [OPTIONS]
+docx help [COMMAND PATH] [--operation OPERATION_ID] [--json]
+docx schema [COMMAND PATH] [--operation OPERATION_ID] [--json]
+docx capabilities [INPUT] [--json] [--limit NAME=VALUE ...]
+docx version [--json]
+```
+
+`PATH` is exactly a direct path in section 6.4. All paths are case-sensitive.
+Options follow the complete path, before or after input; `--` stops parsing.
+`--name=value` and `--name value` are equivalent for value options; empty values
+are preserved for schema validation. `-o PATH` and `-o=PATH` mean `--output PATH`;
+short-option clusters and attached `-oPATH` are not accepted. Presence switches
+accept no value. Property booleans such as `--bold` require `true`, `false`, or
+`null` where their type admits it; they are not presence switches. Numeric input
+uses finite decimal notation without surrounding whitespace; counts and IDs
+require safe integers. JSON numbers are never coerced from strings.
+
+`docx text INPUT` is exactly `docx text get INPUT`, including result operation
+`text.get`. `docx`, `docx help`, `docx --help` and `docx -h` display root help.
+`docx PATH --help` or `-h` selects that path's help without acquiring input.
+Discovery preflight still rejects unknown paths/options and repeated scalar
+options; it waives only required operational values/input. `docx --version`
+means `docx version`; combining version and help or placing version on an edit
+path is `usage`. Unknown discovery paths/IDs fail; they do not read filenames.
+`help batch --operation ID` and `schema batch --operation ID` address one closed
+batch discriminator. A conflicting path/ID pair fails. `schema` always emits the
+structured schema result; `--json` is redundant and accepted there.
+
+No other compatibility aliases exist. In particular top-level `replace`,
+`image`, `table`, `metadata`, `edit`, `update`, `unpack`, `raw-xml`, and
+`strip-signatures` reject with `usage`; the corresponding declared paths are
+`text replace`, `images`, `tables`, `properties`, `extract`, `xml get` and
+`signatures remove`. `--allow-missing`, `--overwrite`, `--input` and
+`--inventory` reject. Model `table_direction` is retained; the direct operation
+argument `direction` is a separate documented option, not a model alias.
+
+### 6.2 Input, output and option precedence
+
+The CLI MUST first resolve discovery/path, then validate arity, scalar repetitions,
+closed fields and conflicts, then reserve stdin, acquire bounded sources, admit
+packages, resolve selections, stage edits, validate and publish. Failures in an
+earlier phase take precedence over later failures. Within argument validation,
+report errors in argv order; JSON keys use lexical order for deterministic errors.
+There is no last-option-wins rule or environment fallback.
+
+Exactly one positional input is required for ordinary document paths. Omitted
+input is `usage` even when stdin has bytes. Literal `-` explicitly consumes stdin.
+`diff` requires two inputs and permits `-` on only one side. `pack` takes one
+inventory JSON path or `-`, not a document and not an implied directory scan.
+Creation has no positional input; its optional template is `--template PATH`.
+An empty path is invalid. File suffixes do not establish kind or validation;
+`kind` must agree with the admitted package content type where no conversion is
+specified. No operation silently converts Strict/Transitional or docx/dotx input.
+
+Every auxiliary file flag (`--file`, `--fallback`, `--template`, `--content-file`,
+`--data-file`, `--ops-file`) accepts `-`. Across all document and auxiliary
+sources there is exactly one stdin consumer. Batches count auxiliary sources in
+all items before any read; a JSON VFS path `-` is a literal path, never a hidden
+second stdin consumer. SDK streams are explicit capabilities, not string guesses.
+JSON sources are UTF-8 (one leading BOM accepted), with no comments/trailing
+commas/duplicate keys/nonfinite numbers. Null top-level envelopes reject.
+
+| Combination                                                        | Required result                                                                      |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| `--ops-json` plus `--ops-file`, or neither on batch                | `usage`; no precedence/merge                                                         |
+| `--data-json` plus `--data-file`, or neither on template/repeat    | `usage`                                                                              |
+| Both create content sources                                        | `usage`; neither means empty supplied content                                        |
+| Direct flags and a JSON source                                     | Only the sources declared for that command are legal; no general `--json` input mode |
+| `--output` plus `--in-place`                                       | `usage`, including dry-run                                                           |
+| Mutation without either destination                                | `usage`, except dry-run or read/value-only batch                                     |
+| `--in-place` with stdin, create or pack                            | `usage`                                                                              |
+| `--force` without output/output-dir, including with in-place alone | `usage`                                                                              |
+| `--output` aliases input, even with force                          | `conflict`; require in-place instead                                                 |
+| Existing output without force                                      | `conflict`; source/destination unchanged                                             |
+| `--output -` plus JSON                                             | `usage`, except dry-run reports JSON only                                            |
+| `--raw` plus `--json` or `--pretty` on XML get                     | `usage`; raw and pretty are inapplicable elsewhere                                   |
+| `--pretty --json` on XML get                                       | Pretty text inside XmlData; never raw stdout                                         |
+| `--output` on a read command                                       | `usage`; use shell redirection for read stdout                                       |
+| `--allow-partial-output` outside multi-file extraction             | `usage`                                                                              |
+
+Read/list/get commands return data; mutation summaries go to stdout unless the
+package itself occupies stdout. `--json` selects the shared envelope. In-place
+implies only source replacement, never permission to bypass protection. Force
+with output `-` rejects because no existing file can be replaced. Dry-run validates
+supplied destination syntax, identity and capabilities but never stages a sink.
+A read-only batch with publication flags rejects as inapplicable; documented
+creating getters make it a mutating batch. Extraction always requires output-dir,
+rejects package-output flags, and reports a manifest under the shared transaction
+or explicit partial-output rule.
+
+The switch defaults are false. No output, force, shared intent, author identity,
+timestamp, seed, or selection cardinality is implicitly chosen. An absent optional
+edit value leaves state unchanged; creation defaults below apply only to new
+objects. At least one effect field is required for `set`; selector/publication
+flags do not count. Empty `arguments:{}` is valid only when no arguments are
+required. `--allow-empty` permits no matching mutation targets, not a missing
+selector, missing effect, invalid field, or an unsupported edit.
+
+### 6.3 Selectors, scopes and location fingerprints
+
+The accepted scopes are `body`, `headers`, `footers`, `footnotes`, `endnotes`,
+`comments`, `text-boxes`, `all-stories`. A scope is a story set, not an XML query.
+Text and ordinary body resources default to body. A dedicated resource command
+implicitly selects its own resource owners: headers/footers across sections,
+notes of the selected kind, comments in the comments part; style/section/settings/
+font/property/signature/custom-XML/glossary inventories are package-global.
+`inspect` inventories the whole package without narrowing its package census;
+selectors narrow its location details. `extract` always extracts the full package
+and rejects selectors. Global resources reject scope unless it actually restricts
+story-owned occurrences. Explicit `--scope body` on headers is inapplicable;
+`headers` or `all-stories` are compatible. No empty body default hides review
+or header resources from their own list commands.
+
+Story order is body first, then headers, footers, footnotes, endnotes, comments,
+text boxes. Header/footer order is section order then default/first/even, with
+shared part identities deduplicated at first visit. Notes/comments use numeric
+ID order (separator notes excluded from text); text boxes use owning-story XML
+document order, recursively, with visited-node guards. Remaining inventory-only
+parts use canonical part-name Unicode code-point order. Relationships within an
+owner use XML order, with ID code-point order as a tie-breaker. A shared occurrence
+list keeps all references; story text visits each unique story once.
+
+Simple selectors are positive one-based ordinals: `--section`, `--paragraph`,
+`--run`, `--table`, `--image`, `--comment`, `--note`, `--link`, `--control`,
+`--revision`, `--shape`, `--field`, `--bookmark`. They are positions, never stored
+IDs. `--cell B2` uses uppercase ASCII column letters and a positive row; both
+coordinates are one-based. Merged slots resolve to their anchor for scalar cell
+edits; a range that partly intersects a merge fails `ambiguous-selection`.
+
+Valid owner chains are section → selected story → table → cell → paragraph → run,
+or story → paragraph → run; image/link/control/revision/shape/field/bookmark may
+select a descendant occurrence within that owner. Notes/comments select their
+own story; header/footer get/set require section and variant (default below).
+At most one selector of each kind occurs; unrelated/sibling chains fail usage.
+A table selector without cell targets the table; text on `tables set` requires
+cell. Run selection requires paragraph. Descendant indexes use document order
+inside the resolved owner, including nested tables, not package-wide counters.
+Commands exposing a named resource (`styles --name`, `properties --name`) use
+that key alone and reject opaque/ordinal selection. Named lookup is exact and
+case-sensitive; duplicate applicable names fail with bounded candidates.
+
+`get`, `set`, `remove`, `replace`, merge/split and targeted review actions require
+one resource unless explicit `--all` is allowed. Lists/extracts allow no selection
+and return every matching item in scope. `--all` is allowed for text replacement,
+resource set/remove, revisions accept/reject and lorem; it conflicts with a target
+ordinal or token, except text cardinality may apply inside a selected owner.
+Add commands use a selected container or the unique body; they do not silently
+choose one of multiple headers/cells. Paragraph add appends to the owner unless
+a paragraph anchor is supplied, when it inserts after it (`--before` reverses). Before without a paragraph anchor is usage.
+Inline add commands append inside the selected paragraph; range operations require
+a fingerprinted range token. No hidden first-paragraph default is used.
+
+`--select` MUST use `docx-loc-v1.` followed by unpadded base64url of UTF-8 JSON
+with keys serialized in the following order and no extra whitespace:
+
+```typescript
+type LocationPayload = {
+  version: 1;
+  sourceSha256: string; // 64 lowercase hex digits: exact admitted archive bytes
+  generation: number; // safe nonnegative staged mutation counter
+  part: string; // canonical absolute OPC part name
+  story: string; // owner part plus story-local identifier from inspection
+  path: number[]; // zero-based element-child indexes from part root; [] is root
+  range: { start: number; end: number } | null; // half-open logical Unicode scalars
+};
+```
+
+All keys are required. The prefix, encoding, hash, generation and schema are
+validated before node resolution. Malformed token is `usage`; a different hash,
+generation, owner, path or out-of-date range is `stale-selection`. Paths are not
+XPath; only element-child indexing is allowed. Range offsets refer to the logical
+text map in section 9, counting scalars, not UTF-16 code units, and cannot cross
+its barriers. Comments require run-boundary endpoints. A token must carry a valid
+story owner even for a part-root selection. Package resources use their part name
+as story ID. Tokens are guards, not authority or authentication credentials.
+
+Fresh admission has generation zero. Each successful operation that changes the
+staged document increments generation once; reads and no-change mutations do not.
+A batch resolves later tokens against the current generation, so tokens from its
+original input become stale after an edit. Use simple selectors resolved in array
+order or preceding typed result handles for later edits. Model handles retain
+owner/node semantics and survive unrelated changes as specified in section 9.2;
+they are not immutable CLI location tokens. Published output has a fresh archive
+fingerprint on next admission. No fuzzy reattachment or force override is allowed.
+Tokens cannot be mixed with simple selectors or explicit scope (owner already
+encoded). Inspection emits both location tokens and readable owner/position data.
+
+### 6.4 Exhaustive direct operation register
+
+Each row below is one public path; spaces convert to dots for the SDK operation
+ID. `!` means required, `?` optional. Field names are JSON argument keys; CLI flags
+are their mechanical kebab-case spelling with `--`. Types are closed unions;
+`Length` is positive/nonnegative according to the target and uses explicit shared
+units. Enum symbols/setter subsets are the complete neutral declarations in the
+[public surface register](../docx/public-api-map.json), including inherited members,
+helpers and aliases. No arbitrary strings/numbers substitute for enums.
+
+Profiles are compositional applicability rules, not permission to ignore flags:
+`read` allows json/limit; `selectedRead` adds section 6.3 selection/scope;
+`edit` adds output/inPlace/force/dryRun/allowEmpty to read; `selectedEdit` adds
+valid selection and explicit supported all; `create` allows json/limit/output/
+force/dryRun/timestamp/author; `extract` allows json/limit/outputDir/force/
+allowPartialOutput and applicable resource selection; `batch` allows json/limit/
+output/inPlace/force/dryRun/timestamp/author; `discovery` allows json only.
+Pack excludes timestamp/author; capabilities additionally allows limit. The
+conditional rules in sections 6.2–6.5 narrow these profiles. None is a promise
+that all selectors apply to every row.
+
+All rows take INPUT except create, diff (LEFT RIGHT), pack (INVENTORY), help/schema
+(optional path/operation ID), capabilities (optional INPUT) and version (none).
+`text` is the sole path shorthand. The result column names `data`, not a second
+envelope. Every row's acceptance ID is `command.` plus its dotted path, with its
+F-IDs in the last column; those cases MUST compare actual CLI/SDK behavior to
+independent text/XML/OPC/value assertions, not only to one another.
+
+| Path                    | Profile      | Closed argument keys/types                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Result data      | Features                                                                                           |
+| ----------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- | -------------------------------------------------------------------------------------------------- |
+| `create`                | create       | `kind?`: docx / dotx; `template?`: VfsInput; `contentFile?`: VfsInput; `contentJson?`: OriginalDocumentContentV1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | MutationData     | F01, F03, F11, F12, F13, F15, F19, F32                                                             |
+| `inspect`               | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | InspectionData   | F01, F02, F03, F05, F06, F11, F27, F41, F42                                                        |
+| `validate`              | read         | `profile?`: declared understood-namespace profile                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | ValidationData   | F01, F02, F05, F49                                                                                 |
+| `text get`              | selectedRead | `view?`: final / original / all                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | TextData         | F08, F09, F26, F36                                                                                 |
+| `text replace`          | selectedEdit | `find!`: string; `with!`: string; `first?`: boolean; `occurrence?`: positive integer; `view?`: final / original / all                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | MutationData     | F02, F04, F05, F10                                                                                 |
+| `xml get`               | read         | `part!`: string; `pretty?`: boolean; `raw?`: boolean                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | XmlData          | F04, F07                                                                                           |
+| `xml set`               | edit         | `part!`: string; `file!`: VfsInput                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | MutationData     | F04, F07                                                                                           |
+| `paragraphs list`       | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F08                                                                                                |
+| `paragraphs get`        | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceData     | F01, F04, F08, F19                                                                                 |
+| `paragraphs add`        | selectedEdit | `text?`: string; `style?`: string; `level?`: integer 0..9; `before?`: boolean                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | MutationData     | F06, F11, F12, F13, F15, F16, F17, F19, F20, F25, F32                                              |
+| `paragraphs set`        | selectedEdit | `text?`: string / null; `style?`: string; `alignment?`: WD_PARAGRAPH_ALIGNMENT / null; `leftIndent?`: Length (explicit emu/in/cm/mm/pt); `rightIndent?`: Length (explicit emu/in/cm/mm/pt); `firstLineIndent?`: Length (explicit emu/in/cm/mm/pt); `spaceBefore?`: Length (explicit emu/in/cm/mm/pt); `spaceAfter?`: Length (explicit emu/in/cm/mm/pt); `lineSpacing?`: Length / finite number / null; `keepWithNext?`: boolean / null; `keepTogether?`: boolean / null; `widowControl?`: boolean / null; `pageBreakBefore?`: boolean / null; `outlineLevel?`: integer 0..9 / null                         | MutationData     | F08, F12, F13, F14, F15                                                                            |
+| `paragraphs remove`     | selectedEdit | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | MutationData     | F44                                                                                                |
+| `runs list`             | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F08, F19                                                                                           |
+| `runs get`              | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceData     | F01, F04                                                                                           |
+| `runs add`              | selectedEdit | `text?`: string; `style?`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | MutationData     | F01, F04                                                                                           |
+| `runs set`              | selectedEdit | `text?`: string; `bold?`: boolean / null; `italic?`: boolean / null; `underline?`: boolean / WD_UNDERLINE / null; `strike?`: boolean / null; `size?`: Length (explicit emu/in/cm/mm/pt); `font?`: string; `color?`: RGB hex / null; `highlight?`: WD_COLOR_INDEX / null; `language?`: string; `hidden?`: boolean / null; `rtl?`: boolean / null; `superscript?`: boolean / null; `subscript?`: boolean / null                                                                                                                                                                                              | MutationData     | F08, F09, F12, F25, F32                                                                            |
+| `runs remove`           | selectedEdit | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | MutationData     | F44                                                                                                |
+| `styles list`           | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F14                                                                                                |
+| `sections list`         | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F16                                                                                                |
+| `headers list`          | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F01, F04                                                                                           |
+| `footers list`          | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F01, F04                                                                                           |
+| `tables list`           | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F19                                                                                                |
+| `links list`            | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F21                                                                                                |
+| `bookmarks list`        | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F21                                                                                                |
+| `fields list`           | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F22                                                                                                |
+| `notes list`            | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F24                                                                                                |
+| `comments list`         | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F25                                                                                                |
+| `controls list`         | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F28                                                                                                |
+| `images list`           | selectedRead | `unique?`: boolean                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | ResourceListData | F31, F34, F35                                                                                      |
+| `styles get`            | selectedRead | `name!`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | ResourceData     | F14                                                                                                |
+| `styles add`            | selectedEdit | `name!`: string; `type!`: paragraph / character / table / numbering; `base?`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | MutationData     | F14                                                                                                |
+| `styles set`            | selectedEdit | `name!`: string; `base?`: string / null; `bold?`: boolean / null; `italic?`: boolean / null; `priority?`: safe integer; `hidden?`: boolean; `locked?`: boolean; `quickStyle?`: boolean                                                                                                                                                                                                                                                                                                                                                                                                                     | MutationData     | F12, F14                                                                                           |
+| `styles remove`         | selectedEdit | `name!`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | MutationData     | F14                                                                                                |
+| `sections add`          | selectedEdit | `startType?`: WD_SECTION_START                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | MutationData     | F06, F11, F16                                                                                      |
+| `sections set`          | selectedEdit | `orientation?`: WD_ORIENTATION; `pageWidth?`: Length (explicit emu/in/cm/mm/pt); `pageHeight?`: Length (explicit emu/in/cm/mm/pt); `topMargin?`: Length (explicit emu/in/cm/mm/pt); `bottomMargin?`: Length (explicit emu/in/cm/mm/pt); `leftMargin?`: Length (explicit emu/in/cm/mm/pt); `rightMargin?`: Length (explicit emu/in/cm/mm/pt); `columns?`: positive integer; `pageNumberStart?`: nonnegative integer; `differentFirstPage?`: boolean                                                                                                                                                         | MutationData     | F16                                                                                                |
+| `headers get`           | selectedRead | `variant?`: default / first / even                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | ResourceData     | F17                                                                                                |
+| `headers set`           | selectedEdit | `variant?`: default / first / even; `text?`: string; `linkToPrevious?`: boolean; `shared?`: boolean                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | MutationData     | F16, F17                                                                                           |
+| `footers get`           | selectedRead | `variant?`: default / first / even                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | ResourceData     | F17                                                                                                |
+| `footers set`           | selectedEdit | `variant?`: default / first / even; `text?`: string; `linkToPrevious?`: boolean; `shared?`: boolean                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | MutationData     | F17                                                                                                |
+| `lists add`             | selectedEdit | `kind!`: bullet / decimal / lowerLetter / upperLetter / lowerRoman / upperRoman; `level?`: integer 0..8; `start?`: integer; `text?`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                | MutationData     | F18                                                                                                |
+| `lists set`             | selectedEdit | `level?`: integer 0..8; `start?`: integer; `restart?`: boolean                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | MutationData     | F18                                                                                                |
+| `tables get`            | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceData     | F19, F20                                                                                           |
+| `tables add`            | selectedEdit | `rows!`: positive integer; `cols!`: positive integer; `width?`: Length (explicit emu/in/cm/mm/pt)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | MutationData     | F06, F11, F16, F17, F19, F20, F25                                                                  |
+| `tables set`            | selectedEdit | `text?`: string; `style?`: string; `width?`: Length (explicit emu/in/cm/mm/pt); `autofit?`: boolean; `alignment?`: WD_TABLE_ALIGNMENT / null; `direction?`: WD_TABLE_DIRECTION / null; `repeatHeader?`: boolean; `allowRowSplit?`: boolean; `cellMargin?`: Length (explicit emu/in/cm/mm/pt)                                                                                                                                                                                                                                                                                                               | MutationData     | F19, F20                                                                                           |
+| `tables rows add`       | selectedEdit | `index?`: positive integer; `width?`: Length (explicit emu/in/cm/mm/pt)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | MutationData     | F19                                                                                                |
+| `tables rows remove`    | selectedEdit | `index!`: positive integer                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | MutationData     | F19                                                                                                |
+| `tables columns add`    | selectedEdit | `index?`: positive integer; `width?`: Length (explicit emu/in/cm/mm/pt)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | MutationData     | F19                                                                                                |
+| `tables columns remove` | selectedEdit | `index!`: positive integer                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | MutationData     | F19                                                                                                |
+| `tables merge`          | selectedEdit | `from!`: string; `to!`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | MutationData     | F20                                                                                                |
+| `tables split`          | selectedEdit | `rows!`: positive integer; `cols!`: positive integer                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | MutationData     | F20                                                                                                |
+| `tables remove`         | selectedEdit | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | MutationData     | F44                                                                                                |
+| `links add`             | selectedEdit | `text!`: string; `target?`: string; `bookmark?`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | MutationData     | F21                                                                                                |
+| `links set`             | selectedEdit | `target?`: string; `bookmark?`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | MutationData     | F21                                                                                                |
+| `links remove`          | selectedEdit | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | MutationData     | F21                                                                                                |
+| `bookmarks add`         | selectedEdit | `name!`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | MutationData     | F21                                                                                                |
+| `bookmarks set`         | selectedEdit | `name!`: string; `references!`: update / reject                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | MutationData     | F21                                                                                                |
+| `bookmarks remove`      | selectedEdit | `references!`: remove / reject                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | MutationData     | F21                                                                                                |
+| `fields add`            | selectedEdit | `kind!`: PAGE / NUMPAGES / REF / PAGEREF / SEQ / TOC; `target?`: string; `result?`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | MutationData     | F22                                                                                                |
+| `fields set`            | selectedEdit | `result?`: string; `update?`: boolean                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | MutationData     | F22                                                                                                |
+| `toc add`               | selectedEdit | `levels?`: bounded range 1..9; `title?`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | MutationData     | F23                                                                                                |
+| `captions add`          | selectedEdit | `label!`: string; `text!`: string; `sequence?`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | MutationData     | F23                                                                                                |
+| `toc set`               | selectedEdit | `text?`: string; `update?`: boolean                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | MutationData     | F23                                                                                                |
+| `captions set`          | selectedEdit | `text?`: string; `update?`: boolean                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | MutationData     | F23                                                                                                |
+| `notes get`             | selectedRead | `kind?`: footnote / endnote                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                | ResourceData     | F24                                                                                                |
+| `notes add`             | selectedEdit | `kind!`: footnote / endnote; `text?`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | MutationData     | F24                                                                                                |
+| `notes set`             | selectedEdit | `text!`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | MutationData     | F24                                                                                                |
+| `notes remove`          | selectedEdit | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | MutationData     | F24                                                                                                |
+| `comments get`          | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceData     | F25                                                                                                |
+| `comments add`          | selectedEdit | `text?`: string; `author!`: string; `timestamp!`: UTC instant; `initials?`: string / null                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | MutationData     | F06, F11, F25                                                                                      |
+| `comments set`          | selectedEdit | `text!`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | MutationData     | F25                                                                                                |
+| `comments remove`       | selectedEdit | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | MutationData     | F25                                                                                                |
+| `revisions list`        | selectedRead | `view?`: final / original / all                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | ResourceListData | F26, F27                                                                                           |
+| `revisions add`         | selectedEdit | `kind!`: insert / delete; `text?`: string; `author!`: string; `timestamp!`: UTC instant                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | MutationData     | F26                                                                                                |
+| `revisions accept`      | selectedEdit | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | MutationData     | F26                                                                                                |
+| `revisions reject`      | selectedEdit | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | MutationData     | F26                                                                                                |
+| `controls set`          | selectedEdit | `text?`: string; `checked?`: boolean; `choice?`: string; `date?`: UTC date; `file?`: VfsInput                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | MutationData     | F28                                                                                                |
+| `controls repeat`       | selectedEdit | `dataFile?`: VfsInput; `dataJson?`: ReadonlyArray<DeclaredControlRecord>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | MutationData     | F29                                                                                                |
+| `controls bind`         | selectedEdit | `binding!`: declared binding ID; `valueJson!`: DeclaredBindingValue                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | MutationData     | F29                                                                                                |
+| `properties list`       | read         | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F30                                                                                                |
+| `properties get`        | read         | `name!`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | ResourceData     | F30                                                                                                |
+| `properties set`        | edit         | `name!`: string; `value!`: typed scalar; `type?`: string / boolean / integer / number / date                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | MutationData     | F30                                                                                                |
+| `properties remove`     | edit         | `name!`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | MutationData     | F30                                                                                                |
+| `images get`            | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceData     | F31, F33                                                                                           |
+| `images add`            | selectedEdit | `file!`: VfsInput; `width?`: Length (explicit emu/in/cm/mm/pt); `height?`: Length (explicit emu/in/cm/mm/pt); `fit?`: contain / cover / stretch; `placement?`: inline / floating; `fallback?`: VfsInput; `alt?`: string                                                                                                                                                                                                                                                                                                                                                                                    | MutationData     | F06, F08, F11, F12, F31, F32, F35                                                                  |
+| `images replace`        | selectedEdit | `file!`: VfsInput; `shared?`: boolean; `width?`: Length (explicit emu/in/cm/mm/pt); `height?`: Length (explicit emu/in/cm/mm/pt); `fit?`: contain / cover / stretch; `fallback?`: VfsInput                                                                                                                                                                                                                                                                                                                                                                                                                 | MutationData     | F32, F35                                                                                           |
+| `images set`            | selectedEdit | `x?`: Length (explicit emu/in/cm/mm/pt); `y?`: Length (explicit emu/in/cm/mm/pt); `relativeTo?`: page / margin / column / paragraph / character; `wrap?`: none / square / tight / through / top-bottom; `zOrder?`: safe integer; `cropLeft?`: fraction 0..1; `cropRight?`: fraction 0..1; `cropTop?`: fraction 0..1; `cropBottom?`: fraction 0..1; `rotation?`: finite degrees; `flipHorizontal?`: boolean; `flipVertical?`: boolean; `alt?`: string; `decorative?`: boolean; `width?`: Length (explicit emu/in/cm/mm/pt); `height?`: Length (explicit emu/in/cm/mm/pt); `fit?`: contain / cover / stretch | MutationData     | F33                                                                                                |
+| `images extract`        | extract      | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ExtractionData   | F31, F34                                                                                           |
+| `shapes list`           | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F36                                                                                                |
+| `charts list`           | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F37                                                                                                |
+| `diagrams list`         | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F38                                                                                                |
+| `equations list`        | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F39                                                                                                |
+| `objects list`          | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F40                                                                                                |
+| `signatures list`       | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F43                                                                                                |
+| `settings list`         | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F42                                                                                                |
+| `fonts list`            | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F42                                                                                                |
+| `custom-xml list`       | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F41                                                                                                |
+| `glossary list`         | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F41                                                                                                |
+| `shapes set`            | selectedEdit | `text!`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | MutationData     | F36                                                                                                |
+| `equations add`         | selectedEdit | `file!`: VfsInput                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | MutationData     | F39                                                                                                |
+| `equations replace`     | selectedEdit | `file!`: VfsInput                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | MutationData     | F39                                                                                                |
+| `objects extract`       | extract      | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ExtractionData   | F40                                                                                                |
+| `signatures remove`     | edit         | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | MutationData     | F43                                                                                                |
+| `lorem set`             | selectedEdit | `seed!`: safe integer; `words?`: positive integer                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | MutationData     | F45                                                                                                |
+| `sanitize`              | edit         | `remove!`: nonempty unique list: properties / comments / revisions / links / objects; `revisionPolicy?`: accept / reject                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   | MutationData     | F46                                                                                                |
+| `batch`                 | batch        | `opsFile?`: VfsInput; `opsJson?`: BatchV1                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | BatchData        | F01, F11, F47                                                                                      |
+| `template apply`        | edit         | `dataFile?`: VfsInput; `dataJson?`: DeclaredTemplateRecord / ReadonlyArray<DeclaredTemplateRecord>                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | MutationData     | F47                                                                                                |
+| `diff`                  | read         | `mode?`: parts / xml / text / structure                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    | DiffData         | F48                                                                                                |
+| `extract`               | extract      | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ExtractionData   | F50                                                                                                |
+| `pack`                  | create       | `kind?`: docx / dotx                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | MutationData     | F01, F50                                                                                           |
+| `help`                  | discovery    | `operation?`: closed operation ID                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | HelpData         | F06, F49                                                                                           |
+| `schema`                | discovery    | `operation?`: closed operation ID                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | SchemaData       | F01, F04, F06, F08, F11, F12, F13, F14, F15, F16, F17, F19, F20, F21, F25, F30, F31, F32, F42, F49 |
+| `capabilities`          | discovery    | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | CapabilitiesData | F01, F04, F06, F08, F11, F12, F13, F14, F15, F16, F17, F19, F20, F21, F25, F30, F31, F32, F42, F49 |
+| `version`               | discovery    | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | VersionData      | F06, F49                                                                                           |
+
+### 6.5 Format operation semantics and defaults
+
+The listed fields are exhaustive. A conditional required field missing at
+preflight is usage; an admitted document that cannot satisfy it produces the
+appropriate semantic error. Unsupported affected content is `unsupported-edit`.
+
+- **Create/validate.** Create defaults to kind docx, Transitional, a body with one
+  empty paragraph, portrait US Letter (8.5in × 11in), 1in margins, one column,
+  no images/comments/fields, original Normal paragraph style and no implicit
+  author/time/application branding. A supplied template retains kind/dialect and
+  document content; content blocks append to its body. Explicit conflicting kind
+  fails. No suffix inference. CLI creation omits dated properties unless timestamp
+  supplied; author defaults to empty. Explicit timestamp populates created and
+  modified, normalized to UTC seconds. The model factory's documented requirement
+  for context when initializing dates is unchanged. `validate --profile core-v1`
+  is the sole initial profile/default: OPC safety, XML well-formedness, supported
+  WordprocessingML semantic checks and MCE understood namespaces for the supported
+  subsets in section 5. The exact namespace list and check IDs below MUST be exposed by
+  schema/capabilities; unsupported extensions are reported as unvalidated, never
+  blanket schema-certified. Unknown profiles are usage. Invalid diagnostics make
+  validation `ok:false`; lack of full-schema coverage is an explicit warning.
+- **Text/XML.** Text get/replace view defaults final; original omits inserted
+  revisions, final omits deleted revisions, all includes both in XML order and
+  records revision kind in JSON segments without inserting labels into plain
+  text. Paragraphs join with LF, table cells with TAB and rows with LF, stories
+  with two LFs; no extra trailing separator. Tabs/breaks preserve logical order;
+  cached page breaks add nothing. Complex unsupported revisions may be read but
+  cannot be edited. XML get requires the exact canonical part name and defaults
+  to original bytes; `--raw` explicitly locks that representation. Pretty is a
+  bounded UTF-8 display transformation only. XML set replaces an existing XML
+  part using admitted file bytes, preserving its identity/content type and
+  requiring a valid final graph; it cannot add a part, replace binary media or
+  bypass namespace/protection/signature checks.
+- **Paragraphs/runs/styles.** Add text defaults empty, style inherited/default,
+  paragraph before defaults false. Level is absent by default; when supplied
+  0 means title and 1–9 headings; style plus level is usage. Whole-text setters
+  have section 9.1's destructive semantics. Paragraph null text explicitly clears
+  content; run null text rejects. Style names must exist unless creating them.
+  A new style requires name/type, defaults base absent and formatting inherited;
+  duplicate names reject. Set/remove resolve by exact name; style removal retains
+  content and dangling references resolve through the documented fallback.
+  Negative indentation is allowed, negative spacing/font size is not; font size
+  must be positive. Line spacing accepts an explicit length or positive decimal
+  multiple, or nullable reset. Outline level 9 is body text. Superscript and
+  subscript cannot both be true. Advanced font flags, tabs, borders, shading,
+  latent styles and theme links use fixed typed model/format batch operations.
+- **Sections/stories.** Section add appends a new section, inheriting current
+  geometry; startType defaults NEW_PAGE. Section set does not infer a width/height
+  swap from orientation. Margins must leave positive content extent. Columns
+  defaults unchanged; explicit count creates equal widths with existing gap or
+  0.5in for a previously single-column section, rejecting insufficient space.
+  Header/footer variant defaults default. Get does not create missing parts.
+  Set text on a linked story requires either shared true (edit all owners) or
+  linkToPrevious false (clone/materialize and rebind this section). Shared defaults
+  false but is not implicit clone consent. Link-to-previous true plus text or
+  shared conflicts; linking first section fails. Unlink alone makes a local copy.
+  Shared effects report every affected section, including owners outside scope.
+- **Lists/tables.** List add uses explicit kind, level 0, start 1, text empty;
+  numbering levels are 0–8. List set targets an existing list paragraph, with
+  restart false by default; start requires restart true. Starts are nonnegative
+  safe integers. Table add requires positive rows/cols, creates unmerged cells
+  each with an empty paragraph, uses available container width if width absent,
+  equal grid columns, and autofit true. Set text needs a cell; repeatHeader and
+  allowRowSplit apply to the selected row identified by cell, or every row of
+  the selected table. Width applies to selected cell or table as appropriate.
+  Row/column add index defaults count+1; explicit index inserts before that
+  one-based position and count+1 appends. New row mirrors grid widths; row width
+  if supplied must equal table width. New column requires width if container
+  geometry cannot determine equal division. Remove needs explicit valid index.
+  Merge from/to are logical corner coordinates of one rectangular selection;
+  split needs a cell and positive rows/cols that divide its existing spans
+  exactly. Existing nonempty anchor content stays in first split cell; added
+  cells are empty. Partial merges, omitted slots and over-limit grids reject.
+- **Links/bookmarks/fields.** Link add/set requires exactly one target or bookmark;
+  external target accepts absolute https/http/mailto only and is never fetched;
+  bookmark must exist. Removing a link unwraps its visible content. Bookmark
+  names are nonempty, at most 40 Unicode scalars, start with an ASCII letter and
+  thereafter use ASCII letters/digits/underscore; collisions fail. Rename/remove
+  require the explicit references policy; unknown/opaque dependent references
+  block edits. Add uses a selected nonempty admitted text range. Fields require
+  target for REF/PAGEREF/SEQ and forbid it for PAGE/NUMPAGES/TOC. Result defaults
+  empty, update false for new fields; set updates only supplied fields and never
+  executes instructions. TOC add defaults levels 1-3, empty title and update true;
+  levels CLI syntax is `N-M` with 1 ≤ N ≤ M ≤ 9, JSON is `{start,end}`.
+  Captions require label/text, sequence defaults label; inserted SEQ result is
+  empty and marked for update. TOC/caption set select their field location;
+  cached text is explicitly replaced, without recalculation.
+- **Notes/review.** Notes get kind defaults footnote; add requires kind and defaults
+  text empty. Note mutation maintains reference and separator integrity; remove
+  removes the reference and unreferenced body together. Comment add requires
+  author and timestamp even when author is the explicit empty string; text and
+  initials default empty. Null initials removes the attribute, null text fails.
+  Only admitted run-boundary ranges are accepted. Revision list defaults all;
+  add requires kind, author, timestamp; insert requires text (empty allowed only
+  with allowEmpty), delete requires a nonempty text range and forbids text.
+  Accept/reject act atomically on the selected supported revisions. Unsupported
+  moves, table/section revisions and modern annotation edits reject rather than
+  discarding their metadata.
+- **Controls/templates.** Control set requires exactly one text/checked/choice/
+  date/file field matching the control kind. Date is a valid `YYYY-MM-DD` calendar
+  date; no timezone inference. Choice uses a declared option value, not its label.
+  Locked controls reject. Bound controls require the declared binding path and
+  synchronized custom-XML value; missing/unsupported mapping rejects instead of
+  detaching. Repeat requires one data source containing an array; empty array
+  removes repetitions while retaining a valid prototype/container. Bind requires
+  exact binding ID and a typed scalar value. Template apply matches explicit
+  content-control tags only, not arbitrary brace text or executable expressions.
+  Repetition is bounded, data records cannot introduce bindings, and missing/
+  extra/duplicate keys fail. A template data array uses exactly one declared
+  repeating region; ambiguous regions fail. No implicit concatenation of docs.
+- **Properties.** Unqualified names search core, extended and custom namespaces;
+  collision across classes fails rather than choosing. `core:`, `extended:` and
+  `custom:` explicitly qualify. Core string keys are title, subject, author,
+  keywords, comments, lastModifiedBy, category, contentStatus, identifier,
+  language, version; revision is positive safe integer; created, modified,
+  lastPrinted are UTC instants. Extended writable keys are company, manager,
+  template (strings). Extended pages, words, characters, charactersWithSpaces,
+  lines, paragraphs, totalTime (nonnegative integers), application/appVersion
+  (strings) are readable cached/source metadata, not recalculated or writable
+  values. Other properties remain inventory/preserve-only unless declared custom.
+  Custom supports string/boolean/integer/number/date; new names require type;
+  existing type conflicts fail. Empty string is a value, null is invalid; remove
+  is the only deletion route. Core strings use the 255-scalar limit. No inferred
+  custom types or implicit modified timestamp updates.
+- **Graphics.** Image add defaults inline, empty alt and native size. Floating add
+  anchors at x=0/y=0 relative to paragraph, wrap square, zOrder=0, no crop/rotation/
+  flips, decorative false. Width/height are positive shared-unit lengths. With no
+  explicit fit, zero/one dimensions use native ratio and two dimensions set both
+  extents; explicit contain/cover require both box dimensions, stretch requires
+  both dimensions. Contain preserves ratio inside the box, cover fills it using
+  centered crop, stretch uses both extents. Replacement retains current drawing
+  extents without resize; explicit fit applies only when resizing and conflicts
+  with manual crop fields. Crops are fractions 0–1 with opposing sums <1; rotation
+  is finite in [-360,360], no silent clamp; geometry setters on inline drawings
+  reject anchor-only fields. SVG requires admitted supplied fallback; PNG/JPEG/
+  GIF/BMP/TIFF use bounded characterization; preserved native media remains inert.
+  Shared false replacement clones/rebinds the selected occurrence. Shared true
+  changes all references to the selected resource and reports all owners; a resize
+  combined with shared replacement rejects because layout is occurrence-local.
+  Decorative true with nonempty alt conflicts. Shapes set edits supported text
+  boxes only. Charts/diagrams/fonts/custom-XML/glossary expose inventory/preserve,
+  not invented semantic editing commands. Equations add/replace require one
+  bounded OMML math root, reject arbitrary surrounding WordprocessingML. Objects
+  extract emits inert admitted bytes only, never activation.
+- **Removal/sanitization/lorem.** signatures remove strips the full signature
+  graph and is explicit consent in the command path; no cryptographic claim.
+  Other mutations reject signed input. Sanitize remove is a nonempty unique
+  comma-separated CLI list (JSON array) from properties/comments/revisions/links/
+  objects; revisionPolicy is required only with revisions. It applies only the
+  enumerated actions in that fixed order; unsupported affected structures reject
+  the whole transaction. Referenced targets survive until the last reference is
+  removed. Lorem requires seed; words defaults to the count of maximal nonempty
+  whitespace-delimited visible text spans per selected paragraph. Seed is mapped
+  modulo 2^32; word i is chosen from `amber birch cedar delta elm fern grove heath`
+  using `(seed + i) modulo 8`, joined by spaces, restarting i=0 for each paragraph.
+  Explicit words is positive; a computed zero yields no change. This deterministic
+  original dummy vocabulary is not an anonymization promise.
+- **Diff/extract/pack.** Diff mode defaults structure. Parts compares sorted part
+  names/content types and exact uncompressed bytes, ignoring ZIP metadata; XML
+  replaces XML-part byte comparison with expanded names, attributes as unordered
+  maps and ordered nodes with meaningful whitespace/comments/PI retained (prefix choice ignored), while non-XML parts still compare hashes;
+  text compares all admitted story text in final view; structure compares XML
+  semantics plus relationship edges and all binary part hashes. There is no
+  silent ignore-metadata policy. Extraction writes safe relative paths derived
+  from canonical part names and a manifest, refusing case-fold/path aliases on
+  the target VFS. Image/object extraction uses `image-N.ext`/`object-N.bin` in
+  occurrence order with MIME-derived admitted extensions, exact source hashes and
+  owner locations; shared bytes may have multiple occurrence entries. No target
+  filename comes from document-supplied alt/title text. Pack reads only manifest
+  entries relative to its admitted inventory directory (stdin inventory requires
+  explicit VFS paths in records); unknown files are not scanned. Hash mismatch,
+  duplicate paths, traversal, undeclared content or invalid final graph reject.
+  Kind defaults inventory.kind; conflicting explicit kind rejects. Pack does not
+  permit arbitrary OPC-to-DOCX conversion. Deterministic ZIP output uses sorted
+  canonical part names, stored entries, fixed 1980-01-01 timestamps and no archive
+  comment; unchanged payload bytes remain exact.
+
+The core-v1 understood-namespace set is the Strict and Transitional URI pairs
+for w, r, a, wp, pic, m, ep, cus and vt, plus shared ct, pr, cp, mc and xml,
+and the two Dublin Core namespaces, exactly as pinned in the
+[standards namespace register](../docx/standards-coverage.md). Recognizing an
+extension to inspect or perform a narrow explicitly declared edit does not
+claim understanding its whole namespace for MCE Requires/MustUnderstand. Extension
+namespaces outside that set are not eligible MCE Choice requirements in core-v1.
+If no eligible Choice or Fallback exists, admission fails unsupported-profile;
+unselected branches remain preserved. Check IDs are `container`, `part-names`,
+`content-types`, `relationships`, `xml`, `mce`, `structure`, `references`,
+`protection`, `signatures`, and `extension-coverage`. Their statuses distinguish
+passed/failed/unvalidated; validation never repairs input. These IDs and the
+understood set are product choices against the pinned standards facts.
+
+Advanced format setters have these additional closed constraints: border space
+omits to zero on creation and is otherwise unchanged; border widths/spaces are
+nonnegative, shading color defaults black when creating a shading value. Font
+language tags are nonempty BCP-47 strings validated as data, never locale discovery.
+Numbering levels have unique 0–8 levels, nonnegative starts, no self/cyclic
+restartAfter dependencies; omitted optional level fields retain existing values
+or have no link/indent on a new level. Explicit section columns are nonempty;
+widths are positive, gap/gapAfter are nonnegative. An omitted gapAfter uses gap,
+then current section gap; final gapAfter must be zero. equalWidth true conflicts
+with unequal explicit widths. Omissions retain separator/equalWidth state and
+links; null clears only the declared nullable values. Linked styles require
+compatible paragraph/character types and cannot introduce cycles or multiple
+default styles for a type. No extra fields beyond the five register schemas
+are accepted.
+
+### 6.6 Closed JSON input types
+
+These are documentary type declarations for schema generation, not product code.
+Every object is closed (`additionalProperties:false`), including nested records.
+`?` means absence permitted; null is permitted only in an explicit union. JSON
+cannot express undefined; optional SDK undefined behaves as absent, required
+undefined fails. Empty strings are valid text, invalid for identifiers/paths/search
+patterns. Empty arrays are valid only for explicitly zero-item content/data/read
+results; operations requiring targets/levels/cells reject empty arrays. Reject
+unsafe integer values, nonfinite values, prototype keys and cyclic SDK objects.
+JSON source bytes ≤ xmlPartBytes, total values ≤ xmlNodes, depth ≤ xmlDepth;
+strings and decoded bytes also count toward retainedBytes. Limits are section 7's
+exact camelCase register names via `--limit NAME=VALUE`, not new environment knobs.
+
+```typescript
+type BinaryInput =
+  | { kind: "bytes"; base64: string }
+  | { kind: "vfs"; path: string; capability: string };
+type Length = { value: number; unit: "emu" | "in" | "cm" | "mm" | "pt" | "twip" };
+type EnumInput = { enum: string; name: string }; // each use narrows to its declared enum
+// No path grants authority: capability must already exist in admitted host context.
+type OriginalDocumentContentV1 = { version: 1; blocks: Block[] };
+type Block =
+  | { kind: "paragraph"; text?: string; style?: string; level?: number; runs?: RunInput[] }
+  | { kind: "table"; rows: CellInput[][]; width?: Length; style?: string };
+type CellInput = { blocks: Block[] };
+type RunInput = {
+  text: string;
+  bold?: boolean | null;
+  italic?: boolean | null;
+  underline?: boolean | EnumInput | null;
+  style?: string;
+};
+type DeclaredBindingValue = string | boolean | number;
+type BindingEntry = { binding: string; value: DeclaredBindingValue };
+type DeclaredControlRecord = { values: BindingEntry[] };
+type DeclaredTemplateRecord = { values: BindingEntry[] };
+type TemplateData = DeclaredTemplateRecord | DeclaredTemplateRecord[];
+type Receiver =
+  | { id: string; type: string; owner: string; revision: number }
+  | { resultHandle: string; index?: number; key?: string };
+type BatchV1 = { version: 1; operations: OperationV1[] };
+type OperationV1 = {
+  operation: string;
+  arguments: OperationArguments;
+  receiver?: Receiver;
+  resultHandle?: string;
+};
+type PackageInventoryV1 = {
+  version: 1;
+  kind: "docx" | "dotx";
+  dialect: "strict" | "transitional";
+  entries: PackageEntry[];
+};
+type PackageEntry = {
+  part: string;
+  path: string;
+  contentType: string;
+  bytes: number;
+  sha256: string;
+};
+```
+
+Paragraph text and runs are exclusive; neither creates an empty paragraph.
+Style and level are exclusive. Table rows must be nonempty, rectangular and
+within table budgets; zero blocks in a cell becomes one required empty paragraph.
+No implicit merges or binary fixtures are embedded in content. Each binding entry
+ID must match exactly one declared control tag; scalar type comes from its
+admitted control/custom-XML declaration, including date represented as a validated
+string. Dynamic JSON property names are avoided by the values array. Duplicate
+bindings and null values reject. Repeated controls may repeat the same schema
+across cloned rows but each row's input keys must exactly match that schema.
+
+Inventory entries include `[Content_Types].xml` and all relationship parts as
+payloads, with exact hashes and byte lengths. Part names are canonical OPC names;
+the content-types item uses that literal special name. Each path is a safe
+relative VFS path under the granted inventory directory, or an explicitly granted
+VFS path for stdin inventory. It cannot contain dot segments, backslashes, encoded
+separators, absolute host paths or symlink escapes. Media manifests are not pack
+inventories. Editing a payload requires updating the caller-owned inventory hash;
+pack never trusts a stale hash or follows targets outside its capability.
+
+`OperationArguments` is a closed discriminated union, not a free dictionary:
+for every direct-and-batch operation it is the section 6.4 fields plus its
+applicable selection fields and allowEmpty/shared/cardinality. File arguments
+become BinaryInput; CLI-only `*File`/`*Json` alternatives normalize to the one
+semantic field (`content`, `data`) before SDK dispatch; batch sources decode directly
+to the version/operations envelope, never a nested second BatchV1. A batch item
+uses only that semantic field, never two alternate sources. Outer batch supplies
+publication, limits, context time/author and cancellation; items cannot include
+output/inPlace/force/json/dryRun/limit, recursive batch, discovery, create, diff,
+pack or multi-file extraction. Content/control/template schemas are reused without
+widening them to arbitrary JSON.
+
+The existing closed `model.*` operation IDs and five format IDs in the register
+are the exhaustive advanced union: `paragraphs.format.set`, `runs.fonts.set`,
+`lists.levels.set`, `sections.columns.set`, `styles.links.set`, and each enumerated
+model get/set/call/sequence operation. Each has its exact `arguments.fields`,
+receiver, resultHandle type, effects, model signature, language and error mapping
+through its API row. This specification incorporates those individual neutral
+typed declarations by reference; it does not introduce wildcard dispatch for
+`model.*`. Schema MUST enumerate each discriminator and fully resolve its field,
+return, enum and nullability references. Public underscore-prefixed types remain
+included. Package-source acquisition in a model operation is explicitly admitted
+under outer capabilities before that item's effect; it cannot publish externally.
+A model save stages bytes for the single outer destination and rejects a different
+or additional destination. No JSON-supplied function, prototype access, XPath,
+host object or method name is evaluated.
+
+`receiver` must match a declared owner/type. Batch-local resultHandle names are
+nonempty unique ASCII letters/digits/underscore, start with a letter, and cannot
+refer forward. Reserved `document` identifies the already admitted DocumentModel;
+users cannot overwrite it. Index and key are exclusive, and only declared returned
+collection lookup is available; there is no arbitrary property path. Typed model
+setters returning void cannot bind resultHandle. Empty operations is a successful
+read/value-only batch with zero results; absent operations is usage. A later
+failure discards all staged changes, reports the failing operation index and
+leaves prior files untouched. Original result objects may be returned in BatchData
+only on whole success; failed prepublication data remains null.
+
+### 6.7 Typed results and stable errors
+
+All structured output uses exactly the shared OfficeResultV1 keys. The following
+closed types specify data; omitted optional data means unknown/not applicable,
+never an invented zero. Collections are deterministic and bounded; overflow is
+limit-exceeded, not silent truncation. Only diagnostics may truncate with an
+explicit marker within diagnosticBytes. `Location` is the token and decoded
+LocationPayload with readable one-based positions. A result location refers to
+input for reads, staged output for mutations; deleted locations are recorded as
+before-locations in changes, not falsely addressable in output.
+
+```typescript
+type Diagnostic = {
+  code: ErrorCode;
+  message: string;
+  location?: string;
+  operationIndex?: number;
+  candidates?: string[];
+  truncated?: boolean;
+};
+type OfficeResultV1<T> = {
+  version: 1;
+  operation: string;
+  ok: boolean;
+  data: T | null;
+  warnings: Diagnostic[];
+  errors: Diagnostic[];
+  affected: number;
+  locations: Location[];
+};
+type Location = {
+  token: string;
+  value: LocationPayload;
+  positions: {
+    section?: number;
+    paragraph?: number;
+    run?: number;
+    table?: number;
+    cell?: string;
+    image?: number;
+    comment?: number;
+    note?: number;
+  };
+};
+type ResourceRecord = {
+  kind: string;
+  location: Location;
+  name?: string;
+  text?: string;
+  properties: PropertyValue[];
+  references: Reference[];
+  support: "edit" | "read" | "preserve" | "reject";
+  details?: ResourceDetails;
+};
+type PropertyValue = {
+  name: string;
+  type: "string" | "boolean" | "integer" | "number" | "date";
+  value: string | boolean | number | null;
+  writable: boolean;
+  cached: boolean;
+};
+type Reference = { owner: string; id: string; type: string; target: string; external: boolean };
+type ResourceListData = { items: ResourceRecord[] };
+type ResourceData = { item: ResourceRecord };
+type InspectionData = {
+  kind: "docx" | "dotx";
+  dialect: "strict" | "transitional";
+  parts: { name: string; contentType: string; bytes: number; sha256: string }[];
+  relationships: Reference[];
+  stories: ResourceRecord[];
+  properties: PropertyValue[];
+  features: FeatureSupport[];
+  counts: { paragraphs: number; tables: number; images: number; cachedPages: number | null };
+  signed: boolean;
+  protected: boolean;
+};
+type ValidationData = {
+  valid: boolean;
+  profile: "core-v1";
+  checks: { id: string; status: "passed" | "failed" | "unvalidated" }[];
+};
+type TextData = {
+  text: string;
+  view: "final" | "original" | "all";
+  segments: { text: string; location: Location; revision: "insert" | "delete" | "unchanged" }[];
+};
+type XmlData = {
+  part: string;
+  encoding: "base64" | "utf-8";
+  content: string;
+  pretty: boolean;
+  bytes: number;
+  sha256: string;
+};
+type Change = {
+  kind: "add" | "set" | "remove" | "replace";
+  before: Location | null;
+  after: Location | null;
+};
+type MutationData = {
+  changed: boolean;
+  changes: Change[];
+  output: { path: string | null; bytes: number; sha256: string } | null;
+  dryRun: boolean;
+};
+type DiffData = {
+  equal: boolean;
+  mode: "parts" | "xml" | "text" | "structure";
+  differences: {
+    kind: "add" | "remove" | "change";
+    left: Location | null;
+    right: Location | null;
+    part: string;
+  }[];
+};
+type ExtractionData = {
+  complete: boolean;
+  inventory: PackageInventoryV1 | null;
+  entries: {
+    path: string;
+    part: string;
+    bytes: number;
+    sha256: string;
+    locations: Location[];
+    published: boolean;
+  }[];
+};
+type ModelData = { value: ModelResultValue };
+type BatchData = { results: OfficeResultV1<ModelResultValue>[]; publication: MutationData | null };
+type FeatureSupport = {
+  id: string;
+  level: "edit" | "read" | "preserve" | "reject";
+  subsets: { name: string; level: "edit" | "read" | "preserve" | "reject"; reason: string }[];
+  detected: boolean | null;
+};
+type CapabilitiesData = {
+  features: FeatureSupport[];
+  host: { read: boolean; atomicReplace: boolean; transactions: boolean; binaryStdout: boolean };
+  limits: { name: string; ceiling: number }[];
+};
+type VersionData = { name: "docx"; version: string; schemaVersion: 1 };
+type HelpData = {
+  name: "docx";
+  paths: { path: string[]; usage: string; description: string; operationIds: string[] }[];
+};
+type SchemaData = {
+  schemaVersion: 1;
+  operations: {
+    id: string;
+    path: string[];
+    input: JsonSchema;
+    result: JsonSchema;
+    featureIds: string[];
+    support: "edit" | "read" | "preserve" | "reject";
+  }[];
+};
+```
+
+Compound resource data uses a closed, resource-discriminated `details` union.
+It is required for the listed resource kinds and absent for other kinds; scalar
+properties are encoded as native values (lengths as integer EMUs, enums as their
+canonical symbol string, dates as UTC strings). Null reads remain explicit.
+
+```typescript
+type ResourceDetails =
+  | {
+      kind: "images";
+      mime: string;
+      sha256: string | null;
+      pixelWidth: number | null;
+      pixelHeight: number | null;
+      widthEmu: number;
+      heightEmu: number;
+      placement: "inline" | "floating";
+      crop: { left: number; right: number; top: number; bottom: number };
+      rotation: number;
+      owners: Location[];
+      fallbackPart: string | null;
+      linked: boolean;
+    }
+  | {
+      kind: "tables";
+      rows: number;
+      columns: number;
+      cells: {
+        row: number;
+        column: number;
+        rowSpan: number;
+        columnSpan: number;
+        location: Location;
+        text: string;
+      }[];
+      omitted: { row: number; before: number; after: number }[];
+    }
+  | {
+      kind: "controls";
+      type:
+        | "plain"
+        | "rich"
+        | "checkbox"
+        | "choice"
+        | "date"
+        | "picture"
+        | "repeat"
+        | "unsupported";
+      tag: string | null;
+      locked: boolean;
+      binding: string | null;
+      options: { value: string; label: string }[];
+    }
+  | {
+      kind: "comments";
+      commentId: number;
+      author: string;
+      timestamp: string | null;
+      initials: string | null;
+      modern: boolean;
+      anchors: Location[];
+    }
+  | {
+      kind: "revisions";
+      revisionId: number;
+      author: string;
+      timestamp: string | null;
+      type: "insert" | "delete" | "format" | "move" | "table" | "section" | "unsupported";
+    }
+  | { kind: "notes"; noteId: number; type: "footnote" | "endnote"; references: Location[] }
+  | {
+      kind: "fields";
+      instruction: string;
+      result: string;
+      nested: Location[];
+      type: "PAGE" | "NUMPAGES" | "REF" | "PAGEREF" | "SEQ" | "TOC" | "unsupported";
+      update: boolean;
+    }
+  | {
+      kind: "charts";
+      chartType: string;
+      series: { name: string | null; cachedValues: (string | number | null)[] }[];
+      workbookParts: string[];
+    }
+  | {
+      kind: "headers" | "footers";
+      section: number;
+      variant: "default" | "first" | "even";
+      linked: boolean;
+      owners: number[];
+    }
+  | {
+      kind:
+        | "shapes"
+        | "diagrams"
+        | "equations"
+        | "objects"
+        | "signatures"
+        | "custom-xml"
+        | "glossary"
+        | "fonts";
+      parts: { name: string; contentType: string; bytes: number; sha256: string }[];
+    };
+```
+
+Table cells lists each physical anchor once; omitted slots are not fabricated.
+Merged continuations refer to the anchor location through the logical grid.
+Image unique mode returns one record per identical byte hash with all owners;
+linked-only drawings remain individual records with null hash/pixel dimensions
+and no acquisition. Noncreating absent header/footer records use section binding
+locations, empty text, linked state and an empty owners list when no definition
+exists. This avoids inventing a location in a nonexistent part. Inventory records
+for opaque content always retain part references even when semantic fields are
+unavailable; required unsupported-field alternatives are explicit.
+
+ModelResultValue is the exact per-operation declared return, JSON-encoded using
+owned bytes as base64, dates as UTC strings, units/enums as their typed records,
+void as null, sequences as bounded arrays and live objects as owner-bound handles.
+It is not an arbitrary recursive JSON object. Direct resource properties use the
+closed set of scalar fields admitted by that resource's section 6.4 setter plus
+its declared model read properties; list/get additionally expose image MIME/hash/
+pixel and EMU dimensions, crop/anchor/fallback/owners, review IDs/author/timestamp,
+control type/tag/locked/binding/options, field instruction/kind/cached result,
+table row/column/span counts and style type/base. Schema MUST enumerate each
+resource's property names and types from these declarations and model read rows;
+unknown extension data is represented by part references and preserve support,
+not guessed editable properties. Missing nullable model values are null; a missing
+resource get is missing-selection rather than a fabricated item. Empty list is
+`items:[]`. `properties get/list` encode one/all PropertyValue entries in resource
+records, with part-root location. Hashes are SHA-256 except explicit image model
+compatibility sha1. XmlData defaults original bytes encoded base64; pretty uses
+UTF-8 and reports original bytes/hash for provenance. JsonSchema means a fully
+resolved JSON Schema document, with no dependency on internal implementation
+objects or network resolution.
+
+`affected` counts directly targeted logical objects once: replacements count
+matches, resource actions count unique target nodes, shared actions count all
+changed occurrences, sanitization counts removed logical records, create/pack
+count the new document (1), batch sums successful item counts. Read/diff/extraction
+and prepublication failures count zero. Dry-run reports prospective affected
+counts and changes, with output null and changed indicating the proposed edit.
+Validation failure follows the shared error rule (`data:null`); individual check
+failures are bounded diagnostics, not an exception to the envelope. Diff equal
+false is successful data with exit 1. Successful schema/capabilities output must
+report actual support, not this proposal as implemented functionality.
+
+| Stable code               | Ordinary exit | Condition                                                                         |
+| ------------------------- | ------------- | --------------------------------------------------------------------------------- |
+| `usage`                   | 2             | Unknown path/key/flag, type/value error, bad arity, syntax or conflicting options |
+| `invalid-container`       | 1             | Invalid ZIP/container structure or CRC                                            |
+| `invalid-xml`             | 1             | Invalid encoding, well-formedness or prohibited XML declarations                  |
+| `invalid-package`         | 1             | Invalid relationships, content types or semantic graph                            |
+| `unsupported-profile`     | 1             | Recognized document/dialect/security profile not admitted                         |
+| `unsupported-edit`        | 1             | Affected feature is preserve-only, protected, signed or unsupported               |
+| `ambiguous-selection`     | 1             | Multiple owners, ambiguous label or merged range                                  |
+| `stale-selection`         | 1             | Location/handle guard no longer matches                                           |
+| `missing-selection`       | 1             | Required valid target cannot be found or index/key is absent                      |
+| `conflict`                | 1             | Existing destination, alias intent, source version or ownership conflict          |
+| `limit-exceeded`          | 4             | Any actual configured byte/node/work limit exceeded                               |
+| `permission`              | 3             | Supplied VFS lacks granted access                                                 |
+| `unsupported-publication` | 3             | Required atomic/conditional/transaction capability unavailable                    |
+| `source-failure`          | 3             | Source read, inventory file or transport failed                                   |
+| `sink-failure`            | 3             | Serialization destination write/commit failed                                     |
+| `cancelled`               | 130           | Cooperative cancellation, including settled cleanup                               |
+
+ErrorCode is precisely the table's union. Missing selection _syntax_ is usage;
+a syntactically valid selector with no target is missing-selection. Invalid
+caller values map to neutral InputTypeError/InvalidValueError (TypeError/RangeError),
+sequence/key errors to BoundsError/MissingKeyError, ownership to OwnershipError,
+stale handles to StaleHandleError, semantic graph to SemanticValidationError,
+budgets to ResourceLimitError, I/O to SourceError/SinkError/PermissionError,
+publication to PublicationError and cancellation to CancellationError. They expose
+stable code and bounded context; nullable lookups remain null. All diff failures
+except cancelled translate to exit 2 while retaining these detailed codes. Partial
+multi-file publication alone may carry ExtractionData on error. Diagnostic text
+must not expose document content, host credentials or reference-project identity.
+
+### 6.8 Whole public surface and independent acceptance
+
+The command register MUST associate every operation (including model getters,
+setters, inherited members, enum/collection/helper discovery and APIs without
+source tests) with one or more F01–F50 IDs and original acceptance IDs. An API
+that is preserve-only maps to inspect/retention/rejection evidence, never disappears
+because its type starts with an underscore. Discovery maps to F06/F49 and covers
+the entire schema; type/error records are exposed as schema data, not fake editing
+commands. The exact JS language/security mappings in section 9.2 and register
+M-VALUES through M-CLI apply to every associated member. Documentation drift
+resolutions remain explicit evidence, including comment_id/timestamp, scoped
+lookup, table_direction, nullable setter differences and native per-axis DPI.
+
+The [owned acceptance procedure](../plans/docx-grammar-refinement.md) separates
+this documentary grammar check from later product conformance. The register's
+per-command tests, per-member API cases, per-feature independent scenarios and
+language-mapping cases are required collectively: parity between two entry points
+alone is insufficient. Each case must construct original in-memory assets and
+assert semantic/byte/value outcomes independently of the editor. All cases remain
+planned until failing original tests, implementation and maintained checks have
+actually run. No downloaded document or reference binary is a canonical fixture.
 
 ## 7. Configuration and defaults
 
@@ -312,10 +1337,9 @@ versus one-occurrence intent. Editing one occurrence MUST clone/rebind only the
 necessary part instead of accidentally modifying every reference.
 
 Image changes MUST retain original drawing properties unless specifically
-changed. Raster format is determined from bytes, not extension. Explicit CLI
-pixel values use 96 DPI (9,525 EMU per pixel), independent of embedded DPI;
-physical-unit values use the shared checked conversion and half-away rounding.
-This conversion MUST NOT set the model API's native-image size default.
+changed. Raster format is determined from bytes, not extension. CLI dimensions
+use explicit shared physical units and checked half-away rounding; px is not an
+accepted unit. This MUST NOT replace the model API native-image size default.
 
 For model `Document.add_picture`, `Run.add_picture` and admitted-image dimension
 helpers, absent width and height use pixel width / horizontal DPI and pixel
@@ -326,7 +1350,7 @@ invalid/unsupported metadata under the admission contract. A single explicit
 dimension scales the native physical aspect ratio; two explicit dimensions set
 both extents. Model numeric dimensions are EMUs, not implicit pixels. The CLI
 image insertion default without dimensions follows this native sizing too;
-explicit pixel dimensions alone use the CLI's 96-DPI convention. Replacement
+the CLI accepts no implicit pixel unit and uses only the shared explicit units. Replacement
 preserves existing drawing extents unless resizing is requested. Shared rounding
 and safe-range validation apply to all computed extents. These conventions are
 API contracts, not ECMA requirements.

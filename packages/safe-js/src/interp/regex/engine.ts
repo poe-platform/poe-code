@@ -53,7 +53,8 @@ export function matchRegexFrom(
 function* matchNode(
   node: RegexNode,
   state: MatchState,
-  context: MatchContext
+  context: MatchContext,
+  sequenceIndex = 0
 ): Generator<MatchState> {
   charge(context);
   const unicode = context.flags.unicode || context.flags.unicodeSets;
@@ -135,9 +136,18 @@ function* matchNode(
       }
       return;
     }
-    case "sequence":
-      yield* matchSequence(node.elements, 0, state, context);
+    case "sequence": {
+      if (sequenceIndex === node.elements.length) {
+        yield state;
+        return;
+      }
+      const element = node.elements[context.direction === 1 ? sequenceIndex : node.elements.length - 1 - sequenceIndex];
+      for (const result of matchNode(element, state, context)) {
+        if (sequenceIndex + 1 === node.elements.length) yield result;
+        else yield* matchNode(node, result, context, sequenceIndex + 1);
+      }
       return;
+    }
     case "alternation":
       for (const alternative of node.alternatives) {
         yield* matchNode(alternative, cloneState(state), context);
@@ -170,24 +180,6 @@ function* matchNode(
       return;
     case "quantifier":
       yield* matchQuantifier(node, state, context, 0);
-  }
-}
-
-function* matchSequence(
-  elements: RegexNode[],
-  index: number,
-  state: MatchState,
-  context: MatchContext
-): Generator<MatchState> {
-  charge(context);
-  if (index === elements.length) {
-    yield state;
-    return;
-  }
-
-  const element = elements[context.direction === 1 ? index : elements.length - 1 - index];
-  for (const result of matchNode(element, state, context)) {
-    yield* matchSequence(elements, index + 1, result, context);
   }
 }
 

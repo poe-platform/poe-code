@@ -172,6 +172,15 @@ export function parseDocxArguments(args: readonly Uint8Array[], budget = new Doc
   const inputs: string[] = [];
   let terminated = false;
   let help = false;
+  // Determine error transport before interpreting values; a flag used as a value is literal.
+  for (let index = consumed; index < words.length; index++) {
+    const word = words[index]!;
+    if (word === "--") break;
+    const equal = word.indexOf("=");
+    const name = names.get(equal < 0 ? word : word.slice(0, equal));
+    if (name === "json" && equal < 0) json = true;
+    if (name && !switches.has(name) && equal < 0) index++;
+  }
   for (let index = consumed; index < words.length; index++) {
     const word = words[index]!;
     if (!terminated && word === "--") { terminated = true; continue; }

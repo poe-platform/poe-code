@@ -55,9 +55,16 @@ const inspectionData = object({
   protection: array(object({ part: string, kind: string, enforced: nullableBoolean, edit: nullableString })), warnings: array(diagnostic)
 });
 const validationData = object({ valid: boolean, profile: { const: "core-v1" }, checks: array(object({ id: string, status: { enum: ["passed", "failed", "unvalidated"] } })), diagnostics: array(object({ code: string, part: string, location: string, message: string })), warnings: strings });
+const textData = object({ text: string, view: { enum: ["final", "original", "all"] }, hiddenText: { const: "include" },
+  segments: array(object({ text: string, location, revision: { enum: ["insert", "delete", "unchanged"] },
+    kind: { enum: ["text", "tab", "line-break", "page-break", "column-break", "paragraph", "cell", "row", "story"] },
+    formatting: object({ bold: nullableBoolean, italic: nullableBoolean, rtl: nullableBoolean, hidden: nullableBoolean, style: nullableString,
+      language: { type: "object", additionalProperties: true }, fonts: { type: "object", additionalProperties: true },
+      paragraph: object({ style: nullableString, bidi: nullableBoolean }) }) })) });
 export const inspectionOperationMetadata: Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>> = Object.fromEntries([
   ["inspect", "Inventory package parts, metadata and document structure without rendering or linked-resource access.", ["F06"], inspectionData],
-  ["validate", "Validate document bytes against the partial core-v1 profile without repairs.", ["F49"], validationData]
+  ["validate", "Validate document bytes against the partial core-v1 profile without repairs.", ["F49"], validationData],
+  ["text.get", "Extract logical story text with locations, direct formatting and revision views.", ["F08", "F09"], textData]
 ].map(([id, description, featureIds, data]) => [id, { description, featureIds, result: { oneOf: [object({
   version: { const: 1 }, operation: { const: id }, ok: { const: true }, data: data as DocxJsonSchema,
   warnings: array(diagnostic), errors: empty, affected: { const: 0 }, locations: array(location)

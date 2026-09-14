@@ -5,6 +5,9 @@ import { DocumentBudget } from "./budget.js";
 import { LocationIndex, addressKey, documentScopes, pathContains, type DocumentScope, type LocationEntry, type StoryReference } from "./location-index.js";
 import { closedRecord, decodeLocation, encodeLocation, safeOrdinal, SelectionError,
   type Location, type LocationKind, type LocationPayload } from "./location-token.js";
+import { readTextSegments, type TextData } from "./text-traversal.js";
+import type { TextOptions } from "./text.js";
+import { resolveDocxSelection } from "./simple-selection.js";
 
 export interface LocationQuery { readonly scope?: DocumentScope; readonly owner?: string; readonly section?: number; readonly variant?: "default" | "first" | "even"; }
 export interface MatchOptions {
@@ -69,6 +72,12 @@ class DocumentLocations {
   }
 
   get generation(): number { return this.#generation; }
+
+  text(options: TextOptions = {}): TextData {
+    const selected = resolveDocxSelection(this, { operation: "text.get", inputs: ["document"], options });
+    const budget = this.#budget.lower(Object.fromEntries((options.limit ?? []).map(item => [item.name, item.value])));
+    return readTextSegments(this.#index, selected, options.view ?? "final", entry => this.#location(entry), budget);
+  }
 
   #location(entry: LocationEntry, range: LocationPayload["range"] = null): Location {
     const value: LocationPayload = { version: 1, sourceSha256: this.#sourceSha256, generation: this.#generation,

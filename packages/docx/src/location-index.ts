@@ -99,7 +99,12 @@ export class LocationIndex {
           }
           return result;
         };
-        effective(new MarkupCompatibility(root, documentCompatibilityProfile, budget).content);
+        effective(new MarkupCompatibility(root, { ...documentCompatibilityProfile,
+          understoodNamespaces: [...documentCompatibilityProfile.understoodNamespaces,
+            "urn:schemas-microsoft-com:vml",
+            "http://schemas.microsoft.com/office/word/2010/wordprocessingShape",
+            "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"]
+        }, budget).content);
       }
       this.#add({ kind: "part", part: part.partname, story: part.partname, path: [], positions: {}, ...(root ? { node: root } : {}) });
     }
@@ -174,11 +179,11 @@ export class LocationIndex {
       });
     }
     for (const kind of ["footnote", "endnote", "comment"] as const) {
-      const parts = [...new Set(edges.filter(e => !e.is_external && e.reltype === r + "/" + kind + "s").map(e => e.target_part.partname))];
+      const parts = [...new Set(edges.filter(e => !e.is_external && e.reltype === r + "/" + kind + "s").map(e => e.target_part.partname))].sort();
       for (const part of parts) {
         const nodes = this.named(roots.get(part)!, kind).filter(n => {
           const id = Number(this.attr(n, "id"));
-          return kind === "comment" || (id > 0 && !this.attr(n, "type"));
+          return kind === "comment" || (Number.isSafeInteger(id) && id >= 0 && (!this.attr(n, "type") || this.attr(n, "type") === "normal"));
         }).sort((a, b) => Number(this.attr(a, "id")) - Number(this.attr(b, "id")));
         nodes.forEach((node, i) => story(part, node, kind === "comment" ? "comments" : kind === "footnote" ? "footnotes" : "endnotes",
           kind + ":" + this.attr(node, "id"), kind === "comment" ? { comment: i + 1 } : { note: i + 1 }));

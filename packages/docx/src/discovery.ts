@@ -60,6 +60,13 @@ function details(id: string, declaration: DocxOperationSchema): string {
     if (Object.hasOwn(fields, "output") && Object.hasOwn(fields, "inPlace")) lines.push("", "Publication: --output PATH | --in-place | --dry-run.");
     if (Object.hasOwn(fields, "scope")) lines.push("", "Scope defaults to body; positions are one-based within their owner.");
     if (Object.hasOwn(fields, "select")) lines.push("Use either --select TOKEN or simple selectors; do not combine them.");
+    if (id === "text.get") lines.push("", "Alias: docx text INPUT [OPTIONS]. View defaults to final.",
+      "Hidden text is included; formatting is direct context, without style resolution.",
+      "Field instructions and drawing/equation text are omitted.",
+      "Order: body, headers, footers, footnotes, endnotes, comments, text boxes.",
+      "Shared parts appear once. Notes/comments: canonical part, then numeric ID.",
+      "Paragraph/row: LF; cell/tab: TAB; story: two LFs; page: FF; column: VT.",
+      "Cached page breaks add nothing. No extra trailing separator is appended.");
   }
   return lines.map(escapeTerminalText).join("\n") + "\n";
 }
@@ -87,7 +94,7 @@ export function getDocxDiscovery(invocation: DocxInvocation, budget = new Docume
   });
   if (invocation.operation === "capabilities") {
     const limits = Object.entries(budget.limits).map(([name, ceiling]) => ({ name, ceiling }));
-    return bounded({ data: { features: [{ id: "F06", level: "read", subsets: [{ name: "inventory", level: "read", reason: "No rendering, linked-resource access or signature verification." }], detected: null }, { id: "F49", level: "read", subsets: [{ name: "core-v1", level: "read", reason: "Partial core-v1 validation only." }], detected: null }], host: { read: false, atomicReplace: false, transactions: false, binaryStdout: true }, limits, validationProfiles: [documentValidationProfile] },
+    return bounded({ data: { features: [{ id: "F06", level: "read", subsets: [{ name: "inventory", level: "read", reason: "No rendering, linked-resource access or signature verification." }], detected: null }, { id: "F49", level: "read", subsets: [{ name: "core-v1", level: "read", reason: "Partial core-v1 validation only." }], detected: null }, { id: "F08", level: "read", subsets: [{ name: "logical-story-text", level: "read", reason: "Explicit story scopes and review views; hidden text included, cached field results only; no drawing/equation text or rendering." }], detected: null }, { id: "F09", level: "read", subsets: [{ name: "logical-unicode", level: "read", reason: "Unicode order and direct language/RTL/font properties; no shaping or style cascade." }], detected: null }], host: { read: false, atomicReplace: false, transactions: false, binaryStdout: true }, limits, validationProfiles: [documentValidationProfile] },
       human: "docx capabilities\n\nInspection and partial core-v1 validation are implemented.\nDocument reads require explicit filesystem or stdin authority.\n\nLimits:\n" + limits.map(item => `  ${item.name}: ${item.ceiling}`).join("\n") + "\n" });
   }
   const selected = invocation.options.operation as string | undefined;
@@ -99,7 +106,7 @@ export function getDocxDiscovery(invocation: DocxInvocation, budget = new Docume
     })) };
     return bounded({ data, human: selected ? details(selected, declarations[0]![1]) :
       "docx — document utility\n\nImplemented commands:\n" + data.paths.map(item => `  ${item.usage}\n    ${item.description}`).join("\n") +
-      "\n\nUse docx help COMMAND PATH for a declared contract.\nInspection and validation are read-only; other document operations remain pending.\nAliases: --help, -h; --version.\n" });
+      "\n\nUse docx help COMMAND PATH for a declared contract.\nInspection, validation and text extraction are read-only; other document operations remain pending.\nAliases: --help, -h; --version.\n" });
   }
   const data: DocxSchemaData = { schemaVersion: 1, validationProfiles: [documentValidationProfile], operations: declarations.map(([id, declaration]) => ({
     id, path: commandPath(id, declaration), input: getDocxOperationSchema(id, declaration.transport === "typed-batch" ? "batch" : "sdk"),

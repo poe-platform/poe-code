@@ -8,6 +8,7 @@ import { inspectDocument, validateDocument } from "./inspection.js";
 import { openDocumentLocations } from "./locations.js";
 import type { DocumentScope } from "./location-index.js";
 import type { Location } from "./location-token.js";
+import { extractDocumentText, type TextOptions } from "./text.js";
 
 export interface DocxInspectionCommandRequest extends DocxCommandRequest {
   readonly cwd: string;
@@ -28,7 +29,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
       let output: Uint8Array;
       let exitCode = 0;
       try {
-        if (invocation.operation !== "inspect" && invocation.operation !== "validate") {
+        if (invocation.operation !== "inspect" && invocation.operation !== "validate" && invocation.operation !== "text.get") {
           throw Object.assign(new Error("This document operation is not implemented."), { code: "unsupported-profile" });
         }
         if (["link", "control", "revision", "shape", "field", "bookmark"].some(key => invocation.options[key] !== undefined)) {
@@ -43,9 +44,11 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
           return { async *[Symbol.asyncIterator]() { yield await request.filesystem.readFile(path, { signal }); } };
         } });
         acquiring = false;
-        const data = invocation.operation === "inspect" ? await inspectDocument(bytes, context)
+        const data = invocation.operation === "text.get" ? await extractDocumentText(bytes, context, invocation.options as TextOptions)
+          : invocation.operation === "inspect" ? await inspectDocument(bytes, context)
           : await validateDocument(bytes, context, invocation.options.profile === undefined ? {} : { profile: invocation.options.profile as "core-v1" });
         const locations: Location[] = [];
+        if ("segments" in data) locations.push(...new Map(data.segments.map(segment => [segment.location.token, segment.location])).values());
         if (invocation.operation === "inspect") {
           const selected = invocation.options;
           if ("stories" in data && !["select", "section", "comment", "note", "table", "cell", "paragraph", "run", "image"].some(key => selected[key] !== undefined)) {
@@ -68,9 +71,9 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         }
         const valid = !("valid" in data) || data.valid;
         exitCode = valid ? 0 : 1;
-        const warnings = data.warnings.map(warning => typeof warning === "string" ? { code: "partial-validation", message: warning } : warning);
+        const warnings = "warnings" in data ? data.warnings.map(warning => typeof warning === "string" ? { code: "partial-validation", message: warning } : warning) : [];
         const errors = "diagnostics" in data ? data.diagnostics.map(item => ({ code: "invalid-package", message: item.message, part: item.part, location: item.location })) : [];
-        const human = "valid" in data ? `docx validate: ${data.valid ? "valid within" : "invalid within"} ${data.profile}\n${data.checks.map(check => `${check.id}: ${check.status}`).join("\n")}\n`
+        const human = "text" in data ? data.text : "valid" in data ? `docx validate: ${data.valid ? "valid within" : "invalid within"} ${data.profile}\n${data.checks.map(check => `${check.id}: ${check.status}`).join("\n")}\n`
           : `docx inspect: ${data.kind}, ${data.dialect}\nParts: ${data.parts.length}; paragraphs: ${data.counts.paragraphs}; tables: ${data.counts.tables}; images: ${data.counts.images}\nCached pages: ${data.counts.cachedPages ?? "unknown"}; rendered pages: not calculated\nFont references do not establish installed fonts.\nSignatures present: ${data.signed}; signatures verified: not performed\nProtected: ${data.protected}\n`;
         const diagnostic = warnings.map(warning => `docx: ${escapeTerminalText(warning.code)}: ${escapeTerminalText(warning.message)}\n`).join("") + errors.map(error => `docx: ${escapeTerminalText(error.code)}: ${escapeTerminalText(error.message)}\n`).join("");
         budget.check("diagnosticBytes", new TextEncoder().encode(diagnostic).length);

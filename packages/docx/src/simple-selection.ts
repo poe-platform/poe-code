@@ -19,7 +19,8 @@ export function resolveDocxSelection(document: DocumentLocations, value: DocxInv
   const resource = operation.split(".")[0]!;
   const inserting = operation.endsWith(".add");
   const targetKind = inserting && ["images", "runs"].includes(resource) ? "paragraph"
-    : inserting && ["paragraphs", "tables"].includes(resource) ? "story" : resourceKinds[resource];
+    : inserting && ["paragraphs", "tables"].includes(resource) ? "story"
+    : operation === "text.get" && options.section === undefined ? "story" : resourceKinds[resource];
   if (!targetKind || ["link", "control", "revision", "shape", "field", "bookmark"].some(key => options[key] !== undefined))
     throw new UnsupportedEditError("This resource selector is not implemented.");
   const mutable = docxOperationSchemas[operation]!.mutates;

@@ -15,6 +15,10 @@ establishes complete document-operation or model API conformance. The
 accompanying pipeline sequences implementation; downloaded corpus availability
 does not establish product conformance.
 
+The bounded logical text read milestone and its additive segment context are
+recorded in [text extraction evidence](../docx/text-extraction.md). It implements
+the utility read surface only, not the proposed document object model.
+
 ## Normative language
 
 MUST and MUST NOT identify conformance requirements. SHOULD identifies a strong

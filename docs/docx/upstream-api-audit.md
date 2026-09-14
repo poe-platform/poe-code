@@ -4,6 +4,8 @@ Status: Pinned documentation/source reconciliation completed on 2026-09-13;
 mapping status reconciled on 2026-09-14; document object model implementation not started.
 Bounded package primitives now have separate evidence in the
 [validation profile](validation-profile.md); they do not establish model API coverage.
+The later [logical text read milestone](text-extraction.md) also remains a utility
+operation; no documented model member or enum is promoted by its passing tests.
 
 ## Sources and baseline
 

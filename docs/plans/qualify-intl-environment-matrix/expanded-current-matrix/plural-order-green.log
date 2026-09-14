@@ -1,0 +1,50 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ ✓ packages/safe-js/src/interp/globals/intl-plural-category-order.test.ts > orders ar cardinal plural categories by the published specification 62ms
+ ✓ packages/safe-js/src/interp/globals/intl-plural-category-order.test.ts > orders fr cardinal plural categories by the published specification 32ms
+ ✓ packages/safe-js/src/interp/globals/intl-plural-category-order.test.ts > orders en ordinal plural categories by the published specification 27ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > matches native PluralRules: return [Intl.PluralRules.name,Intl.PluralRules.length] 63ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > matches native PluralRules: return ['', ' ', ' 1 ', '0_1', '+0x1', '1e400', '1e-400'].map(value=>new Intl.PluralRules('fr').select(value)) 51ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > matches native PluralRules: return [0,1,2,3,4,11,21,1.5].map(n=>new Intl.PluralRules('en').select(n)) 54ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > matches native PluralRules: return [0,1,2,3,4,11,21,1.5].map(n=>new Intl.PluralRules('pl').select(n)) 37ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > matches native PluralRules: return [0,1,2,3,4,11,21,1.5].map(n=>new Intl.PluralRules('ar').select(n)) 36ms
+ ✓ packages/safe-js/src/interp/globals/intl-plural-category-order.test.ts > preserves ordered categories after pending cleanup and replay 187ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > matches native PluralRules: return [1,2,3,4,11,21].map(n=>new Intl.PluralRules('en',{type:'ordinal'}).select(n)) 37ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > matches native PluralRules: return new Intl.PluralRules('en').resolvedOptions() 27ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > matches native PluralRules: return new Intl.PluralRules('fr',{minimumFractionDigits:2,maximumFractionDigits:4}).resolvedOptions() 26ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > matches native PluralRules: return new Intl.PluralRules('en',{maximumSignificantDigits:3}).resolvedOptions() 30ms
+ ✓ packages/safe-js/src/interp/globals/intl-plural-category-order.test.ts > preserves ordered categories after completed cleanup and replay 123ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > matches native PluralRules: return ['ceil','floor','trunc','halfEven'].map(roundingMode=>{const f=new Intl.PluralRules('en',{maximumFractionDigits:0,roundingMode});return [f.select(1.5),f.resolvedOptions().roundingMode]}) 44ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > matches native PluralRules: return ['auto','stripIfInteger'].map(trailingZeroDisplay=>new Intl.PluralRules('en',{minimumFractionDigits:2,trailingZeroDisplay}).select(1)) 29ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > matches native PluralRules: return new Intl.PluralRules('en').selectRange(1,2) 24ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > matches native PluralRules: return new Intl.PluralRules('ru').selectRange(2,5) 23ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > matches native PluralRules: return [NaN,Infinity,-Infinity].map(n=>new Intl.PluralRules('en').select(n)) 36ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > matches native PluralRules: try{Intl.PluralRules('en')}catch(e){return e.name} 20ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > matches native PluralRules: try{Intl.PluralRules.prototype.select.call({},1)}catch(e){return e.name} 20ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > matches native PluralRules: try{new Intl.PluralRules('en').selectRange(undefined,1)}catch(e){return e.name} 26ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > matches native PluralRules: return Intl.PluralRules.supportedLocalesOf(['EN-us','fr','en-US']) 26ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > matches native PluralRules: class Child extends Intl.PluralRules{};const f=new Child('en');return [f instanceof Child,Object.prototype.toString.call(f),f.select(1)] 32ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > matches native PluralRules: const trace=[];new Intl.PluralRules('en',{get localeMatcher(){trace.push('matcher')},get type(){trace.push('type')},get minimumIntegerDigits(){trace.push('integer')},get minimumFractionDigits(){trace.push('minFraction')},get maximumFractionDigits(){trace.push('maxFraction')},get minimumSignificantDigits(){trace.push('minSignificant')},get maximumSignificantDigits(){trace.push('maxSignificant')},get roundingIncrement(){trace.push('increment')},get roundingMode(){trace.push('mode')},get roundingPriority(){trace.push('priority')},get trailingZeroDisplay(){trace.push('zero')}});return trace 56ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > matches native PluralRules: const trace=[];try{new Intl.PluralRules('en',{get type(){trace.push('type');return 'invalid'},get minimumIntegerDigits(){trace.push('integer')}})}catch(e){return [e.name,trace]} 26ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > matches native PluralRules: return ['select','selectRange','resolvedOptions'].map(key=>{const d=Object.getOwnPropertyDescriptor(Intl.PluralRules.prototype,key);return [d.value.name,d.value.length,d.writable,d.enumerable,d.configurable]}) 33ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > accounts for private plural options after removal of the guest prototype 28ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > retains exact integer and decimal plural operands 26ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > bounds processing of long numeric text 26ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > restores plural state, custom prototypes and aliases repeatedly 312ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > replays PluralRules from a pending checkpoint 124ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > replays PluralRules from a completed checkpoint 103ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > rejects forged PluralRules snapshot state: missing 25ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > rejects forged PluralRules snapshot state: type 26ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > rejects forged PluralRules snapshot state: locale 22ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > rejects forged PluralRules snapshot state: categories 23ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > rejects forged PluralRules snapshot state: extra 26ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > returns fresh plural-category arrays 25ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > handles numeric-text overflow without expanding the exponent 22ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > restores both digit ranges with morePrecision rounding 88ms
+ ✓ packages/safe-js/src/interp/globals/intl-pluralrules.test.ts > restores both digit ranges with lessPrecision rounding 93ms
+
+ Test Files  2 passed (2)
+      Tests  42 passed (42)
+   Start at  21:53:47
+   Duration  4.46s (transform 4.16s, setup 115ms, import 5.11s, tests 2.16s, environment 0ms)

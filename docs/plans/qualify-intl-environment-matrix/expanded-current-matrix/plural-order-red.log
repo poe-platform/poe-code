@@ -1,0 +1,147 @@
+
+ RUN  v4.1.11 /Users/kjopek/Workspace/poe-code
+
+ × packages/safe-js/src/interp/globals/intl-plural-category-order.test.ts > orders ar cardinal plural categories by the published specification 103ms
+   → expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+ × packages/safe-js/src/interp/globals/intl-plural-category-order.test.ts > orders fr cardinal plural categories by the published specification 31ms
+   → expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+ × packages/safe-js/src/interp/globals/intl-plural-category-order.test.ts > orders en ordinal plural categories by the published specification 31ms
+   → expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+ × packages/safe-js/src/interp/globals/intl-plural-category-order.test.ts > preserves ordered categories after pending cleanup and replay 245ms
+   → expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+ × packages/safe-js/src/interp/globals/intl-plural-category-order.test.ts > preserves ordered categories after completed cleanup and replay 145ms
+   → expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  packages/safe-js/src/interp/globals/intl-plural-category-order.test.ts > orders ar cardinal plural categories by the published specification
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     "zero",
+-     "one",
+-     "two",
+      "few",
+      "many",
++     "one",
+      "other",
++     "two",
++     "zero",
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/globals/intl-plural-category-order.test.ts:13:6
+     11|   expect(await run(`return new Intl.PluralRules(${JSON.stringify(local…
+     12|     {type:${JSON.stringify(type)}}).resolvedOptions().pluralCategories…
+     13|     .toMatchObject({ ok: true, returnValue: expected });
+       |      ^
+     14| });
+     15|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  packages/safe-js/src/interp/globals/intl-plural-category-order.test.ts > orders fr cardinal plural categories by the published specification
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     "one",
+      "many",
++     "one",
+      "other",
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/globals/intl-plural-category-order.test.ts:13:6
+     11|   expect(await run(`return new Intl.PluralRules(${JSON.stringify(local…
+     12|     {type:${JSON.stringify(type)}}).resolvedOptions().pluralCategories…
+     13|     .toMatchObject({ ok: true, returnValue: expected });
+       |      ^
+     14| });
+     15|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  packages/safe-js/src/interp/globals/intl-plural-category-order.test.ts > orders en ordinal plural categories by the published specification
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     "one",
+-     "two",
+      "few",
++     "one",
+      "other",
++     "two",
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/globals/intl-plural-category-order.test.ts:13:6
+     11|   expect(await run(`return new Intl.PluralRules(${JSON.stringify(local…
+     12|     {type:${JSON.stringify(type)}}).resolvedOptions().pluralCategories…
+     13|     .toMatchObject({ ok: true, returnValue: expected });
+       |      ^
+     14| });
+     15|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+ FAIL  packages/safe-js/src/interp/globals/intl-plural-category-order.test.ts > preserves ordered categories after pending cleanup and replay
+ FAIL  packages/safe-js/src/interp/globals/intl-plural-category-order.test.ts > preserves ordered categories after completed cleanup and replay
+AssertionError: expected { ok: true, …(3) } to match object { ok: true, …(1) }
+(12 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "ok": true,
+    "returnValue": [
+-     "zero",
+-     "one",
+-     "two",
+      "few",
+      "many",
++     "one",
+      "other",
++     "two",
++     "zero",
+    ],
+  }
+
+ ❯ packages/safe-js/src/interp/globals/intl-plural-category-order.test.ts:26:22
+     24|     const snapshot = JSON.parse(await dump(pending));
+     25|     for (const result of [await settled, await run(source, { snapshot …
+     26|       expect(result).toMatchObject({ ok: true, returnValue: ["zero", "…
+       |                      ^
+     27|     }
+     28|   } finally { await settled; }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed (5)
+   Start at  21:53:15
+   Duration  5.60s (transform 3.47s, setup 75ms, import 4.81s, tests 557ms, environment 0ms)

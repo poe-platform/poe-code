@@ -5,7 +5,6 @@ import { parsePlan } from "./parser.js";
 import type { PipelineFileSystem } from "../types.js";
 
 const planPath = "/repo/plan.md";
-const statusLock = "/repo/.plan.md.pipeline-status.lock";
 
 function deferred() {
   let resolve!: () => void;
@@ -29,8 +28,6 @@ describe("pipeline status transactions", () => {
   it.each(["different tasks", "different steps", "normalized path aliases"])("preserves concurrent updates for %s", async scenario => {
     const setup = fixture(scenario === "different steps");
     const firstWrite = deferred();
-    const secondWrite = deferred();
-    const contention = deferred();
     const release = deferred();
     let temporaryWrites = 0;
     const fs: PipelineFileSystem = {
@@ -39,13 +36,8 @@ describe("pipeline status transactions", () => {
         if (file.endsWith(".tmp")) {
           temporaryWrites += 1;
           if (temporaryWrites === 1) { firstWrite.resolve(); await release.promise; }
-          else secondWrite.resolve();
         }
-        try { await setup.fs.writeFile(file, data, options); }
-        catch (error) {
-          if (file === statusLock && (error as { code?: string }).code === "EEXIST") contention.resolve();
-          throw error;
-        }
+        await setup.fs.writeFile(file, data, options);
       }
     };
     const first = writeTaskStatus({ fs, planPath, taskId: "first", status: "done", ...(scenario === "different steps" ? { stepName: "implement" } : {}) });
@@ -57,7 +49,8 @@ describe("pipeline status transactions", () => {
         taskId: scenario === "different steps" ? "first" : "second", status: "done",
         ...(scenario === "different steps" ? { stepName: "test" } : {})
       });
-      await expect(Promise.race([contention.promise.then(() => "waiting"), secondWrite.promise.then(() => "stale write"), second.then(() => "finished")])).resolves.toBe("waiting");
+      await new Promise(setImmediate);
+      expect(temporaryWrites).toBe(1);
       release.resolve();
       await Promise.all([first, second]);
       const content = await setup.raw.readFile(planPath, "utf8") as string;

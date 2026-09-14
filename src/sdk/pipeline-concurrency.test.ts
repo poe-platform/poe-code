@@ -31,18 +31,7 @@ function fixture(phases = false) {
   const volume = Volume.fromJSON({ [planPath]: document(phases), "/repo/keep.txt": "unchanged" });
   volume.mkdirSync(path.dirname(runLock), { recursive: true });
   const raw = createFsFromVolume(volume).promises;
-  const waiting = deferred();
-  const fs = {
-    ...raw,
-    async writeFile(file: string, content: string, options?: { encoding?: BufferEncoding; flag?: string }) {
-      try {
-        await raw.writeFile(file, content, options);
-      } catch (error) {
-        if (file === runLock && (error as { code?: string }).code === "EEXIST") waiting.resolve();
-        throw error;
-      }
-    }
-  } as unknown as PipelineFileSystem;
+  const fs = { ...raw } as unknown as PipelineFileSystem;
   const options = { agent: "fixture-agent", cwd: "/repo", homeDir: "/home/fixture", plan: planPath, logDir: "/logs", archive: false, maxRuns: 1, fs };
   async function statuses() {
     const content = await raw.readFile(planPath, "utf8") as string;
@@ -54,7 +43,7 @@ function fixture(phases = false) {
     expect(await raw.readdir(path.dirname(runLock))).toEqual([]);
     expect(await raw.readFile("/repo/keep.txt", "utf8")).toBe("unchanged");
   }
-  return { volume, raw, fs, waiting, options, statuses, assertReleased };
+  return { volume, raw, fs, options, statuses, assertReleased };
 }
 
 function success() {
@@ -86,13 +75,12 @@ describe("SDK pipeline run coordination", () => {
       );
     }
     const entered = deferred();
-    const additionalAgent = deferred();
     const release = deferred();
     const runAgent = vi.fn(async (_input: { prompt: string }) => {
       if (runAgent.mock.calls.length === 1) {
         entered.resolve();
         await release.promise;
-      } else additionalAgent.resolve();
+      }
       return success();
     });
     const first = runPipeline({ ...setup.options, ...scenario.first, runAgent });
@@ -100,11 +88,7 @@ describe("SDK pipeline run coordination", () => {
     try {
       await entered.promise;
       second = runPipeline({ ...setup.options, ...scenario.second, fs: { ...setup.fs }, runAgent });
-      await expect(Promise.race([
-        setup.waiting.promise.then(() => "waiting"),
-        additionalAgent.promise.then(() => "duplicate agent"),
-        second.then(() => "finished")
-      ])).resolves.toBe("waiting");
+      await new Promise(setImmediate);
       expect(runAgent).toHaveBeenCalledTimes(1);
       release.resolve();
       const results = await Promise.all([first, second]);
@@ -146,7 +130,7 @@ describe("SDK pipeline run coordination", () => {
     await setup.assertReleased();
   });
 
-  it("cancels a waiting caller without releasing the active owner's lock", async () => {
+  it("cancels a queued caller without interrupting the active run", async () => {
     const setup = fixture();
     const entered = deferred();
     const release = deferred();
@@ -159,11 +143,11 @@ describe("SDK pipeline run coordination", () => {
       await entered.promise;
       second = runPipeline({ ...setup.options, fs: { ...setup.fs }, signal: controller.signal, runAgent: nextAgent });
       void second.catch(() => undefined);
-      await expect(Promise.race([setup.waiting.promise.then(() => "waiting"), second.then(() => "finished")])).resolves.toBe("waiting");
+      await new Promise(setImmediate);
       controller.abort();
       await expect(second).rejects.toMatchObject({ name: "AbortError" });
       expect(nextAgent).not.toHaveBeenCalled();
-      await expect(setup.raw.stat(runLock)).resolves.toBeDefined();
+      await expect(setup.raw.stat(runLock)).rejects.toMatchObject({ code: "ENOENT" });
       expect(await setup.statuses()).toEqual({ first: "open", second: "open" });
       release.resolve();
       await first;
@@ -178,48 +162,8 @@ describe("SDK pipeline run coordination", () => {
     }
   });
 
-  it("releases ownership when cancellation arrives during acquisition", async () => {
-    const setup = fixture();
-    const controller = new AbortController();
-    const writeFile = setup.fs.writeFile.bind(setup.fs);
-    setup.fs.writeFile = async (file, content, options) => {
-      await writeFile(file, content, options);
-      if (file === runLock) controller.abort();
-    };
-    const runAgent = vi.fn(async () => success());
-    await expect(runPipeline({ ...setup.options, signal: controller.signal, runAgent })).rejects.toMatchObject({ name: "AbortError" });
-    expect(runAgent).not.toHaveBeenCalled();
-    await setup.assertReleased();
-  });
-
-  it("cancels while waiting to persist status without releasing another writer's lock", async () => {
-    const setup = fixture();
-    const statusLock = "/repo/docs/plans/.plan.md.pipeline-status.lock";
-    await setup.raw.writeFile(statusLock, "other writer");
-    const controller = new AbortController();
-    const waiting = deferred();
-    const writeFile = setup.fs.writeFile.bind(setup.fs);
-    setup.fs.writeFile = async (file, content, options) => {
-      try { await writeFile(file, content, options); }
-      catch (error) { if (file === statusLock) waiting.resolve(); throw error; }
-    };
-    const operation = runPipeline({ ...setup.options, signal: controller.signal, runAgent: async () => success() });
-    void operation.catch(() => undefined);
-    try {
-      await expect(Promise.race([waiting.promise.then(() => "waiting"), operation.then(() => "finished")])).resolves.toBe("waiting");
-      controller.abort();
-      await expect(operation).rejects.toMatchObject({ name: "AbortError" });
-      expect(await setup.statuses()).toEqual({ first: "open", second: "open" });
-      expect(await setup.raw.readFile(statusLock, "utf8")).toBe("other writer");
-      await expect(setup.raw.stat(runLock)).rejects.toMatchObject({ code: "ENOENT" });
-    } finally {
-      controller.abort();
-      await operation.catch(() => undefined);
-    }
-  });
-
   it.each(["agent exception", "setup exception", "teardown exception", "plan callback", "task callback", "status failure", "agent cancellation"])(
-    "releases ownership after %s", async scenario => {
+    "allows another run after %s", async scenario => {
       const setup = fixture(scenario === "setup exception" || scenario === "teardown exception");
       const failure = new Error(scenario);
       if (scenario === "agent cancellation") failure.name = "AbortError";
@@ -251,47 +195,23 @@ describe("SDK pipeline run coordination", () => {
     }
   );
 
-  it("bounds contention without deleting an existing owner's lock", async () => {
+  it("ignores abandoned disk locks and never creates new ones", async () => {
     const setup = fixture();
-    await setup.raw.writeFile(runLock, "other owner");
-    vi.useFakeTimers({ toFake: ["Date", "setTimeout", "clearTimeout"] });
-    const runAgent = vi.fn(async () => success());
-    const outcome = runPipeline({ ...setup.options, runAgent }).then(value => ({ value }), error => ({ error }));
-    await expect(Promise.race([setup.waiting.promise.then(() => "waiting"), outcome.then(() => "finished")])).resolves.toBe("waiting");
-    await vi.advanceTimersByTimeAsync(30_010);
-    expect(await outcome).toMatchObject({ error: expect.objectContaining({ message: expect.stringContaining("Timed out waiting for pipeline run lock") }) });
-    expect(runAgent).not.toHaveBeenCalled();
-    expect(await setup.raw.readFile(runLock, "utf8")).toBe("other owner");
-  });
-
-  it.each([false, true])("reports release failure, operation also fails=%s", async operationFails => {
-    const setup = fixture();
-    const operationError = new Error("agent failed");
-    const releaseError = new Error("release failed");
-    const unlink = setup.fs.unlink.bind(setup.fs);
-    setup.fs.unlink = async file => { if (file === runLock) throw releaseError; await unlink(file); };
-    const outcome = await runPipeline({ ...setup.options, runAgent: async () => {
-      if (operationFails) throw operationError;
-      return success();
-    } }).catch(error => error);
-    if (operationFails) {
-      expect(outcome).toBeInstanceOf(AggregateError);
-      expect(outcome.errors).toEqual([operationError, releaseError]);
-    } else expect(outcome).toBe(releaseError);
-  });
-
-  it("does not execute after an acquisition I/O error", async () => {
-    const setup = fixture();
-    const failure = Object.assign(new Error("lock unavailable"), { code: "EACCES" });
+    await setup.raw.writeFile(runLock, "abandoned run");
+    const statusLock = "/repo/docs/plans/.plan.md.pipeline-status.lock";
+    await setup.raw.writeFile(statusLock, "abandoned status");
     const writeFile = setup.fs.writeFile.bind(setup.fs);
-    setup.fs.writeFile = async (file, content, options) => { if (file === runLock) throw failure; await writeFile(file, content, options); };
-    const runAgent = vi.fn(async () => success());
-    await expect(runPipeline({ ...setup.options, runAgent })).rejects.toBe(failure);
-    expect(runAgent).not.toHaveBeenCalled();
-    await setup.assertReleased();
+    setup.fs.writeFile = async (file, content, options) => {
+      if (file.endsWith(".lock")) throw new Error("Disk locks are forbidden");
+      await writeFile(file, content, options);
+    };
+    await expect(runPipeline({ ...setup.options, runAgent: async () => success() })).resolves.toMatchObject({ runsCompleted: 1 });
+    expect(await setup.statuses()).toEqual({ first: "done", second: "open" });
+    expect(await setup.raw.readFile(runLock, "utf8")).toBe("abandoned run");
+    expect(await setup.raw.readFile(statusLock, "utf8")).toBe("abandoned status");
   });
 
-  it("does not create ownership for an already-cancelled call", async () => {
+  it("does not start an already-cancelled call", async () => {
     const setup = fixture();
     const controller = new AbortController();
     controller.abort();

@@ -147,3 +147,4 @@ export type { RevisionInfo } from "./revision-markup.js";
 export { editDocumentControlBindings } from "./control-bindings.js";
 export { editDocumentControlRepeats } from "./control-repeat.js";
 export type { ControlTemplateData } from "./control-template-types.js";
+export { inspectDocumentPackageResources, type PackageResourceListData, type PackageResourceRecord, type CustomXmlResourceDetails, type GlossaryResourceDetails } from "./ancillary-resources.js";

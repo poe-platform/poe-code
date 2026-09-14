@@ -197,3 +197,23 @@ it.each([
   expect(result.features.find(feature => feature.id === "F28")).toMatchObject({ detected: controls });
   expect(bytes).toEqual(before);
 });
+it("does not count inert Word-shaped user data as document controls or protection", async () => {
+  const { textFixture } = await import("../tests/fixtures/text.js"); const ctx = context(), source = await readArchive(await textFixture('<w:p/>'), ctx), encode = (value: string) => new TextEncoder().encode(value);
+  const metadata = encode('<data xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:p><w:sdt><w:sdtPr><w:lock w:val="contentLocked"/></w:sdtPr><w:sdtContent><w:r><w:t>Inert</w:t></w:r></w:sdtContent></w:sdt></w:p><w:documentProtection w:enforcement="1"/></data>');
+  const members = [...source.members.map(member => member.name !== "[Content_Types].xml" ? member : { ...member, bytes: encode(new TextDecoder().decode(member.bytes).replace('</Types>', '<Override PartName="/payload/data.xml" ContentType="application/xml"/></Types>')) }), { name: "payload/data.xml", bytes: metadata, directory: false, modified: new Date("2025-01-01") }];
+  const fs = Volume.fromJSON({ "/input": "" }); await writeArchive({ ...source, members }, { async write(bytes) { fs.appendFileSync("/input", bytes); } }, { order: "input", compression: "store" }, ctx);
+  const result = await inspectDocument(new Uint8Array(fs.readFileSync("/input") as Buffer), ctx);
+  expect(result).toMatchObject({ protected: false, protection: [], counts: { paragraphs: 1, controls: 0 } }); expect(result.parts.find(part => part.name === "/payload/data.xml")).toMatchObject({ bytes: metadata.length });
+});
+it("does not identify unofficial custom-data relationship suffixes as declared resources", async () => {
+  const { textFixture } = await import("../tests/fixtures/text.js"), ctx = context(), archive = await readArchive(await textFixture('<w:p/>', { data: { kind: "header", xml: '<w:hdr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:p/></w:hdr>' } }), ctx), encode = (value: string) => new TextEncoder().encode(value);
+  const members = archive.members.map(member => member.name !== "word/_rels/document.xml.rels" ? member : { ...member, bytes: encode(new TextDecoder().decode(member.bytes).replace('http://schemas.openxmlformats.org/officeDocument/2006/relationships/header', 'urn:original/customXml')) });
+  const fs = Volume.fromJSON({ "/input": "" }); await writeArchive({ ...archive, members }, { async write(bytes) { fs.appendFileSync("/input", bytes); } }, { order: "input", compression: "store" }, ctx);
+  expect((await inspectDocument(new Uint8Array(fs.readFileSync("/input") as Buffer), ctx)).features.find(feature => feature.id === "F41")!.detected).toBe(false);
+});
+it.each(["unofficial-type", "folder", "official-origin"])("classifies signature graphs by exact declared roles: %s", async scenario => {
+  const { textFixture } = await import("../tests/fixtures/text.js"), ctx = context(), source = await readArchive(await textFixture('<w:p/>'), ctx), encode = (value: string) => new TextEncoder().encode(value), name = scenario === "folder" ? "_xmlsignatures/data.xml" : "payload/data.xml", type = scenario === "unofficial-type" ? "application/vnd.openxmlformats-package.digital-signature-notes+xml" : "application/xml";
+  const members = [...source.members.map(member => member.name === "[Content_Types].xml" ? { ...member, bytes: encode(new TextDecoder().decode(member.bytes).replace('</Types>', `<Override PartName="/${name}" ContentType="${type}"/></Types>`)) } : member.name === "_rels/.rels" && scenario === "official-origin" ? { ...member, bytes: encode(new TextDecoder().decode(member.bytes).replace('</Relationships>', `<Relationship Id="origin" Type="http://schemas.openxmlformats.org/package/2006/relationships/digital-signature/origin" Target="${name}"/></Relationships>`)) } : member), { name, bytes: encode('<data/>'), directory: false, modified: new Date("2025-01-01") }];
+  const fs = Volume.fromJSON({ "/input": "" }); await writeArchive({ ...source, members }, { async write(bytes) { fs.appendFileSync("/input", bytes); } }, { order: "input", compression: "store" }, ctx);
+  const data = await inspectDocument(new Uint8Array(fs.readFileSync("/input") as Buffer), ctx); expect(data.signed).toBe(scenario === "official-origin"); expect(data.features.find(feature => feature.id === "F43")!.detected).toBe(scenario === "official-origin"); expect(data.signatures.parts).toEqual(scenario === "official-origin" ? ['/'+name] : []);
+});

@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { expect, it } from "vitest";
 import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
+import { textContext, textFixture } from "../packages/docx/tests/fixtures/text.js";
 
 it("ships the optional document API and command with matching portable runtime and type routes", async () => {
   const manifest = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
@@ -44,6 +45,12 @@ it("closes the document runtime over portable ZIP and XML implementations", asyn
   expect(runtime.editDocumentControls).toBeTypeOf("function");
   expect.soft(runtime.editDocumentControlRepeats).toBeTypeOf("function");
   expect.soft(runtime.editDocumentControlBindings).toBeTypeOf("function");
+  expect.soft(runtime.inspectDocumentPackageResources).toBeTypeOf("function");
+  const original = await textFixture('<w:p/>');
+  for (const operation of ["custom-xml.list", "glossary.list"]) {
+    expect(await runtime.inspectDocumentPackageResources(original, operation, {}, textContext)).toEqual({ items: [] });
+    await expect(runtime.inspectDocumentPackageResources(original, operation, { scope: "body" }, textContext)).rejects.toMatchObject({ code: "usage" });
+  }
   expect(runtime.parseDocxArguments([new TextEncoder().encode("--help")]).operation).toBe("help");
   expect(runtime.getDocxOperationSchema("text.replace").additionalProperties).toBe(false);
   expect(runtime.validateDocxBatch({ version: 1, operations: [] }).operations).toEqual([]);

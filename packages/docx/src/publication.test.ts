@@ -246,10 +246,10 @@ describe("document publication", () => {
     expect(env.volume.readFileSync("/work/old", "utf8")).toBe("original");
   });
   it.each(["documentProtection", "writeProtection", "lock"])("force cannot publish a package containing %s", async name => {
-    const env = fixture(); const ctx = context(); const archive = await createDocumentArchive({}, ctx);
-    const member = archive.members.find(item => item.name === "word/document.xml")!;
-    const text = new TextDecoder().decode(member.bytes).replace("<w:p/>", `<w:p><w:pPr><w:${name} w:val="locked"/></w:pPr></w:p>`);
-    const altered = { ...archive, members: archive.members.map(item => item === member ? { ...item, bytes: new TextEncoder().encode(text) } : item) };
+    const env = fixture(); const ctx = context();
+    const body = name === "lock" ? '<w:p><w:sdt><w:sdtPr><w:text/><w:lock w:val="contentLocked"/></w:sdtPr><w:sdtContent><w:r><w:t>Protected</w:t></w:r></w:sdtContent></w:sdt></w:p>' : '<w:p/>';
+    const resources = name === "lock" ? {} : { settings: { kind: "settings", xml: `<w:settings xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:${name} w:enforcement="1"/></w:settings>` } };
+    const altered = await readArchive(await textFixture(body, resources), ctx);
     await expect(publishDocumentArchive(altered, { output: "/work/old", force: true }, { ...ctx, filesystem: env.fs, encoding })).rejects.toMatchObject({ code: "unsupported-edit" });
     expect(env.volume.readFileSync("/work/old", "utf8")).toBe("original");
   });
@@ -268,4 +268,23 @@ describe("document publication", () => {
     expect(env.volume.readFileSync("/work/old", "utf8")).toBe("original");
   });
 
+});
+
+it.each([
+  '<w:lock w:val="unlocked"/>', '<w:documentProtection w:enforcement="1"/>',
+  '<s:Signature xmlns:s="http://www.w3.org/2000/09/xmldsig#"/>', '<field Type="urn:original/digital-signature/value"/>',
+])("preserves inert user-data spellings without treating them as package protection: %s", async payload => {
+  const ctx = context(), source = await createDocumentArchive({}, ctx), metadata = new TextEncoder().encode(`<data xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">${payload}</data>`);
+  const archive = { ...source, members: [...source.members.map(member => member.name !== "[Content_Types].xml" ? member : { ...member, bytes: new TextEncoder().encode(new TextDecoder().decode(member.bytes).replace('</Types>', '<Override PartName="/data/item.xml" ContentType="application/xml"/></Types>')) }), { name: "data/item.xml", bytes: metadata, directory: false, modified: new Date("2025-01-01") }] };
+  const env = fixture(); await expect(publishDocumentArchive(archive, { output: "/work/new" }, { ...ctx, encoding, filesystem: env.fs })).resolves.toMatchObject({ published: [{ path: "/work/new" }] });
+  const stored = readPackage(new Uint8Array(env.volume.readFileSync("/work/new") as Buffer)); expect(stored.get("data/item.xml")).toEqual(metadata);
+});
+it("preserves unofficial ancillary relationship spellings without treating them as signature roles", async () => {
+  const archive = await readArchive(await textFixture('<w:p/>', { data: { kind: "header", xml: '<w:hdr xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:p/></w:hdr>' } }), textContext), encode = (value: string) => new TextEncoder().encode(value);
+  const members = archive.members.map(member => member.name !== "word/_rels/document.xml.rels" ? member : { ...member, bytes: encode(new TextDecoder().decode(member.bytes).replace('http://schemas.openxmlformats.org/officeDocument/2006/relationships/header', 'urn:original/digital-signature/metadata')) }), env = fixture(), ctx = context();
+  await expect(publishDocumentArchive({ ...archive, members }, { output: "/work/new" }, { ...ctx, encoding, filesystem: env.fs })).resolves.toMatchObject({ published: [{ path: "/work/new" }] });
+});
+it("preserves unrelated inert content types that contain signature-like words", async () => {
+  const source = await createDocumentArchive({}, context()), encode = (value: string) => new TextEncoder().encode(value), members = [...source.members.map(member => member.name !== "[Content_Types].xml" ? member : { ...member, bytes: encode(new TextDecoder().decode(member.bytes).replace('</Types>', '<Override PartName="/payload/records.xml" ContentType="application/vnd.original.digital-signature-records+xml"/></Types>')) }), { name: "payload/records.xml", bytes: encode('<data/>'), directory: false, modified: new Date("2025-01-01") }];
+  expect(() => assertDocumentEditable({ ...source, members }, archiveSettings(context()))).not.toThrow();
 });

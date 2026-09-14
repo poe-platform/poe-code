@@ -76,7 +76,7 @@ it("preserves unknown namespace content and rejects changed or removed opaque co
 });
 
 it("refuses protection removal and dangling package relationships", async () => {
-  const protectedInput = await fixture(document('<w:documentProtection w:enforcement="1"/>' + paragraph("Locked coast")));
+  const protectedInput = await fixture(document('<w:p><w:sdt><w:sdtPr><w:text/><w:lock w:val="contentLocked"/></w:sdtPr><w:sdtContent><w:r><w:t>Locked coast</w:t></w:r></w:sdtContent></w:sdt></w:p>'));
   await expect(replaceDocumentXmlPart(protectedInput, document(paragraph("Revised coast")), { part: "/word/document.xml", dryRun: true }, publication)).rejects.toMatchObject({ code: "unsupported-edit" });
   const rels = encode(`<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="document" Type="${r}/officeDocument" Target="missing.xml"/></Relationships>`);
   await expect(replaceDocumentXmlPart(await fixture(), rels, { part: "/_rels/.rels", dryRun: true }, publication)).rejects.toBeDefined();
@@ -116,4 +116,40 @@ it("applies explicit allow-empty to a missing part without masking invalid XML",
   await expect(replaceDocumentXmlPart(input, document(paragraph("Revised coast")), { part: "/absent.xml", dryRun: true }, publication)).rejects.toMatchObject({ code: "missing-selection" });
   expect(await replaceDocumentXmlPart(input, document(paragraph("Revised coast")), { part: "/absent.xml", allowEmpty: true, dryRun: true }, publication)).toMatchObject({ changed: false, changes: [], output: null, dryRun: true });
   await expect(replaceDocumentXmlPart(input, encode("<broken>"), { part: "/absent.xml", allowEmpty: true, dryRun: true }, publication)).rejects.toMatchObject({ code: "invalid-xml" });
+});
+
+async function customDataFixture(bound: boolean) {
+  const namespace = bound ? w : "urn:original:values";
+  const body = bound ? `<w:p><w:sdt><w:sdtPr><w:tag w:val="name"/><w:text/><w:dataBinding w:storeItemID="1111" w:xpath="/v:root/v:value" w:prefixMappings="xmlns:v='${namespace}'"/></w:sdtPr><w:sdtContent>${paragraph("Old").slice(5, -6)}</w:sdtContent></w:sdt></w:p>` : paragraph("Coast");
+  const source = await readArchive(await textFixture(body), context);
+  const item = encode(`<v:root xmlns:v="${namespace}"><v:value>Old</v:value></v:root>`), props = encode('<d:datastoreItem xmlns:d="http://schemas.openxmlformats.org/officeDocument/2006/customXml" d:itemID="1111"><d:schemaRefs><d:schemaRef d:uri="urn:original:schema"/></d:schemaRefs></d:datastoreItem>');
+  const members = source.members.map(member => member.name === "[Content_Types].xml" ? { ...member, bytes: encode(new TextDecoder().decode(member.bytes).replace('</Types>', '<Default Extension="xml" ContentType="application/xml"/><Override PartName="/data/properties.xml" ContentType="application/vnd.openxmlformats-officedocument.customXmlProperties+xml"/></Types>')) } : member.name === "word/_rels/document.xml.rels" ? { ...member, bytes: encode(new TextDecoder().decode(member.bytes).replace('</Relationships>', `<Relationship Id="data" Type="${r}/customXml" Target="../data/item.xml"/></Relationships>`)) } : member);
+  members.push({ name: "data/item.xml", bytes: item, directory: false, modified: new Date("2025-01-01") }, { name: "data/properties.xml", bytes: props, directory: false, modified: new Date("2025-01-01") }, { name: "data/_rels/item.xml.rels", bytes: encode(`<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="props" Type="${r}/customXmlProps" Target="properties.xml"/></Relationships>`), directory: false, modified: new Date("2025-01-01") });
+  const fs = Volume.fromJSON({ "/archive": "" }); await writeArchive({ ...source, members }, { async write(bytes) { fs.appendFileSync("/archive", bytes); } }, { order: "input", compression: "store" }, context);
+  return { bytes: new Uint8Array(fs.readFileSync("/archive") as Buffer), item, props };
+}
+it("permits explicit unbound inert custom data replacement while preserving unrelated parts", async () => {
+  const source = await customDataFixture(false), fs = Volume.fromJSON({ "/output": "" });
+  const result = await replaceDocumentXmlPart(source.bytes, encode(new TextDecoder().decode(source.item).replace('>Old<', '>New<')), { part: "/data/item.xml", output: "-" }, { ...publication, stdout: { async write(bytes) { fs.appendFileSync("/output", bytes); } } });
+  expect(result.changed).toBe(true);
+  const before = await readArchive(source.bytes, context), after = await readArchive(new Uint8Array(fs.readFileSync("/output") as Buffer), context);
+  for (const member of before.members.filter(member => member.name !== "data/item.xml")) expect(after.members.find(candidate => candidate.name === member.name)!.bytes).toEqual(member.bytes);
+});
+it.each(["item", "properties", "declaration"])("rejects changed raw bound %s data before publication", async target => {
+  const source = await customDataFixture(true), writes: Uint8Array[] = []; const main = await getDocumentXml(source.bytes, context, { part: "/word/document.xml", raw: true }) as Uint8Array;
+  const part = target === "declaration" ? "/word/document.xml" : `/data/${target === "item" ? "item" : "properties"}.xml`, original = target === "item" ? source.item : target === "properties" ? source.props : main;
+  const replacement = encode(new TextDecoder().decode(original).replace(target === "item" ? '>Old<' : target === "properties" ? 'itemID="1111"' : '/v:root/v:value', target === "item" ? '>New<' : target === "properties" ? 'itemID="2222"' : '/v:root/v:other'));
+  await expect(replaceDocumentXmlPart(source.bytes, replacement, { part, output: "-" }, { ...publication, stdout: { async write(bytes) { writes.push(bytes); } } })).rejects.toMatchObject({ code: "unsupported-edit" }); expect(writes).toEqual([]);
+});
+it("recognizes an explicitly rooted custom data relation for unbound raw replacement", async () => {
+  const source = await customDataFixture(false), archive = await readArchive(source.bytes, context), fs = Volume.fromJSON({ "/input": "", "/output": "" });
+  const members = archive.members.map(member => member.name === "word/_rels/document.xml.rels" ? { ...member, bytes: encode('<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"/>') } : member.name === "_rels/.rels" ? { ...member, bytes: encode(new TextDecoder().decode(member.bytes).replace('</Relationships>', `<Relationship Id="data" Type="${r}/customXml" Target="data/item.xml"/></Relationships>`)) } : member);
+  await writeArchive({ ...archive, members }, { async write(bytes) { fs.appendFileSync("/input", bytes); } }, { order: "input", compression: "store" }, context);
+  await expect(replaceDocumentXmlPart(new Uint8Array(fs.readFileSync("/input") as Buffer), encode(new TextDecoder().decode(source.item).replace('>Old<', '>New<')), { part: "/data/item.xml", output: "-" }, { ...publication, stdout: { async write(bytes) { fs.appendFileSync("/output", bytes); } } })).resolves.toMatchObject({ changed: true });
+});
+it.each(["/data/item.xml", "/data/properties.xml", "/word/document.xml"])("preserves byte-identical raw bound-part no-op %s and all relationships", async part => {
+  const source = await customDataFixture(true), original = await getDocumentXml(source.bytes, context, { part, raw: true }) as Uint8Array, fs = Volume.fromJSON({ "/output": "" });
+  await expect(replaceDocumentXmlPart(source.bytes, original, { part, output: "-" }, { ...publication, stdout: { async write(bytes) { fs.appendFileSync("/output", bytes); } } })).resolves.toMatchObject({ changed: false, changes: [] });
+  const before = await readArchive(source.bytes, context), after = await readArchive(new Uint8Array(fs.readFileSync("/output") as Buffer), context);
+  for (const member of before.members) expect(after.members.find(candidate => candidate.name === member.name)!.bytes).toEqual(member.bytes);
 });

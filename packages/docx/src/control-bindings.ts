@@ -1,3 +1,4 @@
+import { readDocumentBindingOwnership } from "./binding-ownership.js";
 import { archiveSettings, CancellationError, ResourceLimitError } from "./archive.js";
 import { validateDocxInvocation } from "./command.js";
 import type { DocumentBudget } from "./budget.js";
@@ -70,6 +71,17 @@ export async function editDocumentControlBindings(input: Uint8Array, options: Do
   if (!declarations.length) throw new SelectionError("missing-selection");
   for (const item of allItems.filter(item => item.tag === binding)) { const target = resolve(item); targets.set(target.key + target.scalar, target); }
   if (targets.size !== 1) throw new SelectionError("ambiguous-selection"); const target = [...targets.values()][0]!;
+  const ownership = readDocumentBindingOwnership(pkg, budget), storeId = allItems.find(item => item.tag === binding)!.binding!.storeItemId!.toLowerCase();
+  const targetSteps = JSON.parse(target.key)[1] as readonly (readonly [string, string])[];
+  for (const declaration of ownership.declarations) {
+    if (declaration.storeItemId?.toLowerCase() !== storeId) continue;
+    const sdtPath = declaration.path.slice(0, -2);
+    if (allItems.some(item => item.location.value.part === declaration.part && JSON.stringify(item.location.value.path) === JSON.stringify(sdtPath))) continue;
+    let steps: readonly (readonly [string, string])[];
+    try { const mapping = parseDocumentXml(new TextEncoder().encode(`<mapping ${declaration.prefixMappings ?? ""}/>`), {}, budget).root; if (!declaration.xpath?.startsWith("/") || mapping.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/")) reject(); steps = declaration.xpath.slice(1).split("/").map(name => expanded(name, mapping.namespaces, budget)); }
+    catch (error) { if (error instanceof ResourceLimitError || error instanceof CancellationError) throw error; reject(); }
+    if (JSON.stringify(steps) === JSON.stringify(targetSteps)) reject();
+  }
   const recipients: ControlSnapshot[] = [];
   for (const item of allItems) if (item.binding) {
     let candidate: Target;

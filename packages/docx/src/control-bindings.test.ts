@@ -136,3 +136,21 @@ it("rejects nonsingleton scalar leaves and numeric type mismatch", async () => {
   await expect(bind(await fixture(undefined, "<v:value>A</v:value><v:value>B</v:value>"), "New")).rejects.toMatchObject({ code: "unsupported-edit" });
   await expect(bind(await fixture(undefined, '<v:value xsi:type="xs:integer">8</v:value>'), 0.5)).rejects.toMatchObject({ code: "unsupported-edit" });
 });
+
+async function glossaryFixture(descriptor = binding("hidden")) {
+  const original = await readArchive(await fixture(binding("bay")), textContext), enc = new TextEncoder();
+  const members = original.members.map(member => member.name === "[Content_Types].xml" ? { ...member, bytes: enc.encode(new TextDecoder().decode(member.bytes).replace('</Types>', '<Override PartName="/resources/blocks.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.glossary+xml"/></Types>')) } : member.name === "word/_rels/document.xml.rels" ? { ...member, bytes: enc.encode(new TextDecoder().decode(member.bytes).replace('</Relationships>', `<Relationship Id="blocks" Type="${r}/glossaryDocument" Target="../resources/blocks.xml"/></Relationships>`)) } : member);
+  members.push({ name: "resources/blocks.xml", bytes: enc.encode(`<w:glossaryDocument xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docParts><w:docPart><w:docPartBody><w:p>${descriptor}</w:p></w:docPartBody></w:docPart></w:docParts></w:glossaryDocument>`), directory: false, modified: new Date("2025-01-01") });
+  const fs = Volume.fromJSON({ "/input": "" }); await writeArchive({ ...original, members }, { async write(bytes) { fs.appendFileSync("/input", bytes); } }, { order: "input", compression: "store" }, textContext);
+  return new Uint8Array(fs.readFileSync("/input") as Buffer);
+}
+it.each([binding("hidden"), binding("hidden", "", "//v:value")])("refuses same-target or unresolvable same-store unsupported glossary declarations", async descriptor => {
+  const { editDocumentControlBindings } = await import("./control-bindings.js"); const fs = Volume.fromJSON({ "/output": "" });
+  await expect(editDocumentControlBindings(await glossaryFixture(descriptor), { all: true, scope: "all-stories", binding: "bay", valueJson: "New", output: "-" }, { ...textContext, encoding: { order: "input", compression: "store" }, stdout: { async write(bytes) { fs.appendFileSync("/output", bytes); } } })).rejects.toMatchObject({ code: "unsupported-edit" }); expect(fs.readFileSync("/output").length).toBe(0);
+});
+it("retains a different-store unsupported glossary declaration byte-identically during binding", async () => {
+  const input = await glossaryFixture(binding("hidden").replace(store, "{22222222-2222-3333-4444-555555555555}")), before = await readArchive(input, textContext);
+  const { bytes } = await bind(input, "New", { scope: "all-stories" }), after = await readArchive(bytes, textContext);
+  expect(after.members.find(member => member.name === "resources/blocks.xml")!.bytes).toEqual(before.members.find(member => member.name === "resources/blocks.xml")!.bytes);
+  for (const member of before.members.filter(member => member.name !== "customXml/item.xml" && member.name !== "word/document.xml")) expect(after.members.find(candidate => candidate.name === member.name)!.bytes).toEqual(member.bytes);
+});

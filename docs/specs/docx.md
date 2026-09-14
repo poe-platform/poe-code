@@ -269,7 +269,7 @@ object. This is the target of the full pipeline, not a list of implemented featu
 | F38 | SmartArt and diagrams         | Inventory graph/data/layout parts and preserve them. No diagram layout generation.                                                                                                        |
 | F39 | Equations                     | Inventory and preserve OMML; insert/replace validated bounded OMML fragments explicitly. No implied LaTeX conversion or math evaluation.                                                  |
 | F40 | Embedded OLE/packages         | Inventory and preserve inert objects/relationships; explicit bounded extraction only. Never activate embedded content.                                                                    |
-| F41 | Custom XML and glossary       | Inventory/preserve custom XML, bindings, glossary/building-block and ancillary parts; support only declared structural edits.                                                             |
+| F41 | Custom XML and glossary       | Inventory/preserve custom XML, bindings, glossary/building-block and ancillary parts; typed values use controls bind, raw replacement uses validated xml set.                                                             |
 | F42 | Settings/fonts/protection     | Inspect/preserve compatibility, document settings and embedded fonts; respect editing protection. No password cracking or font installation.                                              |
 | F43 | Signatures                    | Detect/list signature parts; default mutation rejection. An explicit strip-signatures operation removes the signature graph before edits; never claim signatures remain valid.            |
 | F44 | Removal                       | Exact range/structure removal with reference checks; retain shared resources and required empty containers.                                                                               |
@@ -663,8 +663,8 @@ independent text/XML/OPC/value assertions, not only to one another.
 | `signatures list`       | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F43                                                                                                |
 | `settings list`         | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F42                                                                                                |
 | `fonts list`            | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F42                                                                                                |
-| `custom-xml list`       | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F41                                                                                                |
-| `glossary list`         | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F41                                                                                                |
+| `custom-xml list`       | read         | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F41                                                                                                |
+| `glossary list`         | read         | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F41                                                                                                |
 | `shapes set`            | selectedEdit | `text!`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | MutationData     | F36                                                                                                |
 | `equations add`         | selectedEdit | `file!`: VfsInput                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | MutationData     | F39                                                                                                |
 | `equations replace`     | selectedEdit | `file!`: VfsInput                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | MutationData     | F39                                                                                                |
@@ -1177,6 +1177,59 @@ appropriate semantic error. Unsupported affected content is `unsupported-edit`.
   not invented semantic editing commands. Equations add/replace require one
   bounded OMML math root, reject arbitrary surrounding WordprocessingML. Objects
   extract emits inert admitted bytes only, never activation.
+- **Custom XML/glossary inventories.** Custom-xml list and glossary list are
+  package-global reads with json/limit only; story selectors, scope and select
+  reject. They return ResourceListData in canonical part-name order, one record
+  per internal customXML item or glossary document root, identified by declared
+  OPC relationships/content types rather than folder spelling. A record has kind
+  custom-xml or glossary, name equal to its canonical part name, a current whole
+  part Location, no text dump, readonly properties, references and support preserve.
+  Missing/ambiguous/unrecognized metadata remains inventoried with null fields and
+  bounded warnings; it is not certified as editable. Associated properties and
+  internal ancillary resources appear in details.parts, including unknown types;
+  related internal graph closure is visited once, external edges are metadata only
+  and never fetched. Orphan declared properties/glossary parts are inventoried too;
+  other unclassified orphan parts remain in inspect.parts and are never deleted.
+  References retain owner-local IDs/types/targets and deterministic owner/ID order.
+  CustomXML details report item root expanded name, matching properties parts,
+  declared store item ID, namespace bindings and inert schema-reference URIs.
+  Glossary details report direct native docPart building-block metadata and paths,
+  including name/GUID/category/gallery/types/behaviors; unknown blocks are preserved
+  without content dumps or semantic imports. All counts/traversals and serialized
+  inventories are admitted on the invocation budget before copies/output.
+  Unedited member payloads and relationship XML remain byte-identical across
+  no-op, targeted binding and other admitted mutations; OPC membership is not
+  inferred from ordinary body reachability. No glossary import/execution, schema
+  fetch, custom schema validation, ancillary activation or semantic edit is added.
+  Controls bind MUST reject a target group with a bound glossary or other
+  unsupported Word-part recipient outside its admitted story inventory. Such a
+  recipient is retained without importing/editing it; all-stories does not hide
+  it or authorize partial cache synchronization. A genuinely different-store
+  unsupported glossary declaration remains unrelated and preserved. Unresolvable
+  same-store declarations reject when target isolation cannot be established.
+  Raw xml set retains root identity, package graph/content-type/profile, protection,
+  signature and resource invariants. An explicitly selected unbound internal
+  customXML item may replace its inert data payload after bounded XML and complete
+  maintained package validation; this is not arbitrary custom-schema certification.
+  Changed raw replacement of a referenced binding item, its store properties, or
+  a Word part containing binding declarations rejects: controls bind is the typed
+  synchronization route. Unchanged raw replacement remains a no-op. Unrelated
+  external/unsupported stores are not fetched or silently detached.
+  Protection/lock and package-signature inspection and mutation admission follow
+  declared OPC part roles, matching roots and owning Word declarations. Signature
+  roles use exact standard content types and relationship URIs; folder names,
+  URI suffixes and MIME prefixes/substrings do not establish a signature graph.
+  Internal parts declared by signature relationships are inventoried even when
+  their well-formed payload root is unrecognized; invalid XML still fails package
+  admission. External declarations remain inert metadata and still trigger
+  default mutation refusal. Arbitrary inert customXML
+  data using those same namespace/local-name spellings is not a story lock,
+  settings protection or package signature. Declared package protection and
+  signature parts/relationships still reject unconditionally, including malformed
+  signature payload roots. Affected/ancestor SDT locks retain the existing control
+  rules; unchanged unrelated locked owners may retain the admitted baseline
+  preservation route. No real lock is detached or bypassed, and default
+  publication remains lock-closed when no such baseline is supplied.
 - **Removal/sanitization/lorem.** signatures remove strips the full signature
   graph and is explicit consent in the command path; no cryptographic claim.
   Other mutations reject signed input. Sanitize remove is a nonempty unique
@@ -1816,10 +1869,26 @@ type ResourceDetails =
         | "equations"
         | "objects"
         | "signatures"
-        | "custom-xml"
-        | "glossary"
         | "fonts";
       parts: { name: string; contentType: string; bytes: number; sha256: string }[];
+    }
+  | {
+      kind: "custom-xml";
+      parts: { name: string; contentType: string; bytes: number; sha256: string }[];
+      root: { namespace: string; localName: string } | null;
+      storeItemId: string | null;
+      propertiesParts: string[];
+      namespaces: { prefix: string; uri: string }[];
+      schemaReferences: string[];
+    }
+  | {
+      kind: "glossary";
+      parts: { name: string; contentType: string; bytes: number; sha256: string }[];
+      buildingBlocks: {
+        path: number[]; name: string | null; guid: string | null;
+        category: string | null; gallery: string | null;
+        types: string[]; behaviors: string[];
+      }[];
     };
 ```
 

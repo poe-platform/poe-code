@@ -1,3 +1,4 @@
+import { documentPartRole, signatureContentTypes, signatureRelationshipTypes } from "./document-part-roles.js";
 import { dirname, basename, type FileStat, type FileSystem } from "@poe-code/safe-fs/core";
 import { archiveSettings, CancellationError, InputTypeError, ResourceLimitError, type ArchiveContext, type DocumentArchive } from "./archive.js";
 import type { ArchiveSink, ArchiveWriteOptions } from "./archive-write.js";
@@ -145,14 +146,16 @@ async function publish(fs: FileSystem, target: Destination, bytes: Uint8Array, s
 export function assertDocumentEditable(archive: DocumentArchive, { limits, budget }: ReturnType<typeof archiveSettings>, controlSource?: DocumentArchive): void {
   // Until feature-specific authorization is implemented, protected packages fail closed.
   const packageView = new DocumentPackage(archive, limits, budget);
+  for (const owner of ["/", ...packageView.parts.filter(part => part.content_type.toLowerCase() !== "application/vnd.openxmlformats-package.relationships+xml").map(part => part.partname)]) for (const edge of packageView.relationships(owner)) if (signatureRelationshipTypes.includes(edge.reltype)) throw new UnsupportedEditError("Signed package publication is not supported.");
   for (const part of packageView.parts) {
     const type = part.content_type.toLowerCase();
-    if (type.includes("digital-signature")) throw new UnsupportedEditError("Signed package publication is not supported.");
+    if (signatureContentTypes.includes(type)) throw new UnsupportedEditError("Signed package publication is not supported.");
     if (!type.endsWith("+xml") && type !== "application/xml" && type !== "text/xml") continue;
     const current = controlSource ? new DocumentXmlEditor(part.bytes, {}, undefined, budget) : undefined;
     const originalPart = controlSource?.members.find(member => "/" + member.name === part.partname);
     const original = originalPart ? new DocumentXmlEditor(originalPart.bytes, {}, undefined, budget) : undefined;
     const root = current?.root ?? parseDocumentXml(part.bytes, {}, budget).root;
+    const role = documentPartRole(type, root); if (role !== "story" && role !== "glossary" && role !== "settings") continue;
     const stack = [{ node: root, path: [] as number[], ancestors: [root] }];
     while (stack.length) {
       const { node, path, ancestors } = stack.pop()!;
@@ -169,9 +172,7 @@ export function assertDocumentEditable(archive: DocumentArchive, { limits, budge
         }
       }
       if ((Object.values(documentDialects).some(dialect => node.namespace === dialect.w)
-        && (["documentProtection", "writeProtection"].includes(node.localName) || node.localName === "lock" && !preservedControlLock))
-        || node.namespace === "http://www.w3.org/2000/09/xmldsig#"
-        || node.attributes.some(attribute => attribute.localName === "Type" && attribute.value.includes("/digital-signature/")))
+        && (role === "settings" && ancestors.length === 2 && ["documentProtection", "writeProtection"].includes(node.localName) || node.localName === "lock" && ancestors.at(-2)?.namespace === node.namespace && ancestors.at(-2)?.localName === "sdtPr" && ancestors.at(-3)?.namespace === node.namespace && ancestors.at(-3)?.localName === "sdt" && !preservedControlLock)))
         throw new UnsupportedEditError("Protected or signed package publication is not supported.");
       node.children.forEach((child, index) => stack.push({ node: child, path: [...path, index], ancestors: [...ancestors, child] }));
     }

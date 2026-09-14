@@ -1,3 +1,4 @@
+import { readDocumentBindingOwnership } from "./binding-ownership.js";
 import { embeddedFontState, UnsupportedEmbeddedFontMutationError } from "./font-resources.js";
 import { archiveSettings, InputTypeError, type ArchiveContext, type ArchiveMember } from "./archive.js";
 import { readDocumentArchive, type AdmittedDocumentArchive } from "./admission.js";
@@ -115,12 +116,18 @@ export async function replaceDocumentXmlPart(input: Uint8Array, replacement: Uin
   }
   assertDocumentEditable(archive, settings);
   const changed = member !== undefined && (member.bytes.length !== xml.bytes.length || member.bytes.some((byte, index) => byte !== xml.bytes[index]));
+  const ownership = readDocumentBindingOwnership(archive.package, budget);
+  const bindingIds = new Set(ownership.declarations.flatMap(declaration => declaration.storeItemId === null ? [] : [declaration.storeItemId.toLowerCase()]));
+  const bindingParts = new Set(ownership.declarations.map(declaration => declaration.part));
+  for (const store of ownership.stores) if (store.storeItemId !== null && bindingIds.has(store.storeItemId.toLowerCase())) { bindingParts.add(store.item); bindingParts.add(store.properties); }
+  if (changed && bindingParts.has("/" + member!.name)) throw new UnsupportedEditError("Raw replacement of binding declarations or referenced stores is unsupported; use controls bind.");
+  const unboundCustomItem = member !== undefined && ["/", ...archive.package.parts.filter(part => part.content_type.toLowerCase() !== "application/vnd.openxmlformats-package.relationships+xml").map(part => part.partname)].some(owner => archive.package.relationships(owner).some(edge => !edge.is_external && ["http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml", "http://purl.oclc.org/ooxml/officeDocument/relationships/customXml"].includes(edge.reltype) && edge.target_part.partname === "/" + member!.name));
   if (member) {
     const original = parseDocumentXml(member.bytes, {}, budget);
     if (original.root.namespace !== xml.root.namespace || original.root.localName !== xml.root.localName)
       throw new UnsupportedEditError("Replacement must retain the part root expanded name.");
     if (changed) budget.charge("insertedNodes", replacementNodes);
-    if (changed && opaqueContent(original.root, budget) !== opaqueContent(xml.root, budget))
+    if (changed && !unboundCustomItem && opaqueContent(original.root, budget) !== opaqueContent(xml.root, budget))
       throw new UnsupportedEditError("Replacement changes opaque XML content or its namespace context.");
   }
   const candidate = { ...archive, members: archive.members.map(entry => entry === member ? { ...entry, bytes: xml.bytes } : entry) };

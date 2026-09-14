@@ -37,6 +37,7 @@ import { executeParagraphEditCommand } from "./paragraph-edit-command.js";
 import { executeStyleModelCommand } from "./style-model-command.js";
 import { executeStylesCommand } from "./styles-command.js";
 import { executeRunFormatCommand } from "./run-format-command.js";
+import { executePackageResourcesCommand } from "./ancillary-resources-command.js";
 
 export interface DocxInspectionCommandRequest extends DocxCommandRequest {
   readonly cwd: string;
@@ -77,12 +78,13 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
       const tableOperation = ["tables.set", "tables.rows.add", "tables.rows.remove", "tables.columns.add", "tables.columns.remove", "tables.merge", "tables.split"].includes(invocation.operation);
       const listOperation = ["lists.add", "lists.set"].includes(invocation.operation);
       const storyOperation = ["headers.list", "headers.get", "headers.set", "headers.remove", "footers.list", "footers.get", "footers.set", "footers.remove"].includes(invocation.operation);
+      const packageResourceOperation = ["custom-xml.list", "glossary.list"].includes(invocation.operation);
       try {
         if (invocation.operation === "create") {
           output = await executeCreateCommand(invocation, request, context, io);
           budget.check("serializedOutput", output.length);
         } else {
-        if (invocation.operation !== "revisions.list" && !controlOperation && !revisionEditOperation && !commentOperation && !noteOperation && !fieldOperation && invocation.operation !== "fields.list" && !bookmarkOperation && invocation.operation !== "bookmarks.list" && !linkOperation && invocation.operation !== "links.list" && !tableOperation && invocation.operation !== "tables.get" && !listOperation && !storyOperation && invocation.operation !== "batch" && invocation.operation !== "inspect" && invocation.operation !== "validate" && invocation.operation !== "text.get" && invocation.operation !== "text.replace" && invocation.operation !== "runs.set" && !["paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation) && !["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set"].includes(invocation.operation) && invocation.operation !== "xml.get" && invocation.operation !== "xml.set") {
+        if (!packageResourceOperation && invocation.operation !== "revisions.list" && !controlOperation && !revisionEditOperation && !commentOperation && !noteOperation && !fieldOperation && invocation.operation !== "fields.list" && !bookmarkOperation && invocation.operation !== "bookmarks.list" && !linkOperation && invocation.operation !== "links.list" && !tableOperation && invocation.operation !== "tables.get" && !listOperation && !storyOperation && invocation.operation !== "batch" && invocation.operation !== "inspect" && invocation.operation !== "validate" && invocation.operation !== "text.get" && invocation.operation !== "text.replace" && invocation.operation !== "runs.set" && !["paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation) && !["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set"].includes(invocation.operation) && invocation.operation !== "xml.get" && invocation.operation !== "xml.set") {
           throw Object.assign(new Error("This document operation is not implemented."), { code: "unsupported-profile" });
         }
         if (invocation.operation !== "revisions.list" && !controlOperation && !revisionEditOperation && !fieldOperation && invocation.operation !== "fields.list" && !bookmarkOperation && invocation.operation !== "bookmarks.list" && !linkOperation && invocation.operation !== "links.list" && ["link", "control", "revision", "shape", "field", "bookmark"].some(key => invocation.options[key] !== undefined)) {
@@ -102,8 +104,9 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
           return { async *[Symbol.asyncIterator]() { yield await request.filesystem.readFile(path, { signal }); } };
         } });
         acquiring = false;
-        if (controlOperation || revisionEditOperation || commentOperation || noteOperation || fieldOperation || bookmarkOperation || linkOperation || tableOperation || listOperation || storyOperation || ["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set", "xml.get", "xml.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation)) {
-          output = controlOperation ? controlTemplateOperation
+        if (packageResourceOperation || controlOperation || revisionEditOperation || commentOperation || noteOperation || fieldOperation || bookmarkOperation || linkOperation || tableOperation || listOperation || storyOperation || ["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set", "xml.get", "xml.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation)) {
+          output = packageResourceOperation ? await executePackageResourcesCommand(invocation, bytes, request, context)
+            : controlOperation ? controlTemplateOperation
             ? await executeControlTemplateCommand(invocation, bytes, inputIdentity, request, context)
             : await executeControlsCommand(invocation, bytes, inputIdentity, request, context)
             : revisionEditOperation ? invocation.operation === "revisions.add"

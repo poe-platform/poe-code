@@ -1,3 +1,4 @@
+import { documentPartRole, signatureContentTypes, signatureRelationshipTypes } from "./document-part-roles.js";
 import { readFontResources, type FontResourceData } from "./font-resources.js";
 import { archiveSettings, readArchive, InputTypeError, InvalidValueError, type ArchiveContext } from "./archive.js";
 import { readDocumentArchive } from "./admission.js";
@@ -152,11 +153,12 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
     const root = parseDocumentXml(part.bytes, {}, budget).root;
     roots.set(part.partname, root);
     properties.push(...propertiesOf(root, part.partname, archive.dialect));
+    const role = documentPartRole(type, root), owners = new Map<XmlElement, XmlElement>();
     const raw = [root];
     while (raw.length) {
       budget.charge("work", 1);
       const node = raw.pop()!;
-      raw.push(...node.children);
+      for (const child of node.children) { budget.charge("retainedBytes", 16); owners.set(child, node); raw.push(child); }
       if (node.namespace === "http://schemas.openxmlformats.org/markup-compatibility/2006" || node.attributes.some(attr => attr.namespace === "http://schemas.openxmlformats.org/markup-compatibility/2006")) compatibility = true;
       if (!documentCompatibilityProfile.understoodNamespaces.includes(node.namespace) && node.namespace !== "http://schemas.openxmlformats.org/markup-compatibility/2006") unknownNamespaces.add(node.namespace);
       for (const attr of node.attributes) if (attr.namespace && attr.namespace !== "http://www.w3.org/2000/xmlns/" && attr.namespace !== "http://schemas.openxmlformats.org/markup-compatibility/2006" && !documentCompatibilityProfile.understoodNamespaces.includes(attr.namespace)) unknownNamespaces.add(attr.namespace);
@@ -171,7 +173,7 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
       const node = current.source;
       if (current.disposition !== "understood") { unknownNamespaces.add(node.namespace); continue; }
       stack.push(...[...current.content].reverse());
-      if (node.namespace === w) {
+      if (node.namespace === w && (role === "story" || role === "glossary" || role === "settings")) {
         const name = node.localName;
         const count = countNames.get(name);
         if (count && count !== "cachedPages") counts[count]++;
@@ -179,7 +181,7 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
         if (name === "fldSimple" || name === "fldChar" && attribute(node, "fldCharType", w) === "begin") counts.fields++;
         if (name === "lastRenderedPageBreak") cachedBreaks++;
         if (annotationNames.has(name)) annotations.push({ part: part.partname, kind: name, id: attribute(node, "id", w) ?? null, author: attribute(node, "author", w) ?? null, date: attribute(node, "date", w) ?? null });
-        if (["documentProtection", "writeProtection", "lock"].includes(name)) {
+        if (role === "settings" && owners.get(node) === root && ["documentProtection", "writeProtection"].includes(name) || name === "lock" && owners.get(node)?.namespace === w && owners.get(node)?.localName === "sdtPr" && owners.get(owners.get(node)!)?.namespace === w && owners.get(owners.get(node)!)?.localName === "sdt") {
           const enforcement = attribute(node, "enforcement", w);
           const edit = attribute(node, name === "lock" ? "val" : "edit", w) ?? null;
           const enforced = name === "lock" ? edit !== "unlocked" : name === "writeProtection" ? true : enforcement === undefined ? false : ["1", "true", "on"].includes(enforcement) ? true : ["0", "false", "off"].includes(enforcement) ? false : null;
@@ -207,7 +209,10 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
     budget.charge("retainedBytes", token.length * 4);
     return { kind: entry.scope ?? "story", location: { kind: "story" as const, token, value, positions: { ...entry.positions } }, properties: [], references: relationships.filter(r => r.owner === entry.part), support: "read" as const };
   });
-  const signatureParts = parts.filter(p => p.contentType.toLowerCase().startsWith("application/vnd.openxmlformats-package.digital-signature") || p.name.toLowerCase().startsWith("/_xmlsignatures/"));
+  const signatureReferences = relationships.filter(reference => signatureRelationshipTypes.includes(reference.type));
+  const signatureTargets = new Set<string>(); for (const owner of ["/", ...graph.parts.filter(part => !part.content_type.endsWith("relationships+xml")).map(part => part.partname)]) for (const edge of graph.relationships(owner)) if (!edge.is_external && signatureRelationshipTypes.includes(edge.reltype)) signatureTargets.add(edge.target_part.partname);
+  const signatureParts = parts.filter(part => signatureContentTypes.includes(part.contentType.toLowerCase()) || signatureTargets.has(part.name));
+  const signed = signatureParts.length > 0 || signatureReferences.length > 0;
   const media = parts.filter(p => ["image/", "audio/", "video/"].some(prefix => p.contentType.toLowerCase().startsWith(prefix)));
   const embedded = parts.filter(p => p.contentType.toLowerCase().includes("font")).filter(p => !p.contentType.endsWith("+xml")).map(p => p.name);
   const warnings: InspectionWarning[] = [
@@ -225,14 +230,14 @@ export async function inspectDocument(input: Uint8Array, context: ArchiveContext
     ["F24", counts.footnotes + counts.endnotes > 0, "read"], ["F25", counts.comments > 0, "read"], ["F26", annotations.some(a => a.kind !== "comment"), "read"],
     ["F27", annotations.some(a => ["moveFrom", "moveTo", "tblPrChange", "tcPrChange", "sectPrChange"].includes(a.kind)), "read"],
     ["F28", counts.controls > 0, "read"], ["F30", properties.length > 0, "read"], ["F31", media.length > 0, "read"], ["F39", counts.equations > 0, "preserve"],
-    ["F41", relationships.some(r => r.type.endsWith("/customXml") || r.type.endsWith("/glossaryDocument")) || parts.some(p => p.contentType.includes("glossary") || p.name.startsWith("/customXml/")), "preserve"], ["F42", fontNames.size + embedded.length + protection.length > 0 || parts.some(p => p.contentType.endsWith(".settings+xml") || p.contentType.endsWith(".fontTable+xml")), "read"], ["F43", signatureParts.length > 0, "preserve"]
+    ["F41", relationships.some(r => ["http://schemas.openxmlformats.org/officeDocument/2006/relationships/customXml", "http://purl.oclc.org/ooxml/officeDocument/relationships/customXml", "http://schemas.openxmlformats.org/officeDocument/2006/relationships/glossaryDocument", "http://purl.oclc.org/ooxml/officeDocument/relationships/glossaryDocument"].includes(r.type)) || parts.some(p => p.contentType.toLowerCase() === "application/vnd.openxmlformats-officedocument.wordprocessingml.document.glossary+xml" || p.contentType.toLowerCase() === "application/vnd.openxmlformats-officedocument.customxmlproperties+xml"), "preserve"], ["F42", fontNames.size + embedded.length + protection.length > 0 || parts.some(p => p.contentType.endsWith(".settings+xml") || p.contentType.endsWith(".fontTable+xml")), "read"], ["F43", signed, "preserve"]
   ];
   const fontResources = readFontResources(archive, roots, budget);
   if (fontResources.diagnostics.length) warnings.push({ code: "unresolved-font-resources", message: "Theme or embedded font references have unresolved package resources; see fontResources.diagnostics." });
   const result: InspectionData = { fontResources, kind: archive.kind, dialect: archive.dialect, sizes: { archiveBytes: owned.length, expandedBytes: parts.reduce((sum, p) => sum + p.bytes, 0), mediaBytes: media.reduce((sum, p) => sum + p.bytes, 0) }, parts, relationships,
     contentTypes: { defaults: graph.defaults.map(d => ({ extension: d.extension, contentType: d.content_type })).sort((a, b) => compare(a.extension, b.extension)), overrides: graph.overrides.map(d => ({ name: d.partname, contentType: d.content_type })).sort((a, b) => compare(a.name, b.name)) },
     stories, properties, counts, features: detections.map(([id, detected, level]) => ({ id, detected, level, subsets: [{ name: "inventory", level, reason: "Package inventory only; no editing or rendering claim." }] })),
-    signed: signatureParts.length > 0, protected: protection.some(p => p.enforced !== false), pages: { rendered: null, cachedBreaks },
+    signed, protected: protection.some(p => p.enforced !== false), pages: { rendered: null, cachedBreaks },
     fonts: { references: [...fontNames].sort(compare), themeReferences: [...themeNames].sort(compare), embedded, installed: null },
     signatures: { parts: signatureParts.map(p => p.name), verified: null }, media, annotations, protection, warnings };
   const size = new TextEncoder().encode(JSON.stringify(result)).length;

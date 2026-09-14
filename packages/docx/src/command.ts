@@ -154,6 +154,7 @@ export function parseDocxArguments(args: readonly Uint8Array[], budget = new Doc
   if (words[0] === "--version") words[0] = "version";
   let consumed = 0;
   for (let count = 1; count <= words.length; count++) {
+    if (words[count - 1]!.includes(".")) break;
     const candidate = words.slice(0, count).join(".");
     if (direct(candidate)) { operation = candidate; consumed = count; }
     if (words[count]?.startsWith("-")) break;
@@ -207,6 +208,7 @@ export function parseDocxArguments(args: readonly Uint8Array[], budget = new Doc
   for (const name of Object.keys(options)) if (name.endsWith("Json")) options[name] = parseDocxJson(options[name] as string, budget);
   if (operation === "properties.set" && !help) Object.assign(options, normalizeDocxPropertyOptions(options, true));
   if (operation === "help" || operation === "schema") {
+    if (inputs.some(word => word.includes("."))) usage("Unknown discovery path.");
     const target = inputs.join(".");
     if (target && !direct(target) && target !== "text") usage("Unknown discovery path.");
     if (target) {

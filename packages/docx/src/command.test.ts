@@ -8,12 +8,32 @@ const argv = (...args: string[]) => args.map(value => new TextEncoder().encode(v
 const parse = (...args: string[]) => parseDocxArguments(argv(...args));
 
 describe("document literal command grammar", () => {
+  it.each([
+    ["text.get", "/coast.docx"],
+    ["help", "text.get"]
+  ])("rejects dotted CLI path aliases before I/O: %j", async (...words) => {
+    const volume = Volume.fromJSON({ "/coast.docx": "original coast" });
+    let reads = 0;
+    let calls = 0;
+    const engine = createDocxCommandEngine({
+      async readSource(source) { reads++; return Uint8Array.from(volume.readFileSync(source.path) as Uint8Array); },
+      async execute() { calls++; volume.writeFileSync("/coast.docx", "dispatched"); return { exitCode: 0 }; }
+    });
+    const result = await engine.execute({ args: argv(...words), stdin: { async *[Symbol.asyncIterator]() { reads++; yield new Uint8Array([0xff]); } }, stdout: { async write() {} }, stderr: { async write() {} }, signal: new AbortController().signal });
+    expect(result.exitCode).toBe(2);
+    expect(reads).toBe(0);
+    expect(calls).toBe(0);
+    expect(volume.readFileSync("/coast.docx", "utf8")).toBe("original coast");
+  });
+
   it("retains Unicode paths, leading dashes and literal replacement data", () => {
     const result = parse("text", "replace", "--find", "$(ignored) 'shore'", "--with=", "--all", "-o=résumé.docx", "--", "-海岸.docx");
     expect(result.operation).toBe("text.replace");
     expect(result.inputs).toEqual(["-海岸.docx"]);
     expect(result.options).toMatchObject({ find: "$(ignored) 'shore'", with: "", all: true, output: "résumé.docx" });
     expect(parse("text", "海岸.docx").operation).toBe("text.get");
+    expect(parse("text", "get", "coast.report.docx").inputs).toEqual(["coast.report.docx"]);
+    expect(parse("schema", "--operation", "text.get").options.operation).toBe("text.get");
   });
   it.each([
     [], ["--help"], ["-h"], ["help"], ["text", "replace", "--help"]

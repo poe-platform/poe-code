@@ -1,0 +1,235 @@
+{
+  "sourceSha": "ec59c216b5844b1e45e2709ec6bd7dfa6b6abf2f",
+  "sourceHash": "92ada3f4beabbe27ab7edc7811c92842cef7d32c4c060a1ec7a9c96bbde38578",
+  "counts": {
+    "files": 493,
+    "fixtures": 0,
+    "metadataErrors": 0,
+    "executionErrors": 0,
+    "variants": 986,
+    "passed": 968,
+    "failed": 18,
+    "unsupported": 0
+  },
+  "complete": true,
+  "exitCode": 1,
+  "timeouts": 0,
+  "nonpasses": [
+    {
+      "filename": "built-ins/Atomics/add/immutable-buffer.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      },
+      "disposition": "tracked newer immutable-buffer helper unavailable"
+    },
+    {
+      "filename": "built-ins/Atomics/add/immutable-buffer.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      },
+      "disposition": "tracked newer immutable-buffer helper unavailable"
+    },
+    {
+      "filename": "built-ins/Atomics/and/immutable-buffer.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      },
+      "disposition": "tracked newer immutable-buffer helper unavailable"
+    },
+    {
+      "filename": "built-ins/Atomics/and/immutable-buffer.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      },
+      "disposition": "tracked newer immutable-buffer helper unavailable"
+    },
+    {
+      "filename": "built-ins/Atomics/compareExchange/immutable-buffer.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      },
+      "disposition": "tracked newer immutable-buffer helper unavailable"
+    },
+    {
+      "filename": "built-ins/Atomics/compareExchange/immutable-buffer.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      },
+      "disposition": "tracked newer immutable-buffer helper unavailable"
+    },
+    {
+      "filename": "built-ins/Atomics/exchange/immutable-buffer.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      },
+      "disposition": "tracked newer immutable-buffer helper unavailable"
+    },
+    {
+      "filename": "built-ins/Atomics/exchange/immutable-buffer.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      },
+      "disposition": "tracked newer immutable-buffer helper unavailable"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/immutable-buffer-returns-0.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      },
+      "disposition": "tracked newer immutable-buffer helper unavailable"
+    },
+    {
+      "filename": "built-ins/Atomics/notify/immutable-buffer-returns-0.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      },
+      "disposition": "tracked newer immutable-buffer helper unavailable"
+    },
+    {
+      "filename": "built-ins/Atomics/or/immutable-buffer.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      },
+      "disposition": "tracked newer immutable-buffer helper unavailable"
+    },
+    {
+      "filename": "built-ins/Atomics/or/immutable-buffer.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      },
+      "disposition": "tracked newer immutable-buffer helper unavailable"
+    },
+    {
+      "filename": "built-ins/Atomics/store/immutable-buffer.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      },
+      "disposition": "tracked newer immutable-buffer helper unavailable"
+    },
+    {
+      "filename": "built-ins/Atomics/store/immutable-buffer.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      },
+      "disposition": "tracked newer immutable-buffer helper unavailable"
+    },
+    {
+      "filename": "built-ins/Atomics/sub/immutable-buffer.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      },
+      "disposition": "tracked newer immutable-buffer helper unavailable"
+    },
+    {
+      "filename": "built-ins/Atomics/sub/immutable-buffer.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      },
+      "disposition": "tracked newer immutable-buffer helper unavailable"
+    },
+    {
+      "filename": "built-ins/Atomics/xor/immutable-buffer.js",
+      "mode": "sloppy",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      },
+      "disposition": "tracked newer immutable-buffer helper unavailable"
+    },
+    {
+      "filename": "built-ins/Atomics/xor/immutable-buffer.js",
+      "mode": "strict",
+      "status": "failed",
+      "reason": "unexpected-throw",
+      "detail": {
+        "phase": "runtime",
+        "message": "no arg factories match include immutable and exclude undefined",
+        "type": "Test262Error"
+      },
+      "disposition": "tracked newer immutable-buffer helper unavailable"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+(node:43994) ExperimentalWarning: Custom ESM Loaders is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"withEffect":false,"outOfBand":false,"original":7,"pendingReplay":{"ok":true,"value":7},"completedReplay":{"ok":true,"value":7},"saves":1,"effects":[],"replayError":null}
+{"withEffect":false,"outOfBand":true,"original":7,"pendingReplay":{"ok":true,"value":0},"completedReplay":{"ok":true,"value":0},"saves":1,"effects":[],"replayError":null}
+{"withEffect":true,"outOfBand":false,"original":7,"pendingReplay":{"ok":true,"value":7},"completedReplay":{"ok":true,"value":7},"saves":1,"effects":[7,7],"replayError":null}
+{"withEffect":true,"outOfBand":true,"original":7,"pendingReplay":{"ok":true,"value":0},"completedReplay":{"error":"HostCallResumabilityError","message":"Host call 7c511a62-fc2c-4908-a091-5f8bb5507bb4:3 does not match the next restored invocation; reset is required."},"saves":1,"effects":[7,0],"replayError":null}

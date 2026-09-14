@@ -3051,3 +3051,53 @@ three production files. Existing assertions, budgets and limits remain unchanged
 Full candidate qualification and delivery are pending; no remote or publication
 receipt is claimed here. Raw logs are in the source workspace under
 `docs/plans/qualify-snapshot-adversarial-input/caller-accessor-20260914/`.
+
+
+## qualify-snapshot-adversarial-input — Caller-mutated run envelope, 2026-09-14
+
+Source anchor `f8bfe64531758086a10493dc32e22fe8dadb08e1` plus the preserved
+working candidate. Node **22.23.2 / ICU 78.2**, V8 **12.4.254.21-node.56**,
+Darwin arm64. ECMA-262 edition **16**, ECMA-402 edition **12**, Test262
+`419d3e0a2273ba01a3bfcbec423f2801425b8e93` and explicitly tracked newer APIs
+remain unchanged.
+
+Six bounded, in-memory regressions reproduce caller-installed accessors on the
+actual mutable snapshot returned by `run()`: `version`, `sourceHash`, `clock`,
+`random`, `promiseReplay`, and an extra envelope property. All six fail before
+the repair because a local invocation counter becomes nonzero. Snapshot branding
+permitted skipping envelope descriptor validation. The envelope is now checked
+regardless of branding; permitted runtime payload values retain their existing
+validation rules. No budgets, timeouts, assertions or runtime support changed.
+
+The six controls now pass through public restore, run, migration inspection and
+migration construction: `SnapshotValidationError`, `invalidType`, the exact
+property path, zero accessor invocations and zero host calls. Restoring the
+original descriptors permits successful replay without repeating the host call.
+No disk fixture or model invocation is used by the regression.
+
+Fresh commands from the repository root:
+
+```sh
+npx vitest run packages/safe-js/src/snapshot/caller-mutated-run-snapshot.test.ts
+npx vitest run packages/safe-js/src/snapshot packages/safe-js/src/migrate.test.ts packages/safe-js/src/migration-file.test.ts packages/safe-js/src/run.test.ts packages/safe-js/src/run.snapshot.test.ts packages/safe-js/src/transport-version-matrix.test.ts packages/safe-js/src/run.transport-v8-compatibility.test.ts packages/safe-js/src/external-checkpoint-validation.test.ts packages/safe-js/test/adversarial/snapshot-mutation.test.ts packages/safe-js/test/integration/snapshot-roundtrip.test.ts packages/safe-js/test/integration/crash-resume.test.ts packages/agent-harness/src/loader/agent-results.test.ts
+npx tsc -p packages/safe-js/tsconfig.json --noEmit
+npx eslint packages/safe-js/src/snapshot/validation.ts packages/safe-js/src/snapshot/caller-mutated-run-snapshot.test.ts
+```
+
+Results: **6 expected red failures**, then **6/6 green**; broad gate
+**2,656/2,656 in 193 files**, 155.40 s, zero failures/skips/unhandled errors.
+TypeScript and scoped ESLint exit 0. Existing mutation limits and rollback,
+capability, legacy-format and identity controls are included unchanged.
+Raw logs and environment/preservation receipts are retained locally under
+`docs/plans/qualify-snapshot-adversarial-input/caller-accessor-20260914/`.
+
+Delivery is underway in an isolated `main` checkout based on freshly fetched
+remote `2f2c4dd236ad0db6f48bc5d6ececc685499bcaa4`, preserving the shared tree's
+45/70 divergent commits and staged edits. Six prior task commits reconcile;
+the ledger append conflict preserves both histories. The initial clean test
+attempt fails at import because generated Intl data has not yet been built;
+this is not a test pass. Maintained dependency-closure build and revalidation
+are required before pushing. **Local repair commit: recorded after creation.
+Verified remote-main delivery: none yet. Publication: none for this candidate.**
+Overall acceptance remains open until the clean candidate and delivery gates
+are evidenced. Historical non-Node limitations are not silently waived.

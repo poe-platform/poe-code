@@ -1,3 +1,5 @@
+import { inventoryCommentExtensions, commentParagraphNamespace } from "./comment-extensions.js";
+import { documentCompatibilityProfile } from "./compatibility.js";
 import { archiveSettings, type ArchiveContext } from "./archive.js";
 import { documentDialects, dialectForNamespace } from "./dialect.js";
 import { openDocumentLocations } from "./locations.js";
@@ -31,6 +33,8 @@ export async function openComments(input: Uint8Array, context: ArchiveContext) {
   const edges = graph.relationships(main).filter(e => e.reltype === r + "/comments");
   if (edges.length > 1 || edges.some(e => e.is_external)) throw new InvalidPackageError("Comments require one internal owning relationship.");
   const part = edges[0]?.target_part.partname;
+  const extensions = inventoryCommentExtensions(graph, editors, budget);
+  if (part && extensions.length) editors.set(part, new DocumentXmlEditor(graph.getPart(part).bytes, {}, { ...documentCompatibilityProfile, understoodNamespaces: [...documentCompatibilityProfile.understoodNamespaces, commentParagraphNamespace] }, budget));
   const editor = part ? editors.get(part) : undefined;
   if (part && (!editor || editor.root.namespace !== w || editor.root.localName !== "comments" || graph.getPart(part).content_type !== "application/vnd.openxmlformats-officedocument.wordprocessingml.comments+xml"))
     throw new InvalidPackageError("Invalid comments part.");
@@ -79,6 +83,6 @@ export async function openComments(input: Uint8Array, context: ArchiveContext) {
     if (records.some(other => other !== record && other.start && other.end && other.start.part === record.start!.part && other.start.order < record.end!.order && record.start!.order < other.end.order)) record.issues.push("overlapping-comments");
   }
   const issues = [...new Set([...records.flatMap(n => n.issues), ...markers.some(m => !ids.has(m.id)) ? ["missing-body"] : []])];
-  const modern = graph.parts.some(p => ["commentsExtended", "commentsIds", "commentsExtensible", "people"].some(kind => p.content_type.toLowerCase().includes(kind.toLowerCase())));
-  return { document, archive, main, graph, editors, dialect, w, r, part, records, markers, issues, modern, budget };
+  const modern = extensions.length > 0;
+  return { document, archive, main, graph, editors, dialect, w, r, part, records, markers, issues, modern, extensions, budget };
 }

@@ -87,7 +87,11 @@ The bounded [classic-comment milestone](../plans/docx-comments.md) implements
 comments.list/get/add/set/remove with explicit identity/time, run-boundary body
 anchors, consistency checks and targeted marker/body deletion. Its snapshot
 CommentReadData uses comment_id and stored timestamp strings; the proposed live
-Comment model retains its Date-valued timestamp. Modern metadata is preserve-only.
+Comment model retains its Date-valued timestamp. The later
+[comment extension milestone](../plans/docx-comment-extensions.md) inventories
+modern parts/IDs and adds verified single-paragraph text retention and synchronized
+removal. Opaque affected metadata and orphaned replies reject; thread authoring
+remains unsupported.
 Comment batches, cross-paragraph anchor creation and live model owners remain pending.
 
 ## Normative language

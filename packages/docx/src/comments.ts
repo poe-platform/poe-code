@@ -1,3 +1,4 @@
+import { synchronizeCommentExtensions, type CommentExtensionInfo } from "./comment-extensions.js";
 import { archiveSettings, type ArchiveContext, type DocumentArchive } from "./archive.js";
 import { DocxUsageError } from "./argument-json.js";
 import { writeArchive } from "./archive-write.js";
@@ -22,7 +23,7 @@ export interface CommentInfo {
   readonly issues: readonly string[];
 }
 export interface CommentAnchor { readonly part: string; readonly path: readonly number[] }
-export interface CommentReadData { readonly items: readonly CommentInfo[]; readonly issues: readonly string[]; readonly modern: "preserve" | null }
+export interface CommentReadData { readonly items: readonly CommentInfo[]; readonly issues: readonly string[]; readonly modern: "preserve" | null; readonly extensions: readonly CommentExtensionInfo[] }
 export interface CommentEditData {
   readonly changed: boolean;
   readonly changes: readonly { readonly kind: "insert" | "replace" | "remove"; readonly before: Location; readonly after: Location | null }[];
@@ -60,7 +61,7 @@ export async function inspectDocumentComments(input: Uint8Array, request: Commen
     return { comment_id: n.id, author: commentAttribute(n.node, "author") ?? "", initials: commentAttribute(n.node, "initials") ?? null,
       timestamp: commentAttribute(n.node, "date") ?? null, text: state.document.text({ select: n.location.token }).text, location: n.location,
       range: n.start && n.end && n.reference ? { start: anchor(n.start), end: anchor(n.end), reference: anchor(n.reference) } : null, issues: n.issues };
-  }), issues: state.issues, modern: state.modern ? "preserve" : null };
+  }), issues: state.issues, modern: state.modern ? "preserve" : null, extensions: state.extensions };
   budget.check("serializedOutput", new TextEncoder().encode(JSON.stringify({ version: 1, operation: request.operation, ok: true, data, affected: 0, locations: data.items.map(n => n.location), warnings: [], errors: [] }) + "\n").length);
   return data;
 }
@@ -140,7 +141,7 @@ export async function editDocumentComments(input: Uint8Array, request: CommentEd
     updates.push({ before, id, kind: "insert" });
   } else {
     const records = selectedComments(state, request.operation, options);
-    if (state.modern && records.length) throw new UnsupportedEditError("Modern comment metadata is preserve-only.");
+    synchronizeCommentExtensions(state, records, request.operation === "comments.remove");
     for (const record of records) {
       await budget.checkpoint();
       if (!record.location || record.issues.some(i => i !== "deleted-anchor")) throw new UnsupportedEditError("Selected comment anchors are unsafe.");
@@ -155,7 +156,12 @@ export async function editDocumentComments(input: Uint8Array, request: CommentEd
           const replacement = replaceParagraphContent(record.editor, p, properties ? record.editor.sourceXml(properties) : "", i ? "" : options.text);
           return i ? "" : replacement;
         });
-        paragraphs.forEach((p, i) => record.editor.replaceElement(p, replacements[i]!));
+        if (state.modern && paragraphs.length === 1) {
+          const p = paragraphs[0]!;
+          const content = p.children.filter(n => n.namespace === w && ["r", "hyperlink"].includes(n.localName));
+          content.forEach((n, i) => record.editor.replaceElement(n, i ? "" : paragraphTextRun(w, options.text)));
+          if (!content.length) record.editor.insertChildren(p, paragraphTextRun(w, options.text));
+        } else paragraphs.forEach((p, i) => record.editor.replaceElement(p, replacements[i]!));
         if (!paragraphs.length) record.editor.insertChildren(record.node, `<cm:p xmlns:cm="${w}">${paragraphTextRun(w, options.text)}</cm:p>`);
       } else {
         const annotation = (node: typeof record.node): boolean => { budget.charge("work", 1); return node.namespace === w && ["bookmarkStart", "bookmarkEnd", "commentRangeStart", "commentRangeEnd", "commentReference", "permStart", "permEnd"].includes(node.localName) || node.children.some(annotation); };

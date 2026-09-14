@@ -135,3 +135,5 @@ export { inspectDocumentFields, editDocumentFields, type FieldListData, type Fie
 export { inspectDocumentNotes, editDocumentNotes, type NoteInfo, type NoteReadRequest, type NoteEditRequest, type NoteReadData, type NoteEditData } from "./notes.js";
 export { inspectDocumentComments, editDocumentComments } from "./comments.js";
 export type { CommentReadRequest, CommentEditRequest, CommentInfo, CommentAnchor, CommentReadData, CommentEditData } from "./comments.js";
+
+export type { CommentExtensionInfo } from "./comment-extensions.js";

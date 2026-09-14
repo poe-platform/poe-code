@@ -1,3 +1,4 @@
+import { commentExtensionParts } from "./comment-extension-parts.js";
 import { InvalidPackageError, type XmlElement } from "./package-xml.js";
 import { MarkupCompatibility, documentCompatibilityProfile, type CompatibilityContent, type CompatibilityProfile } from "./compatibility.js";
 import type { DocumentPackage, PackageRelationship } from "./package.js";
@@ -120,7 +121,10 @@ export function validatePackageDialect(graph: DocumentPackage, mainEdge: Package
       throw new InvalidPackageError("A document part root uses the opposite document dialect.", part.partname, "/", "part-root");
     const name = type.slice(prefix.length, -4);
     const expected = word && Object.hasOwn(wordRoots, name) ? wordRoots[name] : undefined;
-    if (word && (partRoot.namespace !== documentDialects[dialect].w || (expected && partRoot.localName !== expected)))
+    const extension = commentExtensionParts.find(e => e.contentType.toLowerCase() === type);
+    if (extension && (partRoot.namespace !== extension.namespace || partRoot.localName !== extension.root))
+      throw new InvalidPackageError("A comment extension root disagrees with its content type.", part.partname, "/", "part-root");
+    if (word && !extension && (partRoot.namespace !== documentDialects[dialect].w || (expected && partRoot.localName !== expected)))
       throw new InvalidPackageError("A WordprocessingML part root disagrees with its content type.", part.partname, "/", "part-root");
     let view: MarkupCompatibility;
     try { view = validateXmlDialect(partRoot, dialect, documentCompatibilityProfile, budget); }

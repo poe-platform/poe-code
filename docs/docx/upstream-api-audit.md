@@ -140,6 +140,13 @@ collections retain their inventoried obligations. Utility tests neither promote
 those live APIs nor hide public underscore-prefixed types. The existing
 id/date/paragraphs/add_run documentation-error dispositions remain unchanged.
 
+The later [comment extension synchronization record](../plans/docx-comment-extensions.md)
+adds modern part/identifier inventory and verified classic-text/deletion behavior.
+It records exact JS/security mappings and supersedes only the earlier blanket
+mutation refusal. Thread authoring, affected opaque/entity semantics and the live
+Comment/Comments and inherited API obligations remain pending. The historical
+inventory and documentation-error dispositions are retained unchanged.
+
 The bounded [cached-field utility milestone](../plans/docx-fields.md) adds
 fields.list/set and records exact JS/security mappings, preserved instruction
 bytes and scoped CLI/SDK discovery. The pinned inventory has no field-specific

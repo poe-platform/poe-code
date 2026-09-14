@@ -1,0 +1,277 @@
+{
+  "schema_version": 1,
+  "task": "verify-python-test-baseline",
+  "verified_at": "2026-09-14",
+  "scope": "Retained evidence and local source verification only; no suite rerun or product implementation.",
+  "inputs": [
+    {
+      "path": "docs/docx/upstream-test-evidence.json",
+      "sha256": "33456a55dd743dae9b450f1a3581e841a291ac65f74efe5c4444d11033014627"
+    },
+    {
+      "path": "docs/docx/upstream-test-inventory.json",
+      "sha256": "14c609ceb775158cb36c0423d24678b4a3e9f09d429085730b28103a759ad797"
+    },
+    {
+      "path": "docs/docx/upstream-api-inventory.json",
+      "sha256": "10955a17b17ac1b334c5854ce7048970f9033ddb0408322bef3e3586d19e44ac"
+    },
+    {
+      "path": "docs/docx/upstream-api-reconciliation.md",
+      "sha256": "784967677f9444c8d2610372b44d59c0e3ca4256b2d357d7da70b925509600c3"
+    },
+    {
+      "path": "docs/pptx/upstream-test-audit.md",
+      "sha256": "63a4ba0c9845b2d4e833288d5e7fd459684be1c25cea1712727c1e9afe32528b"
+    },
+    {
+      "path": "docs/pptx/upstream-test-evidence.json",
+      "sha256": "bd9a134210bd8ff3c51d249809070b8c44306c021b47189ca0e849343b72cf58"
+    },
+    {
+      "path": "docs/pptx/upstream-test-inventory.json",
+      "sha256": "702a7b6aaa2009050583c4ef4c2b363ef5f52bea4a59cc60aa5861e30731fa6d"
+    },
+    {
+      "path": "docs/specs/docx.md",
+      "sha256": "632b73d5950ef80124ecc82fa3f174dcd6fa72281a192d1731e4cc1530ab64d1"
+    },
+    {
+      "path": "docs/specs/office-cli.md",
+      "sha256": "cb5614e03c841f31d98efe4bcf2aabdb419926aa26775d17b401598d9a2d74ce"
+    },
+    {
+      "path": "docs/specs/office-sdk.md",
+      "sha256": "a73354b0e643eef159f9bda0cb9b096234fb34f0d224c3fbead5a92f38e673b9"
+    }
+  ],
+  "docx_source": {
+    "path": "/tmp/docx-upstream-review",
+    "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+    "tree": "23a8d30c586aaf5bfcd6886c1a4c4f158435fe31",
+    "tracked_files_compared_to_commit": 625,
+    "working_tree_byte_mismatches": 0,
+    "index_entries": 0,
+    "index_note": "Existing checkout index is empty. Compared working-tree Git blob hashes directly with HEAD; did not reset or repair the checkout.",
+    "api_documentation_hashes_verified": 39,
+    "api_source_hashes_verified": 45,
+    "api_auxiliary_hashes_verified": 1
+  },
+  "rerun": {
+    "performed": false,
+    "reason": "Pinned DOCX source and retained evidence are consistent. Missing disposable raw artifacts limit revalidation; they do not establish a changed source or test result. Historical summaries remain historical, not new executions."
+  },
+  "baselines": {
+    "docx": {
+      "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+      "unique_unit_variants": 1609,
+      "unique_expanded_bdd_cases": 650,
+      "feature_files": 67,
+      "unit_junit_summary": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "0",
+        "tests": "1609",
+        "time": "11.635",
+        "timestamp": "2026-09-12T17:12:16.379706-05:00",
+        "hostname": "m5mb-kjopek"
+      },
+      "coverage_totals": {
+        "covered_lines": 7407,
+        "num_statements": 7612,
+        "percent_covered": 96.31737918215613,
+        "percent_covered_display": "96",
+        "missing_lines": 205,
+        "excluded_lines": 240,
+        "percent_statements_covered": 97.30688386757751,
+        "percent_statements_covered_display": "97",
+        "num_branches": 996,
+        "num_partial_branches": 80,
+        "covered_branches": 884,
+        "missing_branches": 112,
+        "percent_branches_covered": 88.75502008032129,
+        "percent_branches_covered_display": "89"
+      },
+      "coverage_files_summed": 95,
+      "bdd_run_summary": [
+        "67 features passed, 0 failed, 0 skipped",
+        "650 scenarios passed, 0 failed, 0 skipped",
+        "1856 steps passed, 0 failed, 0 skipped",
+        "Took 0min 2.392s"
+      ],
+      "initial_attempts": [
+        {
+          "environment": "pytest 9.1.1; pyparsing 3.3.2",
+          "result": "39 PPTX / 35 DOCX collection errors due to pyparsing deprecations treated as errors"
+        },
+        {
+          "environment": "pytest 9.1.1; pyparsing 3.2.3",
+          "result": "16 PPTX / 9 DOCX setup errors from deprecated class-scoped instance fixtures and dependent fixture setup"
+        },
+        {
+          "environment": "pytest 8.4.2; pyparsing 3.2.3",
+          "result": "all unit tests and BDD scenarios pass; no source patches or warning suppression"
+        }
+      ],
+      "case_source_locations": "All inventory paths exist and line numbers are in range; BDD identity is source_file + line + expanded name.",
+      "raw_artifacts": [
+        {
+          "name": "test.log",
+          "path": "/tmp/docx-upstream-test.log",
+          "sha256": "71aced7c6968a72e57af92a2f9d271b0dfdbf0336e91be8855727dcf261c34ec",
+          "availability": "absent",
+          "hash_reverified": false
+        },
+        {
+          "name": "bdd.log",
+          "path": "/tmp/docx-upstream-bdd.log",
+          "sha256": "da83ca6c9594041385a06090bef9be0eefba48cb19c73ee3a1c9143c0424c59a",
+          "availability": "absent",
+          "hash_reverified": false
+        },
+        {
+          "name": "initial-failure.log",
+          "path": "/tmp/docx-upstream-initial-failure.log",
+          "sha256": "1bd098013cd13a8bc623e6df7ea73e267088100bc8aa6ca1d8b8036a409542af",
+          "availability": "absent",
+          "hash_reverified": false
+        },
+        {
+          "name": "pytest9-failure.log",
+          "path": "/tmp/docx-upstream-pytest9-failure.log",
+          "sha256": "597e0c999b8c0e445949f9120f4b06a9fc5d3e141e768512053040dd1737cb1b",
+          "availability": "absent",
+          "hash_reverified": false
+        },
+        {
+          "name": "coverage.json",
+          "path": "/tmp/docx-upstream-coverage.json",
+          "sha256": "c770d2aa2d8a1b4b233569c74719dbeaac4039d60892c0aa258d3571132c11bc",
+          "availability": "absent",
+          "hash_reverified": false
+        },
+        {
+          "name": "junit.xml",
+          "path": "/tmp/docx-upstream-junit.xml",
+          "sha256": "f431755d0f2f6bbe9793502755151e4127354a1f64c4f622ebac3c71c26862a3",
+          "availability": "absent",
+          "hash_reverified": false
+        }
+      ]
+    },
+    "pptx": {
+      "commit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+      "unique_unit_variants": 2700,
+      "unique_expanded_bdd_cases": 973,
+      "feature_files": 54,
+      "unit_junit_summary": {
+        "name": "pytest",
+        "errors": "0",
+        "failures": "0",
+        "skipped": "0",
+        "tests": "2700",
+        "time": "17.545",
+        "timestamp": "2026-09-12T17:12:15.407693-05:00",
+        "hostname": "m5mb-kjopek"
+      },
+      "coverage_totals": {
+        "covered_lines": 11246,
+        "num_statements": 11508,
+        "percent_covered": 96.90920302142747,
+        "percent_covered_display": "97",
+        "missing_lines": 262,
+        "excluded_lines": 200,
+        "percent_statements_covered": 97.72332290580466,
+        "percent_statements_covered_display": "98",
+        "num_branches": 1466,
+        "num_partial_branches": 111,
+        "covered_branches": 1327,
+        "missing_branches": 139,
+        "percent_branches_covered": 90.51841746248294,
+        "percent_branches_covered_display": "91"
+      },
+      "coverage_files_summed": 101,
+      "bdd_run_summary": [
+        "54 features passed, 0 failed, 0 skipped",
+        "973 scenarios passed, 0 failed, 0 skipped",
+        "2914 steps passed, 0 failed, 0 skipped",
+        "Took 0min 5.866s"
+      ],
+      "initial_attempts": [
+        {
+          "environment": "pytest 9.1.1; pyparsing 3.3.2",
+          "result": "39 PPTX / 35 DOCX collection errors due to pyparsing deprecations treated as errors"
+        },
+        {
+          "environment": "pytest 9.1.1; pyparsing 3.2.3",
+          "result": "16 PPTX / 9 DOCX setup errors from deprecated class-scoped instance fixtures and dependent fixture setup"
+        },
+        {
+          "environment": "pytest 8.4.2; pyparsing 3.2.3",
+          "result": "all unit tests and BDD scenarios pass; no source patches or warning suppression"
+        }
+      ],
+      "case_source_locations": "All inventory paths exist and line numbers are in range; BDD identity is source_file + line + expanded name.",
+      "raw_artifacts": [
+        {
+          "name": "test.log",
+          "path": "/tmp/pptx-upstream-test.log",
+          "sha256": "f0669312316466035bf317e689e68512250bd20940d1076181bd2297b274da02",
+          "availability": "absent",
+          "hash_reverified": false
+        },
+        {
+          "name": "bdd.log",
+          "path": "/tmp/pptx-upstream-bdd.log",
+          "sha256": "8297cf81967733082a17fee694b6d3235c797916733d1b73a59661de39e0455b",
+          "availability": "absent",
+          "hash_reverified": false
+        },
+        {
+          "name": "initial-failure.log",
+          "path": "/tmp/pptx-upstream-initial-failure.log",
+          "sha256": "a0cb39044ceb22e9bdfdde6b0ff68ef659ddfde3d64a5d91baf317dcb1ec0343",
+          "availability": "absent",
+          "hash_reverified": false
+        },
+        {
+          "name": "pytest9-failure.log",
+          "path": "/tmp/pptx-upstream-pytest9-failure.log",
+          "sha256": "339993d3da429f72059af3fa379c54bce82cae3f732fb63cad4f32b324e75241",
+          "availability": "absent",
+          "hash_reverified": false
+        },
+        {
+          "name": "coverage.json",
+          "path": "/tmp/pptx-upstream-coverage.json",
+          "sha256": "7aef27060d455729b5280d1b194ab9586e16c0c15721f2980d91abefa0f8e816",
+          "availability": "absent",
+          "hash_reverified": false
+        },
+        {
+          "name": "junit.xml",
+          "path": "/tmp/pptx-upstream-junit.xml",
+          "sha256": "c124b244f3fb0a264fa7c300220bfd57267bc91ff9007000ccae91f5aa26e335",
+          "availability": "absent",
+          "hash_reverified": false
+        }
+      ]
+    }
+  },
+  "counterpart_limit": "PPTX checkout files are present but Git metadata is absent; no fresh counterpart commit verification or execution claimed.",
+  "api": {
+    "records": 920,
+    "unique_records": 920,
+    "documentation_resolutions": 23,
+    "adaptation_status": "All DOCX API and all 2259 source-test rows remain unmapped_not_implemented.",
+    "mapping_authority": "docs/docx/upstream-api-reconciliation.md#language-and-security-decisions",
+    "whole_api_parity": false
+  },
+  "preservation": {
+    "reference_runtimes_executed": false,
+    "fixtures_deleted": false,
+    "product_files_changed": false,
+    "original_evidence_rewritten": false
+  }
+}

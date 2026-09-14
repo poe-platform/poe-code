@@ -2378,3 +2378,49 @@ Manual checks for the exact task-owned source bytes: scoped ESLint **exit 0**; m
 Actual collection time and eventual cleanup remain explicit nondeterministic host contracts, not missing forced-GC features. No permanent unique-symbol table, extra host grant, weaker assertion/budget/timeout, or higher version floor was introduced. Inherited source, staged changes and the ledger prefix were verified preserved; only the task-owned ledger addition is committed.
 
 **Local delivery:** the cancellation fix, seven regressions and relevant evidence form the enclosing Conventional Commit; obtain its SHA with `git log -1 --format=%H -- packages/safe-js/src/interp/finalization-cancellation-lifetime.test.ts`. **Verified remote-main delivery: none. Successful release/publication: none.** No push was requested or performed. Acceptance remains **OPEN** for the required minimum-runtime symbol implementation and unqualified runtime cells.
+
+## qualify-shared-memory — partial qualification, 2026-09-13
+
+**Acceptance remains open.** [Commands, smallest counterexamples, controls, case
+owners and dispositions](qualify-shared-memory/qualification.md) retain the
+published ECMA-262 edition 16 / ECMA-402 edition 12 target, separately pinned
+extensions, and Test262 `419d3e0a2273ba01a3bfcbec423f2801425b8e93`.
+Execution used local main `e044be891151cf6f4b3ff20eaaf8838b687e3869` plus recorded
+preserved dirty source, Node 22.23.2 / ICU 78.2. Remote main observed:
+`da2ff844e7e72e96fc74e059e896822b0e920a86`; this is not a remote-source test claim.
+
+TDD reproduced and repaired low-level atomic-wait activation without a cleanup
+owner, reuse by a different/disposed owner, and a controlled registration race
+that previously invented a `not-equal` settlement for an already queued wait.
+The [recovery repair](qualify-shared-memory/atomic-activation-repair.md) preserves
+public versus low-level restore, same-owner idempotence, FIFO, cancellation,
+remaining-time accounting, and the nonblocking host agent. The [runner change](qualify-shared-memory/runner-admission.md)
+admits non-agent shared-memory fixtures and qualifies CanBlockIsFalse; it does
+not implement `$262.agent` or grant blocking authority.
+
+[Broader checks](qualify-shared-memory/qualification.log): **2,801 passed / 206
+files**, zero failures/skips; TypeScript and scoped ESLint passed. The [pinned
+upstream selection](qualify-shared-memory/upstream-v3.jsonl) completed **493 files /
+986 variants: 730 passed, 18 failed, 238 unsupported**, exit 1. All 18 failures are
+nine newer immutable-buffer fixtures in both modes, whose helper cannot supply
+immutable buffers; they remain failed observations, with edition/newer-API
+classification explicit. Unsupported: **224 agent / 14 blocking-mode** variants.
+Initial path-error and source-drift attempts are retained as aborted, not passes.
+Only Node22 was exercised; the required wider runtime matrix remains unverified.
+
+A [deterministic recovery counterexample](qualify-shared-memory/recovery-matrix.log)
+is still **unrepaired**: a host-retained shared buffer written by a queued
+microtask after callback return gives **original 7 / pending replay 0 / completed
+replay 0**, with no early rejection. The neighboring synchronous host-write
+control gives **7 / 7 / 7**. Snapshot boundary bytes cannot recover arbitrary
+intervening shared histories. No blanket removal of existing alias/transactional
+paths or invented-history guarantee is claimed. Early rejection/capture of this
+class and isolated upstream agent coverage remain explicit acceptance blockers.
+
+Local implementation commits:
+`8089068f678e97a3e3e7a738b28745b6a4dc6772` and
+`e0b76883387d9e38826f014d3e3e24202d25e65b`.
+**Verified remote-main delivery: none. Task release receipts: none.** Local and
+remote histories already diverged before this task's commits; no push occurred.
+Unrelated staged/local edits are preserved. These bounded improvements do not
+complete qualify-shared-memory.

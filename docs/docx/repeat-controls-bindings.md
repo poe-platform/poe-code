@@ -76,3 +76,5 @@ Research inventories and downloaded QA files remain unchanged. Preparation,
 reference passes and these utility tests do not promote live model/API rows,
 ordered batches, template apply, corpus or full conformance. No README edits,
 cache cleanup, push or release occurred.
+
+Local feature commit: `2996c149608eb452762c9cf687665c663f4cd65e`. No remote delivery or release is claimed.

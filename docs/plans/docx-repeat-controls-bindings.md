@@ -1,6 +1,6 @@
 # Repeating controls and explicit bindings
 
-Status: ordered task 64 verified against the corrected combined source; local commits pending. Task 63 verified and committed locally
+Status: ordered task 64 verified and committed locally. Task 63 verified and committed locally
 as `70f724ec0`, isolated status `e6f37dd7007372134f665f13c0e9344115994626`.
 Current branch is main; index empty. Preserve unrelated tasks 48–59 pipeline
 status edits and untracked Pyodide plan. No branch, README edit, push or release.
@@ -267,3 +267,8 @@ Durable usage/evidence is docs/docx/repeat-controls-bindings.md; sole spec remai
 Proposed/Implemented Through Not applicable. Exact upstream test/API assignments
 are none for this additive F29 utility; model and corpus statuses remain pending.
 No README/cache cleanup/push/release. Task65 cannot start before owned commits.
+
+Local feature commit: `2996c149608eb452762c9cf687665c663f4cd65e` (`feat(docx): repeat and synchronize controls`).
+Task64 implement/test statuses are done after the gates above. This status commit
+is isolated from unrelated tasks48–59 working-tree status edits. No remote-main
+delivery, push or release occurred. Task65 begins only after the status commit.

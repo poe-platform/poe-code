@@ -162,3 +162,70 @@ The original workspace/index has not been modified by this candidate checkout.
 Local commit and publication receipts are appended separately after delivery.
 
 Final package log SHA-256: `3d7cfa17dcf8bb6097cc02b407950dbd6ef5eacd7d69c012838c0b1912314f73`.
+
+## Additional stable Bun cell
+
+`npm view bun version dist-tags --json` observed stable **1.4.2** on 2026-09-14.
+A separately labeled run using `npm exec --yes --package=bun@1.4.2 -- bun run -`
+passes the same built manual module, exit **0**. [Exact receipt](bun-stable.json)
+records original 7, receiver count 1, explicit rejection and confined original/
+replay `[1,"ok"]`. Native structuredClone also preserves the shared alias on
+1.4.2 (`distinct:true, original:7, copy:7`). Its reported Node compatibility
+version 26.3.0 is not a separately tested Node executable.
+
+The installed 1.3.11 canary nonpass remains retained; the newer runtime was not
+silently substituted for that cell. No runtime floor, ECMAScript edition or
+newer-API target was changed. This is one additional built smoke cell, not full
+Bun conformance or installed-artifact coverage.
+
+## Fresh remaining argument-history witness
+
+The complete four-cell module is retained as the second module in
+[manual QA](manual-qa.md) and was executed against the public built index. It
+reproduces the earlier private-import observation without requiring untracked
+files from the original workspace.
+[Exact results](argument-replay-current.json) identify commit
+`069ae0b0913040c33feb0d8c07f0531d6d6c0dc8`, Node22.23.2/ICU78.2.
+Synchronous writes retain 7/7/7 original/pending/completed results. Queued writes
+through raw host arguments still produce original **7** and pending/completed
+return-only replay **0**. With a subsequent effect, pending replay still issues
+**`[7,0]`**; completed replay rejects only at the later host-argument mismatch.
+`replayError` remains absent for these raw-argument histories. Observation exit 0
+is not an acceptance pass. This fresh result confirms that the callback-only
+repair does not close SM-REPLAY-1/2 or overall task acceptance.
+
+## Scoped publication verified
+
+The [scoped workflow](https://github.com/poe-platform/poe-code/actions/runs/34813253991)
+completed successfully for code commit
+`069ae0b0913040c33feb0d8c07f0531d6d6c0dc8`. All three actual published versions
+are **0.1.592**: `@poe-platform/safe-fs`, `@poe-platform/safe-js` and
+`@poe-platform/safe-bash`. [Registry receipts](registry-scoped.json) independently
+match every tarball SHA-512 to registry integrity and the attested subject, and
+every SLSA source commit to the delivered SHA and exact workflow invocation.
+
+This was temporarily a partial publication. SafeFS/Bash appeared first; SafeJS
+initially returned the previous latest version, then exact-version 404s. Its
+version metadata became visible before its tarball and attestation endpoints.
+[Initial observations](registry-scoped-initial.json) and the failed install in
+[initial smoke receipts](installed-scoped-first.json) remain retained. The
+publisher log reported acceptance for processing at 06:28:02Z. Read-only retries
+eventually verified the actual artifact; no old-version substitution, local
+publishing, unpublish or destructive rollback occurred.
+
+Independent installed checks pass:
+
+- [SafeJS](installed-js.json): six exact Node versions and Bun1.4.2 pass original
+  callback behavior, explicit recovery rejection and confined wait/notify replay.
+  npm verifies 15 registry signatures and ten available attestations.
+- [SafeFS](installed-fs.json): isolated Node memory read/write and Node adapter
+  export checks pass; three signatures and two attestations verify.
+- [Safe Bash](installed-bash.json): isolated Node22 and Bun1.4.2 shell/filesystem
+  checks pass; six signatures and four attestations verify. Two initial manual
+  setup mistakes are retained: MemoryFS constructor options and omitted explicit
+  command registration. The corrected setup preserves the same exit/output
+  assertions; no library code or authority default was changed to obtain a pass.
+
+The [schema workflow](https://github.com/poe-platform/poe-code/actions/runs/34813254022)
+also succeeded. Root `poe-code` publication remains pending its separate required
+workflow; scoped publication does not establish root publication or task closure.

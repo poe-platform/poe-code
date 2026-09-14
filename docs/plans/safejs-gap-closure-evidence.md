@@ -2723,3 +2723,25 @@ package typecheck pass on Node 22.23.2 / ICU 78.2.
 The enclosing commit delivers only this repair. Publication remains independently
 tracked. Overall shared-memory acceptance remains open for uncaptured raw/legacy
 histories and outstanding agent/runtime coverage.
+
+
+### Shared-memory delivery checkpoint — 2026-09-14
+
+**Task OPEN.** Verified remote-main code commits are callback capture rejection
+`069ae0b0913040c33feb0d8c07f0531d6d6c0dc8`, owned/race-safe activation
+`85c0bb75933965e77c02a91f3c26af53acedf638`, and awaited rollback cleanup
+`d63d1f4bb81b4514d873090b970b796bb15be702`.
+[Disposition, commands, source/runtime cells and release recovery path](qualify-shared-memory/releases/disposition.md).
+The final source passes 2,336 scoped snapshot/disposal/callback tests and the
+maintained selected build; the earlier full-package result is separately labeled.
+Real-worker rollback passes six exact Node versions and stable Bun1.4.2.
+Both Node18 growth cells remain failures. Raw shared-argument replay still returns
+0 instead of 7 and can issue `[7,0]` effect arguments; legacy rejection and upstream
+agent qualification remain acceptance blockers. No target or runtime floor changed.
+
+All scoped packages 0.1.592 and 0.1.593 have independent installed-artifact,
+integrity and provenance receipts. Final SafeFS/Bash 0.1.594 verify; SafeJS0.1.594
+is still propagating at this checkpoint. Root publication is pending a successor
+containing all changes; cancelled/skipped predecessors are not release success.
+Terminal receipts are recorded separately in the delivery folder after monitoring.
+No explicitly associated issue was supplied. Original staged/unrelated work is preserved.

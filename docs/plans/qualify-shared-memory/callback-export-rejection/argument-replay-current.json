@@ -1,0 +1,80 @@
+{
+  "sourceCommit": "069ae0b0913040c33feb0d8c07f0531d6d6c0dc8",
+  "node": "22.23.2",
+  "icu": "78.2",
+  "entry": "file:///private/tmp/poe-code-qualify-shared-memory-delivery/packages/safe-js/dist/index.js",
+  "command": "node --input-type=module (second manual QA module)",
+  "exitCode": 0,
+  "results": [
+    {
+      "withEffect": false,
+      "outOfBand": false,
+      "original": 7,
+      "pendingReplay": {
+        "ok": true,
+        "value": 7
+      },
+      "completedReplay": {
+        "ok": true,
+        "value": 7
+      },
+      "saves": 1,
+      "effects": [],
+      "replayError": null
+    },
+    {
+      "withEffect": false,
+      "outOfBand": true,
+      "original": 7,
+      "pendingReplay": {
+        "ok": true,
+        "value": 0
+      },
+      "completedReplay": {
+        "ok": true,
+        "value": 0
+      },
+      "saves": 1,
+      "effects": [],
+      "replayError": null
+    },
+    {
+      "withEffect": true,
+      "outOfBand": false,
+      "original": 7,
+      "pendingReplay": {
+        "ok": true,
+        "value": 7
+      },
+      "completedReplay": {
+        "ok": true,
+        "value": 7
+      },
+      "saves": 1,
+      "effects": [
+        7,
+        7
+      ],
+      "replayError": null
+    },
+    {
+      "withEffect": true,
+      "outOfBand": true,
+      "original": 7,
+      "pendingReplay": {
+        "ok": true,
+        "value": 0
+      },
+      "completedReplay": {
+        "error": "HostCallResumabilityError",
+        "message": "Host call 93d6fe55-d420-49c2-a6db-06236c1134c8:3 does not match the next restored invocation; reset is required."
+      },
+      "saves": 1,
+      "effects": [
+        7,
+        0
+      ],
+      "replayError": null
+    }
+  ]
+}

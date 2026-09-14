@@ -118,10 +118,10 @@ export function validateDumpEnvelope(
     dataPrototypes: new WeakSet()
   };
   if (canPreflightRunSnapshotScalars(root)) validateRunSnapshotScalars(root);
-  if (!trusted) {
-    if (types.isProxy(root)) fail("invalidType", "$", "proxy objects are not snapshot data");
-    snapshotDataEntries(root, "$", state.dataPrototypes);
-  }
+  // run() returns a mutable envelope. Its provenance permits runtime values,
+  // but cannot authorize accessors subsequently installed by its caller.
+  if (types.isProxy(root)) fail("invalidType", "$", "proxy objects are not snapshot data");
+  snapshotDataEntries(root, "$", state.dataPrototypes);
   if (root.version !== 1 && root.version !== DUMP_FORMAT_VERSION) {
     fail("unsupportedVersion", "$.version", `expected ${DUMP_FORMAT_VERSION}`);
   }

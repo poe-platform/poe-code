@@ -6,6 +6,7 @@ import { openDocumentLocations } from "./locations.js";
 import { encodeLocation, SelectionError, type Location } from "./location-token.js";
 import { pathContains } from "./location-index.js";
 import { resolveDocxSelection } from "./simple-selection.js";
+import { stageTrackedText, type TrackedTextEdit } from "./tracked-text.js";
 import { DocumentArchiveEditor } from "./package-write.js";
 import { type XmlElement } from "./package-xml.js";
 import { UnsupportedEditError, type DocumentXmlEditor } from "./xml-write.js";
@@ -173,8 +174,33 @@ export async function replaceDocumentText(input: Uint8Array, options: TextReplac
     record.edits.push({ start, end, insert: i ? "" : opts.with });
     edits.set(leaf.node, record);
   });
+  if (opts.trackChanges) {
+    const tracked: TrackedTextEdit[] = [];
+    for (const match of changedMatches) {
+      const first = match.leaves[0]!, last = match.leaves.at(-1)!;
+      const xml = first.leaf.editor;
+      let paragraph = xml.root;
+      for (const i of match.paragraph.value.path) paragraph = paragraph.children[i]!;
+      let position = 0, start = -1, end = -1;
+      const visit = (node: XmlElement) => {
+        budget.charge("work", 1);
+        const info = revisionInfo(node);
+        if (node.namespace !== paragraph.namespace || info?.support === "opaque" || info?.type === "delete" || info?.markup.startsWith("moveFrom") ||
+          ["rPr", "pPr", "instrText", "delInstrText", "drawing", "pict", "object"].includes(node.localName)) return;
+        const text = node.localName === "t" ? node.text : ["tab", "br", "cr"].includes(node.localName) ? "\n" : undefined;
+        if (text !== undefined) {
+          if (node === first.leaf.node) start = position + [...text.slice(0, first.start)].length;
+          if (node === last.leaf.node) end = position + [...text.slice(0, last.end)].length;
+          position += [...text].length;
+        } else for (const child of node.children) visit(child);
+      };
+      visit(paragraph);
+      tracked.push({ paragraph: match.paragraph, start, end, text: opts.with, ...(opts.bold === undefined ? {} : { bold: opts.bold }), ...(opts.italic === undefined ? {} : { italic: opts.italic }) });
+    }
+    stageTrackedText(editor, tracked, { author: opts.author!, timestamp: opts.timestamp! }, budget, settings.limits);
+  }
   const runs = new Map<XmlElement, { editor: DocumentXmlEditor; patches: Map<XmlElement, string> }>();
-  for (const { leaf, edits: changes } of edits.values()) {
+  for (const { leaf, edits: changes } of opts.trackChanges ? [] : edits.values()) {
     const original = leaf.node.localName === "t" || leaf.node.localName === "delText" ? leaf.node.text : leaf.text;
     let offset = 0, text = "", markup = "";
     for (const change of changes) {

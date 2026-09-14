@@ -35,7 +35,7 @@ export class SourceError extends Error {
 
 const selectors = ["section", "paragraph", "run", "table", "cell", "image", "comment", "note", "link", "control", "revision", "shape", "field", "bookmark"];
 const publication = ["output", "outputDir", "inPlace", "force", "dryRun", "json", "limit", "timestamp", "author"];
-const switches = new Set(["json", "inPlace", "force", "dryRun", "allowEmpty", "allowPartialOutput", "first", "all", "raw", "pretty", "unique", "shared", "before", "deleteContent"]);
+const switches = new Set(["json", "inPlace", "force", "dryRun", "allowEmpty", "allowPartialOutput", "first", "all", "raw", "pretty", "unique", "shared", "before", "deleteContent", "trackChanges"]);
 const sourceFields = new Set(["file", "fallback", "template", "contentFile", "dataFile", "opsFile"]);
 export const docxInvocationBudgets = new WeakMap<DocxInvocation, DocumentBudget>();
 const errorContexts = new WeakMap<Error, { operation: string; json: boolean; budget: DocumentBudget }>();
@@ -297,6 +297,9 @@ function validateSelections(operation: string, options: Record<string, unknown>)
 function validateEffects(operation: string, options: Record<string, unknown>, schema: DocxOperationSchema): void {
   const has = (name: string) => options[name] !== undefined;
   if (operation === "text.replace") {
+    if (options.trackChanges === true) {
+      if (!has("author") || !has("timestamp")) usage("Tracked replacement requires explicit author and timestamp.");
+    } else if (has("author") || has("timestamp")) usage("Untracked replacement rejects author and timestamp.");
     if (options.find === "") usage("Search text must not be empty.");
     if (Number(options.first === true) + Number(options.all === true) + Number(has("occurrence")) !== 1) usage("Choose exactly one text match cardinality.");
   }

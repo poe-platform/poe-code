@@ -171,5 +171,14 @@ export function getDocxOperationSchema(id: string, transport: "sdk" | "cli" | "b
   const definitions: Record<string, DocxJsonSchema> = {};
   const applicable = transport === "batch" ? fields : { ...Object.fromEntries(declaration.commonOptions.map(key => [key, docxCommonOptions[key]!])), ...fields };
   const schema = fieldsSchema(applicable, definitions);
-  return { $schema: "https://json-schema.org/draft/2020-12/schema", ...schema, ...(Object.keys(definitions).length ? { $defs: definitions } : {}) };
+  const conditions: DocxJsonSchema[] = [];
+  if (id === "text.replace") conditions.push({ anyOf: [
+    { properties: { trackChanges: { const: true } }, required: ["trackChanges", "author", "timestamp"] },
+    { properties: { trackChanges: { const: false } }, not: { anyOf: [{ required: ["author"] }, { required: ["timestamp"] }] } },
+  ] });
+  if (id === "revisions.add") conditions.push({ anyOf: [
+    { properties: { kind: { const: "insert" } }, required: ["text"] },
+    { properties: { kind: { const: "delete" } }, not: { required: ["text"] } },
+  ] });
+  return { $schema: "https://json-schema.org/draft/2020-12/schema", ...schema, ...(conditions.length ? { allOf: conditions } : {}), ...(Object.keys(definitions).length ? { $defs: definitions } : {}) };
 }

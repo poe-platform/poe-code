@@ -38,6 +38,7 @@ it("closes the document runtime over portable ZIP and XML implementations", asyn
   const runtime = await import(/* @vite-ignore */ `data:text/javascript;base64,${Buffer.from(result.outputFiles[0]!.contents).toString("base64")}`);
   expect(runtime.parseDocumentXml(new TextEncoder().encode('<note label="Coastal survey"/>')).root.localName).toBe("note");
   expect(runtime.Document).toBeUndefined();
+  expect(runtime.editDocumentRevisions).toBeTypeOf("function");
   expect(runtime.parseDocxArguments([new TextEncoder().encode("--help")]).operation).toBe("help");
   expect(runtime.getDocxOperationSchema("text.replace").additionalProperties).toBe(false);
   expect(runtime.validateDocxBatch({ version: 1, operations: [] }).operations).toEqual([]);

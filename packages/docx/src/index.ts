@@ -139,4 +139,5 @@ export type { CommentReadRequest, CommentEditRequest, CommentInfo, CommentAnchor
 export type { CommentExtensionInfo } from "./comment-extensions.js";
 
 export { inspectDocumentRevisions, type RevisionListData } from "./revisions.js";
+export { editDocumentRevisions, type RevisionEditOptions, type RevisionEditData } from "./revision-edit.js";
 export type { RevisionInfo } from "./revision-markup.js";

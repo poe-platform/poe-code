@@ -29,7 +29,7 @@ export function validateDocxSelection(operation: string, options: Readonly<Recor
   if (resource === "sections" && has("scope")) reject("Sections are package-global resources.");
   if (["styles", "properties", "settings", "fonts", "signatures", "custom-xml", "glossary"].includes(resource) &&
     (selected.length || token || has("scope"))) reject("Global resources reject story selectors.");
-  if (all && operation !== "text.replace" && operation !== "lorem.set" &&
+  if (all && operation !== "text.replace" && operation !== "lorem.set" && operation !== "revisions.add" &&
     !["set", "remove", "accept", "reject"].includes(action)) reject("All is not applicable to this operation.");
 
   if (["headers", "footers"].includes(resource) && ["get", "set", "remove"].includes(action) && !has("section") && !token)
@@ -42,12 +42,23 @@ export function validateDocxSelection(operation: string, options: Readonly<Recor
   if (action === "add" && ["runs", "links", "fields", "toc", "captions", "notes", "images", "equations"].includes(resource) && !has("paragraph") && !token)
     reject("Inline insertion requires a paragraph.");
   if (operation === "equations.replace" && !token) reject("Equation replacement requires a location token.");
-  if (["bookmarks.add", "comments.add", "revisions.add"].includes(operation)) {
+  if (operation === "revisions.add") {
+    if (!token) {
+      if (!has("paragraph") && !has("run") && !all) reject("Tracked creation requires a paragraph or run selection, or explicit all scope.");
+    } else {
+      let range;
+      try { range = decodeLocation(options.select as string).range; }
+      catch { reject("Invalid tracked selection token."); }
+      if (range && (options.kind === "insert" ? range.start !== range.end : range.start === range.end))
+        reject("Tracked insertion requires a caret; deletion requires nonempty text.");
+    }
+  }
+  if (["bookmarks.add", "comments.add"].includes(operation)) {
     if (!token) reject("Range insertion requires a location token.");
     let range;
     try { range = decodeLocation(options.select as string).range; }
     catch { reject("Invalid range selection token."); }
-    if (!range || range.start === range.end && !(operation === "revisions.add" && options.kind === "insert"))
+    if (!range || range.start === range.end)
       reject("A nonempty text range is required.");
   }
 }

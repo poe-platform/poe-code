@@ -144,3 +144,63 @@ Verified on 2026-09-14 against the owned working tree:
 
 Later tasks remain pending; no whole-public-API, full-root suite, remote-main
 delivery or release claim is made by this milestone.
+
+## Independent task verification, 2026-09-14
+
+Reviewed implementation commit `25cb8fae4`, the original tests, shared CLI/SDK
+contracts, and the hyperlink/inherited-member API inventory. The earlier
+test-first account above remains historical evidence; separate raw logs for
+those implementation failures were not available in this verification. The two
+saved terminal screenshots were available and inspected directly. No native
+reference runtime or downloaded document was used.
+
+One new defect was reproduced before correction: target validation rejected
+ASCII whitespace/controls but admitted raw U+00A0, U+2028, U+0085 and U+009F.
+Four original memfs SDK regressions actually published these targets instead of
+returning usage errors. Two added variants of the original CLI error case
+attempted input reads and returned exit 3 instead of exit 2. The shared validator
+now rejects ECMAScript whitespace and the complete C0/DEL/C1 control ranges.
+Ordinary Unicode path text and percent-encoded targets retain their exact bytes.
+This enforces the existing documented contract without adding schemes or I/O.
+
+Fresh red evidence is `/tmp/docx-link-unicode-red-confirmed.log` (four failures)
+and `/tmp/docx-link-unicode-cli-red.log` (two failures, original case passing).
+The first SDK red capture hit a test-result pretty-printer getter; the confirmed
+capture projects the result to `published` or the error code and proves the
+publication defect directly. The initial package run overlapped addition of
+these tests: 1,671 passed and only the six new regressions failed. It is not
+reported as a clean frozen baseline. Focused green evidence is
+`/tmp/docx-link-unicode-green.log` (42 tests), before the supplemental encoded
+target preservation case. All earlier evidence remains intact.
+
+Manual QA executes the actual command engine with explicit limits and rejecting
+input capability for both Unicode rejection cases, captures diagnostics and
+exit/read counts, and renders them through the maintained terminal-png renderer.
+The inspected `/tmp/docx-link-unicode-verification.png` shows the complete
+diagnostic, exit 2 and zero input reads for both. An initial QA invocation omitted
+the required engine options; it failed before execution and was corrected to
+supply explicit fixture limits. This was a QA setup error, not a product pass.
+The optional DOCX command is not a root CLI route; no root route was invented.
+
+Final maintained checks after the correction:
+
+- `npm test --workspace=docx`: 64 files, 1,678 tests passed, including all
+  original tests and seven added variants/cases.
+- `npm run lint --workspace=docx`: ESLint and source/test TypeScript passed.
+- `npm run build:workspaces -- --workspace=docx`: all five workspaces in the
+  maintained dependency closure and native postbuild checks passed.
+- `node --import tsx --test packages/safe-bash/tests/commands/docx/*.test.ts`:
+  40 passed, none skipped; actual memfs shell workflows remain intact.
+- `npx vitest run scripts/docx-exports.test.ts`: both checks passed.
+- The maintained integration-inputs test selected by
+  `default normal runner passes every discovered active file` passed; this is
+  an exact discovery/runner gate, not execution of all 1,126 discovered files.
+- `git diff --check` passed. Final logs use the
+  `/tmp/docx-link-verification-final-` prefix; the inventory gate log is
+  `/tmp/docx-link-verification-inventory.log`.
+
+Scope gaps remain explicit: live Hyperlink/Paragraph APIs, link batch execution,
+shared-story mutation and whole-public-API conformance are not completed by this
+task. Word/LibreOffice rendering, full-root tests and remote delivery were not
+run. No unrelated plan status, index entry, README or historical evidence is
+changed; disposable logs/screenshots stay outside the commit.

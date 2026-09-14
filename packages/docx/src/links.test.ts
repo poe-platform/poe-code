@@ -101,6 +101,18 @@ it("rejects missing selections and stale tokens without publication", async () =
   await expect(edit(result.bytes, "links.remove", { select: token })).rejects.toMatchObject({ code: "stale-selection" });
 });
 
+it("preserves Unicode label targets and percent-encoded whitespace as inert bytes", async () => {
+  const target = "https://coast.invalid/café?inset=%C2%A0%E2%80%A8%C2%85#bay";
+  const result = await edit(await textFixture(paragraph("Coast")), "links.add", { paragraph: 1, text: "Map", target });
+  expect((await docx.inspectDocumentLinks(result.bytes, {}, textContext)).items[0]!.address).toBe(target);
+});
+
+it.each(["\u00a0", "\u2028", "\u0085", "\u009f"])("rejects raw Unicode whitespace and controls in targets (%j)", async character => {
+  const input = await textFixture(paragraph("Coast"));
+  const target = `https://coast.invalid/map${character}inset`;
+  await expect(edit(input, "links.add", { paragraph: 1, text: "Map", target }).then(() => "published", error => error.code)).resolves.toBe("usage");
+});
+
 it("switches an internal anchor to an external target and clears the old anchor", async () => {
   const input = await textFixture('<w:p><w:hyperlink w:anchor="Overview">' + styled + '</w:hyperlink></w:p>');
   const result = await edit(input, "links.set", { link: 1, target: "http://coast.invalid/#bay" });

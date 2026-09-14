@@ -52,9 +52,9 @@ it("keeps internal anchor strings in declared batch types and validation", () =>
   expect(docx.validateDocxBatch({ version: 1, operations: [operation] }).operations[0]).toEqual(operation);
 });
 
-it("rejects malformed URLs before input reads and emits common usage status", async () => {
+it.each(["https:coast.invalid", "https://coast.invalid/map\u00a0inset", "https://coast.invalid/map\u0085inset"])("rejects malformed URLs before input reads and emits common usage status: %j", async target => {
   let reads = 0, stdout = "";
-  const result = await docx.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["links", "add", "input.docx", "--paragraph", "1", "--text", "Coast", "--target", "https:coast.invalid", "--dry-run", "--json"].map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal,
+  const result = await docx.createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["links", "add", "input.docx", "--paragraph", "1", "--text", "Coast", "--target", target, "--dry-run", "--json"].map(s => new TextEncoder().encode(s)), cwd: "/", signal: textContext.signal,
     filesystem: { async readFile() { reads++; throw new Error("Unexpected read"); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write() {} } });
   expect(result.exitCode).toBe(2);
   expect(reads).toBe(0);

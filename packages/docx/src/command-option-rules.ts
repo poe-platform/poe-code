@@ -139,7 +139,7 @@ export function validateDocxOptionRules(operation: string, options: Readonly<Rec
   }
   if (["links.add", "links.set"].includes(operation) && has("target")) {
     const target = options.target as string;
-    if (!target || [...target].some(c => c.charCodeAt(0) <= 32 || c.charCodeAt(0) === 127 || c === "\\")) reject("Link targets cannot contain whitespace, controls or backslashes.");
+    if (!target || [...target].some(c => c.charCodeAt(0) <= 32 || c.charCodeAt(0) >= 127 && c.charCodeAt(0) <= 159 || c.trim() === "" || c === "\\")) reject("Link targets cannot contain whitespace, controls or backslashes.");
     for (let i = 0; i < target.length; i++) if (target[i] === "%") {
       if (target.slice(i + 1, i + 3).length !== 2 || [...target.slice(i + 1, i + 3)].some(c => !"0123456789abcdefABCDEF".includes(c))) reject("Malformed link percent escape.");
       i += 2;

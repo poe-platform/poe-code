@@ -101,5 +101,6 @@ export { getDocxDiscovery, type DocxDiscovery, type DocxHelpData, type DocxSchem
 export { inspectDocument, validateDocument, type InspectionData, type InspectionPart, type InspectionProperty, type InspectionFeature, type InspectionReference, type InspectionAnnotation, type InspectionProtection, type InspectionWarning } from "./inspection.js";
 export { createDocxInspectionCommandEngine, type DocxInspectionCommandRequest } from "./inspection-command.js";
 export { extractDocumentText, type TextOptions } from "./text.js";
+export { replaceDocumentText, type TextReplaceOptions, type TextMutationData } from "./text-replace.js";
 export type { TextData, TextView, TextSegment, TextFormatting } from "./text-traversal.js";
 export { getDocumentXml, replaceDocumentXmlPart, type XmlOptions, type XmlData, type XmlMutationData } from "./xml-parts.js";

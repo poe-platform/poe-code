@@ -12,6 +12,7 @@ import { executeXmlCommand } from "./xml-command.js";
 import { PublicationError, type PublicationInput } from "./publication.js";
 import { extractDocumentText, type TextOptions } from "./text.js";
 import { executeCreateCommand } from "./create-command.js";
+import { executeTextReplaceCommand } from "./text-replace-command.js";
 
 export interface DocxInspectionCommandRequest extends DocxCommandRequest {
   readonly cwd: string;
@@ -46,7 +47,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
           output = await executeCreateCommand(invocation, request, context, io);
           budget.check("serializedOutput", output.length);
         } else {
-        if (invocation.operation !== "inspect" && invocation.operation !== "validate" && invocation.operation !== "text.get" && invocation.operation !== "xml.get" && invocation.operation !== "xml.set") {
+        if (invocation.operation !== "inspect" && invocation.operation !== "validate" && invocation.operation !== "text.get" && invocation.operation !== "text.replace" && invocation.operation !== "xml.get" && invocation.operation !== "xml.set") {
           throw Object.assign(new Error("This document operation is not implemented."), { code: "unsupported-profile" });
         }
         if (["link", "control", "revision", "shape", "field", "bookmark"].some(key => invocation.options[key] !== undefined)) {
@@ -55,7 +56,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         const input = invocation.inputs[0]!;
         acquiring = true;
         let inputIdentity: PublicationInput | undefined;
-        if (invocation.operation === "xml.set" && input !== "-" && request.filesystem.lstat) {
+        if (["xml.set", "text.replace"].includes(invocation.operation) && input !== "-" && request.filesystem.lstat) {
           const path = resolvePath(request.cwd, input);
           inputIdentity = { path, stat: await request.filesystem.lstat(path, { signal: request.signal }) };
         }
@@ -66,8 +67,9 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
           return { async *[Symbol.asyncIterator]() { yield await request.filesystem.readFile(path, { signal }); } };
         } });
         acquiring = false;
-        if (invocation.operation === "xml.get" || invocation.operation === "xml.set") {
-          output = await executeXmlCommand(invocation, bytes, inputIdentity, request, context, io);
+        if (["xml.get", "xml.set", "text.replace"].includes(invocation.operation)) {
+          output = invocation.operation === "text.replace" ? await executeTextReplaceCommand(invocation, bytes, inputIdentity, request, context)
+            : await executeXmlCommand(invocation, bytes, inputIdentity, request, context, io);
           budget.check("serializedOutput", output.length);
         } else {
           const data = invocation.operation === "text.get" ? await extractDocumentText(bytes, context, invocation.options as TextOptions)

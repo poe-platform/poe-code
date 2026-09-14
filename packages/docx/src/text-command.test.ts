@@ -48,3 +48,36 @@ it("reports invalid text views as JSON regardless of flag order without acquirin
     expect(JSON.parse(stdout)).toMatchObject({ operation: "text.get", ok: false, data: null, errors: [{ code: "usage" }], affected: 0 });
   }
 });
+
+it("executes preserving replacements through the CLI and publishes support", async () => {
+  const bytes = await textFixture(paragraph("coast coast"));
+  const engine = createDocxInspectionCommandEngine({ limits: textContext.limits });
+  for (const [flags, code, affected] of [
+    [["--all", "--bold", "false", "--italic", "true"], 0, 2],
+    [["--first"], 0, 1], [["--occurrence", "3"], 1, 0],
+    [["--occurrence", "3", "--allow-empty"], 0, 0], [[], 2, 0]
+  ] as const) {
+    let stdout = "";
+    const result = await engine.execute({ args: ["text", "replace", "report.docx", "--find", "coast", "--with", "shore", ...flags, "--dry-run", "--json"].map(x => new TextEncoder().encode(x)),
+      cwd: "/work", signal: textContext.signal, filesystem: { async readFile() { return bytes; } },
+      stdin: { async *[Symbol.asyncIterator]() {} },
+      stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write() {} }
+    });
+    expect(result.exitCode).toBe(code);
+    expect(JSON.parse(stdout)).toMatchObject({ operation: "text.replace", ok: code === 0, affected });
+  }
+  const schema = getDocxDiscovery(parseDocxArguments(["schema", "text", "replace"].map(x => new TextEncoder().encode(x))))!;
+  expect(schema.data).toMatchObject({ operations: [{ id: "text.replace", support: "edit", featureIds: expect.arrayContaining(["F10"]) }] });
+});
+
+it("uses singular wording for one replaced match", async () => {
+  let stdout = "";
+  const bytes = await textFixture(paragraph("coast"));
+  const result = await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({
+    args: ["text", "replace", "input", "--find", "coast", "--with", "shore", "--first", "--dry-run"].map(x => new TextEncoder().encode(x)),
+    cwd: "/", signal: textContext.signal, filesystem: { async readFile() { return bytes; } },
+    stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write() {} }
+  });
+  expect(result.exitCode).toBe(0);
+  expect(stdout).toBe("docx text replace: dry-run; 1 match replaced\n");
+});

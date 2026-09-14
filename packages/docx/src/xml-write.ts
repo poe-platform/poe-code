@@ -170,6 +170,53 @@ export class DocumentXmlEditor {
     return [...new Set([...this.#patches.keys()].map(token => this.#spans.get(token)!.owner))];
   }
 
+  /** Exact admitted source, for engine-authored fragments retaining lexical XML. */
+  sourceXml(node: XmlElement, replacements: ReadonlyMap<XmlElement, string> = new Map()): string {
+    if (!this.#elements.has(node)) unsupported();
+    const span = this.#spans.get(node)!;
+    this.#budget.charge("work", span.end - span.start);
+    this.#budget.charge("retainedBytes", (span.end - span.start) * 2);
+    let offset = span.start;
+    const chunks: string[] = [];
+    for (const child of replacements.keys()) if (!node.children.includes(child)) unsupported();
+    for (const child of node.children) {
+      const replacement = replacements.get(child);
+      if (replacement === undefined) continue;
+      if (typeof replacement !== "string") throw new InputTypeError("Expected XML markup.");
+      const childSpan = this.#spans.get(child)!;
+      this.#budget.charge("work", replacement.length);
+      this.#budget.charge("retainedBytes", replacement.length * 2);
+      chunks.push(this.#source.slice(offset, childSpan.start), replacement);
+      offset = childSpan.end;
+    }
+    chunks.push(this.#source.slice(offset, span.end));
+    return chunks.join("");
+  }
+
+  /** Replace an owned editable subtree; validate the complete candidate atomically. */
+  replaceElement(node: XmlElement, xml: string): void {
+    if (typeof xml !== "string") throw new InputTypeError("Expected XML markup.");
+    if (!this.#elements.has(node) || node === this.root || this.#patches.has(node)) unsupported();
+    const check = (element: XmlElement): void => {
+      this.#budget.charge("work", 1);
+      if (this.#guardCompatibility && (!this.compatibility.canEdit(element) ||
+        element.attributes.some(attribute => attribute.namespace !== "http://www.w3.org/2000/xmlns/" && !this.compatibility.canEdit(attribute)))) unsupported();
+      for (const child of element.children) check(child);
+    };
+    check(node);
+    this.#budget.charge("retainedBytes", xml.length * 8);
+    this.#budget.charge("work", xml.length * 4);
+    this.#patches.set(node, xml);
+    try {
+      const bindings = [...node.namespaces].filter(([prefix]) => prefix !== "xml").map(([prefix, value]) => ` ${prefix ? "xmlns:" + prefix : "xmlns"}="${escapeValue(value, true)}"`).join("");
+      const before = this.#budget.usage.xmlNodes;
+      parseDocumentXml(new TextEncoder().encode(`<fragment${bindings}>${xml}</fragment>`), this.#limits, this.#budget);
+      this.#budget.charge("insertedNodes", this.#budget.usage.xmlNodes - before - 1);
+      const candidate = parseDocumentXml(this.serialize(), this.#limits, this.#budget);
+      if (this.#dialect) validateXmlDialect(candidate.root, this.#dialect, this.#profile, this.#budget);
+    } catch (error) { this.#patches.delete(node); throw error; }
+  }
+
   /** Inserts admitted markup at an owned child boundary, retaining source tokens. */
   insertChildren(parent: XmlElement, xml: string, before?: XmlElement): void {
     if (typeof xml !== "string") throw new InputTypeError("Expected XML markup.");

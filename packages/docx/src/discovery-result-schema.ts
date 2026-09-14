@@ -65,6 +65,7 @@ const textData = object({ text: string, view: { enum: ["final", "original", "all
       language: { type: "object", additionalProperties: true }, fonts: { type: "object", additionalProperties: true },
       paragraph: object({ style: nullableString, bidi: nullableBoolean }) }) })) });
 export const inspectionOperationMetadata: Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>> = Object.fromEntries([
+  ["text.replace", "Replace literal paragraph text across formatting runs; exactly one of --first, --all or --occurrence is required. Field, object, revision and container boundaries stop matches. Inherit the first matched run; --bold/--italic explicitly override those properties.", ["F02", "F04", "F05", "F10"], mutationData],
   ["create", "Create an original DOCX/DOTX or append typed blocks to an admitted template; explicit dialect and content settings.", ["F01", "F02", "F03", "F11"], mutationData],
   ["inspect", "Inventory package parts, metadata and document structure without rendering or linked-resource access.", ["F06"], inspectionData],
   ["validate", "Validate document bytes against the partial core-v1 profile without repairs.", ["F49"], validationData],
@@ -73,5 +74,5 @@ export const inspectionOperationMetadata: Readonly<Record<string, { description:
   ["xml.set", "Replace one complete XML part with validated bytes; preserve opaque content and unrelated parts.", ["F04", "F07"], mutationData]
 ].map(([id, description, featureIds, data]) => [id, { description, featureIds, result: { oneOf: [object({
   version: { const: 1 }, operation: { const: id }, ok: { const: true }, data: data as DocxJsonSchema,
-  warnings: array(diagnostic), errors: empty, affected: id === "create" ? { const: 1 } : id === "xml.set" ? { type: "integer", minimum: 0, maximum: 1 } : { const: 0 }, locations: array(location)
+  warnings: array(diagnostic), errors: empty, affected: id === "text.replace" ? number : id === "create" ? { const: 1 } : id === "xml.set" ? { type: "integer", minimum: 0, maximum: 1 } : { const: 0 }, locations: array(location)
 }), object({ version: { const: 1 }, operation: { const: id }, ok: { const: false }, data: { type: "null" }, warnings: array(diagnostic), errors: { type: "array", minItems: 1, items: { type: "object" } }, affected: { const: 0 }, locations: empty })] } }])) as Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>>;

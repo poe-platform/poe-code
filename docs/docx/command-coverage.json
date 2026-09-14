@@ -10883,10 +10883,13 @@
       }
     },
     "text.replace": {
-      "path": ["text", "replace"],
+      "path": [
+        "text",
+        "replace"
+      ],
       "sdkOperationId": "text.replace",
       "version": 1,
-      "status": "planned-not-implemented",
+      "status": "partially-implemented",
       "transport": "direct-and-batch",
       "inputArity": 1,
       "commonProfile": "selectedEdit",
@@ -10946,19 +10949,53 @@
               "kind": "value",
               "value": "final"
             }
+          },
+          "bold": {
+            "type": "boolean",
+            "required": false,
+            "flag": "--bold"
+          },
+          "italic": {
+            "type": "boolean",
+            "required": false,
+            "flag": "--italic"
           }
         },
         "unknownFields": "reject"
       },
       "description": "Nonempty literal search, exactly one first/all/occurrence; cross-run boundaries and first-run formatting; inserted text is not searched.",
-      "featureIds": ["F02", "F04", "F05", "F10"],
-      "help": ["docx", "help", "text", "replace"],
-      "schema": ["docx", "schema", "text", "replace"],
+      "featureIds": [
+        "F02",
+        "F04",
+        "F05",
+        "F10"
+      ],
+      "help": [
+        "docx",
+        "help",
+        "text",
+        "replace"
+      ],
+      "schema": [
+        "docx",
+        "schema",
+        "text",
+        "replace"
+      ],
       "result": "OfficeResultV1",
       "exitProfile": "ordinary",
-      "tests": ["command.text.replace"],
-      "inputSyntax": ["INPUT"],
-      "cli": ["docx", "text", "replace", "INPUT"],
+      "tests": [
+        "command.text.replace"
+      ],
+      "inputSyntax": [
+        "INPUT"
+      ],
+      "cli": [
+        "docx",
+        "text",
+        "replace",
+        "INPUT"
+      ],
       "batchArguments": {
         "fields": {
           "find": {
@@ -10984,6 +11021,14 @@
               "kind": "value",
               "value": "final"
             }
+          },
+          "bold": {
+            "type": "boolean",
+            "required": false
+          },
+          "italic": {
+            "type": "boolean",
+            "required": false
           }
         },
         "commonFields": [
@@ -11046,10 +11091,30 @@
               "kind": "value",
               "value": "final"
             }
+          },
+          "bold": {
+            "type": "boolean",
+            "required": false
+          },
+          "italic": {
+            "type": "boolean",
+            "required": false
           }
         },
         "unknownFields": "reject",
         "commonFieldDefinitions": "#/commonOptions"
+      },
+      "implementation": {
+        "direct": "implemented-bounded",
+        "sdk": "replaceDocumentText(input, options, context): Promise<TextMutationData>",
+        "evidence": "docs/plans/docx-preserving-text-replacement.md",
+        "pending": [
+          "typed batch execution",
+          "advanced link/control/revision/shape/field/bookmark selectors",
+          "shared-story cloning",
+          "complex revision editing"
+        ],
+        "formatting": "First matched run inherited; optional bold/italic booleans override only the inserted text."
       }
     },
     "xml.get": {

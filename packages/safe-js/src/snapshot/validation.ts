@@ -81,6 +81,7 @@ type ValidationState = {
   limits: ValidationLimits;
   validateTaggedPayloads: boolean;
   dataPropertiesOnly?: boolean;
+  dataPrototypes?: WeakSet<object>;
   allowHostFunctionState?: boolean;
   scopeResourceNodes?: ReadonlySet<unknown>;
 };
@@ -93,7 +94,8 @@ export function validateSnapshotData(value: unknown): void {
     dataSize: 0,
     limits: defaultLimits(),
     validateTaggedPayloads: false,
-    dataPropertiesOnly: true
+    dataPropertiesOnly: true,
+    dataPrototypes: new WeakSet()
   });
 }
 
@@ -103,6 +105,23 @@ export function validateDumpEnvelope(
 ): asserts snapshot is Record<string, unknown> {
   const limits = defaultLimits();
   const root = requireRecord(snapshot, "$");
+  const trusted = inMemoryRunSnapshots.has(root);
+  const state: ValidationState = {
+    allowHostFunctionState: trusted,
+    allowFunctions: trusted,
+    allowUndefined: true,
+    entries: 0,
+    dataSize: 0,
+    limits,
+    validateTaggedPayloads: false,
+    dataPropertiesOnly: !trusted,
+    dataPrototypes: new WeakSet()
+  };
+  if (canPreflightRunSnapshotScalars(root)) validateRunSnapshotScalars(root);
+  if (!trusted) {
+    if (types.isProxy(root)) fail("invalidType", "$", "proxy objects are not snapshot data");
+    snapshotDataEntries(root, "$", state.dataPrototypes);
+  }
   if (root.version !== 1 && root.version !== DUMP_FORMAT_VERSION) {
     fail("unsupportedVersion", "$.version", `expected ${DUMP_FORMAT_VERSION}`);
   }
@@ -128,16 +147,6 @@ export function validateDumpEnvelope(
     fail("unsupportedVersion", "$.executionSemantics",
       "incompatible execution semantics; resume with the SafeJS version that created this snapshot. Migration requires explicit reconciliation, not changing its version marker.");
   }
-  const state = {
-    allowHostFunctionState: inMemoryRunSnapshots.has(root),
-    allowFunctions: true,
-    allowUndefined: true,
-    entries: 0,
-    dataSize: 0,
-    limits,
-    validateTaggedPayloads: false
-  };
-  if (canPreflightRunSnapshotScalars(root)) validateRunSnapshotScalars(root);
   validateGenericValue(root, "$", 0, state);
   validateRunSnapshotState(root, state);
   validateDumpHeap(root, state);
@@ -401,6 +410,10 @@ export function validateInterpreterSnapshot(
     limits,
     validateTaggedPayloads: true
   };
+  validateGenericValue(snapshot, "$", 0, {
+    ...state, allowUndefined: true, validateTaggedPayloads: false, dataPropertiesOnly: true,
+    dataPrototypes: new WeakSet()
+  });
   const root = requireRecord(snapshot, "$");
   requireNonEmptyString(root.sourceHash, "$.sourceHash", limits);
   requireNodeId(root.currentAstNodeId, "$.currentAstNodeId", nodeById);
@@ -570,6 +583,8 @@ export function validateSnapshotSourceHash(
   snapshot: unknown
 ): asserts snapshot is { sourceHash: string } {
   const root = requireRecord(snapshot, "$");
+  if (types.isProxy(root)) fail("invalidType", "$", "proxy objects are not snapshot data");
+  snapshotDataEntries(root, "$");
   requireNonEmptyString(root.sourceHash, "$.sourceHash", defaultLimits());
 }
 
@@ -1005,7 +1020,7 @@ function validateGenericValue(
   } else if (Array.isArray(value)) {
     if (value.length > state.limits.maxEntries) fail("budgetExceeded", path, "array is too large");
     if (state.dataPropertiesOnly) {
-      const entries = snapshotDataEntries(value, path).filter(([key]) => key !== "length");
+      const entries = snapshotDataEntries(value, path, state.dataPrototypes).filter(([key]) => key !== "length");
       if (entries.length !== value.length)
         fail("invalidType", path, "snapshot arrays must be dense");
       for (const [key, entry] of entries) {
@@ -1031,7 +1046,7 @@ function validateGenericValue(
       validateTaggedValue(record, path, state);
     }
     const entries = state.dataPropertiesOnly
-      ? snapshotDataEntries(value, path)
+      ? snapshotDataEntries(value, path, state.dataPrototypes)
       : Object.entries(value);
     for (const [key, entry] of entries) {
       const entryPath = `${path}${formatKey(key)}`;
@@ -1051,7 +1066,7 @@ function validateGenericValue(
     fail("budgetExceeded", path, `exceeds aggregate data limit ${state.limits.maxDataSize}`);
 }
 
-function snapshotDataEntries(value: object, path: string): Array<[string, unknown]> {
+function snapshotDataEntries(value: object, path: string, checkedPrototypes?: WeakSet<object>): Array<[string, unknown]> {
   const prototype = Object.getPrototypeOf(value);
   if (
     prototype !== null &&
@@ -1059,13 +1074,20 @@ function snapshotDataEntries(value: object, path: string): Array<[string, unknow
   ) {
     fail("invalidType", path, "snapshot data must not have a custom prototype");
   }
+  if (prototype !== null && !checkedPrototypes?.has(prototype)) {
+    for (const key of Object.getOwnPropertyNames(prototype)) {
+      if (key !== "__proto__" && !("value" in Object.getOwnPropertyDescriptor(prototype, key)!))
+        fail("invalidType", path, "snapshot data must not inherit accessors");
+    }
+    checkedPrototypes?.add(prototype);
+  }
   if (Object.getOwnPropertySymbols(value).length > 0) {
     fail("invalidType", path, "snapshot data must not have symbol properties");
   }
   return Object.getOwnPropertyNames(value).map(key => {
     const descriptor = Object.getOwnPropertyDescriptor(value, key)!;
     if (!("value" in descriptor))
-      fail("invalidType", `${path}${formatKey(key)}`, "snapshot data must not have accessors");
+      fail("invalidType", `${path}${formatKey(key)}`, "must be a data property; snapshot data must not have accessors");
     return [key, descriptor.value];
   });
 }

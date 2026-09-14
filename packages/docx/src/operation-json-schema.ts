@@ -101,7 +101,13 @@ function valueSchema(type: string, definitions: Record<string, DocxJsonSchema>):
   if (type === "LocationToken") return { type: "string", pattern: "^docx-loc-v1\\.[A-Za-z0-9_-]+$", description: "Canonical unpadded base64url UTF-8 location payload with closed fields and document fingerprint." };
   if (type === "OriginalDocumentContentV1") {
     contentDefinitions(definitions);
-    return { type: "object", properties: { version: { const: 1 }, blocks: { type: "array", items: { $ref: "#/$defs/Block" } } }, required: ["version", "blocks"], additionalProperties: false };
+    const margins = objectSchema(Object.fromEntries(["top", "right", "bottom", "left", "header", "footer", "gutter"].map(key => [key, "?Length"])), definitions);
+    const colors = objectSchema(Object.fromEntries(["dark1", "light1", "dark2", "light2", "accent1", "accent2", "accent3", "accent4", "accent5", "accent6", "hyperlink", "followedHyperlink"].map(key => [key, "?RGBColor"])), definitions);
+    return { type: "object", properties: { version: { const: 1 }, blocks: { type: "array", items: { $ref: "#/$defs/Block" } },
+      page: { ...objectSchema({ width: "?Length", height: "?Length", orientation: "?portrait|landscape" }, definitions), properties: { width: valueSchema("Length", definitions), height: valueSchema("Length", definitions), orientation: { enum: ["portrait", "landscape"] }, margins } },
+      styles: { type: "array", items: objectSchema({ name: "identifier", type: "paragraph|character|table", font: "?identifier", size: "?Length", bold: "?boolean", italic: "?boolean" }, definitions) },
+      theme: { type: "object", properties: { name: identifier, majorFont: identifier, minorFont: identifier, colors }, required: ["name", "majorFont", "minorFont"], additionalProperties: false }
+    }, required: ["version", "blocks"], additionalProperties: false };
   }
   if (type === "DeclaredControlRecord" || type === "DeclaredTemplateRecord") return { type: "object", properties: { values: { type: "array", items: objectSchema({ binding: "identifier", value: "DeclaredBindingValue" }, definitions), description: "Binding identifiers must be unique within each record." } }, required: ["values"], additionalProperties: false };
   if (type === "TemplateData") return valueSchema("DeclaredTemplateRecord | ReadonlyArray<DeclaredTemplateRecord>", definitions);

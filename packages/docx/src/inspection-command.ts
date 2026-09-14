@@ -11,6 +11,7 @@ import type { Location } from "./location-token.js";
 import { executeXmlCommand } from "./xml-command.js";
 import { PublicationError, type PublicationInput } from "./publication.js";
 import { extractDocumentText, type TextOptions } from "./text.js";
+import { executeCreateCommand } from "./create-command.js";
 
 export interface DocxInspectionCommandRequest extends DocxCommandRequest {
   readonly cwd: string;
@@ -22,6 +23,16 @@ export interface DocxInspectionCommandRequest extends DocxCommandRequest {
 export function createDocxInspectionCommandEngine(options: { readonly limits: ArchiveLimits }) {
   const limits = Object.freeze({ ...options.limits });
   return createDocxCommandEngine<DocxInspectionCommandRequest>({
+    async readSource(source, request, budget) {
+      const io = new DocumentIo({ limits, signal: request.signal, budget, ...(request.registerCleanup ? { registerCleanup: request.registerCleanup } : {}) });
+      try {
+        return await io.readBytes({ open(signal) {
+          const path = resolvePath(request.cwd, source.path);
+          return request.filesystem.readStream ? request.filesystem.readStream(path, { signal }) :
+            { async *[Symbol.asyncIterator]() { yield await request.filesystem.readFile(path, { signal }); } };
+        } });
+      } finally { await io.cleanup(); }
+    },
     async execute(invocation, request) {
       const budget = docxInvocationBudgets.get(invocation) ?? new DocumentBudget({}, request.signal);
       const context = { limits, signal: request.signal, budget };
@@ -31,6 +42,10 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
       let output: Uint8Array;
       let exitCode = 0;
       try {
+        if (invocation.operation === "create") {
+          output = await executeCreateCommand(invocation, request, context, io);
+          budget.check("serializedOutput", output.length);
+        } else {
         if (invocation.operation !== "inspect" && invocation.operation !== "validate" && invocation.operation !== "text.get" && invocation.operation !== "xml.get" && invocation.operation !== "xml.set") {
           throw Object.assign(new Error("This document operation is not implemented."), { code: "unsupported-profile" });
         }
@@ -95,6 +110,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
             await request.stderr.write(new TextEncoder().encode(diagnostic));
             writingDiagnostics = false;
           }
+        }
         }
       } catch (error) {
         request.signal.throwIfAborted();

@@ -44,7 +44,7 @@ export {
 export { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
 export { DocumentArchiveEditor } from "./package-write.js";
 export { documentDialects, type DocumentDialect } from "./dialect.js";
-export { createDocumentArchive, type DocumentCreateOptions } from "./create.js";
+export { createDocumentArchive, createDocument, type DocumentCreateOptions, type CreateMutationData } from "./create.js";
 
 export {
   MarkupCompatibility, documentCompatibilityProfile,
@@ -88,6 +88,7 @@ export type {
   DocxBatchArgumentMap, DocxBatchItemMap, DocxBatchItem, DocxBatchOperationId,
   DocxBinaryInput, DocxVfsPath, DocxLength, DocxDirectLength, DocxModelHandle,
   DocxBindingRecord, DocxRunInput, DocxBlock, DocxContent, DocxTransportContext,
+  DocxPageSettings, DocxStyleSettings, DocxThemeSettings,
   DocxXmlNode, DocxEnumValue, DocxEnumNames
 } from "./operation-types.js";
 export {

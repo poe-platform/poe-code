@@ -800,7 +800,35 @@ type BinaryInput =
 type Length = { value: number; unit: "emu" | "in" | "cm" | "mm" | "pt" | "twip" };
 type EnumInput = { enum: string; name: string }; // each use narrows to its declared enum
 // No path grants authority: capability must already exist in admitted host context.
-type OriginalDocumentContentV1 = { version: 1; blocks: Block[] };
+type OriginalDocumentContentV1 = {
+  version: 1;
+  blocks: Block[];
+  page?: CreationPage;
+  styles?: CreationStyle[];
+  theme?: CreationTheme;
+};
+type CreationPage = {
+  width?: Length;
+  height?: Length;
+  orientation?: "portrait" | "landscape";
+  margins?: Partial<Record<"top" | "right" | "bottom" | "left" | "header" | "footer" | "gutter", Length>>;
+};
+type CreationStyle = {
+  name: string;
+  type: "paragraph" | "character" | "table";
+  font?: string;
+  size?: Length;
+  bold?: boolean;
+  italic?: boolean;
+};
+type CreationTheme = {
+  name: string;
+  majorFont: string;
+  minorFont: string;
+  colors?: Partial<Record<"dark1" | "light1" | "dark2" | "light2" |
+    "accent1" | "accent2" | "accent3" | "accent4" | "accent5" | "accent6" |
+    "hyperlink" | "followedHyperlink", string>>;
+};
 type Block =
   | { kind: "paragraph"; text?: string; style?: string; level?: number; runs?: RunInput[] }
   | { kind: "table"; rows: CellInput[][]; width?: Length; style?: string };
@@ -843,6 +871,33 @@ type PackageEntry = {
 ```
 
 Paragraph text and runs are exclusive; neither creates an empty paragraph.
+The bounded creation settings profile exposes page/style/theme values through
+the same content object in CLI JSON and SDK calls. New-package page values merge
+with the section 6.5 defaults. Page dimensions are positive, margins nonnegative,
+and margins including the gutter MUST leave positive content extent. Dimensions
+and margins serialize as integer twips after shared integer-EMU conversion;
+the initial profile admits values through 31,680 twips. Orientation MUST NOT
+implicitly swap dimensions. Header/footer margins default to 720 twips and the
+gutter to zero. Named styles use exact names, deterministic collision-free IDs,
+and an explicit paragraph/character/table type. Duplicate names or references to
+missing/wrong-kind styles MUST fail. Optional font sizes MUST round to positive
+half-point values; false formatting values remain explicit.
+
+Theme settings contain supplied font names and six-digit RGB colors, normalized
+to uppercase. Font names are references, never host font discovery. No theme
+part is implicit. When a theme is supplied, omitted colors use the original
+palette: dark1/light1 `000000`/`FFFFFF`, dark2/light2 `202020`/`F0F0F0`, accents
+`305070`, `507050`, `705030`, `604070`, `307070`, `706030`, hyperlink `0000FF`
+and followedHyperlink `800080`. The generated theme contains the required color,
+font and format schemes without external assets.
+
+Supplied-template creation appends blocks and new nonconflicting named styles;
+it preserves existing page, theme and metadata settings. In this bounded profile,
+explicit page/theme/author/timestamp overrides on templates MUST fail with
+unsupported-edit. Their broader editing operations remain separately proposed.
+Creation MUST NOT execute expressions, callbacks, field instructions or template
+code. These settings do not establish live model, style-cascade or layout support.
+
 Style and level are exclusive. Table rows must be nonempty, rectangular and
 within table budgets; zero blocks in a cell becomes one required empty paragraph.
 No implicit merges or binary fixtures are embedded in content. Each binding entry

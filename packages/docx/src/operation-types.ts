@@ -9,7 +9,13 @@ export type DocxModelHandle<T extends string> = Readonly<{ id: string; type: T; 
 export interface DocxBindingRecord { readonly values: readonly Readonly<{ binding: string; value: string | boolean | number }>[] }
 export interface DocxRunInput { readonly text: string; readonly bold?: boolean | null; readonly italic?: boolean | null; readonly underline?: boolean | DocxEnumValue<"WD_UNDERLINE"> | null; readonly style?: string }
 export type DocxBlock = Readonly<{ kind: "paragraph"; text?: string; style?: string; level?: number; runs?: readonly DocxRunInput[] }> | Readonly<{ kind: "table"; rows: readonly (readonly Readonly<{ blocks: readonly DocxBlock[] }>[])[]; width?: DocxLength; style?: string }>;
-export interface DocxContent { readonly version: 1; readonly blocks: readonly DocxBlock[] }
+export interface DocxPageSettings {
+  readonly width?: DocxLength; readonly height?: DocxLength; readonly orientation?: "portrait" | "landscape";
+  readonly margins?: Readonly<Partial<Record<"top" | "right" | "bottom" | "left" | "header" | "footer" | "gutter", DocxLength>>>;
+}
+export interface DocxStyleSettings { readonly name: string; readonly type: "paragraph" | "character" | "table"; readonly font?: string; readonly size?: DocxLength; readonly bold?: boolean; readonly italic?: boolean }
+export interface DocxThemeSettings { readonly name: string; readonly majorFont: string; readonly minorFont: string; readonly colors?: Readonly<Partial<Record<"dark1" | "light1" | "dark2" | "light2" | "accent1" | "accent2" | "accent3" | "accent4" | "accent5" | "accent6" | "hyperlink" | "followedHyperlink", string>>> }
+export interface DocxContent { readonly version: 1; readonly blocks: readonly DocxBlock[]; readonly page?: DocxPageSettings; readonly styles?: readonly DocxStyleSettings[]; readonly theme?: DocxThemeSettings }
 export interface DocxTransportContext { readonly vfs?: string; readonly limits?: Partial<DocumentLimits>; readonly timestamp?: string; readonly author?: string; readonly fonts?: string; readonly template?: DocxBinaryInput }
 export type DocxXmlNode = Readonly<{ kind: "text" | "comment"; text: string }> | Readonly<{ kind: "processingInstruction"; target: string; data: string }> | Readonly<{ kind: "element"; name: Readonly<{ namespaceURI: string; localName: string }>; attributes?: readonly Readonly<{ name: Readonly<{ namespaceURI: string; localName: string }>; value: string }>[]; children?: readonly DocxXmlNode[] }>;
 export type DocxEnumValue<E extends keyof DocxEnumNames> = Readonly<{ enum: E; name: DocxEnumNames[E] }>;

@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { Volume } from "memfs";
 import { createMountFileSystem, ReadOnlyFileSystem, type FileStat, type FileSystem } from "@poe-code/safe-fs/core";
-import { CancellationError, DocumentBudget, createDocumentArchive, publishDocumentArchive, publishDocumentFiles, type ArchiveContext } from "./index.js";
+import { CancellationError, DocumentBudget, createDocument, createDocumentArchive, publishDocumentArchive, publishDocumentFiles, type ArchiveContext } from "./index.js";
+import { readPackage, assertPackageLinks } from "../tests/assertions.js";
 
 const context = (): ArchiveContext => ({ signal: new AbortController().signal, limits: {
   maxArchiveBytes: 65536, maxEntryBytes: 32768, maxTotalBytes: 65536, maxMembers: 100,
@@ -56,6 +57,24 @@ async function run(options: Parameters<typeof publishDocumentArchive>[1], env = 
 }
 
 describe("document publication", () => {
+  it("creates through the SDK with conflict preservation, force and owned output intent", async () => {
+    const env = fixture();
+    const creation = { content: { version: 1, blocks: [{ kind: "paragraph", text: "Harbor ledger" }] } } as const;
+    const contextForCreate = { ...context(), filesystem: env.fs, encoding };
+    await expect(createDocument(creation, { output: "/work/old" }, contextForCreate)).rejects.toMatchObject({ code: "conflict" });
+    expect(env.volume.readFileSync("/work/old", "utf8")).toBe("original");
+    const publication = { output: "/work/new" };
+    const pending = createDocument(creation, publication, contextForCreate);
+    publication.output = "/work/wrong";
+    await pending;
+    const parts = readPackage(new Uint8Array(env.volume.readFileSync("/work/new") as Buffer));
+    assertPackageLinks(parts);
+    expect(new TextDecoder().decode(parts.get("word/document.xml"))).toContain("Harbor ledger");
+    const input = { path: "/work/new", stat: await env.stat("/work/new") };
+    await expect(createDocument({ template: new Uint8Array(env.volume.readFileSync(input.path) as Buffer) }, { input, output: input.path, force: true }, contextForCreate)).rejects.toMatchObject({ code: "conflict" });
+    await createDocument(creation, { output: "/work/old", force: true }, contextForCreate);
+    expect(env.volume.readFileSync("/work/input", "utf8")).toBe("source");
+  });
   it.each([false, true])("rejects force for binary stdout with dry-run %s", async dryRun => {
     const env = fixture(); const ctx = context();
     const archive = await createDocumentArchive({}, ctx);

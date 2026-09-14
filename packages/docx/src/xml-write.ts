@@ -9,7 +9,7 @@ import { MarkupCompatibility, compatibilitySettings, documentCompatibilityProfil
 import { dialectForNamespace, validateXmlDialect, type DocumentDialect } from "./dialect.js";
 
 type Token = XmlContent | XmlAttribute;
-interface Span { start: number; end: number; owner: XmlContent; }
+interface Span { start: number; end: number; owner: XmlContent; contentStart?: number; contentEnd?: number; empty?: boolean }
 
 export class UnsupportedEditError extends Error {
   readonly code = "unsupported-edit";
@@ -38,6 +38,7 @@ function indexSource(document: DocumentXml, source: string): Map<Token, Span> {
   };
   const visit = (node: XmlContent): void => {
     if (node.kind === "element") {
+      const start = offset;
       consume("<" + node.name);
       for (const attribute of node.attributes) {
         whitespace();
@@ -55,13 +56,18 @@ function indexSource(document: DocumentXml, source: string): Map<Token, Span> {
       whitespace();
       if (source.startsWith("/>", offset)) {
         if (node.content.length) unsupported();
+        const contentStart = offset;
         offset += 2;
+        spans.set(node, { start, end: offset, contentStart, contentEnd: contentStart, empty: true, owner: node });
       } else {
         consume(">");
+        const contentStart = offset;
         for (const child of node.content) visit(child);
+        const contentEnd = offset;
         consume("</" + node.name);
         whitespace();
         consume(">");
+        spans.set(node, { start, end: offset, contentStart, contentEnd, owner: node });
       }
       return;
     }
@@ -162,6 +168,29 @@ export class DocumentXmlEditor {
 
   get dirtyNodes(): readonly XmlContent[] {
     return [...new Set([...this.#patches.keys()].map(token => this.#spans.get(token)!.owner))];
+  }
+
+  /** Inserts admitted markup at an owned child boundary, retaining source tokens. */
+  insertChildren(parent: XmlElement, xml: string, before?: XmlElement): void {
+    if (typeof xml !== "string") throw new InputTypeError("Expected XML markup.");
+    if (!this.#elements.has(parent) || (before && !parent.children.includes(before))) unsupported();
+    if (this.#guardCompatibility && !this.compatibility.canEdit(parent)) unsupported();
+    const span = this.#spans.get(parent)!;
+    const offset = before ? this.#spans.get(before)!.start : span.contentEnd!;
+    const prefix = this.#source.slice(span.start, offset);
+    const suffix = this.#source.slice(offset, span.end);
+    const patch = span.empty ? prefix + ">" + xml + `</${parent.name}>` : prefix + xml + suffix;
+    this.#budget.charge("retainedBytes", patch.length * 8);
+    this.#budget.charge("work", patch.length * 4);
+    if (this.#patches.has(parent)) unsupported();
+    this.#patches.set(parent, patch);
+    try {
+      const candidate = parseDocumentXml(this.serialize(), this.#limits, this.#budget);
+      if (this.#dialect) validateXmlDialect(candidate.root, this.#dialect, this.#profile, this.#budget);
+      const inserted = parseDocumentXml(new TextEncoder().encode(`<root>${xml}</root>`), this.#limits, this.#budget);
+      const count = (node: XmlContent): number => node.kind === "element" ? 1 + node.content.reduce((n, child) => n + count(child), 0) : 1;
+      this.#budget.charge("insertedNodes", inserted.root.content.reduce((n, node) => n + count(node), 0));
+    } catch (error) { this.#patches.delete(parent); throw error; }
   }
 
   setText(node: XmlContent, text: string): void {

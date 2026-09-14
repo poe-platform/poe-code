@@ -171,7 +171,18 @@ export function validateOriginalDocumentContent(value: unknown): boolean {
       optional(value, "underline", item => nullableBoolean(item) || (record(item, ["enum", "name"], ["enum", "name"]) &&
         item.enum === "WD_UNDERLINE" && ["NONE", "SINGLE", "WORDS", "DOUBLE", "DOTTED", "THICK", "DASH", "DOT_DASH", "DOT_DOT_DASH", "WAVY", "DOTTED_HEAVY", "DASH_HEAVY", "DOT_DASH_HEAVY", "DOT_DOT_DASH_HEAVY", "WAVY_HEAVY", "DASH_LONG", "WAVY_DOUBLE", "DASH_LONG_HEAVY"].includes(item.name as string)));
   }
-  return record(value, ["version", "blocks"], ["version", "blocks"]) && value.version === 1 && blocks(value.blocks);
+  const page = (item: unknown) => record(item, ["width", "height", "orientation", "margins"]) &&
+    optional(item, "width", length) && optional(item, "height", length) && optional(item, "orientation", v => v === "portrait" || v === "landscape") &&
+    optional(item, "margins", v => record(v, ["top", "right", "bottom", "left", "header", "footer", "gutter"]) && Object.values(v).every(n => n === undefined || length(n)));
+  const style = (item: unknown) => record(item, ["name", "type", "font", "size", "bold", "italic"], ["name", "type"]) && identifier(item.name) &&
+    ["paragraph", "character", "table"].includes(item.type as string) && optional(item, "font", identifier) && optional(item, "size", length) &&
+    optional(item, "bold", v => typeof v === "boolean") && optional(item, "italic", v => typeof v === "boolean");
+  const theme = (item: unknown) => record(item, ["name", "majorFont", "minorFont", "colors"], ["name", "majorFont", "minorFont"]) &&
+    identifier(item.name) && identifier(item.majorFont) && identifier(item.minorFont) && optional(item, "colors", v =>
+      record(v, ["dark1", "light1", "dark2", "light2", "accent1", "accent2", "accent3", "accent4", "accent5", "accent6", "hyperlink", "followedHyperlink"]) &&
+      Object.values(v).every(color => color === undefined || typeof color === "string" && color.length === 6 && [...color].every(c => "0123456789abcdefABCDEF".includes(c))));
+  return record(value, ["version", "blocks", "page", "styles", "theme"], ["version", "blocks"]) && value.version === 1 && blocks(value.blocks) &&
+    optional(value, "page", page) && optional(value, "styles", v => array(v) && v.every(style)) && optional(value, "theme", theme);
 }
 
 export function validateTemplateData(value: unknown): boolean {

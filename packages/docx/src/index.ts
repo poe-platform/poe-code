@@ -95,3 +95,4 @@ export {
   type DocxInvocation, type DocxBatch, type DocxBatchOperation, type DocxArgumentSource,
   type DocxCommandRequest
 } from "./command.js";
+export { resolveDocxSelection } from "./simple-selection.js";

@@ -6,7 +6,7 @@ import { LocationIndex, addressKey, documentScopes, pathContains, type DocumentS
 import { closedRecord, decodeLocation, encodeLocation, safeOrdinal, SelectionError,
   type Location, type LocationKind, type LocationPayload } from "./location-token.js";
 
-export interface LocationQuery { readonly scope?: DocumentScope; readonly owner?: string; }
+export interface LocationQuery { readonly scope?: DocumentScope; readonly owner?: string; readonly section?: number; readonly variant?: "default" | "first" | "even"; }
 export interface MatchOptions {
   readonly first?: boolean;
   readonly all?: boolean;
@@ -95,12 +95,19 @@ class DocumentLocations {
   }
 
   list<K extends LocationKind>(kind: K, query: LocationQuery = {}): readonly Location<K>[] {
-    closedRecord(query, ["scope", "owner"]);
+    closedRecord(query, ["scope", "owner", "section", "variant"]);
+    if (query.section !== undefined) safeOrdinal(query.section);
+    if (query.variant !== undefined && !["default", "first", "even"].includes(query.variant))
+      throw new InvalidValueError("Unknown story variant.");
+    if (query.variant !== undefined && query.scope !== "headers" && query.scope !== "footers")
+      throw new InvalidValueError("Story variants require header or footer scope.");
+    if (query.section !== undefined && (kind === "part" || query.scope !== undefined && !["body", "headers", "footers", "all-stories"].includes(query.scope)))
+      throw new InvalidValueError("Section selection requires body, header or footer scope.");
     if (!["part", "story", "paragraph", "run", "table", "cell", "image", "annotation"].includes(kind))
       throw new InvalidValueError("Unknown location kind.");
     if (query.scope !== undefined && (!documentScopes.includes(query.scope) || kind === "part"))
       throw new InvalidValueError("Unknown or inapplicable story scope.");
-    if (query.owner !== undefined && query.scope !== undefined) throw new InvalidValueError("An owner token cannot be combined with scope.");
+    if (query.owner !== undefined && (query.scope !== undefined || query.section !== undefined || query.variant !== undefined)) throw new InvalidValueError("An owner token cannot be combined with scope.");
     const owner = query.owner === undefined ? undefined : decodeLocation(query.owner);
     if (owner) {
       if (owner.range) throw new InvalidValueError("A resource owner cannot be a text range.");
@@ -111,15 +118,23 @@ class DocumentLocations {
         throw new InvalidValueError("Invalid location owner chain.");
     }
     const scope = query.scope ?? "body";
+    const referencedStories = new Set(this.#index.references.filter(ref =>
+      (query.section === undefined || ref.section === query.section) &&
+      (query.variant === undefined || ref.variant === query.variant)).map(ref => ref.story));
+    this.#budget.charge("work", this.#index.references.length);
     const result: Location<K>[] = [];
     for (const entry of this.#index.entries) {
       this.#budget.charge("work", 1);
       if (entry.kind !== kind) continue;
       if (owner ? entry.part !== owner.part || entry.story !== owner.story || !pathContains(owner.path, entry.path)
         : kind !== "part" && scope !== "all-stories" && entry.scope !== scope) continue;
+      if (query.section !== undefined || query.variant !== undefined) {
+        const storyScoped = entry.scope === "headers" || entry.scope === "footers";
+        if (storyScoped ? !referencedStories.has(entry.story) : query.section !== undefined && entry.positions.section !== query.section) continue;
+      }
       this.#budget.check("matches", result.length + 1);
       const position = ["paragraph", "run", "table", "image"].includes(kind) ? { [kind]: result.length + 1 } : {};
-      result.push(this.#location({ ...entry, positions: { ...entry.positions, ...position } }) as Location<K>);
+      result.push(this.#location({ ...entry, positions: { ...entry.positions, ...position, ...(query.section !== undefined ? { section: query.section } : {}) } }) as Location<K>);
     }
     return Object.freeze(result);
   }
@@ -175,6 +190,20 @@ class DocumentLocations {
       throw new SelectionError("ambiguous-selection", tokens);
     }
     return Object.freeze(resolved);
+  }
+
+  sharedImages(token: string): readonly Location<"image">[] {
+    const entry = this.#entry(decodeLocation(token), "image");
+    const target = this.#index.imageTargets.get(entry.node!);
+    if (!target) throw new InvalidValueError("Shared replacement requires an embedded image resource.");
+    const result: Location<"image">[] = [];
+    for (const candidate of this.#index.entries) {
+      this.#budget.charge("work", 1);
+      if (candidate.kind !== "image" || this.#index.imageTargets.get(candidate.node!) !== target) continue;
+      this.#budget.check("matches", result.length + 1);
+      result.push(this.#location(candidate) as Location<"image">);
+    }
+    return Object.freeze(result);
   }
 
   references(token: string): readonly StoryReference[] {

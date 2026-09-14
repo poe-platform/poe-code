@@ -60,6 +60,7 @@ function cellLabel(row: number, column: number): string {
 export class LocationIndex {
   readonly entries: LocationEntry[] = [];
   readonly references: StoryReference[] = [];
+  readonly imageTargets = new Map<XmlElement, string>();
   readonly byAddress = new Map<string, LocationEntry[]>();
   readonly children = new Map<XmlElement, readonly XmlElement[]>();
   readonly #paths = new Map<XmlElement, readonly number[]>();
@@ -114,12 +115,14 @@ export class LocationIndex {
       seen.add(id);
       this.#add({ kind: "story", part, story: id, path: this.#paths.get(node)!, node, scope, positions });
       const counts = { paragraph: 0, table: 0, image: 0, run: 0 };
+      let bodySection = 1;
       const visit = (current: XmlElement, inherited: LocationPositions) => {
         budget.charge("work", 1);
         if (current !== node && current.namespace === w && current.localName === "txbxContent") {
           pendingBoxes.push({ node: current, part });
           return;
         }
+        if (scope === "body" && current !== node) inherited = { ...inherited, section: bodySection };
         let kind: LocationKind | undefined;
         let pos = inherited;
         if (current.namespace === w) {
@@ -135,6 +138,10 @@ export class LocationIndex {
         }
         if (kind) this.#add({ kind, part, story: id, path: this.#paths.get(current)!, node: current, scope, positions: pos });
         for (const child of this.children.get(current) ?? []) visit(child, pos);
+        if (scope === "body" && current.namespace === w && current.localName === "p") {
+          const properties = this.named(current, "pPr")[0];
+          if (properties && this.named(properties, "sectPr").length) bodySection++;
+        }
       };
       visit(node, positions);
     };
@@ -183,6 +190,16 @@ export class LocationIndex {
       for (const nested of pendingBoxes.splice(start)) visitBox(nested);
     };
     for (const box of pendingBoxes) visitBox(box);
+    const relationships = new Map([...new Set(this.entries.filter(entry => entry.kind === "image").map(entry => entry.part))].map(part => [part, graph.relationships(part)]));
+    for (const entry of this.entries) {
+      if (entry.kind !== "image") continue;
+      const node = entry.node!;
+      const id = this.attr(node, node.localName === "blip" ? "embed" : "id", r);
+      const edges = relationships.get(entry.part) ?? [];
+      budget.charge("work", edges.length);
+      const edge = edges.find(edge => edge.rId === id && edge.reltype === r + "/image" && !edge.is_external);
+      if (edge) this.imageTargets.set(node, edge.target_part.partname);
+    }
   }
 
   #add(entry: LocationEntry): void {

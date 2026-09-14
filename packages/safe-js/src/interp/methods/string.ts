@@ -774,8 +774,11 @@ function splitNormalized(
       operation.release();
     }
   }
-  const result = splitString(value, separator, limit).map((part) => budget.allocateString(part));
+  const result = value.split(separator as string, limit);
   budget.allocateArrayLength(result.length);
+  // Admit the container before checking each string; keep the native output
+  // rather than allocating a second array solely for validation.
+  for (const part of result) budget.allocateString(part);
   return result;
 }
 
@@ -978,18 +981,4 @@ function collectRegexMatches(regex: SandboxRegex, value: string, all: boolean, b
     if (all && match.text.length === 0) regex.lastIndex = lastIndex = advanceStringIndex(value, lastIndex, regex.flags.includes("u") || regex.flags.includes("v"));
   } while (all);
   return matches;
-}
-
-function splitString(
-  value: string,
-  separator: string | undefined,
-  limit: number | undefined
-): string[] {
-  const split = String.prototype.split as (
-    this: string,
-    separator: string | undefined,
-    limit?: number
-  ) => string[];
-
-  return split.call(value, separator, limit);
 }

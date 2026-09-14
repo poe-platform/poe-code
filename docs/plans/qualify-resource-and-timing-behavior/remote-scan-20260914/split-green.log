@@ -1,0 +1,11 @@
+
+ RUN  v4.1.11 /private/tmp/poe-resource-delivery
+
+ ✓ packages/safe-js/src/interp/methods/string-split-admission.test.ts (3 tests) 3ms
+ ✓ packages/safe-js/src/interp/methods/string-split.independent.test.ts (808 tests) 13312ms
+
+ Test Files  2 passed (2)
+      Tests  811 passed (811)
+   Start at  17:20:48
+   Duration  15.10s (transform 2.53s, setup 61ms, import 3.36s, tests 13.31s, environment 0ms)
+

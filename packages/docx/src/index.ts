@@ -10,6 +10,7 @@ export {
   type ArchiveMember,
   type DocumentArchive
 } from "./archive.js";
+export { DocumentBudget, documentLimitDefaults, type DocumentLimits, type DocumentLimitName } from "./budget.js";
 export {
   writeArchive,
   SinkError,
@@ -33,6 +34,7 @@ export type {
 } from "./package.js";
 export {
   parseDocumentXml,
+  parseDocumentXmlAsync,
   type DocumentXml,
   type DocumentXmlLimits,
   type XmlElement,

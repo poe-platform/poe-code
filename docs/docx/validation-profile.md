@@ -1,6 +1,6 @@
 # DOCX bounded validation profile
 
-The `packages/docx` utility exports `validateDocumentArchive(archive, options?)`,
+The `packages/docx` utility exports `validateDocumentArchive(archive, options?, budget?)`,
 `documentValidationProfile`, `SemanticValidationError`, and
 `writeDocumentArchive(archive, sink, options, context)`. This is the bounded
 package-semantic-validation milestone. It does not implement the later document
@@ -17,12 +17,15 @@ must first be established by `readArchive` or `readDocumentArchive`.
 
 Options are closed: `profile` (only `core-v1`), `maxParts` (4096), `maxBytes`
 (33554432 aggregate member bytes), `maxNodes` (200000 aggregate XML elements),
-and `maxDiagnostics` (1000). Numeric limits must be positive safe integers.
+and `maxDiagnostics` (1000). Numeric limits must be positive safe integers within
+the trusted invocation ceilings described in [resource accounting](resource-limits.md).
 Unknown keys/profiles and invalid values are `usage`; exceeding a ceiling is
 `limit-exceeded`, not an invalid-document diagnostic or a successful truncated
 report. XML parsing also retains its existing depth, attributes, text and work
 ceilings. Metadata and dialect checks may parse the same part a bounded number
-of times; node accounting covers each unique part, not parser invocation count.
+of times. The validator's local element allowance covers unique parts; the
+invocation ledger additionally charges every parse, including retained attributes
+and text/comment nodes, without resetting between phases.
 Definition and relationship lookups use maps; style and numbering dependency
 walks memoize completed chains.
 
@@ -35,7 +38,7 @@ before ZIP serialization or any sink call. Creation uses that entry point.
 The writer uses explicit archive limits/cancellation, limits semantic admission
 to the smaller archive/default part and byte ceilings, and reserves 32 times
 payload bytes plus 65536 bytes for validation before parsing. The existing ZIP
-writer separately budgets its serialization phase. Sink writes are not a VFS
+writer charges its serialization phase to the same invocation ledger. Sink writes are not a VFS
 transaction; atomic destination publication belongs to the later adapter task.
 
 `SemanticValidationError` extends `InvalidPackageError` and uses the shared

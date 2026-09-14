@@ -1,6 +1,7 @@
 import { InputTypeError, ResourceLimitError } from "./archive.js";
+import { DocumentBudget } from "./budget.js";
 import {
-  parseDocumentXml, InvalidXmlError, type DocumentXml, type DocumentXmlLimits,
+  parseDocumentXml, documentXmlSettings, InvalidXmlError, type DocumentXml, type DocumentXmlLimits,
   type XmlContent, type XmlElement, type XmlAttribute
 } from "./package-xml.js";
 
@@ -110,6 +111,7 @@ function escapeValue(value: string, attribute: boolean): string {
 }
 
 export class DocumentXmlEditor {
+  readonly #budget: DocumentBudget;
   readonly #profile: CompatibilityProfile;
   #compatibility: MarkupCompatibility | undefined;
   #guardCompatibility = false;
@@ -122,12 +124,15 @@ export class DocumentXmlEditor {
   readonly #elements = new Set<XmlElement>();
   readonly #dialect: DocumentDialect | undefined;
 
-  constructor(bytes: Uint8Array, limits: DocumentXmlLimits = {}, profile: CompatibilityProfile = documentCompatibilityProfile) {
+  constructor(bytes: Uint8Array, limits: DocumentXmlLimits = {}, profile: CompatibilityProfile = documentCompatibilityProfile, budget = new DocumentBudget()) {
+    this.#budget = budget;
     this.#profile = compatibilitySettings(profile);
-    this.#document = parseDocumentXml(bytes, limits);
+    this.#limits = documentXmlSettings(limits, budget);
+    this.#document = parseDocumentXml(bytes, this.#limits, budget);
+    budget.charge("retainedBytes", bytes.length * 8);
+    budget.charge("work", bytes.length * 8);
     this.#dialect = dialectForNamespace(this.#document.root.namespace);
     this.#guardCompatibility = this.#dialect !== undefined;
-    this.#limits = { ...limits };
     this.#source = new TextDecoder(this.#document.encoding, { fatal: true, ignoreBOM: true }).decode(this.#document.bytes);
     this.#spans = indexSource(this.#document, this.#source);
     const stack: XmlContent[] = [this.#document.root];
@@ -150,7 +155,7 @@ export class DocumentXmlEditor {
   }
 
   get compatibility(): MarkupCompatibility {
-    return this.#compatibility ??= new MarkupCompatibility(this.root, this.#profile);
+    return this.#compatibility ??= new MarkupCompatibility(this.root, this.#profile, this.#budget);
   }
 
   get root(): XmlElement { return this.#document.root; }
@@ -185,6 +190,8 @@ export class DocumentXmlEditor {
   #stage(token: Token, value: string, original: string, escape: boolean): void {
     if (value.length > (this.#limits.maxBytes ?? 32 * 1024 * 1024))
       throw new ResourceLimitError("XML output byte limit exceeded.");
+    this.#budget.charge("work", value.length * 8);
+    this.#budget.charge("retainedBytes", value.length * 12);
     for (const char of value) {
       const point = char.codePointAt(0)!;
       if (!(point === 9 || point === 10 || point === 13 ||
@@ -204,8 +211,8 @@ export class DocumentXmlEditor {
     try {
       // Validate the whole candidate before accepting a staged mutation. This also
       // checks characters, document siblings, encoding and cumulative output limits.
-      const candidate = parseDocumentXml(this.serialize(), this.#limits);
-      if (this.#dialect && this.#patches.size) validateXmlDialect(candidate.root, this.#dialect, this.#profile);
+      const candidate = parseDocumentXml(this.serialize(), this.#limits, this.#budget);
+      if (this.#dialect && this.#patches.size) validateXmlDialect(candidate.root, this.#dialect, this.#profile, this.#budget);
     } catch (error) {
       this.#patches.clear();
       for (const [key, patch] of before) this.#patches.set(key, patch);
@@ -218,7 +225,10 @@ export class DocumentXmlEditor {
       if (current.size !== original.size) unsupported();
       for (const [prefix, uri] of original) if (current.get(prefix) !== uri) unsupported();
     }
-    if (!this.#patches.size) return new Uint8Array(this.#document.bytes);
+    if (!this.#patches.size) {
+      this.#budget.charge("retainedBytes", this.#document.bytes.length);
+      return new Uint8Array(this.#document.bytes);
+    }
     const patches = [...this.#patches].map(([token, value]) => ({ ...this.#spans.get(token)!, value }));
     patches.sort((a, b) => a.start - b.start);
     const maxBytes = this.#limits.maxBytes ?? 32 * 1024 * 1024;
@@ -227,6 +237,8 @@ export class DocumentXmlEditor {
     const utf8 = this.#document.encoding === "UTF-8";
     if (length * (utf8 ? 1 : 2) > maxBytes)
       throw new ResourceLimitError("XML output byte limit exceeded.");
+    this.#budget.charge("retainedBytes", length * 8);
+    this.#budget.charge("work", length * 4);
     const chunks: string[] = [];
     let offset = 0;
     for (const patch of patches) {

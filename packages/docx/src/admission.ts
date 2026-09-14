@@ -1,6 +1,6 @@
 import { DocumentPackage } from "./package.js";
 import { asciiKey } from "./part-uri.js";
-import { InvalidPackageError, parseDocumentXml, UnsupportedProfileError } from "./package-xml.js";
+import { InvalidPackageError, parseDocumentXmlAsync, UnsupportedProfileError, type XmlElement } from "./package-xml.js";
 import { validatePackageDialect, type DocumentDialect } from "./dialect.js";
 export { InvalidPackageError, InvalidXmlError, UnsupportedProfileError } from "./package-xml.js";
 import {
@@ -38,7 +38,7 @@ export async function readDocumentArchive(
   input: Uint8Array,
   context: ArchiveContext
 ): Promise<AdmittedDocumentArchive> {
-  const { limits, signal } = archiveSettings(context);
+  const { limits, signal, budget } = archiveSettings(context);
   if (signal.aborted) throw new CancellationError("Document admission cancelled.");
   if (
     input instanceof Uint8Array &&
@@ -51,7 +51,7 @@ export async function readDocumentArchive(
       "Compound binary Word or encrypted Office containers are unsupported."
     );
   }
-  const archive = await readArchive(input, { limits, signal });
+  const archive = await readArchive(input, { limits, signal, budget });
   const total = archive.members.reduce((sum, member) => sum + member.bytes.length, 0);
   // Reserve strings, parser state and lookup metadata in addition to owned payloads.
   if (
@@ -59,7 +59,17 @@ export async function readDocumentArchive(
     limits.maxRetainedBytes
   )
     throw new ResourceLimitError("Document admission retained byte budget exceeded.");
-  const graph = new DocumentPackage(archive, limits);
+  const parsed = new Map<Uint8Array, XmlElement>();
+  for (const member of archive.members) {
+    if (member.name.toLowerCase() === "[content_types].xml" || member.name.toLowerCase().endsWith(".rels"))
+      parsed.set(member.bytes, (await parseDocumentXmlAsync(member.bytes, {}, budget)).root);
+  }
+  const graph = new DocumentPackage(archive, limits, budget, parsed);
+  for (const part of graph.parts) {
+    const type = part.content_type.toLowerCase();
+    if (type.startsWith("image/") || type.startsWith("audio/") || type.startsWith("video/"))
+      budget.check("embeddedMediaBytes", part.bytes.length);
+  }
   for (const declaration of [...graph.defaults, ...graph.overrides]) {
     if (macroTypes.has(declaration.content_type.toLowerCase()))
       throw new UnsupportedProfileError("Macro-enabled document containers are unsupported.");
@@ -77,7 +87,12 @@ export async function readDocumentArchive(
     type === documentTypes.docx ? "docx" : type === documentTypes.dotx ? "dotx" : undefined;
   if (!kind)
     throw new UnsupportedProfileError("The package is not a supported Word document or template.");
-  const dialect = validatePackageDialect(graph, mainRelationships[0]!, parseDocumentXml(main.bytes).root);
+  for (const part of graph.parts) {
+    const type = part.content_type.toLowerCase();
+    if (!parsed.has(part.bytes) && (type.endsWith("+xml") || type === "application/xml" || type === "text/xml"))
+      parsed.set(part.bytes, (await parseDocumentXmlAsync(part.bytes, {}, budget)).root);
+  }
+  const dialect = validatePackageDialect(graph, mainRelationships[0]!, parsed.get(main.bytes)!, budget, parsed);
   if (signal.aborted) throw new CancellationError("Document admission cancelled.");
   return { ...archive, kind, dialect, mainPart: main.name, package: graph };
 }

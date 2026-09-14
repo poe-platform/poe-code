@@ -1,4 +1,5 @@
 import type { XmlElement } from "./package-xml.js";
+import { DocumentBudget } from "./budget.js";
 import {
   InputTypeError,
   InvalidValueError,
@@ -41,14 +42,14 @@ export interface PackageRelationship {
   readonly target_part: PackagePart;
 }
 
-function metadataXml(part: string, bytes: Uint8Array, visit: (tag: XmlElement, depth: number) => void): void {
+function metadataXml(part: string, bytes: Uint8Array, budget: DocumentBudget, parsed: ReadonlyMap<Uint8Array, XmlElement>, visit: (tag: XmlElement, depth: number) => void): void {
   let location = "/";
   let index = 0;
   try {
     xml(bytes, (tag, depth) => {
       location = `/${tag.localName}[${++index}]`;
       visit(tag, depth);
-    }, true);
+    }, true, budget, parsed.get(bytes));
   } catch (error) {
     if (error instanceof InvalidPackageError)
       throw new InvalidPackageError(error.message, part, location, error.diagnosticCode);
@@ -125,8 +126,13 @@ export class DocumentPackage {
 
   private readonly limits: ArchiveLimits;
   private remainingMembers: number;
+  readonly #budget: DocumentBudget;
 
-  constructor(archive: DocumentArchive, limits: ArchiveLimits) {
+  constructor(archive: DocumentArchive, limits: ArchiveLimits, budget = new DocumentBudget(), parsed: ReadonlyMap<Uint8Array, XmlElement> = new Map()) {
+    this.#budget = budget;
+    budget.check("zipEntries", archive.members.length);
+    budget.charge("retainedBytes", archive.members.length * 1024);
+    budget.charge("work", archive.members.reduce((sum, member) => sum + member.name.length * 8, 0));
     this.limits = { ...limits };
     this.remainingMembers = limits.maxMembers - archive.members.length;
     const members = new Map<string, ArchiveMember>();
@@ -159,7 +165,7 @@ export class DocumentPackage {
     const defaultValues: ContentTypeDefault[] = [];
     const overrideValues: ContentTypeOverride[] = [];
     metadataXml(
-      "/[Content_Types].xml", types.bytes,
+      "/[Content_Types].xml", types.bytes, budget, parsed,
       (tag, depth) => {
         if (tag.namespace !== contentTypesNamespace) invalidPackage();
         if (depth === 1) {
@@ -233,7 +239,7 @@ export class DocumentPackage {
       const ids = new Set<string>();
       const relationships: PackageRelationship[] = [];
       metadataXml(
-        part.partname, part.bytes,
+        part.partname, part.bytes, budget, parsed,
         (tag, depth) => {
           if (tag.namespace !== relationshipsNamespace) invalidPackage();
           if (depth === 1) {
@@ -277,12 +283,16 @@ export class DocumentPackage {
   }
 
   getPart(partname: string): PackagePart {
+    if (typeof partname !== "string") throw new InputTypeError("Expected a part name.");
+    if (partname.length > this.limits.maxPathBytes) throw new ResourceLimitError("Package part path limit exceeded.");
+    this.#budget.charge("work", partname.length);
     const part = this.byName.get(asciiKey(normalizePartName(partname)));
     if (!part) throw new InvalidValueError("Package part was not found.");
     return part;
   }
 
   relationships(owner: string): readonly PackageRelationship[] {
+    this.#budget.charge("work", 1);
     const key = owner === "/" ? "/" : asciiKey(this.getPart(owner).partname);
     if (owner !== "/" && relationshipOwner(owner) !== null)
       throw new InvalidValueError("Relationships cannot own relationships.");
@@ -293,6 +303,7 @@ export class DocumentPackage {
     const visited = new Set<PackagePart>();
     const stack = [...this.relationships("/")].reverse();
     while (stack.length) {
+      this.#budget.charge("work", 1);
       const edge = stack.pop()!;
       if (edge.is_external || visited.has(edge.target_part)) continue;
       const part = edge.target_part;
@@ -308,7 +319,11 @@ export class DocumentPackage {
     const key = owner === "/" ? "/" : asciiKey(this.getPart(owner).partname);
     const ids = this.reservedIds.get(key) ?? new Set(edges.map((edge) => edge.rId));
     let index = 1;
-    while (ids.has(`rId${index}`)) index++;
+    while (ids.has(`rId${index}`)) {
+      this.#budget.charge("work", 1);
+      index++;
+    }
+    this.#budget.charge("retainedBytes", 2 * (3 + String(index).length));
     const id = `rId${index}`;
     ids.add(id);
     this.reservedIds.set(key, ids);
@@ -321,6 +336,7 @@ export class DocumentPackage {
     if (this.remainingMembers <= 0 || prefix.length + suffix.length > this.limits.maxPathBytes)
       throw new ResourceLimitError("Package part reservation limit exceeded.");
     for (let index = 1; index <= this.reservedNames.size + 1; index++) {
+      this.#budget.charge("work", prefix.length + suffix.length + 1);
       const name = normalizePartName(`${prefix}${index}${suffix}`);
       if (
         relativePartTarget("/", name).length > this.limits.maxPathBytes ||
@@ -332,9 +348,11 @@ export class DocumentPackage {
       const key = asciiKey(name.normalize("NFC"));
       if (this.reservedNames.has(key)) continue;
       for (const existing of this.reservedNames) {
+        this.#budget.charge("work", existing.length + key.length);
         if (existing.startsWith(key + "/") || key.startsWith(existing + "/"))
           throw new InvalidValueError("Allocated part name conflicts with a package part.");
       }
+      this.#budget.charge("retainedBytes", key.length * 2);
       this.reservedNames.add(key);
       this.remainingMembers--;
       return name;

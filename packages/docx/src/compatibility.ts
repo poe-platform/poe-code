@@ -1,4 +1,5 @@
 import { InvalidValueError } from "./archive.js";
+import { DocumentBudget } from "./budget.js";
 import { InvalidXmlError, UnsupportedProfileError, type XmlElement, type XmlContent, type XmlAttribute } from "./package-xml.js";
 
 const mc = "http://schemas.openxmlformats.org/markup-compatibility/2006";
@@ -121,12 +122,15 @@ export class MarkupCompatibility {
   readonly branches: readonly CompatibilityBranch[];
   readonly #editable = new Set<XmlContent | XmlAttribute>();
 
-  constructor(root: XmlElement, profile: CompatibilityProfile = documentCompatibilityProfile) {
+  constructor(root: XmlElement, profile: CompatibilityProfile = documentCompatibilityProfile, budget = new DocumentBudget()) {
     const settings = compatibilitySettings(profile);
     const understood = new Set(settings.understoodNamespaces);
     const branches: CompatibilityBranch[] = [];
     const attribute = (element: XmlElement, name: string) => element.attributes.find(a => a.namespace === mc && a.localName === name)?.value;
     const scopeFor = (element: XmlElement, parent: Scope): Scope => {
+      budget.charge("work", 1 + parent.ignorable.size + parent.process.length * (element.attributes.length + 1) +
+        element.attributes.reduce((sum, a) => sum + a.name.length + a.value.length * 8, 0));
+      budget.charge("retainedBytes", (parent.ignorable.size + parent.process.length + element.attributes.length) * 16);
       const ignorable = new Set([...parent.ignorable, ...namespaces(element, attribute(element, "Ignorable") ?? "")]);
       const process = [...parent.process, ...pairs(element, attribute(element, "ProcessContent") ?? "", ignorable)];
       // Older producers use these hints. Exact source preservation exceeds their request.
@@ -147,13 +151,17 @@ export class MarkupCompatibility {
         if (!a.namespace || a.namespace === xml || !scope.ignorable.has(a.namespace)) invalid();
       }
     };
-    const opaque = (element: XmlElement): CompatibilityElement => Object.freeze({
-      source: element, disposition: "extension", attributes: element.attributes,
-      content: Object.freeze(element.content.map(node => node.kind === "element" ? opaque(node) : node))
-    });
+    const opaque = (element: XmlElement): CompatibilityElement => {
+      budget.charge("work", 1 + element.content.length);
+      return Object.freeze({
+        source: element, disposition: "extension", attributes: element.attributes,
+        content: Object.freeze(element.content.map(node => node.kind === "element" ? opaque(node) : node))
+      });
+    };
     const visitContent = (element: XmlElement, scope: Scope, blocked: boolean): CompatibilityContent[] => {
       const result: CompatibilityContent[] = [];
       for (const node of element.content) {
+        budget.charge("work", 1);
         if (node.kind === "element") result.push(...visit(node, scope, blocked));
         else { result.push(node); if (!blocked) this.#editable.add(node); }
       }

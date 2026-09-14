@@ -1,4 +1,5 @@
 import { InputTypeError, InvalidValueError, ResourceLimitError, type DocumentArchive } from "./archive.js";
+import { DocumentBudget } from "./budget.js";
 import { DocumentPackage } from "./package.js";
 import { InvalidPackageError, InvalidXmlError, parseDocumentXml, UnsupportedProfileError, type XmlElement } from "./package-xml.js";
 import { documentDialects, validatePackageDialect } from "./dialect.js";
@@ -47,14 +48,15 @@ function integer(value: string | undefined, min = 0, max = 2147483647): string |
 }
 
 /** Validates owned, decoded package members; container integrity belongs to readArchive. */
-export function validateDocumentArchive(archive: DocumentArchive, options: ValidationOptions = {}): ValidationData {
+export function validateDocumentArchive(archive: DocumentArchive, options: ValidationOptions = {}, budget = new DocumentBudget()): ValidationData {
   if (!options || typeof options !== "object" || Array.isArray(options) ||
     Object.keys(options).some(k => !["profile", "maxParts", "maxBytes", "maxNodes", "maxDiagnostics"].includes(k)) ||
     (options.profile !== undefined && options.profile !== "core-v1")) throw new InvalidValueError("Unknown validation profile or option.");
-  const limits = { maxParts: 4096, maxBytes: 32 * 1024 * 1024, maxNodes: 200000, maxDiagnostics: 1000 };
+  const limits = { maxParts: Math.min(4096, budget.limits.zipEntries), maxBytes: Math.min(32 * 1024 * 1024, budget.limits.expandedPackage), maxNodes: Math.min(200000, budget.limits.xmlNodes), maxDiagnostics: 1000 };
   for (const key of Object.keys(limits) as (keyof typeof limits)[]) {
     const value = options[key] ?? limits[key];
-    if (!Number.isSafeInteger(value) || value < 1) throw new InvalidValueError("Validation limits must be positive safe integers.");
+    const ceiling = key === "maxParts" ? budget.limits.zipEntries : key === "maxBytes" ? budget.limits.expandedPackage : key === "maxNodes" ? budget.limits.xmlNodes : 1000;
+    if (!Number.isSafeInteger(value) || value < 1 || value > ceiling) throw new InvalidValueError("Validation limits must be positive safe integers within host ceilings.");
     limits[key] = value;
   }
   if (!archive || !Array.isArray(archive.members)) throw new InputTypeError("Expected decoded archive members.");
@@ -65,10 +67,12 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
     total += member.bytes.length;
     if (total > limits.maxBytes) throw new ResourceLimitError("Validation byte limit exceeded.");
   }
+  budget.charge("work", total * 8);
   const diagnostics: ValidationDiagnostic[] = [];
   const failed = new Set<string>();
   const add = (code: string, part: string, location: string, message: string, check = "references") => {
     if (diagnostics.length >= limits.maxDiagnostics) throw new ResourceLimitError("Validation diagnostic limit exceeded.");
+    budget.charge("diagnosticBytes", new TextEncoder().encode(code + part + location + message).length);
     failed.add(check);
     diagnostics.push({ code, part, location, message });
   };
@@ -87,7 +91,7 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
   const roots = new Map<string, XmlElement>();
   let remaining = limits.maxNodes;
   const parse = (part: string, bytes: Uint8Array) => {
-    const root = parseDocumentXml(bytes, { maxBytes: limits.maxBytes, maxNodes: Math.max(1, remaining) }).root;
+    const root = parseDocumentXml(bytes, { maxBytes: Math.min(limits.maxBytes, budget.limits.xmlPartBytes), maxNodes: Math.max(1, remaining) }, budget).root;
     const stack = [root];
     while (stack.length) {
       if (--remaining < 0) throw new ResourceLimitError("Validation node limit exceeded.");
@@ -111,7 +115,7 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
   try {
     graph = new DocumentPackage(archive, { maxMembers: limits.maxParts, maxArchiveBytes: limits.maxBytes,
       maxEntryBytes: limits.maxBytes, maxTotalBytes: limits.maxBytes, maxPathBytes: 4096, maxDepth: 256,
-      maxExtraBytes: 0, maxCommentBytes: 0, maxRetainedBytes: limits.maxBytes * 32, chunkSize: 4096 });
+      maxExtraBytes: 0, maxCommentBytes: 0, maxRetainedBytes: budget.limits.retainedBytes, chunkSize: 4096 }, budget);
   } catch (e) {
     if (!(e instanceof InvalidPackageError || e instanceof InvalidXmlError)) throw e;
     add(e instanceof InvalidPackageError ? e.diagnosticCode : "invalid-xml", e instanceof InvalidPackageError ? e.part ?? "/" : "/", e instanceof InvalidPackageError ? e.location : "/", e.message, "relationships");
@@ -141,16 +145,22 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
     return result();
   }
   let dialect;
-  try { dialect = validatePackageDialect(graph, mains[0]!, root); }
+  try { dialect = validatePackageDialect(graph, mains[0]!, root, budget); }
   catch (e) {
     if (!(e instanceof InvalidPackageError)) throw e;
     add(e.diagnosticCode, e.part ?? main.partname, e.location, e.message, "structure");
     return result();
   }
   const { w, r, wp } = documentDialects[dialect];
-  const attr = (node: Node, name: string, namespace: string = w) => node.element.attributes.find(a => a.namespace === namespace && a.localName === name)?.value;
-  const children = (node: Node, name: string): Node[] => node.element.content.flatMap((child, i) => "source" in child && child.source.namespace === w && child.source.localName === name ?
-    [{ ...node, element: child, location: `${node.location}/${name}[${i + 1}]` }] : []);
+  const attr = (node: Node, name: string, namespace: string = w) => {
+    budget.charge("work", node.element.attributes.length);
+    return node.element.attributes.find(a => a.namespace === namespace && a.localName === name)?.value;
+  };
+  const children = (node: Node, name: string): Node[] => {
+    budget.charge("work", node.element.content.length);
+    return node.element.content.flatMap((child, i) => "source" in child && child.source.namespace === w && child.source.localName === name ?
+      [{ ...node, element: child, location: `${node.location}/${name}[${i + 1}]` }] : []);
+  };
   const issue = (node: Node, code: string, message: string) => add(code, node.part, node.location, message);
   const semanticParts = new Set([main.partname]);
   for (const edge of graph.relationships(main.partname)) {
@@ -161,7 +171,7 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
   for (const part of graph.parts) {
     const partRoot = roots.get(part.partname);
     if (!partRoot || !semanticParts.has(part.partname) || !part.content_type.toLowerCase().startsWith(wordType)) continue;
-    const view = new MarkupCompatibility(partRoot);
+    const view = new MarkupCompatibility(partRoot, documentCompatibilityProfile, budget);
     const visit = (content: typeof view.content, location: string, story: string) => {
       for (let i = 0; i < content.length; i++) {
         const element = content[i]!;
@@ -341,9 +351,11 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
     if (name === "tbl") {
       const grids = children(node, "tblGrid");
       const width = grids.length === 1 ? children(grids[0]!, "gridCol").length : 0;
+      const rows = children(node, "tr");
+      if (width && rows.length) budget.table(rows.length, width);
       if (!width) issue(node, "table-grid", "A table needs one nonempty grid.");
       let previous = new Map<number, number>();
-      for (const row of children(node, "tr")) {
+      for (const row of rows) {
         const properties = children(row, "trPr")[0];
         const count = (parent: Node | undefined, key: string, fallback: number) => {
           const value = parent && children(parent, key)[0];

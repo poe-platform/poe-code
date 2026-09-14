@@ -2,6 +2,7 @@ import { validateDocumentArchive, SemanticValidationError } from "./validation.j
 import { InputTypeError, InvalidValueError, type DocumentArchive } from "./archive.js";
 import { DocumentXmlEditor } from "./xml-write.js";
 import { documentXmlSettings, type DocumentXmlLimits } from "./package-xml.js";
+import { DocumentBudget } from "./budget.js";
 
 import { compatibilitySettings, documentCompatibilityProfile, type CompatibilityProfile } from "./compatibility.js";
 
@@ -10,12 +11,23 @@ export class DocumentArchiveEditor {
   readonly #archive: DocumentArchive;
   readonly #editors = new Map<string, DocumentXmlEditor>();
   readonly #limits: DocumentXmlLimits;
+  readonly #budget: DocumentBudget;
 
-  constructor(archive: DocumentArchive, limits: DocumentXmlLimits = {}, profile: CompatibilityProfile = documentCompatibilityProfile) {
+  constructor(archive: DocumentArchive, limits: DocumentXmlLimits = {}, profile: CompatibilityProfile = documentCompatibilityProfile, budget = new DocumentBudget()) {
+    this.#budget = budget;
     this.#profile = compatibilitySettings(profile);
     if (!archive || !Array.isArray(archive.members) || !(archive.comment instanceof Uint8Array))
       throw new InputTypeError("Expected an owned document archive.");
-    this.#limits = documentXmlSettings(limits);
+    this.#limits = documentXmlSettings(limits, budget);
+    budget.check("zipEntries", archive.members.length);
+    let total = archive.comment.length;
+    for (const member of archive.members) {
+      if (!(member?.bytes instanceof Uint8Array)) throw new InputTypeError("Expected typed archive members.");
+      total += member.bytes.length;
+    }
+    budget.check("expandedPackage", total);
+    budget.charge("retainedBytes", total);
+    budget.charge("work", total);
     const names = new Set<string>();
     this.#archive = {
       comment: new Uint8Array(archive.comment),
@@ -39,12 +51,14 @@ export class DocumentArchiveEditor {
     if (existing) return existing;
     const member = this.#archive.members.find(member => member.name === name && !member.directory);
     if (!member) throw new InvalidValueError("Archive part was not found.");
-    const editor = new DocumentXmlEditor(member.bytes, this.#limits, this.#profile);
+    const editor = new DocumentXmlEditor(member.bytes, this.#limits, this.#profile, this.#budget);
     this.#editors.set(name, editor);
     return editor;
   }
 
   snapshot(): DocumentArchive {
+    this.#budget.charge("retainedBytes", this.#archive.comment.length + this.#archive.members.reduce(
+      (sum, member) => sum + (this.#editors.has(member.name) ? 0 : member.bytes.length), 0));
     const staged = {
       comment: new Uint8Array(this.#archive.comment),
       members: this.#archive.members.map(member => ({
@@ -54,7 +68,7 @@ export class DocumentArchiveEditor {
       }))
     };
     if (staged.members.some(member => member.name.toLowerCase() === "[content_types].xml")) {
-      const report = validateDocumentArchive(staged);
+      const report = validateDocumentArchive(staged, {}, this.#budget);
       if (!report.valid) throw new SemanticValidationError(report.diagnostics);
     }
     return staged;

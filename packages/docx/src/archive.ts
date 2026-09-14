@@ -1,4 +1,5 @@
 import { CodecError, createZipCodec, type ZipLimits } from "@poe-code/office-package";
+import { DocumentBudget } from "./budget.js";
 
 export interface ArchiveLimits {
   readonly maxArchiveBytes: number;
@@ -16,6 +17,7 @@ export interface ArchiveLimits {
 export interface ArchiveContext {
   readonly limits: ArchiveLimits;
   readonly signal: AbortSignal;
+  readonly budget?: DocumentBudget;
 }
 
 export interface ArchiveMember {
@@ -52,11 +54,12 @@ export function archiveSettings(context: ArchiveContext): {
   limits: ArchiveLimits;
   signal: AbortSignal;
   codecLimits: ZipLimits;
+  budget: DocumentBudget;
 } {
   if (!context || !context.limits || !(context.signal instanceof AbortSignal))
     throw new InputTypeError("Expected bytes, explicit limits and a cancellation signal.");
   const limits = { ...context.limits };
-  const signal = context.signal;
+  const signal = context.budget ? AbortSignal.any([context.signal, context.budget.signal]) : context.signal;
   const keys = [
     "maxArchiveBytes",
     "maxEntryBytes",
@@ -78,12 +81,20 @@ export function archiveSettings(context: ArchiveContext): {
   }
   if (limits.chunkSize < 512 || limits.chunkSize > 1024 * 1024)
     throw new InvalidValueError("Archive chunk size must be between 512 and 1048576.");
+  const budget = context.budget?.lower({}, signal) ?? new DocumentBudget({
+    compressedInput: limits.maxArchiveBytes, expandedPackage: limits.maxTotalBytes,
+    zipEntries: limits.maxMembers, retainedBytes: limits.maxRetainedBytes
+  }, signal);
+  limits.maxArchiveBytes = Math.min(limits.maxArchiveBytes, budget.limits.compressedInput);
+  limits.maxTotalBytes = Math.min(limits.maxTotalBytes, budget.limits.expandedPackage);
+  limits.maxMembers = Math.min(limits.maxMembers, budget.limits.zipEntries);
+  limits.maxRetainedBytes = Math.min(limits.maxRetainedBytes, budget.limits.retainedBytes);
   const codecLimits: ZipLimits = {
     ...limits,
     maxPaxBytes: limits.maxExtraBytes,
     maxTextBytes: limits.maxCommentBytes
   };
-  return { limits, signal, codecLimits };
+  return { limits, signal, codecLimits, budget };
 }
 
 export async function readArchive(
@@ -91,7 +102,8 @@ export async function readArchive(
   context: ArchiveContext
 ): Promise<DocumentArchive> {
   if (!(input instanceof Uint8Array)) throw new InputTypeError("Expected archive bytes.");
-  const { limits, signal, codecLimits } = archiveSettings(context);
+  const { limits, signal, codecLimits, budget: invocation } = archiveSettings(context);
+  const budget = invocation.document();
   try {
     signal.throwIfAborted();
     // Reserve input, parser snapshot, detached metadata/payloads and extra-field scratch.
@@ -99,7 +111,11 @@ export async function readArchive(
     const retained = input.byteLength * 4 + 65536 + 2 * Math.min(limits.chunkSize, 65536);
     if (input.byteLength > limits.maxArchiveBytes || retained > limits.maxRetainedBytes)
       throw new ResourceLimitError("Archive byte budget exceeded.");
+    budget.charge("retainedBytes", retained);
+    budget.charge("compressedInput", input.byteLength);
+    budget.charge("work", input.byteLength * 8);
     const archive = await zip.readZipArchive(input, codecLimits, signal);
+    budget.charge("zipEntries", archive.entries.length);
     let expanded = 0;
     for (const entry of archive.entries) {
       if (entry.symlink || entry.name.includes("\\") || entry.name.includes(":"))
@@ -108,6 +124,9 @@ export async function readArchive(
       if (expanded > limits.maxRetainedBytes - retained)
         throw new ResourceLimitError("Retained archive byte budget exceeded.");
     }
+    budget.charge("expandedPackage", expanded);
+    budget.charge("retainedBytes", expanded);
+    budget.charge("work", expanded * 64);
     const members: ArchiveMember[] = [];
     for (const entry of archive.entries) {
       const bytes = new Uint8Array(entry.size);

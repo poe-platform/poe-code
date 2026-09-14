@@ -2,6 +2,7 @@ import { InvalidPackageError, type XmlElement } from "./package-xml.js";
 import { MarkupCompatibility, documentCompatibilityProfile, type CompatibilityContent, type CompatibilityProfile } from "./compatibility.js";
 import type { DocumentPackage, PackageRelationship } from "./package.js";
 import { parseDocumentXml } from "./package-xml.js";
+import { DocumentBudget } from "./budget.js";
 
 export type DocumentDialect = "strict" | "transitional";
 
@@ -44,11 +45,13 @@ export function dialectForNamespace(namespace: string): DocumentDialect | undefi
 export function validateXmlDialect(
   root: XmlElement,
   dialect: DocumentDialect,
-  profile: CompatibilityProfile = documentCompatibilityProfile
+  profile: CompatibilityProfile = documentCompatibilityProfile,
+  budget = new DocumentBudget()
 ): MarkupCompatibility {
-  const view = new MarkupCompatibility(root, profile);
+  const view = new MarkupCompatibility(root, profile, budget);
   const stack: CompatibilityContent[] = [...view.content];
   while (stack.length) {
+    budget.charge("work", 1);
     const node = stack.pop()!;
     if (!("source" in node) || node.disposition === "extension") continue;
     const element = node.source;
@@ -84,7 +87,7 @@ const wordRoots: Readonly<Record<string, string>> = {
   comments: "comments", footnotes: "footnotes", endnotes: "endnotes"
 };
 
-export function validatePackageDialect(graph: DocumentPackage, mainEdge: PackageRelationship, root: XmlElement): DocumentDialect {
+export function validatePackageDialect(graph: DocumentPackage, mainEdge: PackageRelationship, root: XmlElement, budget = new DocumentBudget(), parsed: ReadonlyMap<Uint8Array, XmlElement> = new Map()): DocumentDialect {
   const main = mainEdge.target_part;
   const dialect = dialectForNamespace(root.namespace);
   if (!dialect || root.namespace !== documentDialects[dialect].w || root.localName !== "document")
@@ -110,7 +113,8 @@ export function validatePackageDialect(graph: DocumentPackage, mainEdge: Package
     const word = type.startsWith(prefix) && type.endsWith("+xml");
     const officeXml = type.startsWith("application/vnd.openxmlformats-officedocument.") && type.endsWith("+xml");
     if (part !== main && !officeXml) continue;
-    const partRoot = part === main ? root : parseDocumentXml(part.bytes).root;
+    const partRoot = part === main ? root : parsed.get(part.bytes) ?? parseDocumentXml(part.bytes, {}, budget).root;
+    budget.charge("work", part.bytes.length * 8);
     const partDialect = dialectForNamespace(partRoot.namespace);
     if (partDialect && partDialect !== dialect)
       throw new InvalidPackageError("A document part root uses the opposite document dialect.", part.partname, "/", "part-root");
@@ -119,7 +123,7 @@ export function validatePackageDialect(graph: DocumentPackage, mainEdge: Package
     if (word && (partRoot.namespace !== documentDialects[dialect].w || (expected && partRoot.localName !== expected)))
       throw new InvalidPackageError("A WordprocessingML part root disagrees with its content type.", part.partname, "/", "part-root");
     let view: MarkupCompatibility;
-    try { view = validateXmlDialect(partRoot, dialect); }
+    try { view = validateXmlDialect(partRoot, dialect, documentCompatibilityProfile, budget); }
     catch (error) {
       if (!(error instanceof InvalidPackageError)) throw error;
       throw new InvalidPackageError(error.message, error.part ?? part.partname, error.location, error.diagnosticCode);

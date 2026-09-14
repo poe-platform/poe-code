@@ -29,7 +29,6 @@ const zip = createZipCodec(undefined, {
   utcDates: true,
   validatePayloads: true
 });
-const encoder = new TextEncoder();
 
 function compareNames(first: string, second: string): number {
   let left = 0;
@@ -50,7 +49,10 @@ export async function writeArchive(
   options: ArchiveWriteOptions,
   context: ArchiveContext
 ): Promise<void> {
-  const { limits, signal, codecLimits } = archiveSettings(context);
+  const { limits, signal, codecLimits: admittedCodecLimits, budget } = archiveSettings(context);
+  const remainingOutput = budget.limits.serializedOutput - budget.usage.serializedOutput;
+  if (remainingOutput < 22) throw new ResourceLimitError("Archive output byte budget exceeded.");
+  const codecLimits = { ...admittedCodecLimits, maxArchiveBytes: Math.min(admittedCodecLimits.maxArchiveBytes, remainingOutput) };
   if (
     !archive ||
     !Array.isArray(archive.members) ||
@@ -88,8 +90,12 @@ export async function writeArchive(
         throw new InputTypeError("Expected typed archive members.");
       if (member.name.length > Math.min(limits.maxPathBytes, 65535))
         throw new ResourceLimitError("Archive path limit exceeded.");
-      const nameBytes = encoder.encode(member.name);
-      if (nameBytes.length > Math.min(limits.maxPathBytes, 65535))
+      let nameBytes = 0;
+      for (const char of member.name) {
+        const point = char.codePointAt(0)!;
+        nameBytes += point < 0x80 ? 1 : point < 0x800 ? 2 : point < 0x10000 ? 3 : 4;
+      }
+      if (nameBytes > Math.min(limits.maxPathBytes, 65535))
         throw new ResourceLimitError("Archive path limit exceeded.");
       const parts = member.name.split("/");
       if (parts.at(-1) === "") parts.pop();
@@ -110,7 +116,7 @@ export async function writeArchive(
       if (member.bytes.length > Math.min(limits.maxEntryBytes, 0xfffffffe))
         throw new ResourceLimitError("Archive entry limit exceeded.");
       total += member.bytes.length;
-      metadata += 76 + 2 * nameBytes.length;
+      metadata += 76 + 2 * nameBytes;
       payloadBound +=
         compression === "store" || member.directory
           ? member.bytes.length
@@ -122,12 +128,12 @@ export async function writeArchive(
         !Number.isSafeInteger(total) ||
         total > limits.maxTotalBytes ||
         !Number.isSafeInteger(metadata) ||
-        metadata > limits.maxArchiveBytes ||
+        metadata > codecLimits.maxArchiveBytes ||
         !Number.isSafeInteger(payloadBound)
       )
         throw new ResourceLimitError("Archive byte budget exceeded.");
     }
-    const outputBound = Math.min(metadata + payloadBound, limits.maxArchiveBytes, 0xfffffffe);
+    const outputBound = Math.min(metadata + payloadBound, codecLimits.maxArchiveBytes, 0xfffffffe);
     // Reserve the owned input and codec copy, compressed chunks, final container,
     // encoded metadata, transient sink copy and portable compression workspace.
     const retained =
@@ -139,9 +145,11 @@ export async function writeArchive(
     if (
       !Number.isSafeInteger(retained) ||
       retained > limits.maxRetainedBytes ||
-      (compression === "store" && metadata + total > limits.maxArchiveBytes)
+      (compression === "store" && metadata + total > codecLimits.maxArchiveBytes)
     )
       throw new ResourceLimitError("Archive output or retained byte budget exceeded.");
+    budget.charge("retainedBytes", retained);
+    budget.charge("work", total * 64 + metadata * 8);
     // Acquire all payloads before the first suspension; metadata is normalized.
     const members = inputMembers.map((member) => ({
       name: member.name,
@@ -177,6 +185,7 @@ export async function writeArchive(
       codecLimits,
       signal
     );
+    budget.charge("serializedOutput", bytes.length);
     const chunkSize = Math.min(limits.chunkSize, 65536);
     for (let offset = 0; offset < bytes.length; offset += chunkSize) {
       signal.throwIfAborted();

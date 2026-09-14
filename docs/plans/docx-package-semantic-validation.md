@@ -61,3 +61,41 @@ Independent assertions use separate ZIP/CRC/decompression and Saxes code on
 staged output in memfs.
 No CLI surface changes or CLI screenshot claim. No renderer, full XSD conformance,
 large downloaded-input qualification, remote delivery or release is claimed.
+
+## Verification review, 2026-09-14
+
+Reviewed implementation commit `201ee0971`, the original 52 validation cases,
+the independent ZIP/CRC/Saxes assertions, the profile and shared contracts.
+The prior red/green counts above are preserved historical narrative; separate
+raw logs for those earlier failures were not available in this task record.
+Fresh execution verifies the current code rather than re-establishing their
+historical test-first ordering.
+
+One original memfs regression reproduced a located-diagnostic defect before
+the correction: a Strict run nested inside a Transitional header was rejected
+with `package-structure` but attributed to `/word/document.xml` instead of
+`/word/header.xml`. The targeted maintained workspace test exited 1 with that
+exact expected/received difference (1 failed, 368 skipped). The correction
+retains the owning part when propagating dialect validation errors, preserving
+the existing code and root-level diagnostic location. Unsupported-profile and
+resource-limit exceptions retain their distinct behavior.
+
+Fresh checks after the correction:
+
+- `npm run test --workspace=docx`: 369/369 tests, 11/11 files passed;
+  the regression also verifies the publication error and unchanged memfs sink.
+- `npm run lint --workspace=docx`: ESLint and both TypeScript checks passed.
+- `npm run build:workspaces -- --workspace=docx`: selected maintained closure
+  passed for docx, office-package and safe-fs (three builds).
+- `git diff --check`: passed.
+
+The successful staged-output test independently inspects actual bytes using
+the separate ZIP decoder and Saxes assertions; it does not call the product
+validator as its oracle. These remain small original fixtures, not a full
+schema or application interoperability check. No downloaded qualification,
+native reference execution, renderer, CLI screenshots, complete public model
+coverage, or CLI/schema/capabilities parity is claimed. Those later surfaces
+remain absent, as disclosed by the profile and research mapping. No new public
+API spellings, reference identities or ambient I/O were introduced. Unrelated
+master-plan/archive work and index entries are preserved; this review makes
+one task-owned local correction commit only, with no push or release.

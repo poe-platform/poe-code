@@ -118,7 +118,12 @@ export function validatePackageDialect(graph: DocumentPackage, mainEdge: Package
     const expected = word && Object.hasOwn(wordRoots, name) ? wordRoots[name] : undefined;
     if (word && (partRoot.namespace !== documentDialects[dialect].w || (expected && partRoot.localName !== expected)))
       throw new InvalidPackageError("A WordprocessingML part root disagrees with its content type.", part.partname, "/", "part-root");
-    const view = validateXmlDialect(partRoot, dialect);
+    let view: MarkupCompatibility;
+    try { view = validateXmlDialect(partRoot, dialect); }
+    catch (error) {
+      if (!(error instanceof InvalidPackageError)) throw error;
+      throw new InvalidPackageError(error.message, error.part ?? part.partname, error.location, error.diagnosticCode);
+    }
     if (part === main) {
       const document = view.content.find(node => "source" in node && node.source === root);
       const bodies = document && "source" in document ? document.content.filter(node => "source" in node &&

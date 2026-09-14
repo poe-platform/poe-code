@@ -223,3 +223,15 @@ it("leaves glossary definition scopes unvalidated instead of using main-story st
   const archive = withPart(document('<w:p/>'), "glossaryDocument", '<w:docParts><w:docPart><w:docPartBody><w:p><w:pPr><w:pStyle w:val="GlossaryLocal"/></w:pPr></w:p></w:docPartBody></w:docPart></w:docParts>', "glossaryDocument", "document.glossary");
   expect(validateDocumentArchive(archive)).toMatchObject({ valid: true, warnings: expect.any(Array) });
 });
+
+it("locates a related-part dialect failure before publishing to memfs", async () => {
+  const archive = withPart(document('<w:p/>'), "header", '<w:p><s:r xmlns:s="http://purl.oclc.org/ooxml/wordprocessingml/main"/></w:p>', "hdr");
+  const fs = Volume.fromJSON({ "/out": "prior" });
+  const diagnostic = { code: "package-structure", part: "/word/header.xml", location: "/" };
+  expect(validateDocumentArchive(archive).diagnostics).toContainEqual(expect.objectContaining(diagnostic));
+  await expect(writeDocumentArchive(archive, { async write(b) { fs.appendFileSync("/out", b); } }, { order: "name", compression: "store" }, {
+    signal: new AbortController().signal,
+    limits: { maxArchiveBytes: 65536, maxEntryBytes: 16384, maxTotalBytes: 65536, maxMembers: 32, maxPathBytes: 256, maxDepth: 16, maxExtraBytes: 0, maxCommentBytes: 0, maxRetainedBytes: 4 * 1024 * 1024, chunkSize: 512 }
+  })).rejects.toMatchObject({ code: "invalid-package", diagnostics: [expect.objectContaining(diagnostic)] });
+  expect(fs.readFileSync("/out", "utf8")).toBe("prior");
+});

@@ -528,3 +528,64 @@ capability. No separate Worker architecture is a fallback in this plan.
 
 All tasks are unstarted. Creating and validating this document does not execute
 the implementation pipeline or authorize changes to existing application Workers.
+
+## Plan creation record
+
+Recorded on September 14, 2026 in `/Users/kjopek/Workspace/poe-code-3`:
+
+- Branch: `main`; no branch created.
+- HEAD: `917b203ffa05d85b39138d1e6f1d7265a9a82104`.
+- Working tree: clean before this plan update (`git status --short`).
+- Index: empty before this plan update (`git diff --cached --name-status`).
+- Instructions read: root `AGENTS.md` and `packages/safe-bash/AGENTS.md`.
+  No scoped `AGENTS.md` was found in safe-fs or safe-bash-playground.
+  Nested safe-bash instructions belong to existing fixture/evidence trees;
+  those paths are outside the assignments below and remain preserved.
+- Current owned path: `docs/plans/pyodide-cloudflare-safe-bash.md` only.
+  No implementation, runtime experiments, deployment, push or release occurs
+  during plan creation. Prototype claims above await task-one revalidation.
+- Plan validation: the maintained `packages/pipeline/src/plan/parser.ts`
+  `parsePlan` accepts this document, with setup, teardown and all eleven ordered
+  tasks retaining open implementation/test statuses. `git diff --check` passes.
+
+The setup prompt's plan-only restriction applies to this creation request.
+A subsequent explicit implementation request starts setup, then the eleven tasks
+in their listed order, then teardown. Re-record branch, HEAD, working tree and
+index at that time; this clean snapshot does not authorize altering later work.
+All implementation and test statuses remain open until their acceptance passes.
+
+## Implementation ownership and delegation
+
+Root coordinates integration, task ordering, acceptance, plan/evidence updates
+and all Git operations. At implementation setup, assign named package workers
+and an independent reviewer before substantive package edits. Review and stress
+verification use a different agent from the implementer, as scoped instructions
+require. Assign exact files for each task before editing; the areas below define
+ownership boundaries, not permission to stage entire directories.
+
+| Owner role | Assigned area for the later implementation run |
+| --- | --- |
+| Root integration | This plan and related evidence/manual QA documents under `docs/plans`; root `src/sdk/bash.ts`, affected SDK tests and root public export wiring; integration test membership registration |
+| safe-bash implementation worker | Python command/transport/executor code under `packages/safe-bash/src/commands/python`, affected plugin composition, package exports/build tooling, focused package tests and public consumer fixtures |
+| safe-fs implementation worker | Required PythonFileSystem/PythonStatTranslator changes and focused tests in `packages/safe-fs`, only after validating a service gap |
+| Playground implementation worker | Affected engine, execution worker/RPC, samples, UI, `RESOURCE_LIMITS.md`, build assets and focused browser tests in `packages/safe-bash-playground` |
+| Independent reviewer | Read-only review and bounded verification of the final candidate; fixes return to the assigned implementer with failing regression evidence |
+
+Shared files, runtime manifests and generated assets need one named owner before
+editing. Root owns shared lockfile integration if a justified dependency change
+is necessary. Workers never stage, commit, push or deploy. Root commits verified
+atomic improvements with explicit owned files and their relevant plan updates,
+preserving unrelated staging and allowing hooks to run. Delivery remains deferred
+to final teardown after every mandatory production acceptance item passes.
+No README paths, historical sealed fixtures, protected credentials or the external
+validation fixture are assigned for modification.
+
+Each task records its failing-test evidence before code, maintained checks,
+explicit opt-in runtime results and remaining blockers in `docs/plans`. Evidence
+must identify the tested source/build hashes and distinguish deterministic unit
+coverage, real Node Pyodide, local workerd, browser and fixed-target deployed
+validation. The actual persistent backend and application resource headroom are
+unidentified at plan creation; their required qualification stays open. Missing
+credentials or unmet same-isolate guarantees likewise remain blockers, never
+skipped passes. Independent production acceptance reviews the final artifact
+before teardown can authorize its push and verified GitHub publication.

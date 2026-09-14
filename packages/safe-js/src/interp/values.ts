@@ -944,8 +944,9 @@ export function measureSandboxData(
       let descriptors: Array<readonly [symbol, PropertyDescriptor]> | undefined;
       // Capture before visiting: retained callbacks can mutate later properties.
       for (const key of symbols) {
-        if (!internalSymbols.has(key))
-          (descriptors ??= []).push([key, Object.getOwnPropertyDescriptor(value, key)!]);
+        if (internalSymbols.has(key)) continue;
+        const descriptor = Object.getOwnPropertyDescriptor(value, key);
+        if (descriptor !== undefined) (descriptors ??= []).push([key, descriptor]);
       }
       if (descriptors !== undefined) for (const [key, descriptor] of descriptors) {
         usage += 1;

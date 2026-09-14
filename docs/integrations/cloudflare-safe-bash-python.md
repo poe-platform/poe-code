@@ -1,6 +1,11 @@
 # Cloudflare safe-bash Python integration boundary
 
 Status: unavailable in the reviewed checkout; production qualification blocked.
+The [current handoff review](../plans/cloudflare-adapter-handoff-current.md)
+records fresh built-public-API observations at
+`51ea26d96f61b74ffb0ef70aeaef48d5cc423d4e`, with a source/build byte inventory
+and independent review. All production contracts remain blocked. The rechecks
+below are historical evidence, not certification of a finished adapter.
 The [current user edge recheck](../plans/cloudflare-user-edge-current-recheck.md)
 binds fresh built-public-API observations to source and build hashes at
 `bb272573292ee712a09c1c5fdb1516f7a655dc97`; it confirms availability failure,

@@ -1,0 +1,22 @@
+{
+  "reviewer": "/root/independent_review",
+  "role": "Independent read-only package review; different agent from root documentation implementer",
+  "head": "51ea26d96f61b74ffb0ef70aeaef48d5cc423d4e",
+  "capture": "public-api.json",
+  "captureSha256": "dfac77013e2d7fc382a7289a62ed636026254511d5f3f7895f5f3fe62344bbde",
+  "verifiedEntries": 2324,
+  "mismatches": 0,
+  "missingPrerequisitesVerified": 4,
+  "independentPublicApi": {
+    "python": 127,
+    "python3": 127,
+    "stdinPipeline": 127,
+    "module": 127,
+    "recoveryExit": 0,
+    "recoveryStdout": "recovered",
+    "repeatedDispose": "settled"
+  },
+  "decision": "BLOCKED / UNFINISHED",
+  "productionPasses": 0,
+  "scope": "Absence/recovery only; no complete executable adapter/runtime closure, no production acceptance. No reviewer edits, Git or deployment."
+}

@@ -1,5 +1,9 @@
 # Cloudflare safe-bash final compatibility and handoff review
 
+Current acceptance is recorded in [the current handoff review](cloudflare-adapter-handoff-current.md).
+This report's captures remain historical; its requirement checklist has no
+passing production rows and is not certification of the current artifact.
+
 Status: **BLOCKED / UNFINISHED**, September 14, 2026. Reviewed source HEAD
 `becb83f24556eb6df7747e916408a00cc043be83` on main. Root owns this new report,
 `docs/integrations/cloudflare-safe-bash-python.md` and the new final-review

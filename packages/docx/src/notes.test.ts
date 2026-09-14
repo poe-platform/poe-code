@@ -209,3 +209,9 @@ it("rejects whole-note assignment when a hyperlink owns the note marker", async 
   const input = await textFixture(`<w:p>${ref(2)}</w:p>`, { footnotes: story(separators() + content) });
   await expect(edit(input, "notes.set", { note: 1, text: "Revised" })).rejects.toMatchObject({ code: "unsupported-edit" });
 });
+
+it.each(['<!--Keep editorial context-->', '<?editor retain="context"?>'])("rejects whole-note assignment that would discard XML annotations in a later paragraph (%s)", async annotation => {
+  const content = '<w:footnote w:id="2">' + paragraph("Opening") + '<w:p>' + annotation + run("Details") + '</w:p></w:footnote>';
+  const input = await textFixture(`<w:p>${ref(2)}</w:p>`, { footnotes: story(separators() + content) });
+  await expect(edit(input, "notes.set", { note: 1, text: "Combined" })).rejects.toMatchObject({ code: "unsupported-edit" });
+});

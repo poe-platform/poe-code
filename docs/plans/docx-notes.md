@@ -133,3 +133,43 @@ Original data and existing standalone legal notices remain unchanged.
   artifacts; there were no downloaded fixtures, native reference builds or
   product networking. This milestone is one atomic owned commit on main, with
   no push or release. Later tasks remain pending.
+
+## Independent bounded verification
+
+Reviewed the implementation at `262fabd2a` against F24, the shared CLI/SDK
+contracts, the API audit and parsed schema-v2 inventory. Related live owners,
+inherited interfaces, enums and helpers remain at their recorded statuses; this
+verification does not promote whole-model coverage. Inspected the preserved raw
+lexical-ID, asynchronous-option and nested-marker red logs and final focused green
+log, plus both existing terminal screenshots. Earlier red evidence available only
+as plan narrative is not represented as independently replayed evidence.
+
+A new original memfs regression reproduced loss of a direct XML comment in the
+second paragraph during `notes.set`. A second case reproduced the same loss for
+a processing instruction. Both failed before the correction (the operation
+published a replacement), then passed after rejecting removal of paragraphs
+containing those XML annotations. Existing simple multi-paragraph replacement
+continues through the same story primitive. No downloaded fixture or native
+reference runtime was used.
+
+The initial full workspace run overlapped introduction of the first regression:
+1813 passed and that new regression failed. It is red evidence, not a clean
+baseline or final validation. Final checks are recorded below after completion.
+
+- `npm test --workspace=docx`: 73 files, 1815 tests passed on the corrected source.
+- Focused note tests: 3 files, 29 tests passed, including both new red/green cases.
+- `npm run lint --workspace=docx`: passed ESLint and source/test TypeScript checks.
+- `npm run build:workspaces -- --workspace=docx`: passed the declared five-workspace
+  dependency closure; `npx vitest run scripts/docx-exports.test.ts`: 2 tests passed.
+- Safe-bash DOCX integration/registration: 52 tests passed; maintained normal-runner
+  discovery assertion: 1 test passed. After the correction, the note workflow was
+  rerun against final source and passed (1 test). These are scoped checks, not the
+  whole safe-bash suite.
+- `git diff --check`: passed. Only notes.ts, its original test file and this plan
+  belong to the correction commit; unrelated work/index entries remain untouched.
+
+Remaining QA boundaries: no native Word/page-layout rendering, displayed-number
+calculation, note batch execution or whole public model coverage is claimed.
+The existing help/workflow screenshots were inspected rather than recaptured;
+the correction adds no command or output layout. Preserve all historical evidence
+and the independently modified pipeline plan. No push, release or README edits.

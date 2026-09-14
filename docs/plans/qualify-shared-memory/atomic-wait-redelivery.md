@@ -42,8 +42,35 @@ commit, remote ancestry and publication receipts are recorded separately after
 push. No original-workspace source or staged content is altered by this
 redelivery: it already contains the prior local implementation.
 
-The separate partial-activation rollback repair from `0bf355700` still needs
-fresh validation and its own atomic delivery; ownership alone does not roll back
-an earlier successful registration when a later one fails.
+Ownership alone does not roll back an earlier successful registration when a later one fails. The separate repair is qualified below.
 
 Candidate restore.ts SHA-256: `da60c1b699a1a0a31b86cb84a7d52d6c27f45e7c26923230261f4631f96d26cc`.
+
+## Partial activation rollback
+
+Parent source: `85c0bb75933965e77c02a91f3c26af53acedf638` (verified on remote main).
+The two unchanged integer/BigInt regression tests from local `0bf355700` both fail
+against that parent: activation rejects before termination cleanup finishes.
+The original runtime repair uses a child resource scope for the restored queue;
+rejection waits for cleanup without aborting the external owner or original waiters.
+
+Node 22.23.2 / ICU 78.2. Reproducible commands:
+
+```sh
+npx vitest run packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts
+npx vitest run packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts packages/safe-js/src/snapshot/atomic-wait-ownership.test.ts packages/safe-js/src/snapshot/atomic-wait-race.test.ts packages/safe-js/src/snapshot/atomic-wait-continuation.test.ts
+npx vitest run packages/safe-js/src/snapshot packages/safe-js/src/interp/atomic-wait.test.ts packages/safe-js/src/interp/globals/atomics-wait-disposal.test.ts packages/safe-js/src/interp/shared-callback-export.test.ts
+npx eslint packages/safe-js/src/snapshot/restore.ts packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts
+npx tsc --noEmit -p packages/safe-js/tsconfig.json
+```
+
+Red: 2 failures. Green: 21 tests / 4 files. Broader snapshot/disposal/callback
+qualification: **2,336 passed / 173 files**, zero failures/skips, 90.30 seconds.
+ESLint and package typecheck pass. No budgets, assertions or timeouts changed.
+Logs: `/tmp/qualify-shared-memory-rollback-{red,green,snapshot,lint,types}.log`.
+These are source-level checks; parent built-artifact results are not relabeled
+as this source. Release receipts remain separate from the enclosing local commit.
+
+Candidate `packages/safe-js/src/snapshot/restore.ts` SHA-256: `c040c6f509f464a52f10cbd8387441e5057c407c9d7f5369e6a0ddb6eb8209d8`.
+
+Candidate `packages/safe-js/src/snapshot/atomic-wait-rollback.test.ts` SHA-256: `1c7e860c3fb53f8d2b25890e2524c2a6314dab187b649d152faba30b7e10400b`.

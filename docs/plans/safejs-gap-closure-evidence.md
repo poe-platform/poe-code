@@ -2711,3 +2711,15 @@ Final candidate gates: **29,651 package tests passed / 47 explicitly accounted s
 ## qualify-shared-memory — atomic ownership/race redelivery (2026-09-14)
 
 [Fresh qualification](qualify-shared-memory/atomic-wait-redelivery.md) starts from delivered `069ae0b0913040c33feb0d8c07f0531d6d6c0dc8`, Node **22.23.2 / ICU 78.2**. The three regressions from local `8089068f6` fail against that remote source, then all **19 ownership/race/continuation tests pass** with the original runtime patch. Lint and package typecheck pass; budgets, assertions, timeouts, runtime floor and edition pins are unchanged. This brings missing-owner/different-owner rejection and registration-race rejection into the delivery checkout. Partial activation rollback remains a separate next validation. Overall raw/legacy-history and agent/runtime acceptance stays open. The enclosing local Conventional Commit, remote-main delivery and publications are distinct receipts.
+
+
+### Atomic wait partial-activation rollback redelivery — 2026-09-14
+
+Parent remote source `85c0bb75933965e77c02a91f3c26af53acedf638`. Two integer/BigInt
+regressions fail before repair; 21 focused tests and 2,336 broader snapshot,
+disposal and callback tests pass after repair, with no skips. Scoped lint and
+package typecheck pass on Node 22.23.2 / ICU 78.2.
+[Commands, source hashes and disposition](qualify-shared-memory/atomic-wait-redelivery.md).
+The enclosing commit delivers only this repair. Publication remains independently
+tracked. Overall shared-memory acceptance remains open for uncaptured raw/legacy
+histories and outstanding agent/runtime coverage.

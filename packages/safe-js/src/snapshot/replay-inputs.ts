@@ -103,9 +103,11 @@ export function prepareReplayInputs<T extends ReplayInputs | ModuleReplayInputs>
         continue;
       }
       if (isSandboxMap(value)) {
-        const [kind, ordinal] = key.split(":");
+        const parts = key.split(":");
+        const [kind, ordinal] = parts;
         const index = Number(ordinal);
         if (
+          parts.length !== 2 ||
           !["key", "value"].includes(kind) ||
           String(index) !== ordinal ||
           !Number.isSafeInteger(index) ||

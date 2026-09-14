@@ -2641,3 +2641,16 @@ are required before pushing. **Local repair commit: recorded after creation.
 Verified remote-main delivery: none yet. Publication: none for this candidate.**
 Overall acceptance remains open until the clean candidate and delivery gates
 are evidenced. Historical non-Node limitations are not silently waived.
+
+
+### Local preflight repair commit reconciliation — 2026-09-14
+
+The previously uncommitted snapshot publication/preflight repairs are now selected
+as an atomic local commit, reconciling the same changes as isolated main commit
+`ec0280dc6`. This includes the three existing regression files; unrelated
+module-loading and transport edits remain unstaged. Clean baseline reproduction:
+17 failures / 14 passes including six separate caller-envelope cases. The three
+preflight/publication files pass 25/25 after repair; scoped ESLint passes.
+The broader isolated workspace gate is still running. A separately reproduced
+nested caller-accessor failure and its repair are being qualified independently.
+No push or publication has occurred. The original staged patch is preserved.

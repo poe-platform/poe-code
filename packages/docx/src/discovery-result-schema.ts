@@ -26,7 +26,7 @@ export const discoveryResultSchemas = {
     id: string, path: strings, input: { type: "object" }, result: { type: "object" }, featureIds: strings,
     support: { enum: ["edit", "read", "preserve", "reject"] }
   }) } })),
-  capabilities: result("capabilities", object({ features: { type: "array", items: object({ id: string, level: { const: "read" }, subsets: { type: "array", items: object({ name: string, level: { const: "read" }, reason: string }) }, detected: { type: "null" } }) }, host: object({
+  capabilities: result("capabilities", object({ features: { type: "array", items: object({ id: string, level: { enum: ["read", "edit"] }, subsets: { type: "array", items: object({ name: string, level: { enum: ["read", "edit"] }, reason: string }) }, detected: { type: "null" } }) }, host: object({
     read: { const: false }, atomicReplace: { const: false }, transactions: { const: false }, binaryStdout: { const: true }
   }), validationProfiles: { type: "array", items: { type: "object" } }, limits: { type: "array", items: object({ name: string, ceiling: { type: "integer", minimum: 0 } }) } })),
   version: result("version", object({ name: { const: "docx" }, version: string, schemaVersion: { const: 1 } }))
@@ -55,6 +55,9 @@ const inspectionData = object({
   protection: array(object({ part: string, kind: string, enforced: nullableBoolean, edit: nullableString })), warnings: array(diagnostic)
 });
 const validationData = object({ valid: boolean, profile: { const: "core-v1" }, checks: array(object({ id: string, status: { enum: ["passed", "failed", "unvalidated"] } })), diagnostics: array(object({ code: string, part: string, location: string, message: string })), warnings: strings });
+const xmlData = object({ part: string, encoding: { enum: ["base64", "utf-8"] }, content: string, pretty: boolean, bytes: number, sha256: string });
+const mutationData = object({ changed: boolean, changes: array(object({ kind: { const: "replace" }, before: location, after: location })),
+  output: { oneOf: [object({ path: nullableString, bytes: number, sha256: string }), { type: "null" }] }, dryRun: boolean });
 const textData = object({ text: string, view: { enum: ["final", "original", "all"] }, hiddenText: { const: "include" },
   segments: array(object({ text: string, location, revision: { enum: ["insert", "delete", "unchanged"] },
     kind: { enum: ["text", "tab", "line-break", "page-break", "column-break", "paragraph", "cell", "row", "story"] },
@@ -64,8 +67,10 @@ const textData = object({ text: string, view: { enum: ["final", "original", "all
 export const inspectionOperationMetadata: Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>> = Object.fromEntries([
   ["inspect", "Inventory package parts, metadata and document structure without rendering or linked-resource access.", ["F06"], inspectionData],
   ["validate", "Validate document bytes against the partial core-v1 profile without repairs.", ["F49"], validationData],
-  ["text.get", "Extract logical story text with locations, direct formatting and revision views.", ["F08", "F09"], textData]
+  ["text.get", "Extract logical story text with locations, direct formatting and revision views.", ["F08", "F09"], textData],
+  ["xml.get", "Read one absolute XML part as raw bytes or bounded display serialization.", ["F04", "F07"], xmlData],
+  ["xml.set", "Replace one complete XML part with validated bytes; preserve opaque content and unrelated parts.", ["F04", "F07"], mutationData]
 ].map(([id, description, featureIds, data]) => [id, { description, featureIds, result: { oneOf: [object({
   version: { const: 1 }, operation: { const: id }, ok: { const: true }, data: data as DocxJsonSchema,
-  warnings: array(diagnostic), errors: empty, affected: { const: 0 }, locations: array(location)
+  warnings: array(diagnostic), errors: empty, affected: id === "xml.set" ? { type: "integer", minimum: 0, maximum: 1 } : { const: 0 }, locations: array(location)
 }), object({ version: { const: 1 }, operation: { const: id }, ok: { const: false }, data: { type: "null" }, warnings: array(diagnostic), errors: { type: "array", minItems: 1, items: { type: "object" } }, affected: { const: 0 }, locations: empty })] } }])) as Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>>;

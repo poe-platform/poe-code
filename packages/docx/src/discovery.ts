@@ -15,10 +15,10 @@ export interface DocxSchemaData {
   readonly schemaVersion: 1;
   readonly validationProfiles: readonly (typeof documentValidationProfile)[];
   readonly operations: readonly { readonly id: string; readonly path: readonly string[]; readonly input: DocxJsonSchema;
-    readonly result: DocxJsonSchema; readonly featureIds: readonly string[]; readonly support: "read" | "reject" }[];
+    readonly result: DocxJsonSchema; readonly featureIds: readonly string[]; readonly support: "read" | "edit" | "reject" }[];
 }
 export interface DocxCapabilitiesData {
-  readonly features: readonly { readonly id: string; readonly level: "read"; readonly subsets: readonly { readonly name: string; readonly level: "read"; readonly reason: string }[]; readonly detected: null }[];
+  readonly features: readonly { readonly id: string; readonly level: "read" | "edit"; readonly subsets: readonly { readonly name: string; readonly level: "read" | "edit"; readonly reason: string }[]; readonly detected: null }[];
   readonly host: { readonly read: false; readonly atomicReplace: false; readonly transactions: false; readonly binaryStdout: true };
   readonly limits: readonly { readonly name: string; readonly ceiling: number }[];
   readonly validationProfiles: readonly (typeof documentValidationProfile)[];
@@ -60,6 +60,12 @@ function details(id: string, declaration: DocxOperationSchema): string {
     if (Object.hasOwn(fields, "output") && Object.hasOwn(fields, "inPlace")) lines.push("", "Publication: --output PATH | --in-place | --dry-run.");
     if (Object.hasOwn(fields, "scope")) lines.push("", "Scope defaults to body; positions are one-based within their owner.");
     if (Object.hasOwn(fields, "select")) lines.push("Use either --select TOKEN or simple selectors; do not combine them.");
+    if (id === "xml.get") lines.push("", "Select one absolute OPC name with --part; no basename or wildcard matching.",
+      "--raw is byte-exact, including BOM and encoding. Default JSON uses base64.",
+      "--pretty is UTF-8 display serialization, not byte-exact XML; existing text whitespace is retained.");
+    if (id === "xml.set") lines.push("", "--file supplies a complete XML document, never a fragment or expression.",
+      "Root expanded name, document kind/dialect and package references must remain valid.",
+      "Opaque content must retain its structural position and namespace context; protected/signed inputs reject.");
     if (id === "text.get") lines.push("", "Alias: docx text INPUT [OPTIONS]. View defaults to final.",
       "Hidden text is included; formatting is direct context, without style resolution.",
       "Field instructions and drawing/equation text are omitted.",
@@ -94,7 +100,7 @@ export function getDocxDiscovery(invocation: DocxInvocation, budget = new Docume
   });
   if (invocation.operation === "capabilities") {
     const limits = Object.entries(budget.limits).map(([name, ceiling]) => ({ name, ceiling }));
-    return bounded({ data: { features: [{ id: "F06", level: "read", subsets: [{ name: "inventory", level: "read", reason: "No rendering, linked-resource access or signature verification." }], detected: null }, { id: "F49", level: "read", subsets: [{ name: "core-v1", level: "read", reason: "Partial core-v1 validation only." }], detected: null }, { id: "F08", level: "read", subsets: [{ name: "logical-story-text", level: "read", reason: "Explicit story scopes and review views; hidden text included, cached field results only; no drawing/equation text or rendering." }], detected: null }, { id: "F09", level: "read", subsets: [{ name: "logical-unicode", level: "read", reason: "Unicode order and direct language/RTL/font properties; no shaping or style cascade." }], detected: null }], host: { read: false, atomicReplace: false, transactions: false, binaryStdout: true }, limits, validationProfiles: [documentValidationProfile] },
+    return bounded({ data: { features: [{ id: "F06", level: "read", subsets: [{ name: "inventory", level: "read", reason: "No rendering, linked-resource access or signature verification." }], detected: null }, { id: "F49", level: "read", subsets: [{ name: "core-v1", level: "read", reason: "Partial core-v1 validation only." }], detected: null }, { id: "F08", level: "read", subsets: [{ name: "logical-story-text", level: "read", reason: "Explicit story scopes and review views; hidden text included, cached field results only; no drawing/equation text or rendering." }], detected: null }, { id: "F09", level: "read", subsets: [{ name: "logical-unicode", level: "read", reason: "Unicode order and direct language/RTL/font properties; no shaping or style cascade." }], detected: null }, { id: "F07", level: "edit", subsets: [{ name: "explicit-xml-part", level: "edit", reason: "Validated whole-part replacement; immutable opaque content, no protection bypass; raw bytes or bounded display serialization." }], detected: null }], host: { read: false, atomicReplace: false, transactions: false, binaryStdout: true }, limits, validationProfiles: [documentValidationProfile] },
       human: "docx capabilities\n\nInspection and partial core-v1 validation are implemented.\nDocument reads require explicit filesystem or stdin authority.\n\nLimits:\n" + limits.map(item => `  ${item.name}: ${item.ceiling}`).join("\n") + "\n" });
   }
   const selected = invocation.options.operation as string | undefined;
@@ -106,12 +112,12 @@ export function getDocxDiscovery(invocation: DocxInvocation, budget = new Docume
     })) };
     return bounded({ data, human: selected ? details(selected, declarations[0]![1]) :
       "docx — document utility\n\nImplemented commands:\n" + data.paths.map(item => `  ${item.usage}\n    ${item.description}`).join("\n") +
-      "\n\nUse docx help COMMAND PATH for a declared contract.\nInspection, validation and text extraction are read-only; other document operations remain pending.\nAliases: --help, -h; --version.\n" });
+      "\n\nUse docx help COMMAND PATH for a declared contract.\nInspection, validation and text extraction are read-only. XML set replaces one validated part; other document operations remain pending.\nAliases: --help, -h; --version.\n" });
   }
   const data: DocxSchemaData = { schemaVersion: 1, validationProfiles: [documentValidationProfile], operations: declarations.map(([id, declaration]) => ({
     id, path: commandPath(id, declaration), input: getDocxOperationSchema(id, declaration.transport === "typed-batch" ? "batch" : "sdk"),
     result: inspectionOperationMetadata[id]?.result ?? declaration.discovery?.result ?? { ...discoveryFailureSchema(id), description: "Only failures are specified here; operation not implemented." },
-    featureIds: inspectionOperationMetadata[id]?.featureIds ?? declaration.discovery?.featureIds ?? [], support: declaration.discovery || inspectionOperationMetadata[id] ? "read" : "reject"
+    featureIds: inspectionOperationMetadata[id]?.featureIds ?? declaration.discovery?.featureIds ?? [], support: id === "xml.set" ? "edit" : declaration.discovery || inspectionOperationMetadata[id] ? "read" : "reject"
   })) };
   return bounded({ data, human: JSON.stringify(data) + "\n" });
 }

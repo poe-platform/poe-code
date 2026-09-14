@@ -360,7 +360,9 @@ function validateInvocation(value: unknown, budget: DocumentBudget, fromCli: boo
   if (schema.profile === "extract" && options.outputDir === undefined) usage("Extraction requires an output directory.");
   if (operation === "extract" && (selectors.some(key => options[key] !== undefined) || options.scope !== undefined || options.select !== undefined)) usage("Package extraction rejects selection.");
   if (operation === "pack" && (options.author !== undefined || options.timestamp !== undefined)) usage("Pack rejects author and timestamp.");
-  return Object.freeze({ operation, inputs: Object.freeze(inputs), options: owned(options, budget) as Readonly<Record<string, unknown>>, ...(sources.length ? { sources: Object.freeze(sources.map(source => Object.freeze({ ...source }))) } : {}) });
+  const invocation = Object.freeze({ operation, inputs: Object.freeze(inputs), options: owned(options, budget) as Readonly<Record<string, unknown>>, ...(sources.length ? { sources: Object.freeze(sources.map(source => Object.freeze({ ...source }))) } : {}) });
+  docxInvocationBudgets.set(invocation, budget);
+  return invocation;
 }
 export function validateDocxInvocation(value: unknown, budget = new DocumentBudget()): DocxInvocation {
   return validateInvocation(value, budget, false);
@@ -522,7 +524,7 @@ export function createDocxCommandEngine<Request extends DocxCommandRequest>(hand
   };
 }
 
-function commandDiagnostic(source: string, code: string, limit: number): { message: string; human: string } {
+export function commandDiagnostic(source: string, code: string, limit: number): { message: string; human: string } {
   const encoder = new TextEncoder();
   const prefix = limit >= 8 ? "docx: " : "";
   const suffix = limit >= 2 ? "\n" : "";

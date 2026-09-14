@@ -23,7 +23,7 @@ export interface PublicationContext extends ArchiveContext {
   readonly encoding: ArchiveWriteOptions;
 }
 export interface PublishedFile { readonly path: string; readonly bytes: number }
-export interface PublicationResult { readonly published: readonly PublishedFile[] }
+export interface PublicationResult { readonly published: readonly PublishedFile[]; readonly archiveSha256?: string }
 export class PublicationError extends Error {
   constructor(
     readonly code: "conflict" | "permission" | "unsupported-publication" | "sink-failure",
@@ -142,19 +142,7 @@ async function publish(fs: FileSystem, target: Destination, bytes: Uint8Array, s
   if (failed) throw error;
 }
 
-export async function publishDocumentArchive(archive: DocumentArchive, options: PublicationOptions, context: PublicationContext): Promise<PublicationResult> {
-  options = ownedOptions(options, ["input", "output", "inPlace", "force", "dryRun", "creation", "json"]);
-  context = { ...context, encoding: { ...context.encoding } };
-  const settings = archiveSettings(context);
-  const { signal, budget, limits } = settings;
-  const { output, inPlace, force, dryRun, creation, json } = options;
-  if ((output !== undefined && (typeof output !== "string" || !output)) || (output !== undefined && inPlace)
-    || (!dryRun && output === undefined && !inPlace) || (creation && (inPlace || (!dryRun && output === undefined)))
-    || (force && (output === undefined || output === "-")) || (inPlace && (!options.input || options.input.path === "-"))
-    || (output === "-" && json && !dryRun)) throw new InputTypeError("Invalid document publication intent.");
-  const published: PublishedFile[] = [];
-  let target: Destination | undefined;
-  const path = inPlace ? options.input!.path : output;
+export function assertDocumentEditable(archive: DocumentArchive, { limits, budget }: ReturnType<typeof archiveSettings>): void {
   // Until feature-specific authorization is implemented, protected packages fail closed.
   const packageView = new DocumentPackage(archive, limits, budget);
   for (const part of packageView.parts) {
@@ -172,6 +160,22 @@ export async function publishDocumentArchive(archive: DocumentArchive, options: 
       for (const child of node.children) stack.push(child);
     }
   }
+}
+
+export async function publishDocumentArchive(archive: DocumentArchive, options: PublicationOptions, context: PublicationContext): Promise<PublicationResult> {
+  options = ownedOptions(options, ["input", "output", "inPlace", "force", "dryRun", "creation", "json"]);
+  context = { ...context, encoding: { ...context.encoding } };
+  const settings = archiveSettings(context);
+  const { signal, budget, limits } = settings;
+  const { output, inPlace, force, dryRun, creation, json } = options;
+  if ((output !== undefined && (typeof output !== "string" || !output)) || (output !== undefined && inPlace)
+    || (!dryRun && output === undefined && !inPlace) || (creation && (inPlace || (!dryRun && output === undefined)))
+    || (force && (output === undefined || output === "-")) || (inPlace && (!options.input || options.input.path === "-"))
+    || (output === "-" && json && !dryRun)) throw new InputTypeError("Invalid document publication intent.");
+  const published: PublishedFile[] = [];
+  let target: Destination | undefined;
+  const path = inPlace ? options.input!.path : output;
+  assertDocumentEditable(archive, settings);
   const chunks: Uint8Array[] = [];
   let size = 0;
   let stagingFailure: unknown;
@@ -194,17 +198,20 @@ export async function publishDocumentArchive(archive: DocumentArchive, options: 
   const bytes = new Uint8Array(size);
   let offset = 0;
   for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
+  budget.charge("work", bytes.length);
+  const archiveSha256 = [...new Uint8Array(await crypto.subtle.digest("SHA-256", bytes))].map(n => n.toString(16).padStart(2, "0")).join("");
+  cancelled(signal);
   if (output === "-") {
     try { await context.stdout!.write(bytes, signal); }
     catch (error) {
       if (signal.aborted || error instanceof CancellationError) throw new PublicationCancellationError([], true, { cause: error });
       throw new PublicationError("sink-failure", "Binary stdout may contain partial output.", [], true, { cause: error });
     }
-    return { published: [{ path: "-", bytes: size }] };
+    return { published: [{ path: "-", bytes: size }], archiveSha256 };
   }
   try { await publish(context.filesystem!, target!, bytes, signal, published); }
   catch (error) { throw failure(error, published, signal); }
-  return { published };
+  return { published, archiveSha256 };
 }
 
 export async function publishDocumentFiles(files: readonly PublicationFile[], options: ExtractionPublicationOptions, context: ArchiveContext & { readonly filesystem: FileSystem }): Promise<PublicationResult> {

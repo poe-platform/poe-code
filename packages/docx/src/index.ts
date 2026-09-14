@@ -101,3 +101,4 @@ export { inspectDocument, validateDocument, type InspectionData, type Inspection
 export { createDocxInspectionCommandEngine, type DocxInspectionCommandRequest } from "./inspection-command.js";
 export { extractDocumentText, type TextOptions } from "./text.js";
 export type { TextData, TextView, TextSegment, TextFormatting } from "./text-traversal.js";
+export { getDocumentXml, replaceDocumentXmlPart, type XmlOptions, type XmlData, type XmlMutationData } from "./xml-parts.js";

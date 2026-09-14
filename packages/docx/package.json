@@ -24,6 +24,7 @@
     "lint": "eslint src tests && tsc --noEmit && tsc -p tsconfig.test.json"
   },
   "dependencies": {
+    "toolcraft-design": "*",
     "@poe-code/office-package": "*",
     "@poe-code/safe-fs": "*"
   },

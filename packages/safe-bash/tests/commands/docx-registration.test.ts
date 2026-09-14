@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { Volume } from "memfs";
-import { createDocumentArchive, readDocumentArchive, writeDocumentArchive, createDocxCommandEngine } from "../../../docx/src/index.js";
+import { createDocumentArchive, readDocumentArchive, writeDocumentArchive, createDocxCommandEngine, DocxUsageError } from "../../../docx/src/index.js";
 import { createDocxCommand, docxCommands, type DocxCommandEngine } from "../../src/commands/docx/index.js";
 import { collectBytes, writeBytes } from "../../src/contracts/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
@@ -183,5 +183,65 @@ test("docx parsed invocation preserves binary stdin stdout without text conversi
     assert.equal(result.exitCode, 0, result.stderr);
     assert.deepEqual(result.stdoutBytes, payload);
     assert.equal(result.stderr, "");
+  } finally { await shell.dispose(); }
+});
+
+test("docx discovery executes through Shell without document handler or stream acquisition", async () => {
+  let calls = 0;
+  let reads = 0;
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(docxCommands({ engine: createDocxCommandEngine({
+    async execute() { calls++; return { exitCode: 0 }; },
+  }) }));
+  try {
+    for (const command of ["docx", "docx -h", "docx help", "docx --help"]) {
+      const result = await shell.exec(command, { stdin: { async *[Symbol.asyncIterator]() { reads++; yield new Uint8Array([255]); } } });
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.ok(result.stdout.includes("docx"));
+      assert.ok(result.stdout.includes("schema"));
+      assert.equal(result.stderr, "");
+    }
+    const version = await shell.exec("docx --version --json");
+    assert.equal(version.exitCode, 0, version.stderr);
+    assert.equal(version.stderr, "");
+    const envelope = JSON.parse(version.stdout) as { version: number; operation: string; ok: boolean; data: { name: string; version: string; schemaVersion: number }; warnings: unknown[]; errors: unknown[]; affected: number; locations: unknown[] };
+    assert.deepEqual(Object.keys(envelope).sort(), ["affected", "data", "errors", "locations", "ok", "operation", "version", "warnings"]);
+    assert.equal(envelope.operation, "version");
+    assert.equal(envelope.version, 1);
+    assert.equal(envelope.ok, true);
+    assert.equal(envelope.data.name, "docx");
+    assert.equal(typeof envelope.data.version, "string");
+    assert.ok(envelope.data.version.length > 0);
+    assert.equal(envelope.data.schemaVersion, 1);
+    assert.equal(envelope.affected, 0);
+    assert.deepEqual(envelope.warnings, []);
+    assert.deepEqual(envelope.errors, []);
+    assert.deepEqual(envelope.locations, []);
+    assert.equal(calls, 0);
+    assert.equal(reads, 0);
+  } finally { await shell.dispose(); }
+});
+
+test("docx human source diagnostics escape terminal controls while JSON remains one structured value", async () => {
+  const shell = new Shell({ fs: new MemoryFileSystem() }).use(docxCommands({ engine: createDocxCommandEngine({
+    async readSource() { throw new DocxUsageError("Coastal detail \u001b[2J\r\u007f" + "🌊".repeat(1500)); },
+    async execute() { assert.fail("invalid input reached the document handler"); },
+  }) }));
+  try {
+    const command = "docx batch file.docx --ops-file ops.json --json --limit diagnosticBytes=96";
+    const result = await shell.exec(command);
+    assert.equal(result.exitCode, 2);
+    const envelope = JSON.parse(result.stdout) as { operation: string; ok: boolean; data: unknown; errors: { code: string; message: string }[]; affected: number; locations: unknown[] };
+    assert.equal(envelope.operation, "batch");
+    assert.equal(envelope.ok, false);
+    assert.equal(envelope.data, null);
+    assert.equal(envelope.affected, 0);
+    assert.deepEqual(envelope.locations, []);
+    assert.equal(envelope.errors[0]?.code, "usage");
+    assert.equal(result.stderr.includes("\u001b"), false);
+    assert.equal(result.stderr.includes("\r"), false);
+    assert.equal(result.stderr.includes("\u007f"), false);
+    assert.ok(result.stderr.includes("truncat"), "truncated diagnostics must identify omitted content");
+    assert.ok(result.stderrBytes.byteLength <= 96);
+    assert.ok(encoder.encode(JSON.stringify(envelope.errors)).length <= 96);
   } finally { await shell.dispose(); }
 });

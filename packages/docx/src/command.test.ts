@@ -3,6 +3,7 @@ import { parseDocxArguments, validateDocxInvocation, validateDocxBatch, createDo
 import { Volume } from "memfs";
 import { DocxUsageError } from "./argument-json.js";
 import { ResourceLimitError } from "./archive.js";
+import { getDocxDiscovery } from "./discovery.js";
 
 const argv = (...args: string[]) => args.map(value => new TextEncoder().encode(value));
 const parse = (...args: string[]) => parseDocxArguments(argv(...args));
@@ -154,4 +155,36 @@ describe("document literal command grammar", () => {
     expect(result.exitCode).toBe(3);
     expect(diagnostics.join("")).not.toContain("sensitive");
   });
+});
+
+it.each([1, 16, 64])("bounds human argument errors by an admitted %i-byte diagnostic limit", async diagnosticBytes => {
+  const diagnostics: Uint8Array[] = [];
+  const engine = createDocxCommandEngine({ async execute() { throw new Error("unexpected dispatch"); } });
+  const result = await engine.execute({ args: argv("text", "file.docx", "--limit", `diagnosticBytes=${diagnosticBytes}`, "--invalid"), stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write() { throw new Error("unexpected stdout"); } }, stderr: { async write(bytes) { diagnostics.push(bytes); } }, signal: new AbortController().signal });
+  expect(result.exitCode).toBe(2);
+  expect(diagnostics.reduce((size, bytes) => size + bytes.byteLength, 0)).toBeLessThanOrEqual(diagnosticBytes);
+  expect(new TextDecoder().decode(diagnostics[0])).not.toBe("");
+});
+
+it.each(["--help", "-h"])("retains admitted output and diagnostic limits when %s selects operation help", async alias => {
+  const stdout: Uint8Array[] = [];
+  const stderr: Uint8Array[] = [];
+  const engine = createDocxCommandEngine({ async execute() { throw new Error("unexpected dispatch"); } });
+  const result = await engine.execute({
+    args: argv("text", "replace", alias, "--limit", "serializedOutput=1", "--limit", "diagnosticBytes=1"),
+    stdin: { [Symbol.asyncIterator]() { throw new Error("unexpected input acquisition"); } },
+    stdout: { async write(bytes) { stdout.push(bytes); } },
+    stderr: { async write(bytes) { stderr.push(bytes); } },
+    signal: new AbortController().signal,
+  });
+  expect(result.exitCode).toBe(4);
+  expect(stdout).toEqual([]);
+  expect(stderr.reduce((size, bytes) => size + bytes.byteLength, 0)).toBe(1);
+  expect(parse("text", "replace", alias, "--limit", "serializedOutput=1").options).toEqual({ operation: "text.replace" });
+  expect(() => parse("help", "--limit", "serializedOutput=1")).toThrow(DocxUsageError);
+});
+
+it("retains an operation help output ceiling when parsed invocation reaches SDK discovery", () => {
+  const invocation = parse("text", "replace", "--help", "--limit", "serializedOutput=1");
+  expect(() => getDocxDiscovery(invocation)).toThrow(ResourceLimitError);
 });

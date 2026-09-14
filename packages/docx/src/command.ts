@@ -1,3 +1,5 @@
+import { escapeTerminalText } from "toolcraft-design/escape-terminal-text";
+import { getDocxDiscovery } from "./discovery.js";
 import { DocumentBudget } from "./budget.js";
 import { ResourceLimitError } from "./archive.js";
 import { validateDocxSelection } from "./command-selection.js";
@@ -35,7 +37,8 @@ const selectors = ["section", "paragraph", "run", "table", "cell", "image", "com
 const publication = ["output", "outputDir", "inPlace", "force", "dryRun", "json", "limit", "timestamp", "author"];
 const switches = new Set(["json", "inPlace", "force", "dryRun", "allowEmpty", "allowPartialOutput", "first", "all", "raw", "pretty", "unique", "shared", "before"]);
 const sourceFields = new Set(["file", "fallback", "template", "contentFile", "dataFile", "opsFile"]);
-const errorContexts = new WeakMap<Error, { operation: string; json: boolean }>();
+export const docxInvocationBudgets = new WeakMap<DocxInvocation, DocumentBudget>();
+const errorContexts = new WeakMap<Error, { operation: string; json: boolean; budget: DocumentBudget }>();
 function usage(message: string): never { throw new DocxUsageError(message); }
 function schemaFor(id: string): DocxOperationSchema {
   if (!Object.hasOwn(docxOperationSchemas, id)) usage("Unknown document operation.");
@@ -197,7 +200,7 @@ export function parseDocxArguments(args: readonly Uint8Array[], budget = new Doc
       const limits = (options.limit ?? []) as { name: string; value: number }[];
       if (limits.some(item => item.name === key)) usage("Repeated document limit.");
       limits.push({ name: key, value: decimal(raw.slice(split + 1)) });
-      lowerLimits(limits, budget);
+      budget = lowerLimits(limits, budget);
       options.limit = limits;
     } else {
       options[name] = name.endsWith("Json") ? raw : cliValue(fields[name]!.type, raw, name, budget);
@@ -230,7 +233,9 @@ export function parseDocxArguments(args: readonly Uint8Array[], budget = new Doc
     if (options.output !== undefined && options.inPlace === true) usage("Output and in-place conflict.");
     if (options.raw === true && (options.json === true || options.pretty === true)) usage("Conflicting XML output modes.");
     validateSelections(operation, options);
-    return Object.freeze({ operation: "help", inputs: Object.freeze([]), options: Object.freeze({ operation, ...(options.json === true ? { json: true } : {}) }) });
+    const invocation = Object.freeze({ operation: "help", inputs: Object.freeze([]), options: Object.freeze({ operation, ...(options.json === true ? { json: true } : {}) }) });
+    docxInvocationBudgets.set(invocation, budget);
+    return invocation;
   }
   const sources: DocxArgumentSource[] = [];
   for (const [file, json, semantic, type] of [["contentFile", "contentJson", "content", "OriginalDocumentContentV1"], ["dataFile", "dataJson", "data", "TemplateData"], ["opsFile", "opsJson", "operations", "BatchV1"]]) {
@@ -253,7 +258,7 @@ export function parseDocxArguments(args: readonly Uint8Array[], budget = new Doc
   }
   return validateInvocation({ operation, inputs, options, sources }, budget, true);
   } catch (error) {
-    if (error instanceof Error) errorContexts.set(error, { operation: operation || "help", json });
+    if (error instanceof Error) errorContexts.set(error, { operation: operation || "help", json, budget });
     throw error;
   }
 }
@@ -440,10 +445,19 @@ export function createDocxCommandEngine<Request extends DocxCommandRequest>(hand
     async execute(request: Request): Promise<{ readonly exitCode: number }> {
       request.signal.throwIfAborted();
       let invocation: DocxInvocation | undefined;
+      let budget = new DocumentBudget({}, request.signal);
+      let discoveryOutput: Uint8Array | undefined;
       try {
-        let budget = new DocumentBudget({}, request.signal);
         invocation = parseDocxArguments(request.args, budget);
-        budget = lowerLimits(invocation.options.limit, budget);
+        budget = docxInvocationBudgets.get(invocation) ?? lowerLimits(invocation.options.limit, budget);
+        const discovery = schemaFor(invocation.operation).discovery ? getDocxDiscovery(invocation, budget) : undefined;
+        if (discovery) {
+          const output = invocation.options.json === true || invocation.operation === "schema"
+            ? JSON.stringify({ version: 1, operation: invocation.operation, ok: true, data: discovery.data, warnings: [], errors: [], affected: 0, locations: [] }) + "\n"
+            : discovery.human;
+          discoveryOutput = new TextEncoder().encode(output);
+          budget.check("serializedOutput", discoveryOutput.byteLength);
+        }
         const options = { ...invocation.options };
         const sources = invocation.sources ?? [];
         for (const source of sources) {
@@ -482,14 +496,46 @@ export function createDocxCommandEngine<Request extends DocxCommandRequest>(hand
       }
       catch (error) {
         if (!(error instanceof DocxUsageError) && !(error instanceof ResourceLimitError) && !(error instanceof SourceError)) throw error;
-        const context = errorContexts.get(error) ?? { operation: invocation?.operation ?? "help", json: invocation?.options.json === true };
-        const message = [...error.message].slice(0, 1024).map(c => c.codePointAt(0)! < 32 || c.codePointAt(0)! >= 127 && c.codePointAt(0)! <= 159 ? "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0") : c).join("");
+        const context = errorContexts.get(error) ?? { operation: invocation?.operation ?? "help", json: invocation?.options.json === true, budget };
         const code = error instanceof ResourceLimitError ? "limit-exceeded" : error instanceof SourceError ? "source-failure" : "usage";
-        if (context.json) await request.stdout.write(new TextEncoder().encode(JSON.stringify({ version: 1, operation: context.operation, ok: false, data: null, warnings: [], errors: [{ code, message }], affected: 0, locations: [] }) + "\n"));
-        await request.stderr.write(new TextEncoder().encode("docx: " + message + "\n"));
+        const diagnostic = commandDiagnostic(error.message, code, context.budget.limits.diagnosticBytes);
+        if (context.json || context.operation === "schema") await request.stdout.write(new TextEncoder().encode(JSON.stringify({ version: 1, operation: context.operation, ok: false, data: null, warnings: [], errors: [{ code, message: diagnostic.message }], affected: 0, locations: [] }) + "\n"));
+        await request.stderr.write(new TextEncoder().encode(diagnostic.human));
         return { exitCode: context.operation === "diff" ? 2 : error instanceof ResourceLimitError ? 4 : error instanceof SourceError ? 3 : 2 };
+      }
+      if (discoveryOutput) {
+        request.signal.throwIfAborted();
+        await request.stdout.write(discoveryOutput);
+        return { exitCode: 0 };
       }
       return handler.execute(invocation, request);
     }
+  };
+}
+
+function commandDiagnostic(source: string, code: string, limit: number): { message: string; human: string } {
+  const encoder = new TextEncoder();
+  const prefix = limit >= 8 ? "docx: " : "";
+  const suffix = limit >= 2 ? "\n" : "";
+  const jsonOverhead = encoder.encode(JSON.stringify([{ code, message: "" }])).byteLength;
+  const capacity = Math.max(1, limit - Math.max(prefix.length + suffix.length, jsonOverhead));
+  const marker = capacity >= 12 ? " [truncated]" : ".";
+  const pieces: { raw: string; human: string; size: number }[] = [];
+  let size = 0;
+  let truncated = false;
+  for (const raw of source) {
+    const human = escapeTerminalText(raw);
+    const width = Math.max(encoder.encode(human).byteLength, encoder.encode(JSON.stringify(raw)).byteLength - 2);
+    if (width > capacity - size) { truncated = true; break; }
+    pieces.push({ raw, human, size: width });
+    size += width;
+  }
+  if (truncated) {
+    while (pieces.length && size + marker.length > capacity) size -= pieces.pop()!.size;
+  }
+  const ending = truncated ? marker : "";
+  return {
+    message: pieces.map(piece => piece.raw).join("") + ending,
+    human: prefix + pieces.map(piece => piece.human).join("") + ending + suffix,
   };
 }

@@ -6,9 +6,12 @@ Implemented Through: Not applicable
 
 Purpose: Define the intended document-format coverage and observable behavior of the original `docx` utility and its TypeScript SDK.
 
-This is a proposed contract. No document engine or command implementation has
-been verified. The accompanying pipeline sequences implementation; the downloaded
-corpus establishes available test inputs, not product conformance.
+This remains the full proposed contract. Scoped package-engine evidence is in
+[the validation profile](../docx/validation-profile.md), and the bounded command
+discovery milestone is recorded in [help/output evidence](../docx/help-errors-output.md).
+Neither establishes complete document-operation or model API conformance. The
+accompanying pipeline sequences implementation; downloaded corpus availability
+does not establish product conformance.
 
 ## Normative language
 

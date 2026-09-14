@@ -64,4 +64,35 @@ root test resolver or loading the design package's ambient terminal modules.
 
 ## Delivery
 
-Pending final verification and local atomic commits. No push or release.
+Foundation committed locally on main as `d2ed02508`
+(`feat(design): escape untrusted terminal text`). No push or release.
+
+## DOCX verification
+
+- `npm test --workspace=docx`: 726 passes, 25 files, zero skips.
+- `npm run lint --workspace=docx`: ESLint and source/test TypeScript passed.
+- Existing safe-bash registration/I/O tests through `scripts/test-reporting.mjs`:
+  20 passes. Binary forwarding, cleanup, existing statuses and JSON isolation
+  remain verified. No adapter source edit was required.
+- Existing `scripts/docx-exports.test.ts`: both portable export/bundle tests pass.
+- Built public `poe-code/docx` and explicit `poe-code/safe-bash/commands/docx`
+  exports: help/schema/version/capabilities CLI/SDK data agree, with actual
+  package metadata version checked independently.
+- Maintained `npm run build`: all declared build tasks and root suffix stages
+  passed. Missing declared builds are not counted as passes.
+- Root guarded ESLint: completed, zero errors and 12 unrelated cached-example
+  warnings. Root type lint and workflow lint passed after restored build output.
+
+Inspected actual output screenshots: `/tmp/docx-help-qa/help.png`, `error.png`,
+`detail.png` and `detail-top-final.png`. The detail output exceeds the terminal
+viewport, so a separate top capture verifies its heading/unavailable marker.
+The screenshot font shows missing-glyph boxes for the wave emoji in the error
+fixture; original UTF-8 byte tests verify preservation. Control escapes and the
+truncation marker are visible, and error/limit exits remain 2/4.
+
+Earlier broad attempts are retained as incomplete evidence. One overlapped
+ongoing red tests; another overlapped a separately interrupted build that removed
+shared output. Both were interrupted, not counted as passes. The missing build
+output was restored through the maintained full build, then type/workflow lint
+and the affected screenshot were rerun sequentially. No product change was made
+to hide those setup failures. Final root unit execution is pending.

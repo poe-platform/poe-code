@@ -96,3 +96,4 @@ export {
   type DocxCommandRequest
 } from "./command.js";
 export { resolveDocxSelection } from "./simple-selection.js";
+export { getDocxDiscovery, type DocxDiscovery, type DocxHelpData, type DocxSchemaData, type DocxCapabilitiesData, type DocxVersionData } from "./discovery.js";

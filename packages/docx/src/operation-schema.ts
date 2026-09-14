@@ -2,12 +2,18 @@ import { documentLimitDefaults } from "./budget.js";
 import { decodeLocation } from "./location-token.js";
 import { DocxUsageError, validateOriginalDocumentContent, validateTemplateData } from "./argument-json.js";
 import { docxCommonFields, docxEnumSymbols, operationDeclarations } from "./operation-schema-data.js";
+import type { DocxJsonSchema } from "./operation-json-schema.js";
 
 export interface DocxFieldSchema {
   readonly type: string;
   readonly required: boolean;
 }
 export interface DocxOperationSchema {
+  readonly discovery?: {
+    readonly description: string;
+    readonly featureIds: readonly string[];
+    readonly result: DocxJsonSchema;
+  };
   readonly profile: string;
   readonly fields: Readonly<Record<string, DocxFieldSchema>>;
   readonly sdkFields: Readonly<Record<string, DocxFieldSchema>>;

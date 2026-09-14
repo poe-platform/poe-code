@@ -827,8 +827,10 @@ appropriate semantic error. Unsupported affected content is `unsupported-edit`.
   table. Nested paragraphs may reuse styles or create collision-safe headings.
   SDK options use content/columnWidths/borders/shading/rowOptions; command JSON
   transport suffixes and source files normalize to those same fields. Aggregate
-  newly constructed cells share the invocation budget. Cell updates, merges,
-  row/column changes and live model batches are later tasks.
+  newly constructed cells share the invocation budget. Bounded cell updates and
+  rectangular row/column insertion/deletion are implemented by the
+  [table editing milestone](../plans/docx-table-editing.md). Merge/split operations
+  and live table model batches remain pending.
 - **Links/bookmarks/fields.** Link add/set requires exactly one target or bookmark;
   external target accepts absolute https/http/mailto only and is never fetched;
   bookmark must exist. Removing a link unwraps its visible content. Bookmark

@@ -114,3 +114,43 @@ No downloaded fixtures, native reference builds, product networking, complete li
 model, merge/split editing, remote-main delivery or release is claimed. Later
 tasks remain pending. Only the explicitly owned implementation/tests and this
 plan/spec/audit reconciliation are included in the local feature commit.
+
+## Verification-only review, 2026-09-14
+
+Reviewed the existing implementation at `086456dc1` against the bounded task,
+root/scoped instructions, DOCX specification, shared CLI/SDK contracts, API audit
+and table inventory (including inherited and public underscore-prefixed members).
+No new product defect was reproduced and no implementation or original test was
+changed. The detailed specification still classified cell and row/column editing
+as later work, contradicting its introduction and the implemented operations.
+Corrected that status sentence without promoting merge/split or live model APIs.
+
+Fresh checks:
+
+- `npm test --workspace=docx`: 60 files, 1,542 tests passed.
+- `npm run lint --workspace=docx`: ESLint and both TypeScript checks passed.
+- `npm run build:workspaces -- --workspace=docx`: declared five-workspace build
+  closure and native postbuild checks passed.
+- `node --import tsx --test packages/safe-bash/tests/commands/docx/*.test.ts
+  packages/safe-bash/tests/commands/docx-registration.test.ts`: 46 passed, no skips.
+- `npm run test:runner --workspace=virtual-bash`: 515 passed, no skips; the
+  original table integration file remains explicitly registered.
+- `npx vitest run scripts/docx-exports.test.ts`: both export checks passed.
+- `git diff --check`: passed.
+
+Inspected the original preservation/assertion cases and retained green logs,
+including the final 1,542-test package and 46-test Shell results. Visually
+inspected `/tmp/docx-table-edit-cli-final-20260914.png`: readable one-based help,
+exact numeric-looking cell text, dry-run exit 0 and missing-index exit 1. This
+was retained terminal evidence, not a fresh screenshot or document render.
+
+The test-first section above records the original red phase, but editing-specific
+raw red logs were not located during this review. Available table red logs cover
+earlier construction corrections; they do not independently prove editing's red
+phase. Historical evidence is preserved, not reconstructed or relabeled.
+Full live table API/property/reference coverage, merge/split editing, document
+rendering and broader corpus QA remain unverified by this bounded review. No
+full repository or full safe-bash suite was run. No new code required a regression.
+Only this plan update and the specification status correction belong to the
+review commit; the preexisting pipeline-plan change and index remain preserved.
+No README edits, downloaded fixtures, native reference build, push or release.

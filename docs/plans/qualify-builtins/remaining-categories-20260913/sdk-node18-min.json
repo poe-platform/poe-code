@@ -1,0 +1,172 @@
+{
+  "runtime": {
+    "node": "18.18.0",
+    "acorn": "8.10.0",
+    "ada": "2.6.0",
+    "ares": "1.19.1",
+    "brotli": "1.0.9",
+    "cldr": "43.1",
+    "icu": "73.2",
+    "llhttp": "6.0.11",
+    "modules": "108",
+    "napi": "9",
+    "nghttp2": "1.55.0",
+    "nghttp3": "0.7.0",
+    "ngtcp2": "0.8.1",
+    "openssl": "3.0.10+quic",
+    "simdutf": "3.2.14",
+    "tz": "2023c",
+    "undici": "5.22.1",
+    "unicode": "15.0",
+    "uv": "1.46.0",
+    "uvwasi": "0.0.18",
+    "v8": "10.2.154.26-node.26",
+    "zlib": "1.2.13.1-motley"
+  },
+  "rows": [
+    {
+      "id": "QB-ARG-DIRECT-STRICT",
+      "expected": 7,
+      "native": 7,
+      "guestError": {
+        "name": "TypeError",
+        "message": "Attempted to call a non-function value."
+      },
+      "pass": false
+    },
+    {
+      "id": "QB-ARG-DIRECT-MAPPED",
+      "expected": 9,
+      "native": 9,
+      "guestError": {
+        "name": "TypeError",
+        "message": "Attempted to call a non-function value."
+      },
+      "pass": false
+    },
+    {
+      "id": "QB-ARG-IDENTITY",
+      "expected": [
+        true,
+        true,
+        false,
+        true
+      ],
+      "native": [
+        true,
+        true,
+        false,
+        true
+      ],
+      "guest": [
+        false,
+        true,
+        false,
+        true
+      ],
+      "pass": false
+    },
+    {
+      "id": "QB-ARG-SPREAD-CONTROL",
+      "expected": [
+        7,
+        8
+      ],
+      "native": [
+        7,
+        8
+      ],
+      "guest": [
+        7,
+        8
+      ],
+      "pass": true
+    },
+    {
+      "id": "QB-ARG-BORROW-CONTROL",
+      "expected": [
+        7,
+        true
+      ],
+      "native": [
+        7,
+        true
+      ],
+      "guest": [
+        7,
+        true
+      ],
+      "pass": true
+    },
+    {
+      "id": "QB-ARG-DELETE-CONTROL",
+      "expected": "TypeError",
+      "native": "TypeError",
+      "guest": "TypeError",
+      "pass": true
+    },
+    {
+      "id": "QB-ARG-REPLACE-CONTROL",
+      "expected": [
+        9
+      ],
+      "native": [
+        9
+      ],
+      "guest": [
+        9
+      ],
+      "pass": true
+    },
+    {
+      "id": "QB-ARG-EXHAUSTION-REPLAY",
+      "expected": true,
+      "native": true,
+      "pendingReplayError": {
+        "name": "TypeError",
+        "message": "Attempted to call a non-function value."
+      },
+      "guestError": {
+        "name": "TypeError",
+        "message": "Attempted to call a non-function value."
+      },
+      "completedReplayError": {
+        "name": "TypeError",
+        "message": "Attempted to call a non-function value."
+      },
+      "pass": false,
+      "replayPass": false
+    },
+    {
+      "id": "QB-ARG-BORROW-REPLAY-CONTROL",
+      "expected": true,
+      "native": true,
+      "pendingReplay": true,
+      "guest": true,
+      "completedReplay": true,
+      "pass": true,
+      "replayPass": true
+    },
+    {
+      "id": "QB-DATE-TIME-PRECISION",
+      "expected": 29312,
+      "native": 29312,
+      "guest": 29312,
+      "pass": true
+    },
+    {
+      "id": "QB-DATE-DAY-PRECISION",
+      "expected": 34447360,
+      "native": 34447360,
+      "guest": 34447360,
+      "pass": true
+    },
+    {
+      "id": "QB-DATE-EPOCH-CONTROL",
+      "expected": 0,
+      "native": 0,
+      "guest": 0,
+      "pass": true
+    }
+  ]
+}

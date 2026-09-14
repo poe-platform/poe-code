@@ -3,6 +3,9 @@ import type { SandboxCallContext, SandboxValue } from "./values.js";
 import { guestProxyStates, withGuestProxyTrap } from "./guest-proxy.js";
 import { invokeBuiltinClosure } from "./builtin-call.js";
 import { objectProperties } from "./globals/object-array.js";
+import { arrayBufferOptions } from "./array-buffer.js";
+import { isSandboxSharedArrayBuffer } from "./shared-array-buffer.js";
+import { isNumericTypedArray, typedArrayStorage, typedArrayViewLayouts } from "./typed-array.js";
 
 export function sandboxIsExtensible(value: SandboxValue, budget: Budget, context?: SandboxCallContext): boolean | Promise<boolean> {
   if (typeof value !== "object" || value === null || !guestProxyStates.has(value))
@@ -18,6 +21,12 @@ export function sandboxIsExtensible(value: SandboxValue, budget: Budget, context
 }
 
 export function sandboxPreventExtensions(value: SandboxValue, budget: Budget, context?: SandboxCallContext): boolean | Promise<boolean> {
+  if (isNumericTypedArray(value)) {
+    const { buffer } = typedArrayStorage(value);
+    if (arrayBufferOptions(buffer) !== undefined &&
+      (!isSandboxSharedArrayBuffer(buffer) || typedArrayViewLayouts.get(value)?.length === undefined))
+      return false;
+  }
   if (typeof value !== "object" || value === null || !guestProxyStates.has(value))
     return Reflect.preventExtensions(objectProperties(value, true));
   budget.visitNode();

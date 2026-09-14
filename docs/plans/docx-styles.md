@@ -136,3 +136,48 @@ The single bounded feature commit includes implementation, regressions and these
 plan/audit updates. Its local hash is reported in the delivery response. Remote
 main delivery and release were neither attempted nor claimed. Later tasks remain
 pending.
+
+## Independent bounded verification, 2026-09-14
+
+Reviewed implementation commit `ee79c37022c178018a8514645a5726b5bfb04b3b`
+on main against the DOCX and shared CLI/SDK contracts, original tests, style API
+inventory/mappings and retained QA outputs. No new product defect was reproduced,
+so product source and original tests remain unchanged.
+
+One documentation correction was validated before editing: the authoritative
+specification's exhaustive direct register omitted `styles defaults get/set` and
+the added formatting, next/link/default fields. Its generic result declarations
+also did not describe the actual bounded style results. Built package discovery
+and the passing original memfs command tests demonstrate these paths, fields and
+results. The specification now records them and the bounded relationship/default
+semantics without promoting the still-proposed full model. The global
+`Implemented Through: Not applicable` remains appropriate for the full proposed
+specification. This is a prose-only correction; no product-code regression or
+new red/green implementation cycle was needed.
+
+Fresh maintained checks:
+
+- `npm test --workspace=docx`: 953 tests, 40 files passed, no skips; 29.14s.
+- `npm run lint --workspace=docx`: ESLint and both TypeScript checks passed.
+- `npm run build:workspaces -- --workspace=docx`: selected maintained dependency
+  closure passed, five build tasks including applicable lifecycle checks.
+- Safe-bash `node scripts/test-reporting.mjs --import tsx
+  tests/commands/docx-registration.test.ts`: 10 passed, no skips.
+- `npx vitest run scripts/docx-exports.test.ts`: two passed, including portable
+  bundle. The scoped adapter reviewer made no changes.
+- Skill `write-spec/scripts/check_spec.py docs/specs/docx.md`: passed, zero warnings.
+
+Evidence inspected: the retained final 953-test green log, actual Shell transcript
+and both wrapped help/Shell PNGs listed above. The recorded scenarios cover direct
+versus inherited properties, preserved numbering/table/latent metadata, linked
+styles, cycle/missing-reference rejection, deterministic allocation and an
+original conflicting template with all heading levels 0–9. The prior red history
+is recorded narratively above; separate style-specific raw red logs were not
+located, so independent verification of that historical execution sequence is a
+gap. No old evidence was overwritten and no implementation was rerun blindly.
+
+The Shell transcript/screenshots were inspected, not freshly reexecuted or
+recaptured. No document renderer, repair-warning check, downloaded-corpus campaign
+or complete live-model API QA ran or is claimed. Only the specification and this
+plan are owned by the documentation correction; unrelated work and index entries
+remain untouched. Delivery is local only, without push or release.

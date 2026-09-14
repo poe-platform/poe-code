@@ -28,6 +28,10 @@ The bounded paragraph operations are described in
 properties and explicit whole-paragraph text assignment, plus block/inline caret
 insertion. Live model members and batch execution remain pending.
 
+The bounded style/default operations and collision-safe Title/headings 0–9 are
+recorded in [style evidence](../docx/styles.md). They expose utility operations;
+latent mutation, live style objects and complete model API coverage remain pending.
+
 ## Normative language
 
 MUST and MUST NOT identify conformance requirements. SHOULD identifies a strong
@@ -481,7 +485,7 @@ independent text/XML/OPC/value assertions, not only to one another.
 | `runs add`              | selectedEdit | `text?`: string; `style?`: string; `break?`: line / page / column                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | MutationData     | F01, F04                                                                                           |
 | `runs set`              | selectedEdit | `text?`: string; `bold?`: boolean / null; `italic?`: boolean / null; `underline?`: boolean / WD_UNDERLINE / null; `strike?`: boolean / null; `size?`: Length (explicit emu/in/cm/mm/pt) / null; `font?`: string / null; `color?`: RGB hex / null; `highlight?`: WD_COLOR_INDEX / null; `language?`: string / null; `hidden?`: boolean / null; `rtl?`: boolean / null; `superscript?`: boolean / null; `subscript?`: boolean / null; additional nullable font-slot/theme/baseline fields in section 6.5                                                                                                                                                                                              | MutationData     | F08, F09, F12, F25, F32                                                                            |
 | `runs remove`           | selectedEdit | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | MutationData     | F44                                                                                                |
-| `styles list`           | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F14                                                                                                |
+| `styles list` | read | none | StyleInspectionData | F14 |
 | `sections list`         | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F16                                                                                                |
 | `headers list`          | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F01, F04                                                                                           |
 | `footers list`          | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F01, F04                                                                                           |
@@ -493,9 +497,11 @@ independent text/XML/OPC/value assertions, not only to one another.
 | `comments list`         | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F25                                                                                                |
 | `controls list`         | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceListData | F28                                                                                                |
 | `images list`           | selectedRead | `unique?`: boolean                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | ResourceListData | F31, F34, F35                                                                                      |
-| `styles get`            | selectedRead | `name!`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | ResourceData     | F14                                                                                                |
-| `styles add`            | selectedEdit | `name!`: string; `type!`: paragraph / character / table / numbering; `base?`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | MutationData     | F14                                                                                                |
-| `styles set`            | selectedEdit | `name!`: string; `base?`: string / null; `bold?`: boolean / null; `italic?`: boolean / null; `priority?`: safe integer; `hidden?`: boolean; `locked?`: boolean; `quickStyle?`: boolean                                                                                                                                                                                                                                                                                                                                                                                                                     | MutationData     | F12, F14                                                                                           |
+| `styles get` | read | `name!`: string | StyleInspectionData | F14 |
+| `styles add` | edit | `name!`: string; `type!`: paragraph / character / table / numbering; optional StyleDefinitionFields below | StyleMutationData | F14 |
+| `styles set` | edit | `name!`: string; optional StyleDefinitionFields below | StyleMutationData | F12, F14 |
+| `styles defaults get` | read | none | StyleInspectionData | F14 |
+| `styles defaults set` | edit | optional StyleFormattingFields below | StyleMutationData | F14 |
 | `styles remove`         | selectedEdit | `name!`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | MutationData     | F14                                                                                                |
 | `sections add`          | selectedEdit | `startType?`: WD_SECTION_START                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | MutationData     | F06, F11, F16                                                                                      |
 | `sections set`          | selectedEdit | `orientation?`: WD_ORIENTATION; `pageWidth?`: Length (explicit emu/in/cm/mm/pt); `pageHeight?`: Length (explicit emu/in/cm/mm/pt); `topMargin?`: Length (explicit emu/in/cm/mm/pt); `bottomMargin?`: Length (explicit emu/in/cm/mm/pt); `leftMargin?`: Length (explicit emu/in/cm/mm/pt); `rightMargin?`: Length (explicit emu/in/cm/mm/pt); `columns?`: positive integer; `pageNumberStart?`: nonnegative integer; `differentFirstPage?`: boolean                                                                                                                                                         | MutationData     | F16                                                                                                |
@@ -578,6 +584,23 @@ independent text/XML/OPC/value assertions, not only to one another.
 | `capabilities`          | discovery    | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | CapabilitiesData | F01, F04, F06, F08, F11, F12, F13, F14, F15, F16, F17, F19, F20, F21, F25, F30, F31, F32, F42, F49 |
 | `version`               | discovery    | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | VersionData      | F06, F49                                                                                           |
 
+For the bounded style operations, `StyleFormattingFields` is the closed set of
+optional nullable fields: `bold`, `italic`, `keepWithNext` (boolean), `font`,
+`color` (string), `size`, `spaceBefore`, `spaceAfter` (explicit emu/in/cm/mm/pt
+length), and `outlineLevel` (integer 0–9). `StyleDefinitionFields` adds `base`,
+`next`, `linkedStyle` (optional string or null), `defaultForType`, `hidden`,
+`locked`, `quickStyle` (optional boolean), and `priority` (optional nonnegative
+safe integer). Color and length admission uses the existing formatting rules.
+These fields have the same SDK and direct CLI meanings. Character styles reject
+paragraph formatting; `next` requires a paragraph style. Numbering style creation
+remains a declared target that the bounded implementation rejects as unsupported.
+
+Style operations are package-global and reject scope, ordinal/token selectors and
+`allowEmpty`. Their edit profile admits only json/limit/output/inPlace/force/dryRun
+in addition to the listed fields. Defaults get takes no name. Defaults set requires
+at least one formatting field; named set requires at least one definition field.
+These additive direct operations do not establish typed batch execution.
+
 ### 6.5 Format operation semantics and defaults
 
 The listed fields are exhaustive. A conditional required field missing at
@@ -650,6 +673,16 @@ appropriate semantic error. Unsupported affected content is `unsupported-edit`.
   formatting does not split. Only selected semantically equivalent adjacent runs
   may merge; markers, opaque content and style/direct-property differences remain
   boundaries. Whole-text assignment remains outside this implemented subset.
+- **Style defaults and relationships.** Defaults inspection MUST NOT create a
+  styles part. Defaults set materializes it only for an actual change; resetting
+  an absent value to null remains a no-op. Base links require matching types and
+  acyclic inheritance. Linked paragraph/character styles form reciprocal pairs;
+  rebinding clears the old reciprocal edges. Longer link cycles and missing
+  references are diagnosed; self-next is valid. Null next restores self fallback.
+  Setting a type default clears the previous default of that type. Edits MUST
+  preserve unedited latent/style metadata, numbering and theme resources. Heading
+  allocation MUST be deterministic and collision-free, preserve custom styles,
+  and reuse valid generated identities; a matching name alone is insufficient.
 - **Sections/stories.** Section add appends a new section, inheriting current
   geometry; startType defaults NEW_PAGE. Section set does not infer a width/height
   swap from orientation. Margins must leave positive content extent. Columns
@@ -1159,6 +1192,49 @@ type SchemaData = {
   }[];
 };
 ```
+
+The bounded style utility uses the following closed result types instead of the
+planned generic resource/location records. Style/default reads return the full
+inspection envelope, with get narrowing `styles` to one exact name and defaults
+get retaining the definition list. Raw metadata is inert retained XML. Resolved
+values cover only the supported subset, not layout or conditional table/theme
+resolution; bold/italic follow style toggle inheritance. Size/spacing reads are
+points. A cyclic base chain yields null effective properties and diagnostics.
+
+```typescript
+type StyleProperties = {
+  bold: boolean | null; italic: boolean | null;
+  font: string | null; size: number | null; color: string | null;
+  outlineLevel: number | null; keepWithNext: boolean | null;
+  spaceBefore: number | null; spaceAfter: number | null;
+  numbering: { id: string | null; level: number | null } | null;
+};
+type StyleInspectionData = {
+  styles: {
+    id: string; name: string; type: string; builtin: boolean;
+    base: string | null; next: string | null; linkedStyle: string | null;
+    defaultForType: boolean; priority: number | null;
+    hidden: boolean; locked: boolean; quickStyle: boolean; unhideWhenUsed: boolean;
+    direct: StyleProperties; effective: StyleProperties | null;
+    runXml: string | null; paragraphXml: string | null; tableXml: string | null;
+  }[];
+  defaults: { run: StyleProperties; paragraph: StyleProperties };
+  latentXml: string | null;
+  diagnostics: { code: string; part: string; location: string; message: string }[];
+};
+type StyleMutationData = {
+  changed: boolean;
+  changes: { kind: "style"; id: string }[];
+  dryRun: boolean;
+  output: { path: string | null; bytes: number; sha256: string } | null;
+};
+```
+
+Style mutations report each changed definition once (including reciprocal/default
+updates); document-default changes use ID `docDefaults`. Their `affected` is the
+change count and `locations` is empty. Existing common error/publication rules
+apply. Neither these result types nor the implemented utility functions promote
+planned live model, inherited member, enum or collection coverage.
 
 Compound resource data uses a closed, resource-discriminated `details` union.
 It is required for the listed resource kinds and absent for other kinds; scalar

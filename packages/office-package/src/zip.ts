@@ -241,17 +241,31 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
       : result;
   }
 
-  function wide(view: DataView, offset: number, maximum: number, label: string): number {
+  function wide(
+    view: DataView,
+    offset: number,
+    maximum: number,
+    label: string,
+    structural = false
+  ): number {
     if (offset < 0 || offset + 8 > view.byteLength) fail("ZIP truncated 64-bit field");
     const value = view.getBigUint64(offset, true);
-    if (value > BigInt(Math.min(maximum, Number.MAX_SAFE_INTEGER)))
+    if (value > BigInt(Math.min(maximum, Number.MAX_SAFE_INTEGER))) {
+      if (structural) fail(`ZIP invalid ${label}`);
       fail(`ZIP ${label} limit exceeded`);
+    }
     return Number(value);
   }
 
   function extendedFields(
     bytes: Uint8Array,
-    fields: ReadonlyArray<{ value: number; sentinel: number; maximum: number; label: string }>
+    fields: ReadonlyArray<{
+      value: number;
+      sentinel: number;
+      maximum: number;
+      label: string;
+      structural?: boolean;
+    }>
   ): { values: number[]; retained: Uint8Array } {
     const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
     const required = fields.filter((field) => field.value === field.sentinel);
@@ -278,7 +292,7 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
           values[index] =
             field.sentinel === 65535
               ? view.getUint32(position, true)
-              : wide(view, position, field.maximum, field.label);
+              : wide(view, position, field.maximum, field.label, field.structural);
           number(values[index]!, field.maximum, field.label);
           position += field.sentinel === 65535 ? 4 : 8;
         }
@@ -295,15 +309,13 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
   function entryBounds(
     entry: ZipEntry,
     limits: ZipLimits,
-    dataLimit = limits.maxArchiveBytes
+    dataLimit = limits.maxArchiveBytes,
+    writing = false
   ): void {
     pathBytes(entry.name, limits);
-    number(
-      entry.size,
-      Math.min(limits.maxEntryBytes, limits.maxTotalBytes, 0xfffffffe),
-      "entry byte"
-    );
-    number(entry.data.length, Math.min(dataLimit, 0xfffffffe), "compressed byte");
+    const maximum = writing || !profile.zip64 ? 0xfffffffe : Number.MAX_SAFE_INTEGER;
+    number(entry.size, Math.min(limits.maxEntryBytes, limits.maxTotalBytes, maximum), "entry byte");
+    number(entry.data.length, Math.min(dataLimit, maximum), "compressed byte");
     number(entry.crc32, 0xffffffff, "CRC32");
     number(entry.mode, 0xffff, "mode");
     format(
@@ -392,10 +404,10 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
         view.getUint32(locator + 16, true) !== 1
       )
         fail("ZIP invalid or multi-disk ZIP64 locator");
-      const record = wide(view, locator + 8, bytes.length, "ZIP64 offset");
+      const record = wide(view, locator + 8, bytes.length, "ZIP64 offset", true);
       if (record + 56 > locator || view.getUint32(record, true) !== 0x06064b50)
         fail("ZIP truncated ZIP64 end record");
-      const recordSize = wide(view, record + 4, limits.maxArchiveBytes, "ZIP64 record");
+      const recordSize = wide(view, record + 4, bytes.length, "ZIP64 record", true);
       if (recordSize < 44 || record + 12 + recordSize !== locator)
         fail("ZIP inconsistent ZIP64 end span");
       if (
@@ -407,8 +419,8 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
       const count = wide(view, record + 32, limits.maxMembers, "member");
       if (wide(view, record + 24, limits.maxMembers, "member") !== count)
         fail("ZIP inconsistent ZIP64 member counts");
-      const size = wide(view, record + 40, limits.maxArchiveBytes, "central byte");
-      const start = wide(view, record + 48, limits.maxArchiveBytes, "central offset");
+      const size = wide(view, record + 40, bytes.length, "central byte", true);
+      const start = wide(view, record + 48, bytes.length, "central offset", true);
       if (
         (diskMembers !== 65535 && diskMembers !== count) ||
         (members !== 65535 && members !== count) ||
@@ -471,10 +483,16 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
         {
           value: local,
           sentinel: 0xffffffff,
-          maximum: limits.maxArchiveBytes,
-          label: "local offset"
+          maximum: centralStart,
+          label: "local offset",
+          structural: true
         },
-        { value: view.getUint16(offset + 34, true), sentinel: 65535, maximum: 0, label: "disk" }
+        {
+          value: view.getUint16(offset + 34, true),
+          sentinel: 65535,
+          maximum: 0xffffffff,
+          label: "disk"
+        }
       ]);
       if (centralWide.retained.length !== centralExtra.length && version < 45)
         fail("ZIP64 requires extraction version 45");
@@ -704,7 +722,8 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
     entryBounds(
       entry,
       limits,
-      compression === "deflate" ? limits.maxEntryBytes : limits.maxArchiveBytes
+      compression === "deflate" ? limits.maxEntryBytes : limits.maxArchiveBytes,
+      true
     );
     bytes = new Uint8Array(bytes);
     entry.data = bytes;
@@ -788,7 +807,7 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
       let serialized = 22 + archive.comment.length;
       let decoded = 0;
       const prepared = archive.entries.map((entry) => {
-        entryBounds(entry, limits);
+        entryBounds(entry, limits, limits.maxArchiveBytes, true);
         decoded += entry.size;
         number(decoded, limits.maxTotalBytes, "total byte");
         const rawName = entry.rawName ?? pathBytes(entry.name, limits);
@@ -833,7 +852,7 @@ export function createZipCodec(runtime: ZipRuntime = defaults, profile: ZipProfi
     const names = new Set<string>();
     for (const entry of archive.entries) {
       await yieldTurn(signal);
-      entryBounds(entry, limits);
+      entryBounds(entry, limits, limits.maxArchiveBytes, true);
       if (profile.rejectDuplicateNames && names.has(entry.name)) fail("ZIP duplicate member name");
       names.add(entry.name);
       if (entry.method === 0 && entry.data.length !== entry.size) fail("ZIP stored size mismatch");

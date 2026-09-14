@@ -264,6 +264,55 @@ describe("bounded package archive", () => {
     }
   });
 
+  it("distinguishes ZIP64 resource ceilings from malformed offsets", async () => {
+    const zip = createZipCodec(undefined, { zip64: true });
+    for (const at of [127, 183, 199]) {
+      const bytes = archive(0, 0, true);
+      new DataView(bytes.buffer).setBigUint64(at, 1n << 63n, true);
+      await expect(zip.readZipArchive(bytes, limits, signal)).rejects.toMatchObject({
+        code: "invalid-package"
+      });
+    }
+    for (const lower of [{ maxEntryBytes: 8 }, { maxMembers: 0 }]) {
+      await expect(
+        zip.readZipArchive(archive(0, 0, true), { ...limits, ...lower }, signal)
+      ).rejects.toMatchObject({ code: "resource-limit" });
+    }
+  });
+
+  it("admits wide entry metadata without allocating its declared expansion", async () => {
+    const bytes = archive(8, 0, true);
+    const view = new DataView(bytes.buffer);
+    const size = 0x100000000;
+    view.setBigUint64(35, BigInt(size), true);
+    view.setBigUint64(113, BigInt(size), true);
+    const zip = createZipCodec(undefined, { zip64: true });
+    const wideLimits = { ...limits, maxEntryBytes: size, maxTotalBytes: size };
+    const parsed = await zip.readZipArchive(bytes, wideLimits, signal);
+    expect(parsed.entries[0]!.size).toBe(size);
+    expect(parsed.entries[0]!.data).toEqual(compressed);
+    await expect(zip.writeZipArchive(parsed, wideLimits, signal)).rejects.toMatchObject({
+      code: "resource-limit"
+    });
+  });
+
+  it("reports an extended nonzero disk number as unsupported structure", async () => {
+    const original = archive(0, 0, true);
+    const bytes = new Uint8Array(original.length + 4);
+    bytes.set(original.subarray(0, 135));
+    bytes.set(original.subarray(135), 139);
+    const view = new DataView(bytes.buffer);
+    view.setUint16(94, 65535, true);
+    view.setUint16(90, 32, true);
+    view.setUint16(109, 28, true);
+    view.setUint32(135, 1, true);
+    view.setBigUint64(179, 79n, true);
+    view.setBigUint64(203, 139n, true);
+    await expect(
+      createZipCodec(undefined, { zip64: true }).readZipArchive(bytes, limits, signal)
+    ).rejects.toMatchObject({ code: "invalid-package" });
+  });
+
   it("removes consumed extended fields while retaining unknown extra bytes", async () => {
     const zip = createZipCodec(undefined, { zip64: true });
     const parsed = await zip.readZipArchive(archive(0, 0, true, true), limits, signal);

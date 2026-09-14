@@ -1,0 +1,20 @@
+[
+  {
+    "title": "fix(safe-js): make replay restoration transactional",
+    "sha": "b4215ce3e59ba7c79eddca005ce2aaa8f9cc2d3d",
+    "exitCode": 0,
+    "note": "Commit succeeded; initial real-index refresh needed --add for new files. Refreshed only owned files below."
+  },
+  {
+    "title": "fix(safe-js): reject active external snapshot records",
+    "exitCode": 0,
+    "output": "[main 1f8729839] fix(safe-js): reject active external snapshot records\n 3 files changed, 200 insertions(+), 25 deletions(-)\n create mode 100644 packages/safe-js/src/snapshot/adversarial-entrypoints.test.ts\n",
+    "sha": "1f87298398af05b7c5a8ddbb7b213ffc7014be0e"
+  },
+  {
+    "title": "fix(safe-js): roll back failed intrinsic restoration",
+    "exitCode": 0,
+    "output": "[main 837e81a2c] fix(safe-js): roll back failed intrinsic restoration\n 3 files changed, 75 insertions(+), 5 deletions(-)\n create mode 100644 packages/safe-js/src/snapshot/realm-rollback-qualification.test.ts\n",
+    "sha": "837e81a2c5a14330c326182ffbee5e56d8bcad1e"
+  }
+]

@@ -1,0 +1,32 @@
+{
+  "cwd": "/Users/kjopek/Workspace/poe-code",
+  "sourceReceipt": "source-after.json",
+  "commands": [
+    {
+      "command": "npx vitest run packages/safe-js/src/snapshot packages/safe-js/src/restore.test.ts packages/safe-js/src/migrate.test.ts packages/safe-js/src/migration-file.test.ts packages/safe-js/src/external-checkpoint-validation.test.ts packages/safe-js/src/interp/budget.test.ts packages/safe-js/src/interp/host-call.test.ts packages/safe-js/src/interp/host-call-graph.test.ts packages/safe-js/src/interp/promise-replay.test.ts packages/safe-js/src/interp/promise-replay-import-header.test.ts packages/safe-js/src/interp/promise-replay-imports.test.ts packages/safe-js/test/integration/snapshot-roundtrip.test.ts packages/safe-js/test/integration/crash-resume.test.ts packages/safe-js/test/adversarial/snapshot-mutation.test.ts",
+      "log": "acceptance.log",
+      "exitCode": 0,
+      "files": 188,
+      "tests": 2617,
+      "failures": 0,
+      "skips": 0,
+      "seconds": 124.52
+    },
+    {
+      "command": "npx tsc -p packages/safe-js/tsconfig.json --noEmit",
+      "log": "typecheck-acceptance.log",
+      "exitCode": 0
+    },
+    {
+      "command": "npx eslint packages/safe-js/src/snapshot/validation.ts packages/safe-js/src/snapshot/replay-data.ts packages/safe-js/src/snapshot/restore.ts packages/safe-js/src/interp/budget.ts packages/safe-js/src/snapshot/adversarial-entrypoints.test.ts packages/safe-js/src/snapshot/replay-transaction-qualification.test.ts packages/safe-js/src/snapshot/realm-rollback-qualification.test.ts packages/safe-js/src/restore.test.ts",
+      "log": "lint-acceptance.log",
+      "exitCode": 0
+    }
+  ],
+  "notRun": [
+    "Repository-wide npm test: focused package snapshot, public decoder, scheduling and integration scope selected.",
+    "Independent Workerd/Bun runtime qualification: not claimed by Node receipts.",
+    "Release build/publication: not pushed; divergent main histories.",
+    "Visual screenshot: no CLI presentation/layout changes."
+  ]
+}

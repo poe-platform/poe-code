@@ -58,19 +58,27 @@ not promised. These exclusions do not permit silently deleting their structures.
 The baseline is [ECMA-376](https://ecma-international.org/publications-and-standards/standards/ecma-376/),
 whose currently published parts have different revision dates:
 
-| Source | Baseline | Application |
-| --- | --- | --- |
-| ECMA-376 Part 1 | Fifth edition, December 2016 | Fundamentals; WordprocessingML; shared markup including DrawingML and mathematical content. |
-| ECMA-376 Part 2 | Fifth edition, December 2021 | Open Packaging Conventions, part names, content types, relationships and package signatures. |
-| ECMA-376 Part 3 | Fifth edition, December 2015 | Markup compatibility, ignorable namespaces and alternate content. |
-| ECMA-376 Part 4 | Fifth edition, December 2016 | Transitional migration markup and legacy compatibility structures. |
-| [MS-DOCX](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-docx/b839fe1f-e1ca-4fa6-8c26-5954d0abbccd) | Pin the downloaded revision during implementation | Microsoft extensions such as modern Word feature metadata; separate from the base standard. |
-| [Microsoft markup compatibility guidance](https://learn.microsoft.com/en-us/office/open-xml/general/introduction-to-markup-compatibility) | Supporting implementation guidance | Alternate-content selection and application-version compatibility; does not replace the standard. |
+| Source                                                                                                                                    | Baseline                                    | Application                                                                                                 |
+| ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| ECMA-376 Part 1                                                                                                                           | Fifth edition, December 2016                | Fundamentals; WordprocessingML; shared markup including DrawingML and mathematical content.                 |
+| ECMA-376 Part 2                                                                                                                           | Fifth edition, December 2021                | Open Packaging Conventions, part names, content types, relationships and package signatures.                |
+| ECMA-376 Part 3                                                                                                                           | Fifth edition, December 2015                | Markup compatibility, ignorable namespaces and alternate content.                                           |
+| ECMA-376 Part 4                                                                                                                           | Fifth edition, December 2016                | Transitional migration markup and legacy compatibility structures.                                          |
+| [MS-DOCX](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-docx/b839fe1f-e1ca-4fa6-8c26-5954d0abbccd)                      | Revision 23.0, v20260818, August 18, 2026   | Word extensions including controls and modern annotation metadata; separate from the base standard.         |
+| [MS-ODRAWXML](https://learn.microsoft.com/en-us/openspecs/office_standards/ms-odrawxml/06cff208-c6e1-4db7-bb68-665135e5f0de)              | Revision 34.0, v20260217, February 17, 2026 | Drawing extensions including Word shapes/groups, SVG references and decorative metadata; separately pinned. |
+| [Microsoft markup compatibility guidance](https://learn.microsoft.com/en-us/office/open-xml/general/introduction-to-markup-compatibility) | Supporting implementation guidance          | Alternate-content selection and application-version compatibility; does not replace the standard.           |
 
 The standards audit MUST record actual section numbers, namespace URIs, schema
 types and revision identifiers for each implemented family. An unverified section
 number MUST NOT be invented. The implementation MUST NOT imply ECMA/ISO
 certification merely because its scoped validator passes.
+
+The [standards coverage register](../docx/standards-coverage.md) maps F01–F50 to
+reviewed sections, namespaces, schema declarations and explicit unsupported
+subfeatures. The [source manifest](../docx/standards-sources.json) pins exact
+download bytes and schema hashes. These are research evidence, not implemented
+support. Unknown extensions MUST remain opaque where preservation is safe;
+operations requiring unverified extension semantics MUST reject affected edits.
 
 A **package** is the ZIP/OPC container. A **part** is a named payload in that
 package. A **story** is an independently addressable body, header, footer, note,
@@ -105,58 +113,58 @@ In this matrix, **edit** includes inspect and preserve; **preserve** includes
 inventory and byte/structure retention but not semantic mutation of the opaque
 object. This is the target of the full pipeline, not a list of implemented features.
 
-| ID | Feature family | Required target behavior |
-| --- | --- | --- |
-| F01 | ZIP/OPC | Bounded stored/deflated read/write, CRC validation, safe names, content types and relationship graph. ZIP64 read within limits; reject multi-disk/encrypted archives. |
-| F02 | Strict and Transitional | Detect both, read both, edit supported structures in the original dialect. No silent dialect conversion. |
-| F03 | Macro-free templates | Read/create/edit `.docx` and macro-free `.dotx` with explicit output kind and correct content type. Reject macro-enabled mutations. |
-| F04 | XML fidelity | Namespace-aware edits; retain unknown unmodified subtrees, attributes, comments, processing instructions, order and meaningful whitespace. |
-| F05 | Markup compatibility | Handle `mc:Ignorable`, `MustUnderstand`, `ProcessContent` and `AlternateContent` according to a declared understood-namespace profile; preserve unselected branches. |
-| F06 | Package inspection | Parts, content types, relationship edges, properties, signatures, protected/unsupported content and structural counts. |
-| F07 | XML access | Raw part bytes, bounded pretty display and a validated explicit XML-part replacement operation; never regex-based editing. |
-| F08 | Text extraction | Body and explicit story scopes, paragraphs, runs, tabs, breaks, lists, tables and field results with stable locations. |
-| F09 | Unicode and language | Lossless Unicode, RTL/bidirectional and East Asian properties, locale/font metadata and combining characters. No visual-order reshaping in logical text. |
-| F10 | Literal replacement | Cross-run matching within explicit structural boundaries; exact first/all/occurrence selection; preserve outside text and formatting. |
-| F11 | New documents | Create a minimal valid document or populate a supplied template from typed structured content. |
-| F12 | Run formatting | Bold, italic, underline, strike, size, font references, color/theme references, highlight, language, baseline/superscript and hidden-text properties. |
-| F13 | Paragraph formatting | Alignment, indentation, spacing, tabs/leaders, borders/shading, keep/widow controls, page/column breaks and outline level. |
-| F14 | Styles and themes | Inspect/reuse/create/edit paragraph, character and table styles; inheritance, defaults and linked styles; preserve theme resources and unknown settings. |
-| F15 | Headings | Level 0 creates a title; levels 1–9 use valid paragraph/outline styles; avoid overwriting colliding user styles. |
-| F16 | Sections and pages | Page size/orientation/margins, columns, section breaks, page-number metadata, first/even/odd header/footer bindings and inherited sections. |
-| F17 | Headers and footers | Scoped read/edit/create with explicit link-to-previous/shared-part behavior. |
-| F18 | Lists | Multilevel ordered/bulleted lists, restart/start overrides, numbering styles and scoped ID allocation; preserve picture-bullet resources. |
-| F19 | Tables | Create/read/edit rows/cells and formatting, grid widths, header repetition, row splitting, nesting and cell margins. |
-| F20 | Merged tables | Resolve horizontal/vertical spans, target logical cells, explicit merge/split, validate rectangular grids and reject ambiguous coordinates. |
-| F21 | Links and bookmarks | Internal/external hyperlink relationships, safe schemes, bookmark ranges/names and explicit rename/removal reference policy. |
-| F22 | Fields and references | Simple/complex/nested field inventory; set displayed results without execution; create bounded PAGE/NUMPAGES/REF/PAGEREF/SEQ/TOC fields and update flags. |
-| F23 | TOC and captions | Create/edit TOC field structures, figure/table captions and cross-reference relationships; cached page numbers are not recalculated promises. |
-| F24 | Footnotes and endnotes | Read/insert/edit/remove notes, references and required separators; preserve numbering rules and scoped IDs. |
-| F25 | Comments | Classic comment ranges and bodies; create/edit/delete with explicit author/time; modern/threaded extension inventory and preservation. |
-| F26 | Tracked changes | Original/final/all read views; create simple text insert/delete revisions; accept/reject supported selected revisions and formatting changes atomically. |
-| F27 | Complex review structures | Move revisions, table/section revisions and unsupported threaded metadata: inventory and preserve; reject affected edits until verified. |
-| F28 | Content controls | Inspect/fill supported plain/rich text, checkbox, choice, date and picture controls; respect locked states and placeholders. |
-| F29 | Repeating/data-bound controls | Bounded repeat-row/section expansion and explicit supported custom-XML binding synchronization; no arbitrary XPath evaluation or silent detachment. |
-| F30 | Document properties | Core/extended/custom typed properties and explicit removal; preserve unrelated metadata. |
-| F31 | Image inventory | Inline/floating image locations, owners, relationships, media type/bytes, dimensions, crop, rotation, wrapping and alt text. |
-| F32 | Raster insertion/replacement | Documented API image-format coverage, including PNG/JPEG/GIF/BMP/TIFF with bounded header/dimension/DPI admission; occurrence versus shared-resource replacement and aspect-ratio sizing. |
-| F33 | Floating image layout | Read/edit anchor coordinates, relative frames, wrap mode, z-order, crop, rotation/flips and decorative/alt metadata without claiming rendered geometry. |
-| F34 | Other media formats | Preserve and extract original GIF/BMP/TIFF/EMF/WMF/WDP/SVG bytes and fallback relationships; no native decoding or conversion. |
-| F35 | SVG and alternate graphics | Inventory/preserve SVG plus raster fallback; insertion requires supplied admitted SVG and explicit fallback. Reject external references/scripts; do not rasterize. |
-| F36 | Shapes and text boxes | Inspect/preserve DrawingML/VML shapes; edit supported text-box story text without changing geometry; grouped/unsupported geometry stays opaque. |
-| F37 | Charts | Inventory chart type/series/cached values and embedded-workbook bindings; preserve chart/workbook bytes on unrelated edits. No formula engine or chart rendering. |
-| F38 | SmartArt and diagrams | Inventory graph/data/layout parts and preserve them. No diagram layout generation. |
-| F39 | Equations | Inventory and preserve OMML; insert/replace validated bounded OMML fragments explicitly. No implied LaTeX conversion or math evaluation. |
-| F40 | Embedded OLE/packages | Inventory and preserve inert objects/relationships; explicit bounded extraction only. Never activate embedded content. |
-| F41 | Custom XML and glossary | Inventory/preserve custom XML, bindings, glossary/building-block and ancillary parts; support only declared structural edits. |
-| F42 | Settings/fonts/protection | Inspect/preserve compatibility, document settings and embedded fonts; respect editing protection. No password cracking or font installation. |
-| F43 | Signatures | Detect/list signature parts; default mutation rejection. An explicit strip-signatures operation removes the signature graph before edits; never claim signatures remain valid. |
-| F44 | Removal | Exact range/structure removal with reference checks; retain shared resources and required empty containers. |
-| F45 | Dummy text | Seeded deterministic replacement of selected visible text; not an anonymization guarantee. |
-| F46 | Sanitization | Explicit, enumerated removal of selected properties/comments/revisions/links/embedded objects, with an exact report; never an unqualified privacy guarantee. |
-| F47 | Batch and templates | Versioned typed ordered operations, bounded record expansion and one final publication; no eval or document-supplied code. |
-| F48 | Comparison | Part-payload and semantic XML/text/structure diff; distinguish data differences from serialization changes. |
-| F49 | Validation | Scoped OPC, XML and cross-part semantic diagnostics with an honest schema/profile report. |
-| F50 | Extract/pack | Safe VFS extraction and reconstruction with validated inventories and no host utility fallback. |
+| ID  | Feature family                | Required target behavior                                                                                                                                                                  |
+| --- | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| F01 | ZIP/OPC                       | Bounded stored/deflated read/write, CRC validation, safe names, content types and relationship graph. ZIP64 read within limits; reject multi-disk/encrypted archives.                     |
+| F02 | Strict and Transitional       | Detect both, read both, edit supported structures in the original dialect. No silent dialect conversion.                                                                                  |
+| F03 | Macro-free templates          | Read/create/edit `.docx` and macro-free `.dotx` with explicit output kind and correct content type. Reject macro-enabled mutations.                                                       |
+| F04 | XML fidelity                  | Namespace-aware edits; retain unknown unmodified subtrees, attributes, comments, processing instructions, order and meaningful whitespace.                                                |
+| F05 | Markup compatibility          | Handle `mc:Ignorable`, `MustUnderstand`, `ProcessContent` and `AlternateContent` according to a declared understood-namespace profile; preserve unselected branches.                      |
+| F06 | Package inspection            | Parts, content types, relationship edges, properties, signatures, protected/unsupported content and structural counts.                                                                    |
+| F07 | XML access                    | Raw part bytes, bounded pretty display and a validated explicit XML-part replacement operation; never regex-based editing.                                                                |
+| F08 | Text extraction               | Body and explicit story scopes, paragraphs, runs, tabs, breaks, lists, tables and field results with stable locations.                                                                    |
+| F09 | Unicode and language          | Lossless Unicode, RTL/bidirectional and East Asian properties, locale/font metadata and combining characters. No visual-order reshaping in logical text.                                  |
+| F10 | Literal replacement           | Cross-run matching within explicit structural boundaries; exact first/all/occurrence selection; preserve outside text and formatting.                                                     |
+| F11 | New documents                 | Create a minimal valid document or populate a supplied template from typed structured content.                                                                                            |
+| F12 | Run formatting                | Bold, italic, underline, strike, size, font references, color/theme references, highlight, language, baseline/superscript and hidden-text properties.                                     |
+| F13 | Paragraph formatting          | Alignment, indentation, spacing, tabs/leaders, borders/shading, keep/widow controls, page/column breaks and outline level.                                                                |
+| F14 | Styles and themes             | Inspect/reuse/create/edit paragraph, character and table styles; inheritance, defaults and linked styles; preserve theme resources and unknown settings.                                  |
+| F15 | Headings                      | Level 0 creates a title; levels 1–9 use valid paragraph/outline styles; avoid overwriting colliding user styles.                                                                          |
+| F16 | Sections and pages            | Page size/orientation/margins, columns, section breaks, page-number metadata, first/even/odd header/footer bindings and inherited sections.                                               |
+| F17 | Headers and footers           | Scoped read/edit/create with explicit link-to-previous/shared-part behavior.                                                                                                              |
+| F18 | Lists                         | Multilevel ordered/bulleted lists, restart/start overrides, numbering styles and scoped ID allocation; preserve picture-bullet resources.                                                 |
+| F19 | Tables                        | Create/read/edit rows/cells and formatting, grid widths, header repetition, row splitting, nesting and cell margins.                                                                      |
+| F20 | Merged tables                 | Resolve horizontal/vertical spans, target logical cells, explicit merge/split, validate rectangular grids and reject ambiguous coordinates.                                               |
+| F21 | Links and bookmarks           | Internal/external hyperlink relationships, safe schemes, bookmark ranges/names and explicit rename/removal reference policy.                                                              |
+| F22 | Fields and references         | Simple/complex/nested field inventory; set displayed results without execution; create bounded PAGE/NUMPAGES/REF/PAGEREF/SEQ/TOC fields and update flags.                                 |
+| F23 | TOC and captions              | Create/edit TOC field structures, figure/table captions and cross-reference relationships; cached page numbers are not recalculated promises.                                             |
+| F24 | Footnotes and endnotes        | Read/insert/edit/remove notes, references and required separators; preserve numbering rules and scoped IDs.                                                                               |
+| F25 | Comments                      | Classic comment ranges and bodies; create/edit/delete with explicit author/time; modern/threaded extension inventory and preservation.                                                    |
+| F26 | Tracked changes               | Original/final/all read views; create simple text insert/delete revisions; accept/reject supported selected revisions and formatting changes atomically.                                  |
+| F27 | Complex review structures     | Move revisions, table/section revisions and unsupported threaded metadata: inventory and preserve; reject affected edits until verified.                                                  |
+| F28 | Content controls              | Inspect/fill supported plain/rich text, checkbox, choice, date and picture controls; respect locked states and placeholders.                                                              |
+| F29 | Repeating/data-bound controls | Bounded repeat-row/section expansion and explicit supported custom-XML binding synchronization; no arbitrary XPath evaluation or silent detachment.                                       |
+| F30 | Document properties           | Core/extended/custom typed properties and explicit removal; preserve unrelated metadata.                                                                                                  |
+| F31 | Image inventory               | Inline/floating image locations, owners, relationships, media type/bytes, dimensions, crop, rotation, wrapping and alt text.                                                              |
+| F32 | Raster insertion/replacement  | Documented API image-format coverage, including PNG/JPEG/GIF/BMP/TIFF with bounded header/dimension/DPI admission; occurrence versus shared-resource replacement and aspect-ratio sizing. |
+| F33 | Floating image layout         | Read/edit anchor coordinates, relative frames, wrap mode, z-order, crop, rotation/flips and decorative/alt metadata without claiming rendered geometry.                                   |
+| F34 | Other media formats           | Preserve and extract original GIF/BMP/TIFF/EMF/WMF/WDP/SVG bytes and fallback relationships; no native decoding or conversion.                                                            |
+| F35 | SVG and alternate graphics    | Inventory/preserve SVG plus raster fallback; insertion requires supplied admitted SVG and explicit fallback. Reject external references/scripts; do not rasterize.                        |
+| F36 | Shapes and text boxes         | Inspect/preserve DrawingML/VML shapes; edit supported text-box story text without changing geometry; grouped/unsupported geometry stays opaque.                                           |
+| F37 | Charts                        | Inventory chart type/series/cached values and embedded-workbook bindings; preserve chart/workbook bytes on unrelated edits. No formula engine or chart rendering.                         |
+| F38 | SmartArt and diagrams         | Inventory graph/data/layout parts and preserve them. No diagram layout generation.                                                                                                        |
+| F39 | Equations                     | Inventory and preserve OMML; insert/replace validated bounded OMML fragments explicitly. No implied LaTeX conversion or math evaluation.                                                  |
+| F40 | Embedded OLE/packages         | Inventory and preserve inert objects/relationships; explicit bounded extraction only. Never activate embedded content.                                                                    |
+| F41 | Custom XML and glossary       | Inventory/preserve custom XML, bindings, glossary/building-block and ancillary parts; support only declared structural edits.                                                             |
+| F42 | Settings/fonts/protection     | Inspect/preserve compatibility, document settings and embedded fonts; respect editing protection. No password cracking or font installation.                                              |
+| F43 | Signatures                    | Detect/list signature parts; default mutation rejection. An explicit strip-signatures operation removes the signature graph before edits; never claim signatures remain valid.            |
+| F44 | Removal                       | Exact range/structure removal with reference checks; retain shared resources and required empty containers.                                                                               |
+| F45 | Dummy text                    | Seeded deterministic replacement of selected visible text; not an anonymization guarantee.                                                                                                |
+| F46 | Sanitization                  | Explicit, enumerated removal of selected properties/comments/revisions/links/embedded objects, with an exact report; never an unqualified privacy guarantee.                              |
+| F47 | Batch and templates           | Versioned typed ordered operations, bounded record expansion and one final publication; no eval or document-supplied code.                                                                |
+| F48 | Comparison                    | Part-payload and semantic XML/text/structure diff; distinguish data differences from serialization changes.                                                                               |
+| F49 | Validation                    | Scoped OPC, XML and cross-part semantic diagnostics with an honest schema/profile report.                                                                                                 |
+| F50 | Extract/pack                  | Safe VFS extraction and reconstruction with validated inventories and no host utility fallback.                                                                                           |
 
 Feature families marked preserve-only remain part of acceptance: output must
 retain their data and relationships when unrelated content changes. Absence of a
@@ -182,6 +190,10 @@ the feature matrix above uses broader categories. Public behaviors absent from
 upstream tests still require original acceptance cases. API setter semantics may
 replace the selected subtree as documented; preserving literal replacement remains
 a separate operation.
+
+Classic comments expose read-only `comment_id: number` and
+`timestamp: Date | null`; the utility MUST NOT add `id`/`date` aliases from
+inconsistent guide examples. Missing `Comments.get(comment_id)` returns `null`.
 
 DOCX-specific families include `paragraphs`, `runs`, `styles`, `sections`,
 `headers`, `footers`, `lists`, `bookmarks`, `fields`, `toc`, `captions`,
@@ -209,20 +221,20 @@ MUST fail before processing. Counts requiring nonzero capacity reject zero.
 
 Proposed default ceilings, to be tested against the corpus before readiness:
 
-| Resource | Default ceiling |
-| --- | --- |
-| Compressed input | 64 MiB per document; two-input operations account both |
-| Expanded package | 256 MiB per document |
-| ZIP entries | 10,000 per document |
-| Individual XML part | 32 MiB |
-| XML nodes/depth | 2,000,000 nodes; depth 256 |
-| Embedded media | 64 MiB per item, also charged to expanded/retained limits |
+| Resource                    | Default ceiling                                               |
+| --------------------------- | ------------------------------------------------------------- |
+| Compressed input            | 64 MiB per document; two-input operations account both        |
+| Expanded package            | 256 MiB per document                                          |
+| ZIP entries                 | 10,000 per document                                           |
+| Individual XML part         | 32 MiB                                                        |
+| XML nodes/depth             | 2,000,000 nodes; depth 256                                    |
+| Embedded media              | 64 MiB per item, also charged to expanded/retained limits     |
 | Retained owned byte buffers | 512 MiB per invocation, including copies and both diff inputs |
-| Serialized output | 256 MiB |
-| Batch operations | 1,000 |
-| Matches/inserted nodes | 100,000 matches; 1,000,000 new XML nodes |
-| Table expansion | 100,000 cells; 10,000 rows; 1,024 columns per table |
-| Ordinary diagnostics | 64 KiB, with deterministic truncation indication |
+| Serialized output           | 256 MiB                                                       |
+| Batch operations            | 1,000                                                         |
+| Matches/inserted nodes      | 100,000 matches; 1,000,000 new XML nodes                      |
+| Table expansion             | 100,000 cells; 10,000 rows; 1,024 columns per table           |
+| Ordinary diagnostics        | 64 KiB, with deterministic truncation indication              |
 
 Work accounting and cooperative yield granularity MUST be finite and documented.
 Timeouts alone MUST NOT substitute for byte/node/work limits. A trusted explicit
@@ -293,7 +305,11 @@ necessary part instead of accidentally modifying every reference.
 
 Image changes MUST retain original drawing properties unless specifically
 changed. Raster format is determined from bytes, not extension. Checked EMU/pixel
-conversion uses a documented 96-DPI convention; dimensions, crop fractions,
+conversion for explicitly supplied generic pixel values uses 96 DPI. Native
+picture sizing uses admitted image DPI, with a 72-DPI fallback when metadata is
+absent, through both model `add_picture` and the matching CLI image operation.
+One explicit dimension preserves aspect ratio; two explicit dimensions determine
+both extents. These API conventions are not ECMA requirements. Dimensions, crop fractions,
 rotation and coordinates are range-checked. Unsupported vector/native formats
 MUST remain inert and preserve fallback relationships. Alt text is distinct from
 filenames and optional decorative status.
@@ -371,19 +387,19 @@ Source hash preservation MUST be checked after all mutating failure cases.
 
 ## 12. Test and validation matrix
 
-| Requirement | Required evidence |
-| --- | --- |
-| F01–F05 package/XML/dialects | Original malformed and valid fixtures; independent OPC/XML assertions; Strict/Transitional and MCE fixtures; bounded ZIP tests. |
-| F06–F15 reading/text/formatting | Exact logical text and JSON output; cross-run Unicode cases; untouched subtree and formatting checks. |
-| F16–F24 document structure | Section/story alias checks; table-grid and numbering invariants; notes/bookmarks/field graphs and stale-location tests. |
-| F25–F30 review/forms/properties | Annotation/revision range checks; explicit author/time; bound-control synchronization; typed property assertions. |
-| F31–F40 graphics/math/objects | Exact media hashes; shared-reference tests; dimensions/crop/anchors; fallback/opaque-part retention; no external activation. |
-| F41–F46 preservation/security | Opaque-part round trips; protection/signature refusal and explicit stripping; exact sanitization effects. |
-| F47–F50 compound workflows | Batch failure preservation; semantic diff controls; independent final package validation; safe extract/repack. |
-| CLI/SDK parity | Published type/runtime consumers and actual safe-bash scripts, pipes, redirects, errors, help and cancellation. |
-| Budgets/publication | At/over boundary tests, reused chunks, aggregate accounting, sink failures, alias/capability conflicts and cleanup settlement. |
-| Large/image-heavy inputs | Downloaded corpus plus labeled original stress fixtures; successful edits, not only rejection; measured structure and resource reports. |
-| Visual fidelity | Ad hoc CLI screenshots; available document renderer page screenshots and repair-warning checks, separately labeled from structural validity. |
+| Requirement                     | Required evidence                                                                                                                            |
+| ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| F01–F05 package/XML/dialects    | Original malformed and valid fixtures; independent OPC/XML assertions; Strict/Transitional and MCE fixtures; bounded ZIP tests.              |
+| F06–F15 reading/text/formatting | Exact logical text and JSON output; cross-run Unicode cases; untouched subtree and formatting checks.                                        |
+| F16–F24 document structure      | Section/story alias checks; table-grid and numbering invariants; notes/bookmarks/field graphs and stale-location tests.                      |
+| F25–F30 review/forms/properties | Annotation/revision range checks; explicit author/time; bound-control synchronization; typed property assertions.                            |
+| F31–F40 graphics/math/objects   | Exact media hashes; shared-reference tests; dimensions/crop/anchors; fallback/opaque-part retention; no external activation.                 |
+| F41–F46 preservation/security   | Opaque-part round trips; protection/signature refusal and explicit stripping; exact sanitization effects.                                    |
+| F47–F50 compound workflows      | Batch failure preservation; semantic diff controls; independent final package validation; safe extract/repack.                               |
+| CLI/SDK parity                  | Published type/runtime consumers and actual safe-bash scripts, pipes, redirects, errors, help and cancellation.                              |
+| Budgets/publication             | At/over boundary tests, reused chunks, aggregate accounting, sink failures, alias/capability conflicts and cleanup settlement.               |
+| Large/image-heavy inputs        | Downloaded corpus plus labeled original stress fixtures; successful edits, not only rejection; measured structure and resource reports.      |
+| Visual fidelity                 | Ad hoc CLI screenshots; available document renderer page screenshots and repair-warning checks, separately labeled from structural validity. |
 
 ## 13. Conformance criteria
 
@@ -399,8 +415,9 @@ Unavailable renderers and skipped documents MUST NOT be reported as passes.
 
 ## 14. Open questions and implementation-defined choices
 
-- Exact schema/type-level completeness for Microsoft extensions requires the
-  standards-audit task and pinned revision; unknown extensions remain preserved.
+- Microsoft extension revisions and schema witnesses are pinned in the standards
+  register. Implemented schema/type-level completeness remains unverified;
+  unknown extensions remain preserved and affected unsupported edits rejected.
 - Default ceilings above are proposed. Readiness requires corpus-informed
   measurements and explicit documentation of any change, not silent weakening.
 - Font availability and renderer/platform differences remain external to layout

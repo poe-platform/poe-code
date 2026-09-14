@@ -1,0 +1,2056 @@
+{
+  "schema_version": 1,
+  "status": "research_verified_product_not_implemented",
+  "retrieved_at": "2026-09-13",
+  "baseline_commit": "dbf33f6554bbd31fe7f696b35cc51910fdfcf198",
+  "purpose": "Publisher standards references only; not implementation fixtures or shipped assets.",
+  "local_research_directory": "/tmp/docx-standards-20260913",
+  "sources": [
+    {
+      "id": "ECMA-P1",
+      "url": "https://ecma-international.org/wp-content/uploads/ECMA-376-1_5th_edition_december_2016.zip",
+      "sha256": "9d0bcad9cf06054785b03762fcfadbf6bab7e54a5f9d69434e34b7fd464d4129",
+      "bytes": 43501721,
+      "local_file": "ECMA-P1.zip",
+      "revision": "Fifth edition, December 2016",
+      "redistributed": false,
+      "pin_policy": "Require matching SHA-256; never silently substitute a changed download.",
+      "pdf": {
+        "archive_member": "ECMA-P1/Ecma Office Open XML Part 1 - Fundamentals And Markup Language Reference.pdf",
+        "sha256": "7cccfd0ad0e2ef89316acece15e44a8a088d0603ce4bba4e7b0361b50d13a37d",
+        "bytes": 35304993
+      },
+      "cover_note": "Publisher labels this December 2016 fifth edition; enclosed PDF cover says October 2016."
+    },
+    {
+      "id": "ECMA-P2",
+      "url": "https://ecma-international.org/wp-content/uploads/ECMA-376-2_5th_edition_december_2021.zip",
+      "sha256": "1d489dc491168ea1f9e9a59063acc8dd5f02b4ad1d21aa7ec19ba9a58d020c70",
+      "bytes": 1899204,
+      "local_file": "ECMA-P2.zip",
+      "revision": "Fifth edition, December 2021",
+      "redistributed": false,
+      "pin_policy": "Require matching SHA-256; never silently substitute a changed download.",
+      "pdf": {
+        "archive_member": "ECMA-P2/Ecma Office Open XML Part 2 - Open Packaging Conventions.pdf",
+        "sha256": "18701071fe15f39389761f82512c70d2effbf22bd16dd034f2939797ff5f6147",
+        "bytes": 2009726
+      }
+    },
+    {
+      "id": "ECMA-P3",
+      "url": "https://ecma-international.org/wp-content/uploads/ECMA-376-3_5th_edition_december_2015.zip",
+      "sha256": "42294159fbbbe9393ccadac95b859d7729cc68d908898bcbe31034dda059daa8",
+      "bytes": 741741,
+      "local_file": "ECMA-P3.zip",
+      "revision": "Fifth edition, December 2015",
+      "redistributed": false,
+      "pin_policy": "Require matching SHA-256; never silently substitute a changed download.",
+      "pdf": {
+        "archive_member": "ECMA-P3/Ecma Office Open XML Part 3 - Markup Compatibility and Extensibility.pdf",
+        "sha256": "3742ae2573fcf2eec6878ee345bf540541b77df47f09a57603851ca2d02dfa13",
+        "bytes": 864652
+      }
+    },
+    {
+      "id": "ECMA-P4",
+      "url": "https://ecma-international.org/wp-content/uploads/ECMA-376-4_5th_edition_december_2016.zip",
+      "sha256": "bd25da1109f73762356596918bf5ff8b74a1331642dba5f1c1d1dfc6bed34ecd",
+      "bytes": 8471820,
+      "local_file": "ECMA-P4.zip",
+      "revision": "Fifth edition, December 2016",
+      "redistributed": false,
+      "pin_policy": "Require matching SHA-256; never silently substitute a changed download.",
+      "pdf": {
+        "archive_member": "ECMA-P4/Ecma Office Open XML Part 4 - Transitional Migration Features.pdf",
+        "sha256": "753990eae4920e5c75ffca700be7ea73390cd9725530b756a3e68d33757354ee",
+        "bytes": 10205576
+      },
+      "cover_note": "Publisher labels this December 2016 fifth edition; enclosed PDF cover says October 2016."
+    },
+    {
+      "id": "MS-DOCX",
+      "url": "https://officeprotocoldocs-f5hpbjgea6b8gneq.b02.azurefd.net/files/MS-DOCX/%5bMS-DOCX%5d.pdf",
+      "sha256": "fc991c9a15ae1e6d931bc6ecfd854f11b94c625dc8f1cb7041bcf14f28378a0f",
+      "bytes": 3338289,
+      "local_file": "MS-DOCX.pdf",
+      "revision": "23.0; v20260818; August 18, 2026",
+      "redistributed": false,
+      "pin_policy": "Require matching SHA-256; never silently substitute a changed download.",
+      "pdf": {
+        "archive_member": "MS-DOCX.pdf",
+        "sha256": "fc991c9a15ae1e6d931bc6ecfd854f11b94c625dc8f1cb7041bcf14f28378a0f",
+        "bytes": 3338289
+      }
+    },
+    {
+      "id": "MS-ODRAWXML",
+      "url": "https://officeprotocoldocs-f5hpbjgea6b8gneq.b02.azurefd.net/files/MS-ODRAWXML/%5bMS-ODRAWXML%5d.pdf",
+      "sha256": "b2ff9f11c5251acdaa4de103575932820433fb9d1bc67586323106c0bdf3a0fb",
+      "bytes": 10150622,
+      "local_file": "MS-ODRAWXML.pdf",
+      "revision": "34.0; v20260217; February 17, 2026",
+      "redistributed": false,
+      "pin_policy": "Require matching SHA-256; never silently substitute a changed download.",
+      "pdf": {
+        "archive_member": "MS-ODRAWXML.pdf",
+        "sha256": "b2ff9f11c5251acdaa4de103575932820433fb9d1bc67586323106c0bdf3a0fb",
+        "bytes": 10150622
+      }
+    }
+  ],
+  "schemas": [
+    {
+      "file": "ECMA-P1/schemas/dml-chart.xsd",
+      "namespace": "http://purl.oclc.org/ooxml/drawingml/chart",
+      "sha256": "189b9631129a7d6c9f971b42b94c8942d260f11f81615f427db059bbf442cdc3",
+      "bytes": 74388
+    },
+    {
+      "file": "ECMA-P1/schemas/dml-chartDrawing.xsd",
+      "namespace": "http://purl.oclc.org/ooxml/drawingml/chartDrawing",
+      "sha256": "1943abd37970b25b355890f183c19a3b1a9b67a1420633030eb50ed5b278bec7",
+      "bytes": 6902
+    },
+    {
+      "file": "ECMA-P1/schemas/dml-diagram.xsd",
+      "namespace": "http://purl.oclc.org/ooxml/drawingml/diagram",
+      "sha256": "179cd2fa4b981e1e2faa9ce99bb18c5d4d896dc1edb144af50f5cc8c52eb8569",
+      "bytes": 52278
+    },
+    {
+      "file": "ECMA-P1/schemas/dml-lockedCanvas.xsd",
+      "namespace": "http://purl.oclc.org/ooxml/drawingml/lockedCanvas",
+      "sha256": "9c3038dd6ccc3472378be0e7c4e3e34013ee7a5619555e7463dd6d7e1d9bde1e",
+      "bytes": 558
+    },
+    {
+      "file": "ECMA-P1/schemas/dml-main.xsd",
+      "namespace": "http://purl.oclc.org/ooxml/drawingml/main",
+      "sha256": "078871240cff323ddd22a395281421b737fa61508fd39ffaa2947ba2bc01175e",
+      "bytes": 153356
+    },
+    {
+      "file": "ECMA-P1/schemas/dml-picture.xsd",
+      "namespace": "http://purl.oclc.org/ooxml/drawingml/picture",
+      "sha256": "d36c91b21f80ec504cd05d40737e7e2104713d8ed7c6c8af51e5c6b778fd667c",
+      "bytes": 1179
+    },
+    {
+      "file": "ECMA-P1/schemas/dml-spreadsheetDrawing.xsd",
+      "namespace": "http://purl.oclc.org/ooxml/drawingml/spreadsheetDrawing",
+      "sha256": "1135493946a4d86773f1421e3453fa94bdebe575f6746e0b09a716360b44b925",
+      "bytes": 8786
+    },
+    {
+      "file": "ECMA-P1/schemas/dml-wordprocessingDrawing.xsd",
+      "namespace": "http://purl.oclc.org/ooxml/drawingml/wordprocessingDrawing",
+      "sha256": "725d64911076b34f1b2d60004cd14866fc0a399ab9808dc09415197a9e4dd144",
+      "bytes": 14942
+    },
+    {
+      "file": "ECMA-P1/schemas/pml.xsd",
+      "namespace": "http://purl.oclc.org/ooxml/presentationml/main",
+      "sha256": "63f991936d4b11ecdab09442043d2806f1b19383e6c49b13c64186bcf485fb0b",
+      "bytes": 81795
+    },
+    {
+      "file": "ECMA-P1/schemas/shared-additionalCharacteristics.xsd",
+      "namespace": "http://purl.oclc.org/ooxml/officeDocument/characteristics",
+      "sha256": "2642f009105af888c2374aa550593d7bccc0a953579a4ff70b9a2fbbb76757b2",
+      "bytes": 1245
+    },
+    {
+      "file": "ECMA-P1/schemas/shared-bibliography.xsd",
+      "namespace": "http://purl.oclc.org/ooxml/officeDocument/bibliography",
+      "sha256": "380653d1a4e9760717c33c4d643a042d7f22d070ef012fac51d3fced3ffe36dd",
+      "bytes": 7280
+    },
+    {
+      "file": "ECMA-P1/schemas/shared-commonSimpleTypes.xsd",
+      "namespace": "http://purl.oclc.org/ooxml/officeDocument/sharedTypes",
+      "sha256": "02df434395eb22d0e13aa2f6445b7f7fbecd3687c6dff238823bbdd3bd9cdf6a",
+      "bytes": 4831
+    },
+    {
+      "file": "ECMA-P1/schemas/shared-customXmlDataProperties.xsd",
+      "namespace": "http://purl.oclc.org/ooxml/officeDocument/customXml",
+      "sha256": "e5679dbc139f9e192b7754863401f6a429002c10d8189ed68237c4972080125c",
+      "bytes": 1225
+    },
+    {
+      "file": "ECMA-P1/schemas/shared-customXmlSchemaProperties.xsd",
+      "namespace": "http://purl.oclc.org/ooxml/schemaLibrary/main",
+      "sha256": "32034ef469e73047751ca00f88c4b6e62dd47a7a655b72daf7f95a1c5015f228",
+      "bytes": 856
+    },
+    {
+      "file": "ECMA-P1/schemas/shared-documentPropertiesCustom.xsd",
+      "namespace": "http://purl.oclc.org/ooxml/officeDocument/customProperties",
+      "sha256": "e04e42fb42404c6e9025fe235b67b0f726b5735d62ac799ec4dca0fa67e99b04",
+      "bytes": 2534
+    },
+    {
+      "file": "ECMA-P1/schemas/shared-documentPropertiesExtended.xsd",
+      "namespace": "http://purl.oclc.org/ooxml/officeDocument/extendedProperties",
+      "sha256": "62fbc970cd9f08faad142e59085c3656b5248fd97039d9bc35d24c31f032fb62",
+      "bytes": 3457
+    },
+    {
+      "file": "ECMA-P1/schemas/shared-documentPropertiesVariantTypes.xsd",
+      "namespace": "http://purl.oclc.org/ooxml/officeDocument/docPropsVTypes",
+      "sha256": "105b7556e4d40ff808410764b4e31193fceb0f5b73191517c45166e0403d8cf6",
+      "bytes": 7459
+    },
+    {
+      "file": "ECMA-P1/schemas/shared-math.xsd",
+      "namespace": "http://purl.oclc.org/ooxml/officeDocument/math",
+      "sha256": "4c6e2aaed399993c80e67e848752dd9c0e177a8b671cf792f0c820496d037823",
+      "bytes": 23786
+    },
+    {
+      "file": "ECMA-P1/schemas/shared-relationshipReference.xsd",
+      "namespace": "http://purl.oclc.org/ooxml/officeDocument/relationships",
+      "sha256": "82409aacec09c8672eec2f8d7e44bec10c450649f31603659a8229b122a01163",
+      "bytes": 1327
+    },
+    {
+      "file": "ECMA-P1/schemas/sml.xsd",
+      "namespace": "http://purl.oclc.org/ooxml/spreadsheetml/main",
+      "sha256": "dc4b61faf2b62d2caf875faf40bb14a8f3c0cf3dc52763a2db394a28e79634b4",
+      "bytes": 244208
+    },
+    {
+      "file": "ECMA-P1/schemas/wml.xsd",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "sha256": "44fc2233c5df2cfbe0b3b50e7024bd8412ec99dfe7176313ef58845fdec5498d",
+      "bytes": 163400
+    },
+    {
+      "file": "ECMA-P2/schemas/opc-contentTypes.xsd",
+      "namespace": "http://schemas.openxmlformats.org/package/2006/content-types",
+      "sha256": "49ec1c03440a9b5590e69acdf92b200fe133697de0b05f43a129fb94d1885026",
+      "bytes": 2005
+    },
+    {
+      "file": "ECMA-P2/schemas/opc-coreProperties.xsd",
+      "namespace": "http://schemas.openxmlformats.org/package/2006/metadata/core-properties",
+      "sha256": "69688ea15f82a870053b9a60c79359063dbcfeec9cdabafabad51a53934bc35b",
+      "bytes": 2565
+    },
+    {
+      "file": "ECMA-P2/schemas/opc-digSig.xsd",
+      "namespace": "http://schemas.openxmlformats.org/package/2006/digital-signature",
+      "sha256": "ee7e7e1b9a1340536e25e87c8650a2b90a43b0e67d02d6746cd430048b3c1439",
+      "bytes": 2905
+    },
+    {
+      "file": "ECMA-P2/schemas/opc-relationships.xsd",
+      "namespace": "http://schemas.openxmlformats.org/package/2006/relationships",
+      "sha256": "607ffb6879cf5d5d765bfdfb2548f3f427ea964ddee6d08a15f0dc781749866d",
+      "bytes": 1377
+    },
+    {
+      "file": "ECMA-P4/schemas/dml-chart.xsd",
+      "namespace": "http://schemas.openxmlformats.org/drawingml/2006/chart",
+      "sha256": "4de4390a26e7e44e682ed98b39872cce2620f807f5b0de421567a43f74526388",
+      "bytes": 76483
+    },
+    {
+      "file": "ECMA-P4/schemas/dml-chartDrawing.xsd",
+      "namespace": "http://schemas.openxmlformats.org/drawingml/2006/chartDrawing",
+      "sha256": "3fd0586f2637b98bb9886f0e0b67d89e1cc987c2d158cc7deb5f5b9890ced412",
+      "bytes": 6956
+    },
+    {
+      "file": "ECMA-P4/schemas/dml-diagram.xsd",
+      "namespace": "http://schemas.openxmlformats.org/drawingml/2006/diagram",
+      "sha256": "809f77f658f71e10f5cfbf99e25c895a23a4e62c81210b59a2fe8c7fb24849d2",
+      "bytes": 52387
+    },
+    {
+      "file": "ECMA-P4/schemas/dml-lockedCanvas.xsd",
+      "namespace": "http://schemas.openxmlformats.org/drawingml/2006/lockedCanvas",
+      "sha256": "5cb76dabd8b97d1e9308a1700b90c20139be4d50792d21a7f09789f5cccd6026",
+      "bytes": 624
+    },
+    {
+      "file": "ECMA-P4/schemas/dml-main.xsd",
+      "namespace": "http://schemas.openxmlformats.org/drawingml/2006/main",
+      "sha256": "6978ba7e889070b0c3cb5b546b23e5a6c3516134afc53b87a21f482ca33f3858",
+      "bytes": 155120
+    },
+    {
+      "file": "ECMA-P4/schemas/dml-picture.xsd",
+      "namespace": "http://schemas.openxmlformats.org/drawingml/2006/picture",
+      "sha256": "5d389d42befbebd91945d620242347caecd3367f9a3a7cf8d97949507ae1f53c",
+      "bytes": 1231
+    },
+    {
+      "file": "ECMA-P4/schemas/dml-spreadsheetDrawing.xsd",
+      "namespace": "http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing",
+      "sha256": "b4532b6d258832953fbb3ee4c711f4fe25d3faf46a10644b2505f17010d01e88",
+      "bytes": 8862
+    },
+    {
+      "file": "ECMA-P4/schemas/dml-wordprocessingDrawing.xsd",
+      "namespace": "http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing",
+      "sha256": "2dbfd4719505bf39b568005994a433997cbeac59cebc9d4867d564c94e9ba03a",
+      "bytes": 15082
+    },
+    {
+      "file": "ECMA-P4/schemas/pml.xsd",
+      "namespace": "http://schemas.openxmlformats.org/presentationml/2006/main",
+      "sha256": "39c6396b7b1f096885c3ceba5dab30e3ee14291c45a1d6fa6038ec4db69d88d0",
+      "bytes": 85288
+    },
+    {
+      "file": "ECMA-P4/schemas/shared-additionalCharacteristics.xsd",
+      "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/characteristics",
+      "sha256": "3c6709101c6aaa82888df5d8795c33f9e857196790eb320d9194e64be2b6bdd8",
+      "bytes": 1269
+    },
+    {
+      "file": "ECMA-P4/schemas/shared-bibliography.xsd",
+      "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/bibliography",
+      "sha256": "0b364451dc36a48dd6dae0f3b6ada05fd9b71e5208211f8ee5537d7e51a587e2",
+      "bytes": 7328
+    },
+    {
+      "file": "ECMA-P4/schemas/shared-commonSimpleTypes.xsd",
+      "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/sharedTypes",
+      "sha256": "48675c4f82f6b097434d4b7e313635b790257cca58fa90dd0e8f19c9affa18ed",
+      "bytes": 6501
+    },
+    {
+      "file": "ECMA-P4/schemas/shared-customXmlDataProperties.xsd",
+      "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/customXml",
+      "sha256": "0ef4bb354ff44b923564c4ddbdda5987919d220225129ec94614a618ceafc281",
+      "bytes": 1248
+    },
+    {
+      "file": "ECMA-P4/schemas/shared-customXmlSchemaProperties.xsd",
+      "namespace": "http://schemas.openxmlformats.org/schemaLibrary/2006/main",
+      "sha256": "0d103b99a4a8652f8871552a69d42d2a3760ac6a5e3ef02d979c4273257ff6a4",
+      "bytes": 880
+    },
+    {
+      "file": "ECMA-P4/schemas/shared-documentPropertiesCustom.xsd",
+      "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/custom-properties",
+      "sha256": "9c085407751b9061c1f996f6c39ce58451be22a8d334f09175f0e89e42736285",
+      "bytes": 2608
+    },
+    {
+      "file": "ECMA-P4/schemas/shared-documentPropertiesExtended.xsd",
+      "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/extended-properties",
+      "sha256": "bc92e36ccd233722d4c5869bec71ddc7b12e2df56059942cce5a39065cc9c368",
+      "bytes": 3507
+    },
+    {
+      "file": "ECMA-P4/schemas/shared-documentPropertiesVariantTypes.xsd",
+      "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes",
+      "sha256": "7b5b7413e2c895b1e148e82e292a117d53c7ec65b0696c992edca57b61b4a74b",
+      "bytes": 7507
+    },
+    {
+      "file": "ECMA-P4/schemas/shared-math.xsd",
+      "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/math",
+      "sha256": "132e44dc10f2959e3f585584e5d82e7b2e329691e3010646e497710bd9774152",
+      "bytes": 23870
+    },
+    {
+      "file": "ECMA-P4/schemas/shared-relationshipReference.xsd",
+      "namespace": "http://schemas.openxmlformats.org/officeDocument/2006/relationships",
+      "sha256": "12264f3c03d738311cd9237d212f1c07479e70f0cbe1ae725d29b36539aef637",
+      "bytes": 1367
+    },
+    {
+      "file": "ECMA-P4/schemas/sml.xsd",
+      "namespace": "http://schemas.openxmlformats.org/spreadsheetml/2006/main",
+      "sha256": "495debc8fa967b77ed37799747b049832f2c95b2ecdb9f19ddcd68f8c9f96ab9",
+      "bytes": 246716
+    },
+    {
+      "file": "ECMA-P4/schemas/vml-main.xsd",
+      "namespace": "urn:schemas-microsoft-com:vml",
+      "sha256": "335e9ecd40bb594ec4b916ac8c7b9eead4e16fe1b79f9d4105fdb1c43b66bb1c",
+      "bytes": 26718
+    },
+    {
+      "file": "ECMA-P4/schemas/vml-officeDrawing.xsd",
+      "namespace": "urn:schemas-microsoft-com:office:office",
+      "sha256": "585bedc1313b40888dcc544cb74cd939a105ee674f3b1d3aa1cc6d34f70ff155",
+      "bytes": 25279
+    },
+    {
+      "file": "ECMA-P4/schemas/vml-presentationDrawing.xsd",
+      "namespace": "urn:schemas-microsoft-com:office:powerpoint",
+      "sha256": "133c9f64a5c5d573b78d0a474122b22506d8eadb5e063f67cdbbb8fa2f161d0e",
+      "bytes": 535
+    },
+    {
+      "file": "ECMA-P4/schemas/vml-spreadsheetDrawing.xsd",
+      "namespace": "urn:schemas-microsoft-com:office:excel",
+      "sha256": "6bdeb169c3717eb01108853bd9fc5a3750fb1fa5b82abbdd854d49855a40f519",
+      "bytes": 5712
+    },
+    {
+      "file": "ECMA-P4/schemas/vml-wordprocessingDrawing.xsd",
+      "namespace": "urn:schemas-microsoft-com:office:word",
+      "sha256": "475dcae1e7d1ea46232db6f8481040c15e53a52a3c256831d3df204212b0e831",
+      "bytes": 4010
+    },
+    {
+      "file": "ECMA-P4/schemas/wml.xsd",
+      "namespace": "http://schemas.openxmlformats.org/wordprocessingml/2006/main",
+      "sha256": "0f7784b36ddc42950e5ff354cd608b83b60e4de39325d5568913f1225365029b",
+      "bytes": 174758
+    }
+  ],
+  "type_witnesses": [
+    {
+      "family": "F01",
+      "qname": "ct:CT_Types",
+      "namespace": "http://schemas.openxmlformats.org/package/2006/content-types",
+      "schema": "ECMA-P2/schemas/opc-contentTypes.xsd",
+      "declaration": "CT_Types"
+    },
+    {
+      "family": "F01",
+      "qname": "pr:CT_Relationships",
+      "namespace": "http://schemas.openxmlformats.org/package/2006/relationships",
+      "schema": "ECMA-P2/schemas/opc-relationships.xsd",
+      "declaration": "CT_Relationships"
+    },
+    {
+      "family": "F02",
+      "qname": "w:CT_Document",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Document"
+    },
+    {
+      "family": "F02",
+      "qname": "r:ST_RelationshipId",
+      "namespace": "http://purl.oclc.org/ooxml/officeDocument/relationships",
+      "schema": "ECMA-P1/schemas/shared-relationshipReference.xsd",
+      "declaration": "ST_RelationshipId"
+    },
+    {
+      "family": "F03",
+      "qname": "w:CT_Document",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Document"
+    },
+    {
+      "family": "F03",
+      "qname": "ct:CT_Override",
+      "namespace": "http://schemas.openxmlformats.org/package/2006/content-types",
+      "schema": "ECMA-P2/schemas/opc-contentTypes.xsd",
+      "declaration": "CT_Override"
+    },
+    {
+      "family": "F04",
+      "qname": "w:CT_P",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_P"
+    },
+    {
+      "family": "F04",
+      "qname": "w:CT_R",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_R"
+    },
+    {
+      "family": "F04",
+      "qname": "w:CT_Text",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Text"
+    },
+    {
+      "family": "F06",
+      "qname": "pr:CT_Relationship",
+      "namespace": "http://schemas.openxmlformats.org/package/2006/relationships",
+      "schema": "ECMA-P2/schemas/opc-relationships.xsd",
+      "declaration": "CT_Relationship"
+    },
+    {
+      "family": "F06",
+      "qname": "cp:CT_CoreProperties",
+      "namespace": "http://schemas.openxmlformats.org/package/2006/metadata/core-properties",
+      "schema": "ECMA-P2/schemas/opc-coreProperties.xsd",
+      "declaration": "CT_CoreProperties"
+    },
+    {
+      "family": "F07",
+      "qname": "w:CT_Document",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Document"
+    },
+    {
+      "family": "F07",
+      "qname": "ct:CT_Types",
+      "namespace": "http://schemas.openxmlformats.org/package/2006/content-types",
+      "schema": "ECMA-P2/schemas/opc-contentTypes.xsd",
+      "declaration": "CT_Types"
+    },
+    {
+      "family": "F08",
+      "qname": "w:CT_Body",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Body"
+    },
+    {
+      "family": "F08",
+      "qname": "w:CT_P",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_P"
+    },
+    {
+      "family": "F08",
+      "qname": "w:CT_R",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_R"
+    },
+    {
+      "family": "F08",
+      "qname": "w:CT_Br",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Br"
+    },
+    {
+      "family": "F09",
+      "qname": "w:CT_Language",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Language"
+    },
+    {
+      "family": "F09",
+      "qname": "w:CT_Fonts",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Fonts"
+    },
+    {
+      "family": "F09",
+      "qname": "w:CT_EastAsianLayout",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_EastAsianLayout"
+    },
+    {
+      "family": "F10",
+      "qname": "w:CT_P",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_P"
+    },
+    {
+      "family": "F10",
+      "qname": "w:CT_R",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_R"
+    },
+    {
+      "family": "F10",
+      "qname": "w:CT_Text",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Text"
+    },
+    {
+      "family": "F11",
+      "qname": "w:CT_Document",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Document"
+    },
+    {
+      "family": "F11",
+      "qname": "w:CT_Body",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Body"
+    },
+    {
+      "family": "F11",
+      "qname": "w:CT_P",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_P"
+    },
+    {
+      "family": "F12",
+      "qname": "w:CT_RPr",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_RPr"
+    },
+    {
+      "family": "F12",
+      "qname": "w:CT_Color",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Color"
+    },
+    {
+      "family": "F12",
+      "qname": "w:CT_Underline",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Underline"
+    },
+    {
+      "family": "F12",
+      "qname": "w:CT_Fonts",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Fonts"
+    },
+    {
+      "family": "F13",
+      "qname": "w:CT_PPr",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_PPr"
+    },
+    {
+      "family": "F13",
+      "qname": "w:CT_Ind",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Ind"
+    },
+    {
+      "family": "F13",
+      "qname": "w:CT_Spacing",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Spacing"
+    },
+    {
+      "family": "F13",
+      "qname": "w:CT_Tabs",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Tabs"
+    },
+    {
+      "family": "F14",
+      "qname": "w:CT_Styles",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Styles"
+    },
+    {
+      "family": "F14",
+      "qname": "w:CT_Style",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Style"
+    },
+    {
+      "family": "F14",
+      "qname": "w:CT_LatentStyles",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_LatentStyles"
+    },
+    {
+      "family": "F14",
+      "qname": "a:CT_OfficeStyleSheet",
+      "namespace": "http://purl.oclc.org/ooxml/drawingml/main",
+      "schema": "ECMA-P1/schemas/dml-main.xsd",
+      "declaration": "CT_OfficeStyleSheet"
+    },
+    {
+      "family": "F15",
+      "qname": "w:CT_Style",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Style"
+    },
+    {
+      "family": "F15",
+      "qname": "w:CT_PPr",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_PPr"
+    },
+    {
+      "family": "F15",
+      "qname": "w:CT_DecimalNumber",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_DecimalNumber"
+    },
+    {
+      "family": "F16",
+      "qname": "w:CT_SectPr",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_SectPr"
+    },
+    {
+      "family": "F16",
+      "qname": "w:CT_PageSz",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_PageSz"
+    },
+    {
+      "family": "F16",
+      "qname": "w:CT_PageMar",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_PageMar"
+    },
+    {
+      "family": "F16",
+      "qname": "w:CT_Columns",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Columns"
+    },
+    {
+      "family": "F17",
+      "qname": "w:CT_HdrFtr",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_HdrFtr"
+    },
+    {
+      "family": "F17",
+      "qname": "w:CT_HdrFtrRef",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_HdrFtrRef"
+    },
+    {
+      "family": "F18",
+      "qname": "w:CT_Numbering",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Numbering"
+    },
+    {
+      "family": "F18",
+      "qname": "w:CT_AbstractNum",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_AbstractNum"
+    },
+    {
+      "family": "F18",
+      "qname": "w:CT_Num",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Num"
+    },
+    {
+      "family": "F18",
+      "qname": "w:CT_Lvl",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Lvl"
+    },
+    {
+      "family": "F19",
+      "qname": "w:CT_Tbl",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Tbl"
+    },
+    {
+      "family": "F19",
+      "qname": "w:CT_Row",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Row"
+    },
+    {
+      "family": "F19",
+      "qname": "w:CT_Tc",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Tc"
+    },
+    {
+      "family": "F19",
+      "qname": "w:CT_TblGrid",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_TblGrid"
+    },
+    {
+      "family": "F20",
+      "qname": "w:CT_TcPr",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_TcPr"
+    },
+    {
+      "family": "F20",
+      "qname": "w:CT_VMerge",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_VMerge"
+    },
+    {
+      "family": "F20",
+      "qname": "w:CT_TblGrid",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_TblGrid"
+    },
+    {
+      "family": "F21",
+      "qname": "w:CT_Hyperlink",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Hyperlink"
+    },
+    {
+      "family": "F21",
+      "qname": "w:CT_Bookmark",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Bookmark"
+    },
+    {
+      "family": "F21",
+      "qname": "w:CT_MarkupRange",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_MarkupRange"
+    },
+    {
+      "family": "F22",
+      "qname": "w:CT_SimpleField",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_SimpleField"
+    },
+    {
+      "family": "F22",
+      "qname": "w:CT_FldChar",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_FldChar"
+    },
+    {
+      "family": "F22",
+      "qname": "w:CT_Text",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Text"
+    },
+    {
+      "family": "F23",
+      "qname": "w:CT_SimpleField",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_SimpleField"
+    },
+    {
+      "family": "F23",
+      "qname": "w:CT_FldChar",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_FldChar"
+    },
+    {
+      "family": "F23",
+      "qname": "w:CT_Captions",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Captions"
+    },
+    {
+      "family": "F24",
+      "qname": "w:CT_Footnotes",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Footnotes"
+    },
+    {
+      "family": "F24",
+      "qname": "w:CT_Endnotes",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Endnotes"
+    },
+    {
+      "family": "F24",
+      "qname": "w:CT_FtnEdn",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_FtnEdn"
+    },
+    {
+      "family": "F24",
+      "qname": "w:CT_FtnEdnRef",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_FtnEdnRef"
+    },
+    {
+      "family": "F25",
+      "qname": "w:CT_Comments",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Comments"
+    },
+    {
+      "family": "F25",
+      "qname": "w:CT_Comment",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Comment"
+    },
+    {
+      "family": "F26",
+      "qname": "w:CT_RunTrackChange",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_RunTrackChange"
+    },
+    {
+      "family": "F26",
+      "qname": "w:CT_RPrChange",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_RPrChange"
+    },
+    {
+      "family": "F26",
+      "qname": "w:CT_PPrChange",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_PPrChange"
+    },
+    {
+      "family": "F27",
+      "qname": "w:CT_MoveBookmark",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_MoveBookmark"
+    },
+    {
+      "family": "F27",
+      "qname": "w:CT_TblPrChange",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_TblPrChange"
+    },
+    {
+      "family": "F27",
+      "qname": "w:CT_SectPrChange",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_SectPrChange"
+    },
+    {
+      "family": "F28",
+      "qname": "w:CT_SdtPr",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_SdtPr"
+    },
+    {
+      "family": "F28",
+      "qname": "w:CT_SdtDate",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_SdtDate"
+    },
+    {
+      "family": "F28",
+      "qname": "w:CT_FFData",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_FFData"
+    },
+    {
+      "family": "F29",
+      "qname": "w:CT_DataBinding",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_DataBinding"
+    },
+    {
+      "family": "F29",
+      "qname": "ds:CT_DatastoreItem",
+      "namespace": "http://purl.oclc.org/ooxml/officeDocument/customXml",
+      "schema": "ECMA-P1/schemas/shared-customXmlDataProperties.xsd",
+      "declaration": "CT_DatastoreItem"
+    },
+    {
+      "family": "F30",
+      "qname": "cp:CT_CoreProperties",
+      "namespace": "http://schemas.openxmlformats.org/package/2006/metadata/core-properties",
+      "schema": "ECMA-P2/schemas/opc-coreProperties.xsd",
+      "declaration": "CT_CoreProperties"
+    },
+    {
+      "family": "F30",
+      "qname": "ep:CT_Properties",
+      "namespace": "http://purl.oclc.org/ooxml/officeDocument/extendedProperties",
+      "schema": "ECMA-P1/schemas/shared-documentPropertiesExtended.xsd",
+      "declaration": "CT_Properties"
+    },
+    {
+      "family": "F30",
+      "qname": "cus:CT_Property",
+      "namespace": "http://purl.oclc.org/ooxml/officeDocument/customProperties",
+      "schema": "ECMA-P1/schemas/shared-documentPropertiesCustom.xsd",
+      "declaration": "CT_Property"
+    },
+    {
+      "family": "F30",
+      "qname": "vt:CT_Variant",
+      "namespace": "http://purl.oclc.org/ooxml/officeDocument/docPropsVTypes",
+      "schema": "ECMA-P1/schemas/shared-documentPropertiesVariantTypes.xsd",
+      "declaration": "CT_Variant"
+    },
+    {
+      "family": "F31",
+      "qname": "wp:CT_Inline",
+      "namespace": "http://purl.oclc.org/ooxml/drawingml/wordprocessingDrawing",
+      "schema": "ECMA-P1/schemas/dml-wordprocessingDrawing.xsd",
+      "declaration": "CT_Inline"
+    },
+    {
+      "family": "F31",
+      "qname": "wp:CT_Anchor",
+      "namespace": "http://purl.oclc.org/ooxml/drawingml/wordprocessingDrawing",
+      "schema": "ECMA-P1/schemas/dml-wordprocessingDrawing.xsd",
+      "declaration": "CT_Anchor"
+    },
+    {
+      "family": "F31",
+      "qname": "a:CT_Blip",
+      "namespace": "http://purl.oclc.org/ooxml/drawingml/main",
+      "schema": "ECMA-P1/schemas/dml-main.xsd",
+      "declaration": "CT_Blip"
+    },
+    {
+      "family": "F31",
+      "qname": "pic:CT_Picture",
+      "namespace": "http://purl.oclc.org/ooxml/drawingml/picture",
+      "schema": "ECMA-P1/schemas/dml-picture.xsd",
+      "declaration": "CT_Picture"
+    },
+    {
+      "family": "F32",
+      "qname": "pic:CT_Picture",
+      "namespace": "http://purl.oclc.org/ooxml/drawingml/picture",
+      "schema": "ECMA-P1/schemas/dml-picture.xsd",
+      "declaration": "CT_Picture"
+    },
+    {
+      "family": "F32",
+      "qname": "a:CT_Blip",
+      "namespace": "http://purl.oclc.org/ooxml/drawingml/main",
+      "schema": "ECMA-P1/schemas/dml-main.xsd",
+      "declaration": "CT_Blip"
+    },
+    {
+      "family": "F32",
+      "qname": "wp:CT_Inline",
+      "namespace": "http://purl.oclc.org/ooxml/drawingml/wordprocessingDrawing",
+      "schema": "ECMA-P1/schemas/dml-wordprocessingDrawing.xsd",
+      "declaration": "CT_Inline"
+    },
+    {
+      "family": "F33",
+      "qname": "wp:CT_Anchor",
+      "namespace": "http://purl.oclc.org/ooxml/drawingml/wordprocessingDrawing",
+      "schema": "ECMA-P1/schemas/dml-wordprocessingDrawing.xsd",
+      "declaration": "CT_Anchor"
+    },
+    {
+      "family": "F33",
+      "qname": "wp:CT_PosH",
+      "namespace": "http://purl.oclc.org/ooxml/drawingml/wordprocessingDrawing",
+      "schema": "ECMA-P1/schemas/dml-wordprocessingDrawing.xsd",
+      "declaration": "CT_PosH"
+    },
+    {
+      "family": "F33",
+      "qname": "wp:CT_PosV",
+      "namespace": "http://purl.oclc.org/ooxml/drawingml/wordprocessingDrawing",
+      "schema": "ECMA-P1/schemas/dml-wordprocessingDrawing.xsd",
+      "declaration": "CT_PosV"
+    },
+    {
+      "family": "F33",
+      "qname": "a:CT_Transform2D",
+      "namespace": "http://purl.oclc.org/ooxml/drawingml/main",
+      "schema": "ECMA-P1/schemas/dml-main.xsd",
+      "declaration": "CT_Transform2D"
+    },
+    {
+      "family": "F34",
+      "qname": "a:CT_Blip",
+      "namespace": "http://purl.oclc.org/ooxml/drawingml/main",
+      "schema": "ECMA-P1/schemas/dml-main.xsd",
+      "declaration": "CT_Blip"
+    },
+    {
+      "family": "F34",
+      "qname": "v:CT_ImageData",
+      "namespace": "urn:schemas-microsoft-com:vml",
+      "schema": "ECMA-P4/schemas/vml-main.xsd",
+      "declaration": "CT_ImageData"
+    },
+    {
+      "family": "F35",
+      "qname": "a:CT_Blip",
+      "namespace": "http://purl.oclc.org/ooxml/drawingml/main",
+      "schema": "ECMA-P1/schemas/dml-main.xsd",
+      "declaration": "CT_Blip"
+    },
+    {
+      "family": "F36",
+      "qname": "wp:CT_WordprocessingShape",
+      "namespace": "http://purl.oclc.org/ooxml/drawingml/wordprocessingDrawing",
+      "schema": "ECMA-P1/schemas/dml-wordprocessingDrawing.xsd",
+      "declaration": "CT_WordprocessingShape"
+    },
+    {
+      "family": "F36",
+      "qname": "v:CT_Shape",
+      "namespace": "urn:schemas-microsoft-com:vml",
+      "schema": "ECMA-P4/schemas/vml-main.xsd",
+      "declaration": "CT_Shape"
+    },
+    {
+      "family": "F36",
+      "qname": "v:CT_Textbox",
+      "namespace": "urn:schemas-microsoft-com:vml",
+      "schema": "ECMA-P4/schemas/vml-main.xsd",
+      "declaration": "CT_Textbox"
+    },
+    {
+      "family": "F36",
+      "qname": "wT:CT_TxbxContent",
+      "namespace": "http://schemas.openxmlformats.org/wordprocessingml/2006/main",
+      "schema": "ECMA-P4/schemas/wml.xsd",
+      "declaration": "CT_TxbxContent"
+    },
+    {
+      "family": "F37",
+      "qname": "c:CT_ChartSpace",
+      "namespace": "http://purl.oclc.org/ooxml/drawingml/chart",
+      "schema": "ECMA-P1/schemas/dml-chart.xsd",
+      "declaration": "CT_ChartSpace"
+    },
+    {
+      "family": "F37",
+      "qname": "c:CT_NumData",
+      "namespace": "http://purl.oclc.org/ooxml/drawingml/chart",
+      "schema": "ECMA-P1/schemas/dml-chart.xsd",
+      "declaration": "CT_NumData"
+    },
+    {
+      "family": "F37",
+      "qname": "c:CT_ExternalData",
+      "namespace": "http://purl.oclc.org/ooxml/drawingml/chart",
+      "schema": "ECMA-P1/schemas/dml-chart.xsd",
+      "declaration": "CT_ExternalData"
+    },
+    {
+      "family": "F38",
+      "qname": "dgm:CT_DataModel",
+      "namespace": "http://purl.oclc.org/ooxml/drawingml/diagram",
+      "schema": "ECMA-P1/schemas/dml-diagram.xsd",
+      "declaration": "CT_DataModel"
+    },
+    {
+      "family": "F38",
+      "qname": "dgm:CT_DiagramDefinition",
+      "namespace": "http://purl.oclc.org/ooxml/drawingml/diagram",
+      "schema": "ECMA-P1/schemas/dml-diagram.xsd",
+      "declaration": "CT_DiagramDefinition"
+    },
+    {
+      "family": "F38",
+      "qname": "dgm:CT_RelIds",
+      "namespace": "http://purl.oclc.org/ooxml/drawingml/diagram",
+      "schema": "ECMA-P1/schemas/dml-diagram.xsd",
+      "declaration": "CT_RelIds"
+    },
+    {
+      "family": "F39",
+      "qname": "m:CT_OMath",
+      "namespace": "http://purl.oclc.org/ooxml/officeDocument/math",
+      "schema": "ECMA-P1/schemas/shared-math.xsd",
+      "declaration": "CT_OMath"
+    },
+    {
+      "family": "F39",
+      "qname": "m:CT_OMathPara",
+      "namespace": "http://purl.oclc.org/ooxml/officeDocument/math",
+      "schema": "ECMA-P1/schemas/shared-math.xsd",
+      "declaration": "CT_OMathPara"
+    },
+    {
+      "family": "F39",
+      "qname": "m:CT_F",
+      "namespace": "http://purl.oclc.org/ooxml/officeDocument/math",
+      "schema": "ECMA-P1/schemas/shared-math.xsd",
+      "declaration": "CT_F"
+    },
+    {
+      "family": "F39",
+      "qname": "m:CT_M",
+      "namespace": "http://purl.oclc.org/ooxml/officeDocument/math",
+      "schema": "ECMA-P1/schemas/shared-math.xsd",
+      "declaration": "CT_M"
+    },
+    {
+      "family": "F40",
+      "qname": "w:CT_Object",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Object"
+    },
+    {
+      "family": "F40",
+      "qname": "w:CT_ObjectEmbed",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_ObjectEmbed"
+    },
+    {
+      "family": "F40",
+      "qname": "o:CT_OLEObject",
+      "namespace": "urn:schemas-microsoft-com:office:office",
+      "schema": "ECMA-P4/schemas/vml-officeDrawing.xsd",
+      "declaration": "CT_OLEObject"
+    },
+    {
+      "family": "F41",
+      "qname": "w:CT_GlossaryDocument",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_GlossaryDocument"
+    },
+    {
+      "family": "F41",
+      "qname": "w:CT_AltChunk",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_AltChunk"
+    },
+    {
+      "family": "F41",
+      "qname": "ds:CT_DatastoreItem",
+      "namespace": "http://purl.oclc.org/ooxml/officeDocument/customXml",
+      "schema": "ECMA-P1/schemas/shared-customXmlDataProperties.xsd",
+      "declaration": "CT_DatastoreItem"
+    },
+    {
+      "family": "F41",
+      "qname": "b:CT_Sources",
+      "namespace": "http://purl.oclc.org/ooxml/officeDocument/bibliography",
+      "schema": "ECMA-P1/schemas/shared-bibliography.xsd",
+      "declaration": "CT_Sources"
+    },
+    {
+      "family": "F42",
+      "qname": "w:CT_Settings",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Settings"
+    },
+    {
+      "family": "F42",
+      "qname": "w:CT_DocProtect",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_DocProtect"
+    },
+    {
+      "family": "F42",
+      "qname": "w:CT_Font",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Font"
+    },
+    {
+      "family": "F42",
+      "qname": "w:CT_FontsList",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_FontsList"
+    },
+    {
+      "family": "F43",
+      "qname": "sig:CT_RelationshipReference",
+      "namespace": "http://schemas.openxmlformats.org/package/2006/digital-signature",
+      "schema": "ECMA-P2/schemas/opc-digSig.xsd",
+      "declaration": "CT_RelationshipReference"
+    },
+    {
+      "family": "F43",
+      "qname": "sig:CT_SignatureTime",
+      "namespace": "http://schemas.openxmlformats.org/package/2006/digital-signature",
+      "schema": "ECMA-P2/schemas/opc-digSig.xsd",
+      "declaration": "CT_SignatureTime"
+    },
+    {
+      "family": "F44",
+      "qname": "w:CT_P",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_P"
+    },
+    {
+      "family": "F44",
+      "qname": "w:CT_Tc",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Tc"
+    },
+    {
+      "family": "F44",
+      "qname": "w:CT_MarkupRange",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_MarkupRange"
+    },
+    {
+      "family": "F44",
+      "qname": "pr:CT_Relationship",
+      "namespace": "http://schemas.openxmlformats.org/package/2006/relationships",
+      "schema": "ECMA-P2/schemas/opc-relationships.xsd",
+      "declaration": "CT_Relationship"
+    },
+    {
+      "family": "F45",
+      "qname": "w:CT_Text",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Text"
+    },
+    {
+      "family": "F45",
+      "qname": "w:CT_R",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_R"
+    },
+    {
+      "family": "F46",
+      "qname": "w:CT_Comments",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Comments"
+    },
+    {
+      "family": "F46",
+      "qname": "cp:CT_CoreProperties",
+      "namespace": "http://schemas.openxmlformats.org/package/2006/metadata/core-properties",
+      "schema": "ECMA-P2/schemas/opc-coreProperties.xsd",
+      "declaration": "CT_CoreProperties"
+    },
+    {
+      "family": "F46",
+      "qname": "pr:CT_Relationship",
+      "namespace": "http://schemas.openxmlformats.org/package/2006/relationships",
+      "schema": "ECMA-P2/schemas/opc-relationships.xsd",
+      "declaration": "CT_Relationship"
+    },
+    {
+      "family": "F47",
+      "qname": "w:CT_Document",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Document"
+    },
+    {
+      "family": "F47",
+      "qname": "w:CT_SdtPr",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_SdtPr"
+    },
+    {
+      "family": "F48",
+      "qname": "pr:CT_Relationships",
+      "namespace": "http://schemas.openxmlformats.org/package/2006/relationships",
+      "schema": "ECMA-P2/schemas/opc-relationships.xsd",
+      "declaration": "CT_Relationships"
+    },
+    {
+      "family": "F48",
+      "qname": "w:CT_Document",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Document"
+    },
+    {
+      "family": "F49",
+      "qname": "ct:CT_Types",
+      "namespace": "http://schemas.openxmlformats.org/package/2006/content-types",
+      "schema": "ECMA-P2/schemas/opc-contentTypes.xsd",
+      "declaration": "CT_Types"
+    },
+    {
+      "family": "F49",
+      "qname": "pr:CT_Relationships",
+      "namespace": "http://schemas.openxmlformats.org/package/2006/relationships",
+      "schema": "ECMA-P2/schemas/opc-relationships.xsd",
+      "declaration": "CT_Relationships"
+    },
+    {
+      "family": "F49",
+      "qname": "w:CT_Document",
+      "namespace": "http://purl.oclc.org/ooxml/wordprocessingml/main",
+      "schema": "ECMA-P1/schemas/wml.xsd",
+      "declaration": "CT_Document"
+    },
+    {
+      "family": "F50",
+      "qname": "ct:CT_Types",
+      "namespace": "http://schemas.openxmlformats.org/package/2006/content-types",
+      "schema": "ECMA-P2/schemas/opc-contentTypes.xsd",
+      "declaration": "CT_Types"
+    },
+    {
+      "family": "F50",
+      "qname": "pr:CT_Relationships",
+      "namespace": "http://schemas.openxmlformats.org/package/2006/relationships",
+      "schema": "ECMA-P2/schemas/opc-relationships.xsd",
+      "declaration": "CT_Relationships"
+    }
+  ],
+  "extension_schema_witnesses": [
+    {
+      "source": "MS-DOCX",
+      "section": "5.1",
+      "type": "CT_SdtCheckbox",
+      "namespace": "http://schemas.microsoft.com/office/word/2010/wordml"
+    },
+    {
+      "source": "MS-DOCX",
+      "section": "5.2",
+      "type": "CT_CommentsEx",
+      "namespace": "http://schemas.microsoft.com/office/word/2012/wordml"
+    },
+    {
+      "source": "MS-DOCX",
+      "section": "5.2",
+      "type": "CT_SdtRepeatedSection",
+      "namespace": "http://schemas.microsoft.com/office/word/2012/wordml"
+    },
+    {
+      "source": "MS-DOCX",
+      "section": "5.6",
+      "type": "CT_CommentsExtensible",
+      "namespace": "http://schemas.microsoft.com/office/word/2018/wordml/cex"
+    },
+    {
+      "source": "MS-DOCX",
+      "section": "5.10",
+      "type": "CT_CommentEntityInfo",
+      "namespace": "http://schemas.microsoft.com/office/word/2026/wordml/cei"
+    },
+    {
+      "source": "MS-ODRAWXML",
+      "section": "5.2",
+      "type": "CT_WordprocessingShape",
+      "namespace": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+    },
+    {
+      "source": "MS-ODRAWXML",
+      "section": "5.4",
+      "type": "CT_WordprocessingGroup",
+      "namespace": "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"
+    },
+    {
+      "source": "MS-ODRAWXML",
+      "section": "5.11",
+      "type": "CT_SizeRelH",
+      "namespace": "http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing"
+    },
+    {
+      "source": "MS-ODRAWXML",
+      "section": "5.24",
+      "type": "CT_SVGBlip",
+      "namespace": "http://schemas.microsoft.com/office/drawing/2016/SVG/main"
+    },
+    {
+      "source": "MS-ODRAWXML",
+      "section": "5.32",
+      "type": "CT_Decorative",
+      "namespace": "http://schemas.microsoft.com/office/drawing/2017/decorative"
+    }
+  ],
+  "limitations": [
+    "Source/schema consultation is not product execution or full ISO certification.",
+    "MCE grammar and processing are defined by Part 3 clauses 7\u20139; its informative NVDL annex is not an XSD conformance certificate.",
+    "XMLDSig Signature is defined by the external XMLDSig reference; cryptographic verification/regeneration are unsupported.",
+    "Image codecs, embedded binaries and unknown extension schemas are not certified by the ECMA XSD inventory.",
+    "PDF-to-text conversion completed; Poppler emitted one Fields-array warning. Cited headings and declarations were checked in extracted text.",
+    "Public API candidate closure and full member signatures remain assigned to later pipeline tasks."
+  ],
+  "section_locators": [
+    {
+      "source": "ECMA-P1",
+      "section": "2",
+      "pdf_page_1_based": 12,
+      "heading": "2. Conformance"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "9",
+      "pdf_page_1_based": 31,
+      "heading": "9. Packages"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "11.2",
+      "pdf_page_1_based": 38,
+      "heading": "11.2 Package Structure"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "11.3",
+      "pdf_page_1_based": 41,
+      "heading": "11.3 Part Summary"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "11.3.1",
+      "pdf_page_1_based": 41,
+      "heading": "11.3.1 Alternative Format Import Part"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "11.3.10",
+      "pdf_page_1_based": 60,
+      "heading": "11.3.10 Main Document Part"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "11.4",
+      "pdf_page_1_based": 67,
+      "heading": "11.4 Document Template"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "14.2",
+      "pdf_page_1_based": 136,
+      "heading": "14.2 Part Summary"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "15.2",
+      "pdf_page_1_based": 150,
+      "heading": "15.2 Part Summary"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "15.2.9",
+      "pdf_page_1_based": 157,
+      "heading": "15.2.9 Embedded Control Persistence Part"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "15.2.10",
+      "pdf_page_1_based": 159,
+      "heading": "15.2.10 Embedded Object Part"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "15.2.11",
+      "pdf_page_1_based": 161,
+      "heading": "15.2.11 Embedded Package Part"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "15.2.14",
+      "pdf_page_1_based": 167,
+      "heading": "15.2.14 Image Part"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "17.2",
+      "pdf_page_1_based": 197,
+      "heading": "17.2 Main Document Story"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "17.3",
+      "pdf_page_1_based": 203,
+      "heading": "17.3 Paragraphs and Rich Formatting"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "17.3.1",
+      "pdf_page_1_based": 204,
+      "heading": "17.3.1 Paragraphs"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "17.3.2",
+      "pdf_page_1_based": 273,
+      "heading": "17.3.2 Run"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "17.4",
+      "pdf_page_1_based": 381,
+      "heading": "17.4 Tables"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "17.5",
+      "pdf_page_1_based": 494,
+      "heading": "17.5 Custom Markup"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "17.6",
+      "pdf_page_1_based": 556,
+      "heading": "17.6 Sections"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "17.7",
+      "pdf_page_1_based": 623,
+      "heading": "17.7 Styles"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "17.7.8",
+      "pdf_page_1_based": 674,
+      "heading": "17.7.8 Paragraph Styles"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "17.7.9",
+      "pdf_page_1_based": 678,
+      "heading": "17.7.9 Run (Character) Styles"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "17.8",
+      "pdf_page_1_based": 679,
+      "heading": "17.8 Fonts"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "17.9",
+      "pdf_page_1_based": 701,
+      "heading": "17.9 Numbering"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "17.10",
+      "pdf_page_1_based": 743,
+      "heading": "17.10 Headers and Footers"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "17.11",
+      "pdf_page_1_based": 756,
+      "heading": "17.11 Footnotes and Endnotes"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "17.12",
+      "pdf_page_1_based": 789,
+      "heading": "17.12 Glossary Document"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "17.13",
+      "pdf_page_1_based": 807,
+      "heading": "17.13 Annotations"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "17.13.1",
+      "pdf_page_1_based": 807,
+      "heading": "17.13.1 Inline Annotations"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "17.13.2",
+      "pdf_page_1_based": 808,
+      "heading": "17.13.2 \"Cross Structure\" Annotations"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "17.13.3",
+      "pdf_page_1_based": 809,
+      "heading": "17.13.3 Property Annotations"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "17.13.4",
+      "pdf_page_1_based": 810,
+      "heading": "17.13.4 Comments"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "17.13.5",
+      "pdf_page_1_based": 821,
+      "heading": "17.13.5 Revisions"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "17.13.6",
+      "pdf_page_1_based": 916,
+      "heading": "17.13.6 Bookmarks"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "17.15",
+      "pdf_page_1_based": 979,
+      "heading": "17.15 Settings"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "17.15.1",
+      "pdf_page_1_based": 980,
+      "heading": "17.15.1 Document Settings"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "17.16",
+      "pdf_page_1_based": 1167,
+      "heading": "17.16 Fields and Hyperlinks"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "17.17.2",
+      "pdf_page_1_based": 1307,
+      "heading": "17.17.2 Alternative Format Import"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "17.18",
+      "pdf_page_1_based": 1311,
+      "heading": "17.18 Simple Types"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "20.1.6",
+      "pdf_page_1_based": 2847,
+      "heading": "20.1.6 Shared Style Sheet"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "20.1.8",
+      "pdf_page_1_based": 2862,
+      "heading": "20.1.8 Shape Fills, Effects, and Line Properties"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "20.2",
+      "pdf_page_1_based": 3100,
+      "heading": "20.2 DrawingML - Picture"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "20.4",
+      "pdf_page_1_based": 3108,
+      "heading": "20.4 DrawingML - WordprocessingML Drawing"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "21.2",
+      "pdf_page_1_based": 3375,
+      "heading": "21.2 DrawingML - Charts"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "21.4",
+      "pdf_page_1_based": 3504,
+      "heading": "21.4 DrawingML - Diagrams"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "22.1",
+      "pdf_page_1_based": 3613,
+      "heading": "22.1 Math"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "22.2",
+      "pdf_page_1_based": 3734,
+      "heading": "22.2 Extended Properties"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "22.3",
+      "pdf_page_1_based": 3741,
+      "heading": "22.3 Custom Properties"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "22.4",
+      "pdf_page_1_based": 3743,
+      "heading": "22.4 Variant Types"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "22.5",
+      "pdf_page_1_based": 3754,
+      "heading": "22.5 Custom XML Data Properties"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "22.6",
+      "pdf_page_1_based": 3757,
+      "heading": "22.6 Bibliography"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "22.7",
+      "pdf_page_1_based": 3794,
+      "heading": "22.7 Additional Characteristics"
+    },
+    {
+      "source": "ECMA-P1",
+      "section": "23",
+      "pdf_page_1_based": 1668,
+      "heading": "23 = #14 envelope (5 in. by 11.5 in.)"
+    },
+    {
+      "source": "ECMA-P2",
+      "section": "4",
+      "pdf_page_1_based": 18,
+      "heading": "4 Conformance"
+    },
+    {
+      "source": "ECMA-P2",
+      "section": "6",
+      "pdf_page_1_based": 20,
+      "heading": "6 Abstract package model"
+    },
+    {
+      "source": "ECMA-P2",
+      "section": "6.2",
+      "pdf_page_1_based": 20,
+      "heading": "6.2 Parts"
+    },
+    {
+      "source": "ECMA-P2",
+      "section": "6.2.2",
+      "pdf_page_1_based": 20,
+      "heading": "6.2.2 Part names"
+    },
+    {
+      "source": "ECMA-P2",
+      "section": "6.2.5",
+      "pdf_page_1_based": 22,
+      "heading": "6.2.5 XML usage"
+    },
+    {
+      "source": "ECMA-P2",
+      "section": "6.5",
+      "pdf_page_1_based": 29,
+      "heading": "6.5 Relationships"
+    },
+    {
+      "source": "ECMA-P2",
+      "section": "6.5.3.1",
+      "pdf_page_1_based": 31,
+      "heading": "6.5.3.1 General"
+    },
+    {
+      "source": "ECMA-P2",
+      "section": "7.2",
+      "pdf_page_1_based": 37,
+      "heading": "7.2 Physical mapping guidelines"
+    },
+    {
+      "source": "ECMA-P2",
+      "section": "7.3",
+      "pdf_page_1_based": 43,
+      "heading": "7.3 Mapping to a ZIP file"
+    },
+    {
+      "source": "ECMA-P2",
+      "section": "8",
+      "pdf_page_1_based": 47,
+      "heading": "8. Core properties"
+    },
+    {
+      "source": "ECMA-P2",
+      "section": "10",
+      "pdf_page_1_based": 55,
+      "heading": "10. Digital signatures"
+    },
+    {
+      "source": "ECMA-P2",
+      "section": "10.4",
+      "pdf_page_1_based": 55,
+      "heading": "10.4 Digital signature parts"
+    },
+    {
+      "source": "ECMA-P2",
+      "section": "10.5",
+      "pdf_page_1_based": 57,
+      "heading": "10.5 Digital signature markup"
+    },
+    {
+      "source": "ECMA-P2",
+      "section": "10.6",
+      "pdf_page_1_based": 62,
+      "heading": "10.6 Relationships transform algorithm"
+    },
+    {
+      "source": "ECMA-P3",
+      "section": "7.2",
+      "pdf_page_1_based": 16,
+      "heading": "7.2 Ignorable Attribute"
+    },
+    {
+      "source": "ECMA-P3",
+      "section": "7.3",
+      "pdf_page_1_based": 18,
+      "heading": "7.3 ProcessContent Attribute"
+    },
+    {
+      "source": "ECMA-P3",
+      "section": "7.4",
+      "pdf_page_1_based": 18,
+      "heading": "7.4 MustUnderstand Attribute"
+    },
+    {
+      "source": "ECMA-P3",
+      "section": "7.5",
+      "pdf_page_1_based": 19,
+      "heading": "7.5 AlternateContent Element"
+    },
+    {
+      "source": "ECMA-P3",
+      "section": "7.6",
+      "pdf_page_1_based": 20,
+      "heading": "7.6 Choice Element"
+    },
+    {
+      "source": "ECMA-P3",
+      "section": "7.7",
+      "pdf_page_1_based": 20,
+      "heading": "7.7 Fallback Element"
+    },
+    {
+      "source": "ECMA-P3",
+      "section": "8",
+      "pdf_page_1_based": 22,
+      "heading": "8 Application-Defined Extension Elements"
+    },
+    {
+      "source": "ECMA-P3",
+      "section": "9",
+      "pdf_page_1_based": 24,
+      "heading": "9 Semantic Definitions and Reference"
+    },
+    {
+      "source": "ECMA-P3",
+      "section": "9.2",
+      "pdf_page_1_based": 25,
+      "heading": "9.2 Step 1: Processing the Ignorable and ProcessContent Attributes"
+    },
+    {
+      "source": "ECMA-P3",
+      "section": "9.3",
+      "pdf_page_1_based": 26,
+      "heading": "9.3 Step 2: Processing the AlternateContent, Choice and Fallback Elements"
+    },
+    {
+      "source": "ECMA-P3",
+      "section": "9.4",
+      "pdf_page_1_based": 27,
+      "heading": "9.4 Step 3: Processing the MustUnderstand Attribute and Creating the"
+    },
+    {
+      "source": "ECMA-P4",
+      "section": "2",
+      "pdf_page_1_based": 18,
+      "heading": "2. Conformance"
+    },
+    {
+      "source": "ECMA-P4",
+      "section": "9",
+      "pdf_page_1_based": 31,
+      "heading": "9. WordprocessingML"
+    },
+    {
+      "source": "ECMA-P4",
+      "section": "9.2.10",
+      "pdf_page_1_based": 32,
+      "heading": "9.2.10 Main Document Part (Part 1, \u00a711.3.10)"
+    },
+    {
+      "source": "ECMA-P4",
+      "section": "14",
+      "pdf_page_1_based": 46,
+      "heading": "14. WordprocessingML Reference Material"
+    },
+    {
+      "source": "ECMA-P4",
+      "section": "19.1",
+      "pdf_page_1_based": 312,
+      "heading": "19.1 VML"
+    },
+    {
+      "source": "ECMA-P4",
+      "section": "19.2",
+      "pdf_page_1_based": 697,
+      "heading": "19.2 VML - Office Drawing"
+    },
+    {
+      "source": "ECMA-P4",
+      "section": "19.3",
+      "pdf_page_1_based": 830,
+      "heading": "19.3 VML - WordprocessingML Drawing"
+    }
+  ],
+  "api_drift_witnesses": [
+    {
+      "revision": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+      "file": "docs/user/comments.rst",
+      "sha256": "cbb5f8dd15e67d97a4b01743e1cca7c29a76a8e7f50c7897b8b993c8e0c93012"
+    },
+    {
+      "revision": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+      "file": "src/docx/comments.py",
+      "sha256": "32668fed4f6664e505b1185a64d21b5dab6a38e03cfa9382e9496a580b931ec7"
+    },
+    {
+      "revision": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+      "file": "src/docx/document.py",
+      "sha256": "b54354a7f068191e37dc9b4256480f0222665b60d22951f365402b0a7b46d9ce"
+    },
+    {
+      "revision": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+      "file": "src/docx/image/image.py",
+      "sha256": "c2599628b6da9e90e1273646dca7ee051957c370c50ae5171c8fc271e7185f21"
+    },
+    {
+      "revision": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+      "file": "src/docx/shared.py",
+      "sha256": "37a60824a8907affb45c80b4343f5f260d5e56dd661bf3042e74dac1ffdefbd8"
+    }
+  ]
+}

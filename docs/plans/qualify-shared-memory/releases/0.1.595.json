@@ -1,19 +1,20 @@
 [
   {
     "name": "@poe-platform/safe-fs",
-    "version": "0.1.594",
-    "observedAt": "2026-09-14T07:15:09.540752+00:00",
+    "version": "0.1.595",
+    "observedAt": "2026-09-14T08:07:32.161882+00:00",
+    "priorAttempts": [],
     "integrityMatches": true,
     "provenanceSubjectMatches": true,
-    "sourceCommit": "d63d1f4bb81b4514d873090b970b796bb15be702",
-    "registryIntegrity": "sha512-EjcyTCJBa0XVNGW/ls5p/+L22kjr/UxG+/dvkwNcZl4Klr4OOhkSFRzeRdXMZRrjuQoVjuOgpokRSTUmLG5Wcg==",
+    "sourceCommit": "95989c1aebba4a415510a69777277183f1506918",
+    "registryIntegrity": "sha512-e5T8/czYJwwZxAKhwf2/YMfuABGd0l0TwX8MkoyWsrwrqs3RvtpP/lfB2plLmN5dSeHSK4BOgP1EIfR9T7M1Bw==",
     "provenance": {
       "_type": "https://in-toto.io/Statement/v1",
       "subject": [
         {
-          "name": "pkg:npm/%40poe-platform/safe-fs@0.1.594",
+          "name": "pkg:npm/%40poe-platform/safe-fs@0.1.595",
           "digest": {
-            "sha512": "1237324c22416b45d53465bf96ce69ffe2f6da48ebfd4c46fbf76f93035c665e0a96be0e3a1912151cde45d5cc651ae3b90a158ee3a0a689114935262c6e5672"
+            "sha512": "7b94fcfdccd8270c19c402a1c1fdbf60c7ee00119dd25d13c17f0c928c96b2bc2baacdd1beda4ffe57c1da994b98de5d49e1d22b804e80fd4421f47d4fb33507"
           }
         }
       ],
@@ -39,7 +40,7 @@
             {
               "uri": "git+https://github.com/poe-platform/poe-code@refs/heads/main",
               "digest": {
-                "gitCommit": "d63d1f4bb81b4514d873090b970b796bb15be702"
+                "gitCommit": "95989c1aebba4a415510a69777277183f1506918"
               }
             }
           ]
@@ -49,12 +50,12 @@
             "id": "https://github.com/actions/runner/github-hosted"
           },
           "metadata": {
-            "invocationId": "https://github.com/poe-platform/poe-code/actions/runs/34816549405/attempts/1"
+            "invocationId": "https://github.com/poe-platform/poe-code/actions/runs/34820625705/attempts/1"
           }
         }
       }
     },
-    "consumer": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/qualify-shared-memory-safe-fs-0.1.594-b9c9vfk7",
+    "consumer": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/qualify-shared-memory-safe-fs-0.1.595-3o8frubp",
     "install": {
       "command": [
         "npm",
@@ -62,10 +63,10 @@
         "--ignore-scripts",
         "--no-audit",
         "--no-fund",
-        "@poe-platform/safe-fs@0.1.594"
+        "@poe-platform/safe-fs@0.1.595"
       ],
       "exitCode": 0,
-      "output": "\nadded 3 packages in 441ms\n"
+      "output": "\nadded 3 packages in 744ms\n"
     },
     "module": "import assert from 'node:assert/strict';\nimport {createMemoryFileSystem} from '@poe-platform/safe-fs';\nimport {createNodeFsBridge} from '@poe-platform/safe-fs/node/filesystem';\nassert.equal(typeof createNodeFsBridge,'function');\nconst fs=createMemoryFileSystem();\nawait fs.writeFile('/probe',new TextEncoder().encode('verified'));\nassert.equal(new TextDecoder().decode(await fs.readFile('/probe')),'verified');\nconsole.log(JSON.stringify({package:'@poe-platform/safe-fs',memory:true,nodeAdapter:true}));\n",
     "smokes": [
@@ -90,46 +91,26 @@
   },
   {
     "name": "@poe-platform/safe-js",
-    "version": "0.1.594",
-    "observedAt": "2026-09-14T07:25:29.159330+00:00",
+    "version": "0.1.595",
+    "observedAt": "2026-09-14T08:10:06.333442+00:00",
     "priorAttempts": [
       {
-        "observedAt": "2026-09-14T07:15:12.297178+00:00",
-        "failure": "Command '['npm', 'view', '@poe-platform/safe-js@0.1.594', '--json']' returned non-zero exit status 1.",
-        "errorOutput": "npm error code E404\nnpm error 404 No match found for version 0.1.594\nnpm error 404\nnpm error 404  '@poe-platform/safe-js@0.1.594' is not in this registry.\nnpm error 404\nnpm error 404 Note that you can also install from a\nnpm error 404 tarball, folder, http url, or git url.\n{\n  \"error\": {\n    \"code\": \"E404\",\n    \"summary\": \"No match found for version 0.1.594\",\n    \"detail\": \"'@poe-platform/safe-js@0.1.594' is not in this registry.\\n\\nNote that you can also install from a\\ntarball, folder, http url, or git url.\"\n  }\n}\nnpm error A complete log of this run can be found in: /Users/kjopek/.npm/_logs/2026-09-14T07_15_12_356Z-debug-0.log\n"
-      },
-      {
-        "observedAt": "2026-09-14T07:16:04.882110+00:00",
-        "failure": "Command '['npm', 'view', '@poe-platform/safe-js@0.1.594', '--json']' returned non-zero exit status 1.",
-        "errorOutput": "npm error code E404\nnpm error 404 No match found for version 0.1.594\nnpm error 404\nnpm error 404  '@poe-platform/safe-js@0.1.594' is not in this registry.\nnpm error 404\nnpm error 404 Note that you can also install from a\nnpm error 404 tarball, folder, http url, or git url.\n{\n  \"error\": {\n    \"code\": \"E404\",\n    \"summary\": \"No match found for version 0.1.594\",\n    \"detail\": \"'@poe-platform/safe-js@0.1.594' is not in this registry.\\n\\nNote that you can also install from a\\ntarball, folder, http url, or git url.\"\n  }\n}\nnpm error A complete log of this run can be found in: /Users/kjopek/.npm/_logs/2026-09-14T07_16_04_946Z-debug-0.log\n"
-      },
-      {
-        "observedAt": "2026-09-14T07:21:48.485418+00:00",
-        "failure": "HTTP Error 404: Not Found",
-        "errorOutput": null
-      },
-      {
-        "observedAt": "2026-09-14T07:23:00.064653+00:00",
-        "failure": "HTTP Error 404: Not Found",
-        "errorOutput": null
-      },
-      {
-        "observedAt": "2026-09-14T07:24:07.466913+00:00",
-        "failure": "HTTP Error 404: Not Found",
-        "errorOutput": null
+        "observedAt": "2026-09-14T08:07:35.277928+00:00",
+        "failure": "Command '['npm', 'view', '@poe-platform/safe-js@0.1.595', '--json']' returned non-zero exit status 1.",
+        "errorOutput": "npm error code E404\nnpm error 404 No match found for version 0.1.595\nnpm error 404\nnpm error 404  '@poe-platform/safe-js@0.1.595' is not in this registry.\nnpm error 404\nnpm error 404 Note that you can also install from a\nnpm error 404 tarball, folder, http url, or git url.\n{\n  \"error\": {\n    \"code\": \"E404\",\n    \"summary\": \"No match found for version 0.1.595\",\n    \"detail\": \"'@poe-platform/safe-js@0.1.595' is not in this registry.\\n\\nNote that you can also install from a\\ntarball, folder, http url, or git url.\"\n  }\n}\nnpm error A complete log of this run can be found in: /Users/kjopek/.npm/_logs/2026-09-14T08_07_35_353Z-debug-0.log\n"
       }
     ],
     "integrityMatches": true,
     "provenanceSubjectMatches": true,
-    "sourceCommit": "d63d1f4bb81b4514d873090b970b796bb15be702",
-    "registryIntegrity": "sha512-VdHaxdb7WE2+NfL0wuZbBzNGlHfBUDmPlMJtGPYx+pIyCpo7tF4pT2JtQ2brlVpTQJekP8XalfBooE6s5/l61A==",
+    "sourceCommit": "95989c1aebba4a415510a69777277183f1506918",
+    "registryIntegrity": "sha512-690KvMsp/cJFSyXLbutqEXOIsF3NqLU4JHjBgsGHfE2UPxQAniANLwbV6G6JyITkxaByJp1BD71cCjm2Qwt3dQ==",
     "provenance": {
       "_type": "https://in-toto.io/Statement/v1",
       "subject": [
         {
-          "name": "pkg:npm/%40poe-platform/safe-js@0.1.594",
+          "name": "pkg:npm/%40poe-platform/safe-js@0.1.595",
           "digest": {
-            "sha512": "55d1dac5d6fb584dbe35f2f4c2e65b0733469477c150398f94c26d18f631fa92320a9a3bb45e294f626d4366eb955a534097a43fc5da95f068a04eace7f97ad4"
+            "sha512": "ebdd0abccb29fdc2454b25cb6eeb6a117388b05dcda8b5382478c182c1877c4d943f14009e200d2f06d5e86e89c884e4c5a072269d410fbd5c0a39b6430b7775"
           }
         }
       ],
@@ -155,7 +136,7 @@
             {
               "uri": "git+https://github.com/poe-platform/poe-code@refs/heads/main",
               "digest": {
-                "gitCommit": "d63d1f4bb81b4514d873090b970b796bb15be702"
+                "gitCommit": "95989c1aebba4a415510a69777277183f1506918"
               }
             }
           ]
@@ -165,12 +146,12 @@
             "id": "https://github.com/actions/runner/github-hosted"
           },
           "metadata": {
-            "invocationId": "https://github.com/poe-platform/poe-code/actions/runs/34816549405/attempts/1"
+            "invocationId": "https://github.com/poe-platform/poe-code/actions/runs/34820625705/attempts/1"
           }
         }
       }
     },
-    "consumer": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/qualify-shared-memory-safe-js-0.1.594-4kmrmuhv",
+    "consumer": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/qualify-shared-memory-safe-js-0.1.595-ng1ue0sw",
     "install": {
       "command": [
         "npm",
@@ -178,7 +159,7 @@
         "--ignore-scripts",
         "--no-audit",
         "--no-fund",
-        "@poe-platform/safe-js@0.1.594"
+        "@poe-platform/safe-js@0.1.595"
       ],
       "exitCode": 0,
       "output": "\nadded 15 packages in 2s\n"
@@ -260,19 +241,20 @@
   },
   {
     "name": "@poe-platform/safe-bash",
-    "version": "0.1.594",
-    "observedAt": "2026-09-14T07:15:12.624090+00:00",
+    "version": "0.1.595",
+    "observedAt": "2026-09-14T08:07:35.654848+00:00",
+    "priorAttempts": [],
     "integrityMatches": true,
     "provenanceSubjectMatches": true,
-    "sourceCommit": "d63d1f4bb81b4514d873090b970b796bb15be702",
-    "registryIntegrity": "sha512-MiM9tgH1rz0dWw/SbB7WS7zv/IAgcMUOGul/5LVGge9g6NHpVMPunYe0byfgzsaHoV8DEVymXTvFz2kS4lO0Bg==",
+    "sourceCommit": "95989c1aebba4a415510a69777277183f1506918",
+    "registryIntegrity": "sha512-iSdzK+u2QqSAIqiCXHd/vXfFWR9VrAbznELKnCmn8NVeIbSDkdYli/F5agU9govPRTBwFVTFS/18/KCGLd0hfg==",
     "provenance": {
       "_type": "https://in-toto.io/Statement/v1",
       "subject": [
         {
-          "name": "pkg:npm/%40poe-platform/safe-bash@0.1.594",
+          "name": "pkg:npm/%40poe-platform/safe-bash@0.1.595",
           "digest": {
-            "sha512": "32233db601f5af3d1d5b0fd26c1ed64bbceffc802070c50e1ae97fe4b54681ef60e8d1e954c3ee9d87b46f27e0cec687a15f03115ca65d3bc5cf6912e253b406"
+            "sha512": "8927732bebb642a48022a8825c777fbd77c5591f55ac06f39c42ca9c29a7f0d55e21b48391d6258bf1796a053d828bcf4530701554c54bfd7cfca0862ddd217e"
           }
         }
       ],
@@ -298,7 +280,7 @@
             {
               "uri": "git+https://github.com/poe-platform/poe-code@refs/heads/main",
               "digest": {
-                "gitCommit": "d63d1f4bb81b4514d873090b970b796bb15be702"
+                "gitCommit": "95989c1aebba4a415510a69777277183f1506918"
               }
             }
           ]
@@ -308,12 +290,12 @@
             "id": "https://github.com/actions/runner/github-hosted"
           },
           "metadata": {
-            "invocationId": "https://github.com/poe-platform/poe-code/actions/runs/34816549405/attempts/1"
+            "invocationId": "https://github.com/poe-platform/poe-code/actions/runs/34820625705/attempts/1"
           }
         }
       }
     },
-    "consumer": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/qualify-shared-memory-safe-bash-0.1.594-5pyuy44f",
+    "consumer": "/var/folders/rw/s4cy76hn6v55qrp0dhcbtplc0000gn/T/qualify-shared-memory-safe-bash-0.1.595-fo9y6j4x",
     "install": {
       "command": [
         "npm",
@@ -321,7 +303,7 @@
         "--ignore-scripts",
         "--no-audit",
         "--no-fund",
-        "@poe-platform/safe-bash@0.1.594"
+        "@poe-platform/safe-bash@0.1.595"
       ],
       "exitCode": 0,
       "output": "\nadded 6 packages in 1s\n"

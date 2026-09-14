@@ -123,3 +123,59 @@ Terminal receipts after this evidence checkpoint belong in
 local observation from the enclosing committed checkpoint. It must record the
 actual root version/source, all final workflow conclusions and verified ancestry,
 not assume the next numeric version or that a successor contains the repair.
+
+## Local terminal observations after the committed checkpoint
+
+All three scoped packages **0.1.594** now verify independently against `d63d1f4bb`:
+registry integrity, attested subject/source, installed public smoke and npm
+signature audits pass. SafeJS required repeated metadata/artifact propagation
+checks; every failed attempt remains in the updated receipt.
+
+An additional attempt to run the source-built private rollback module against the
+scoped installation fails during import on all seven runtimes: that distribution
+bundles internals and does not ship `interp/budget.js` as an executable private
+entry. [Failed probe and disposition](installed-rollback-594.json). This is not a
+promised public capability or an ECMAScript defect. It is not counted as an
+installed rollback pass; the public package checks and seven passing source-built
+low-level checks remain separate. No export or assertion was changed to force it
+through. Root workflow monitoring remains pending.
+
+Root **poe-code15.0.38** is now published and independently verified against
+`711f06c1c5e291c29d58c801f637d7d26960ea9d`. The exact
+[workflow](https://github.com/poe-platform/poe-code/actions/runs/34817400344)
+succeeded. [Registry and installed receipts](root-registry-installed.json) verify
+tarball integrity, SLSA subject/source/workflow, seven Node/Bun public SafeJS smoke
+cells, 208 registry signatures, 38 attestations, and installed CLI version15.0.38.
+The fresh CI SafeJS gate reports **29,656 passed / 47 skipped**, 1,370 passing
+files / two skipped. This is final runtime code coverage; the later conformance
+admission change is separately qualified.
+
+Non-agent admission was delivered as
+`95989c1aebba4a415510a69777277183f1506918`. Its
+[committed provenance](../non-agent-admission/committed-provenance.json) matches
+the exact sourceHash of the candidate's complete upstream run. That run records
+730 passes, 18 immutable-buffer helper failures and 238 explicit unsupported
+agent/blocking variants. It does not close agent acceptance or raw/legacy
+shared-history recovery. It changes maintained test integration, not published
+runtime implementation. Its triggered scoped/schema/root workflows are still
+followed independently; no successor publication is assumed.
+
+All three scoped packages **0.1.595** now verify against the conformance commit
+`95989c1aebba4a415510a69777277183f1506918`.
+[Independent receipts](0.1.595.json) include exact publisher provenance and
+installed public checks. SafeFS/Bash verified before SafeJS; SafeJS's failed
+metadata attempts remain retained. Scoped workflow
+[34820625705](https://github.com/poe-platform/poe-code/actions/runs/34820625705)
+and schema workflow
+[34820625885](https://github.com/poe-platform/poe-code/actions/runs/34820625885)
+succeeded. Root admission workflow34820626022 remains in validation and may be
+superseded only by a verified descendant carrying this same test integration.
+
+`git diff --exit-code 711f06c1c HEAD -- src 'packages/*/src' package.json
+package-lock.json` confirms no released runtime source/config changed after root
+15.0.38. The installed root artifact also omits the conformance test runner.
+The admission is a test-only integration commit; the enclosing receipt commit is
+documentation only. A subsequent successful root workflow may therefore report
+no relevant release changes. That would be recorded as a no-release outcome,
+not claimed as a new publication. All actual affected publications above have
+already been independently verified; overall task acceptance remains **OPEN**.

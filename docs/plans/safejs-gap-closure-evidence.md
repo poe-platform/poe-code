@@ -2760,3 +2760,30 @@ Failures are immutable-buffer extension helper cases; unsupported variants are
 non-agent shared operations and CanBlockIsFalse without enabling host blocking.
 The enclosing atomic test/conformance commit and subsequent release receipts are
 separate. Overall task remains **OPEN**, with unchanged edition/runtime targets.
+
+
+### Shared-memory verified publication receipts — 2026-09-14
+
+Runtime repairs `069ae0b09`, `85c0bb759`, `d63d1f4bb` are verified on remote main
+and published in **poe-code15.0.38**, source
+`711f06c1c5e291c29d58c801f637d7d26960ea9d`.
+[Root workflow](https://github.com/poe-platform/poe-code/actions/runs/34817400344)
+succeeded, including fresh SafeJS **29,656 passed / 47 explicit skips**.
+Root tarball integrity, SLSA source/subject/invocation, 208 signatures,
+38 attestations, seven installed public runtime cells and CLI version all verify.
+
+All three scoped packages (`@poe-platform/safe-fs`, `@poe-platform/safe-js`,
+`@poe-platform/safe-bash`) independently verify at **0.1.595**, source
+`95989c1aebba4a415510a69777277183f1506918`, after the non-agent test integration
+commit. Prior0.1.592/593/594 publications were also independently checked.
+[Terminal source, ancestry, workflow, integrity/provenance and installed receipts](qualify-shared-memory/releases/final-delivery.json)
+and [disposition](qualify-shared-memory/releases/disposition.md) retain partial
+registry propagation failures and the private-entry smoke limitation separately.
+No local publication, rollback, force push or hook bypass occurred.
+
+The enclosing documentation workflow remains to be monitored through its terminal
+outcome; test-only integration and docs do not imply a new root runtime release.
+**Task remains OPEN:** raw/legacy uncaptured shared recovery can still invent
+observations/effects; pinned upstream reports730 passes,18 newer-API helper
+failures and238 unsupported agent/blocking cases; Node18 growth and full backend
+qualification remain unresolved. No issue number was explicitly associated.

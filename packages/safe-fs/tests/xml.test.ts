@@ -129,3 +129,44 @@ it("enforces an explicitly UTF-8 decoded input profile without changing DAV enco
   expect(parseXml('<?xml version="1.0" encoding="utf-8"?><r/>', { expectedEncoding: "UTF-8" }).localName).toBe("r");
   expect(parseXml('<r/>', { expectedEncoding: "UTF-8" }).localName).toBe("r");
 });
+
+it("retains ordered document siblings around the root", () => {
+  const root = parseXml('<?xml version="1.0"?>\n<!--before--><?start data?><r/>\n<?end done?><!--after-->');
+  expect(root.prolog).toEqual([
+    { kind: "text", text: "\n" },
+    { kind: "comment", text: "before" },
+    { kind: "processing-instruction", target: "start", text: "data" }
+  ]);
+  expect(root.epilog).toEqual([
+    { kind: "text", text: "\n" },
+    { kind: "processing-instruction", target: "end", text: "done" },
+    { kind: "comment", text: "after" }
+  ]);
+  expect(() => parseXml('<!--a--><r/><!--b-->', { maxContentNodes: 2 })).toThrow("content node limit");
+});
+
+it.each([
+  '<r>abcd</r>', '<r><![CDATA[abcd]]></r>', '<r a="abcd"/>',
+  '<!--abcd--><r/>', '<r/><?go abcd?>'
+])("bounds retained scalar text including document metadata", source => {
+  expect(() => parseXml(source, { maxTextLength: 3 })).toThrow("text limit");
+  expect(() => parseXml(source, { maxTextLength: 4 })).not.toThrow();
+});
+
+it.each([
+  '<?xml VERSION="1.0"?><r/>',
+  '<?xml version="1.0" ENCODING="UTF-8"?><r/>',
+  '<?xml version="1.0" standalone="YES"?><r/>'
+])("rejects case-altered declaration grammar", source => {
+  expect(() => parseXml(source)).toThrow(SyntaxError);
+});
+
+it("matches generic UTF-16 declarations to explicit byte order", () => {
+  for (const expectedEncoding of ["UTF-16LE", "UTF-16BE"] as const) {
+    expect(() => parseXml('<?xml version="1.0" encoding="UTF-16"?><r/>', { expectedEncoding })).not.toThrow();
+  }
+});
+
+it.each(['&#32;<r/>', '<r/>&#xA;', '&amp;<r/>'])("rejects references outside the document element", source => {
+  expect(() => parseXml(source)).toThrow(SyntaxError);
+});

@@ -25,7 +25,7 @@
   },
   "dependencies": {
     "@poe-code/office-package": "*",
-    "saxes": "6.0.0"
+    "@poe-code/safe-fs": "*"
   },
   "repository": {
     "type": "git",

@@ -1,4 +1,4 @@
-import type { SaxesTagNS } from "saxes";
+import type { XmlElement } from "./package-xml.js";
 import {
   InputTypeError,
   InvalidValueError,
@@ -41,15 +41,15 @@ export interface PackageRelationship {
   readonly target_part: PackagePart;
 }
 
-function attributes(tag: SaxesTagNS, allowed: readonly string[]): void {
-  for (const attribute of Object.values(tag.attributes)) {
-    if (attribute.uri === "http://www.w3.org/2000/xmlns/") continue;
-    if (attribute.uri || !allowed.includes(attribute.local)) invalidPackage();
+function attributes(tag: XmlElement, allowed: readonly string[]): void {
+  for (const attribute of tag.attributes) {
+    if (attribute.namespace === "http://www.w3.org/2000/xmlns/") continue;
+    if (attribute.namespace || !allowed.includes(attribute.localName)) invalidPackage();
   }
 }
-function required(tag: SaxesTagNS, name: string, allowEmpty = false): string {
-  const value = tag.attributes[name];
-  if (!value || value.uri || (!allowEmpty && !value.value)) return invalidPackage();
+function required(tag: XmlElement, name: string, allowEmpty = false): string {
+  const value = tag.attributes.find(attribute => attribute.name === name);
+  if (!value || value.namespace || (!allowEmpty && !value.value)) return invalidPackage();
   return value.value;
 }
 function relationshipOwner(name: string): string | null {
@@ -146,14 +146,14 @@ export class DocumentPackage {
     xml(
       types.bytes,
       (tag, depth) => {
-        if (tag.uri !== contentTypesNamespace) invalidPackage();
+        if (tag.namespace !== contentTypesNamespace) invalidPackage();
         if (depth === 1) {
-          if (tag.local !== "Types") invalidPackage();
+          if (tag.localName !== "Types") invalidPackage();
           attributes(tag, []);
           return;
         }
-        if (depth !== 2 || (tag.local !== "Default" && tag.local !== "Override")) invalidPackage();
-        const override = tag.local === "Override";
+        if (depth !== 2 || (tag.localName !== "Default" && tag.localName !== "Override")) invalidPackage();
+        const override = tag.localName === "Override";
         attributes(tag, [override ? "PartName" : "Extension", "ContentType"]);
         const content_type = required(tag, "ContentType");
         const name = required(tag, override ? "PartName" : "Extension");
@@ -221,20 +221,20 @@ export class DocumentPackage {
       xml(
         part.bytes,
         (tag, depth) => {
-          if (tag.uri !== relationshipsNamespace) invalidPackage();
+          if (tag.namespace !== relationshipsNamespace) invalidPackage();
           if (depth === 1) {
-            if (tag.local !== "Relationships") invalidPackage();
+            if (tag.localName !== "Relationships") invalidPackage();
             attributes(tag, []);
             return;
           }
-          if (depth !== 2 || tag.local !== "Relationship") invalidPackage();
+          if (depth !== 2 || tag.localName !== "Relationship") invalidPackage();
           attributes(tag, ["Id", "Type", "Target", "TargetMode"]);
           const rId = required(tag, "Id");
           const reltype = required(tag, "Type");
           const target_ref = required(tag, "Target", true);
           if (!validId(rId) || ids.has(rId)) invalidPackage();
           ids.add(rId);
-          const mode = tag.attributes.TargetMode?.value ?? "Internal";
+          const mode = tag.attributes.find(attribute => attribute.name === "TargetMode")?.value ?? "Internal";
           if (mode !== "External" && mode !== "Internal") invalidPackage();
           const is_external = mode === "External";
           const resolved = is_external ? null : resolvePartTarget(owner, target_ref);

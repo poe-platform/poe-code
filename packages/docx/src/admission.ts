@@ -85,11 +85,11 @@ export async function readDocumentArchive(
   let dialect: AdmittedDocumentArchive["dialect"] | undefined;
   xml(main.bytes, (tag, depth) => {
     if (depth !== 1) return;
-    if (tag.local !== "document") invalid();
+    if (tag.localName !== "document") invalid();
     dialect =
-      tag.uri === dialects.strict
+      tag.namespace === dialects.strict
         ? "strict"
-        : tag.uri === dialects.transitional
+        : tag.namespace === dialects.transitional
           ? "transitional"
           : undefined;
     if (!dialect) invalid();

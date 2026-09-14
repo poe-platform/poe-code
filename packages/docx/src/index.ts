@@ -31,3 +31,11 @@ export type {
   ContentTypeDefault,
   ContentTypeOverride
 } from "./package.js";
+export {
+  parseDocumentXml,
+  type DocumentXml,
+  type DocumentXmlLimits,
+  type XmlElement,
+  type XmlContent,
+  type XmlAttribute
+} from "./package-xml.js";

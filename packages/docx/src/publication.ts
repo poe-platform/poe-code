@@ -150,7 +150,7 @@ export async function publishDocumentArchive(archive: DocumentArchive, options: 
   const { output, inPlace, force, dryRun, creation, json } = options;
   if ((output !== undefined && (typeof output !== "string" || !output)) || (output !== undefined && inPlace)
     || (!dryRun && output === undefined && !inPlace) || (creation && (inPlace || (!dryRun && output === undefined)))
-    || (force && output === undefined) || (inPlace && (!options.input || options.input.path === "-"))
+    || (force && (output === undefined || output === "-")) || (inPlace && (!options.input || options.input.path === "-"))
     || (output === "-" && json && !dryRun)) throw new InputTypeError("Invalid document publication intent.");
   const published: PublishedFile[] = [];
   let target: Destination | undefined;

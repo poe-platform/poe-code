@@ -17,7 +17,8 @@ Publishing requires exactly one output or in-place intent; creation requires
 output. Dry-run permits no output and validates any proposed destination, including
 stale in-place snapshots. Binary output uses `output: "-"` and a supplied stdout
 sink. JSON conflicts with binary publication, but works with dry-run. No progress
-or textual result is written into that sink. Force requires an explicit output;
+or textual result is written into that sink. Force requires an explicit file output
+and rejects binary stdout, including during dry-run;
 it never grants alias replacement, weaker validation or additional capabilities.
 
 The engine owns serialization before awaited destination queries. XML/package

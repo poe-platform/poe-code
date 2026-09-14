@@ -74,3 +74,39 @@ budget red run was targeted evidence, not a substitute for the full package gate
 No public command/UI changed; screenshots do not apply to these package-only
 publication primitives. Model, command, full protection editing and whole-format
 conformance remain unverified. No push or release is authorized.
+
+## Verification follow-up — 2026-09-14
+
+Reviewed commit `9bf0e82785ce6d12ee8a09e6f4be30c67d435d0c`, its original
+tests and the historical red/green narrative above against DOCX sections 6.2
+and 8, the shared Office contracts, and safe-fs conditional/staging and alias
+contracts. The historical narrative is retained; its intermediate red revisions
+were not replayed. The unchanged baseline independently passed all 437 tests.
+
+One new defect was reproduced before changing product code: force with binary
+stdout was accepted, contrary to section 6.2. Two original memfs regressions
+using `npm test --workspace=docx -- --testNamePattern='rejects force for binary stdout'`
+failed (exit 1): ordinary publication resolved with 2,002 published bytes at `-`,
+and dry-run resolved with an empty manifest instead of rejecting. The other 437
+tests were filtered out in that red run, not counted as passes. The correction
+rejects both intents with `usage` before serialization/publication. The tests
+also assert no stdout call and unchanged original memfs files.
+
+Final maintained checks after the correction:
+
+- `npm test --workspace=docx`: exit 0, 439 passed in 14 files, no skips.
+- `npm run lint --workspace=docx`: exit 0, ESLint and both TypeScript checks.
+- `npm run build:workspaces -- --workspace=docx`: exit 0, maintained three-package
+  safe-fs/office-package/docx build closure.
+- `git diff --check`: exit 0.
+
+The original tests exercise mounted/read-only forwarding, unknown remote-like
+capabilities, conditional conflicts, cleanup, and precise partial-file receipts.
+These are memfs unit evidence, not deployed-adapter transaction certification.
+The API audit and reconciled inventory remain research/model coverage records;
+this correction adds no model members or CLI routes. Public command construction,
+CLI/SDK end-to-end parity, schema/exit envelopes, renderer/corpus QA and whole-API
+acceptance remain pending later tasks. No CLI presentation changed, so no visual
+CLI QA was performed or claimed. No downloads, native reference builds, README
+edits, pushes or releases. Unrelated pipeline edits and the archived-plan move
+remain outside this correction.

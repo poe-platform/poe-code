@@ -56,6 +56,15 @@ async function run(options: Parameters<typeof publishDocumentArchive>[1], env = 
 }
 
 describe("document publication", () => {
+  it.each([false, true])("rejects force for binary stdout with dry-run %s", async dryRun => {
+    const env = fixture(); const ctx = context();
+    const archive = await createDocumentArchive({}, ctx);
+    const stdout = { write: vi.fn(async (bytes: Uint8Array) => { env.volume.writeFileSync("/stdout", bytes); }) };
+    await expect(publishDocumentArchive(archive, { output: "-", force: true, dryRun }, { ...ctx, filesystem: env.fs, encoding, stdout }))
+      .rejects.toMatchObject({ code: "usage" });
+    expect(stdout.write).not.toHaveBeenCalled();
+    expect(env.volume.toJSON()).toEqual({ "/work/input": "source", "/work/old": "original" });
+  });
   it.each([{}, { output: "/work/new", inPlace: true }, { force: true }, { inPlace: true }, { output: "-", json: true }])("rejects invalid intent %j", async options => {
     await expect(run(options)).rejects.toMatchObject({ code: "usage" });
   });

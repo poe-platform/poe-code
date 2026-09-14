@@ -3157,3 +3157,71 @@ Raw logs are retained in `caller-accessor-20260914/` under the task evidence
 directory. Unrelated staged content remains byte-for-byte identical. This
 increment receives a separate local commit. **Remote-main delivery: none yet.
 Publication: none for this candidate. Overall task closure remains open.**
+
+
+## qualify-snapshot-adversarial-input — Reconciled delivery candidate, 2026-09-14
+
+**Local qualification complete; remote delivery and publication pending.** The
+clean main candidate is `0154ee1ffd492cd2b0a9890c440926c1f5ddcf85`, descended
+from fetched remote `2f2c4dd236ad0db6f48bc5d6ececc685499bcaa4`. Nine task
+commits reconcile without importing unrelated local work. Source tree and all
+1,828 source/test fingerprints are in [source.json](qualify-snapshot-adversarial-input/delivery-20260914/source.json);
+canonical file-map SHA-256 is
+`18ddbeff5cd5e94956ddbc23f10daf7777de1576ac8343247c318ae4eed15433`.
+The shared workspace's original staged patch and pre-existing production content
+outside the owned repairs remain unchanged; preservation and original/reconciled
+commit maps accompany the [raw log receipts](qualify-snapshot-adversarial-input/delivery-20260914/log-receipts.json).
+Local new commits are `5a1823f9c` (envelope), `14a791781` (prior publication
+repair reconciliation), and `75d523a7b` (nested data). Their reconciled source
+commits are `f70912895`, `ec0280dc6`, and `0154ee1ff` respectively.
+
+Compatibility remains ECMA-262 **edition 16**, ECMA-402 **edition 12**, Test262
+`419d3e0a2273ba01a3bfcbec423f2801425b8e93` and the explicitly tracked newer APIs.
+Snapshot wire formats use explicit transport fixtures, not a Test262 oracle.
+Primary host: Node **22.23.2 / ICU 78.2**, Darwin arm64.
+
+| Gate | Reproducible result |
+| --- | --- |
+| Clean workspace baseline at `f70912895` | `npm run test --workspace=@poe-code/safe-js -- --reporter=default`: **30,109 passed / 47 skipped / zero failed**, 1,392 passed / 2 skipped files, 2008.11 s, exit 0. This precedes the nested repair and is not a final-source full-workspace claim. |
+| Final source at `0154ee1ff` | Snapshot/public migration/run/checkpoint/harness/function/Promise selection below: **2,659/2,659 in 192 files**, zero failures/skips/unhandled errors, 149.19 s, exit 0. |
+| Maintained build | `npm run build:workspaces -- --workspace=@poe-code/safe-js`: dependency closure and all **8 built imports** pass. |
+| Final scoped lint | `npx eslint packages/safe-js/src/snapshot packages/safe-js/src/run.ts packages/safe-js/src/interp/values.ts packages/safe-js/src/interp/budget.ts packages/safe-js/src/restore.test.ts`: exit 0. Shared-source final TypeScript also exits 0; clean TypeScript is included in the maintained build. |
+| Built graph/transaction/caller-accessor and legacy probes | Node **18.18.0/73.2, 18.20.8/74.2, 20.20.2/78.2, 22.23.2/78.2, 24.21.0/78.3, 26.8.2/78.3**, Bun **1.3.11/74.2**: all pass. Each legacy cell checks six genuine fixtures / 12 replay cycles and zero host calls. |
+| Final timed mutation probes | All seven Node/Bun cells pass the unchanged **96 cases**, seed **0x5a902026**, **750 ms** cap, run serially after other task test jobs finished. Earlier concurrent-candidate failures at 846.0 / 1098.1 / 832.6 ms remain archived. No causal attribution or load-independent deadline is inferred from this rerun. |
+| Workerd | **1.20260901.1**, compatibility **2026-09-01**, `nodejs_compat`: final graph/rollback/root-and-nested-accessor request passes; separately rebuilt legacy request passes six fixtures / 12 replays / zero host calls. ICU is not reported. No portable Workerd wall-time or native-GC timing claim. |
+
+Final focused command, from the isolated checkout root:
+
+```sh
+npx vitest run packages/safe-js/src/snapshot packages/safe-js/src/migrate.test.ts packages/safe-js/src/migration-file.test.ts packages/safe-js/src/run.test.ts packages/safe-js/src/run.snapshot.test.ts packages/safe-js/src/external-checkpoint-validation.test.ts packages/safe-js/test/adversarial/snapshot-mutation.test.ts packages/safe-js/test/integration/snapshot-roundtrip.test.ts packages/safe-js/test/integration/crash-resume.test.ts packages/agent-harness/src/loader/agent-results.test.ts packages/safe-js/src/run.promise-aliases.test.ts packages/safe-js/src/interp/function-properties.test.ts
+npx esbuild packages/safe-js/test/adversarial/snapshot-mutation.ts --bundle --format=esm --platform=node --packages=external --outfile=.qualification/corpus.mjs
+```
+
+[Executed runtime QA and exact probe bodies](safejs-snapshot-delivery-runtime-qa.md)
+cover built imports, identity, publication, rollback, private runtime getter
+provenance, caller modifications and genuine legacy records. Node cells use
+`npx --yes --package=node@<pinned-version> node --input-type=module`; Bun uses
+`bun run -`. Workerd is bundled with `conditions: ["workerd"]`, individual
+run/restore/dump modules and an async fetch handler, then served using
+`npx --yes --package=workerd@1.20260901.1 workerd serve .qualification/workerd.capnp`;
+local requests inspect JSON assertions. Legacy fixtures are bundled JSON imports.
+All task-owned Workerd listeners were stopped after inspection.
+
+The 47 baseline skips are 33 filesystem reference gaps, 7 structured-clone
+native Instant comparisons, 4 native Instant comparisons, 2 native f16round
+comparisons and 1 opt-in parser fuzz case. None is a pass. The first clean test
+attempt's absent generated Intl import, 17 clean red regression failures, two
+12-failure intermediate runtime-wrapper experiments, the nested getter red case,
+and the getter `.call` red case are retained in the receipts. No budget,
+assertion, timeout or runtime support was weakened. No CLI presentation changed.
+
+Acceptance covers deterministic in-memory rejection, explicit capability
+registries, graph identity and SafeJS-owned transactional state. Internal
+resolver/scheduler hooks remain explicit host authority; arbitrary external
+side effects inside such hooks cannot be reversed. Full final-source required
+GitHub validation, remote ancestry, independently installed artifacts and npm
+publication/provenance remain delivery gates. **Verified remote-main delivery:
+none yet. Release receipts: none for this candidate.** Baseline registry versions
+are `poe-code@15.0.40` and the three `@poe-platform/safe-*` packages at `0.1.598`.
+Do not equate the local commits, a green build, or these prior versions with
+publication of the candidate. No explicitly associated GitHub issue was supplied.

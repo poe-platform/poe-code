@@ -25,6 +25,16 @@ export interface ParsedField {
 }
 export const fieldAttribute = (node: XmlElement, name: string) => node.attributes.find(a => a.namespace === node.namespace && a.localName === name)?.value;
 
+/** Inline insertion must stay outside enclosing fields, including empty intervening paragraphs. */
+export function assertOutsideFields(fields: readonly ParsedField[], caret: readonly number[]): void {
+  const compare = (a: readonly number[], b: readonly number[]): number => {
+    for (let i = 0; i < Math.min(a.length, b.length); i++) if (a[i] !== b[i]) return a[i]! - b[i]!;
+    return a.length - b.length;
+  };
+  if (fields.some(f => f.endPath && compare(f.path, caret) < 0 && compare(caret, f.endPath) < 0))
+    throw new UnsupportedEditError("Cannot insert within an enclosing field.");
+}
+
 /** Each story owns a stack; cached nested values never become instruction text. */
 export function parseFields(root: XmlElement, path: readonly number[], budget: DocumentBudget, content: readonly CompatibilityContent[]): ParsedField[] {
   const fields: ParsedField[] = [], stack: ParsedField[] = [];

@@ -4,7 +4,7 @@ import type { DocxInvocation } from "./command.js";
 import { xmlValue } from "./create-content.js";
 import { dialectForNamespace } from "./dialect.js";
 import { fieldInstruction, fieldInstructionTokens } from "./field-instruction.js";
-import { parseFields } from "./field-parser.js";
+import { assertOutsideFields, parseFields } from "./field-parser.js";
 import type { FieldEditData, FieldEditRequest } from "./fields.js";
 import { addressKey, LocationIndex } from "./location-index.js";
 import { encodeLocation, type Location } from "./location-token.js";
@@ -14,11 +14,6 @@ import { paragraphTextRun } from "./paragraph-content.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext } from "./publication.js";
 import { resolveDocxSelection } from "./simple-selection.js";
 import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
-
-function comparePath(a: readonly number[], b: readonly number[]): number {
-  for (let i = 0; i < Math.min(a.length, b.length); i++) if (a[i] !== b[i]) return a[i]! - b[i]!;
-  return a.length - b.length;
-}
 
 /** Append a bounded structure to one explicitly selected paragraph. */
 export async function addDocumentFields(input: Uint8Array, request: FieldEditRequest, invocation: DocxInvocation, context: PublicationContext): Promise<FieldEditData> {
@@ -46,7 +41,7 @@ export async function addDocumentFields(input: Uint8Array, request: FieldEditReq
     for (const i of story.value.path) owner = owner.children[i]!;
     const fields = parseFields(owner, story.value.path, budget, editor.compatibility.content);
     const caret = [...before.value.path, node.children.length];
-    if (fields.some(f => f.endPath && comparePath(f.path, caret) < 0 && comparePath(caret, f.endPath) < 0)) throw new UnsupportedEditError("Cannot append within a field spanning paragraphs.");
+    assertOutsideFields(fields, caret);
     const caption = request.operation === "captions.add", toc = request.operation === "toc.add";
     if (options.static && (options.sequence !== undefined || options.result !== undefined || options.update !== undefined)) throw new DocxUsageError("Static captions do not accept field options.");
     let instruction = "";

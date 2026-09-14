@@ -132,3 +132,4 @@ export type { DocxTableInput, DocxTableFormat, DocxTableBorders, DocxTableRowOpt
 export { inspectDocumentBookmarks, editDocumentBookmarks, type BookmarkListData, type BookmarkEditData, type BookmarkEditRequest, type BookmarkEditOperation } from "./bookmarks.js";
 
 export { inspectDocumentFields, editDocumentFields, type FieldListData, type FieldEditRequest, type FieldEditData, type FieldEditOperation } from "./fields.js";
+export { inspectDocumentNotes, editDocumentNotes, type NoteInfo, type NoteReadRequest, type NoteEditRequest, type NoteReadData, type NoteEditData } from "./notes.js";

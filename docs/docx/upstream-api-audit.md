@@ -123,6 +123,15 @@ Every public member needs a row recording target signature/defaults/return/side 
 
 ## Validation status
 
+The bounded [footnote/endnote milestone](../plans/docx-notes.md) implements the
+five notes utility paths, shared reference ownership, special entries and explicit
+storage-ID policies while preserving document/section numbering rules. Its exact
+JS/security mappings distinguish snapshot utilities from live model owners. The
+pinned inventory has no note-specific public owner; related built-in style enum,
+inherited, collection/helper and public underscore-prefixed obligations remain
+tracked at their existing statuses. Later tasks and whole-public-API coverage
+remain pending.
+
 The bounded [cached-field utility milestone](../plans/docx-fields.md) adds
 fields.list/set and records exact JS/security mappings, preserved instruction
 bytes and scoped CLI/SDK discovery. The pinned inventory has no field-specific

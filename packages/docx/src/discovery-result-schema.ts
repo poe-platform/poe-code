@@ -92,6 +92,15 @@ const sectionDirect = object({ ...Object.fromEntries(["pageWidth", "pageHeight",
 const sectionListData = object({ items: array(object({ position: number, owner: { enum: ["paragraph", "body"] }, location, direct: sectionDirect, headers: sectionBindings, footers: sectionBindings })), units: { const: "twip" }, evenAndOddHeaders: boolean });
 const storyReadData = object({ items: array(object({ kind: { enum: ["headers", "footers"] }, section: number, variant: { enum: ["default", "first", "even"] }, part: nullableString, linked: boolean, sourceSection: { oneOf: [number, { type: "null" }] }, owners: array(number), text: string, location })) });
 const storyEditData = object({ ...mutationData.properties, affectedSections: array(number), changes: array(object({ kind: { enum: ["replace", "remove", "bind"] }, before: location, after: location })) });
+const noteKind: DocxJsonSchema = { enum: ["footnote", "endnote"] };
+const noteNumbering = object({ format: string, start: { type: "integer" }, restart: string });
+const noteNumberingKinds = object({ footnote: noteNumbering, endnote: noteNumbering });
+const noteReadData = object({
+  items: array(object({ kind: noteKind, id: { type: "integer", minimum: 0 }, type: string, text: string, location, references: array(location) })),
+  separators: array(object({ kind: noteKind, id: { type: "integer", minimum: -1 }, type: string })),
+  numbering: object({ document: noteNumberingKinds, sections: array(object({ section: number, ...noteNumberingKinds.properties })) })
+});
+const noteEditData = object({ ...mutationData.properties, changes: array(object({ kind: { enum: ["insert", "replace", "remove"] }, before: location, after: { oneOf: [location, { type: "null" }] } })) });
 const styleMutationData = object({ ...mutationData.properties, changes: array(object({ kind: { const: "style" }, id: string })) });
 const styleNumber: DocxJsonSchema = { oneOf: [{ type: "number" }, { type: "null" }] };
 const styleProperties = object({
@@ -113,6 +122,11 @@ const styleInspectionData = object({
   diagnostics: array(object({ code: string, part: string, location: string, message: string }))
 });
 export const inspectionOperationMetadata: Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>> = Object.fromEntries([
+  ["notes.list", "Read both footnotes and endnotes, references, separators and effective numbering without creating parts.", ["F24"], noteReadData],
+  ["notes.get", "Read a selected note, its references and preserved numbering; selection defaults to footnotes.", ["F24"], noteReadData],
+  ["notes.add", "Insert a footnote or endnote reference with a scoped allocated ID and required separators.", ["F24"], noteEditData],
+  ["notes.set", "Replace selected note text with explicit shared-body intent; preserve required note markers.", ["F24"], noteEditData],
+  ["notes.remove", "Remove selected references and only unreferenced note bodies; preserve required separators.", ["F24"], noteEditData],
   ["bookmarks.list", "Inspect bookmark ranges, checked names/IDs and structural issues.", ["F21"], object({ items: array(object({ location, name: string, id: string, end: { anyOf: [object({ part: string, path: array({ type: "integer", minimum: 0 }) }), { type: "null" }] }, issues: array(string) })), issues: array(string) })],
   ...["bookmarks.add", "bookmarks.set", "bookmarks.remove"].map(id => [id, id === "bookmarks.add" ? "Create a checked bookmark around a selected paragraph range." : id === "bookmarks.set" ? "Rename a bookmark with explicit reference-update policy." : "Remove a bookmark with explicit reference-removal policy.", ["F21"], object({ ...mutationData.properties, changes: array(object({ kind: { enum: ["insert", "rename", "remove"] }, before: location, after: location })) })]),
   ["fields.list", "List simple/complex/nested fields with exact instructions, cached values and locations.", ["F22"], object({ items: array(object({ location, form: { enum: ["simple", "complex"] }, kind: string, instruction: string, result: string, update: boolean, locked: boolean, nested: array(location) })) })],
@@ -168,5 +182,5 @@ export const inspectionOperationMetadata: Readonly<Record<string, { description:
   ["xml.set", "Replace one complete XML part with validated bytes; preserve opaque content and unrelated parts.", ["F04", "F07"], mutationData]
 ].map(([id, description, featureIds, data]) => [id, { description, featureIds, result: { oneOf: [object({
   version: { const: 1 }, operation: { const: id }, ok: { const: true }, data: data as DocxJsonSchema,
-  warnings: array(diagnostic), errors: empty, affected: ["tables.merge", "tables.split", "tables.set", "tables.rows.add", "tables.rows.remove", "tables.columns.add", "tables.columns.remove", "tables.add", "lists.add", "lists.set", "headers.set", "headers.remove", "footers.set", "footers.remove", "sections.set", "sections.add", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.set", "styles.add", "styles.set", "styles.defaults.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add"].includes(id as string) ? number : id === "create" ? { const: 1 } : id === "xml.set" ? { type: "integer", minimum: 0, maximum: 1 } : { const: 0 }, locations: array(location)
+  warnings: array(diagnostic), errors: empty, affected: ["notes.add", "notes.set", "notes.remove", "tables.merge", "tables.split", "tables.set", "tables.rows.add", "tables.rows.remove", "tables.columns.add", "tables.columns.remove", "tables.add", "lists.add", "lists.set", "headers.set", "headers.remove", "footers.set", "footers.remove", "sections.set", "sections.add", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.set", "styles.add", "styles.set", "styles.defaults.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add"].includes(id as string) ? number : id === "create" ? { const: 1 } : id === "xml.set" ? { type: "integer", minimum: 0, maximum: 1 } : { const: 0 }, locations: array(location)
 }), object({ version: { const: 1 }, operation: { const: id }, ok: { const: false }, data: { type: "null" }, warnings: array(diagnostic), errors: { type: "array", minItems: 1, items: { type: "object" } }, affected: { const: 0 }, locations: empty })] } }])) as Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>>;

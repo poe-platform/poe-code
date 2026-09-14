@@ -138,7 +138,7 @@ export class LocationIndex {
           else if (current.localName === "tbl") { kind = "table"; pos = { ...inherited, table: ++counts.table }; }
           else if (current.localName === "tc") kind = "cell";
           else if (current.localName === "bookmarkStart") { kind = "bookmark"; pos = { ...inherited, bookmark: ++counts.bookmark }; }
-          else if (["comment", "commentRangeStart", "ins", "del", "moveFrom", "moveTo"].includes(current.localName)) kind = "annotation";
+          else if (["comment", "commentRangeStart", "ins", "del", "moveFrom", "moveTo", "footnoteReference", "endnoteReference"].includes(current.localName)) kind = "annotation";
         }
         if ((current.namespace === a && current.localName === "blip") ||
           (current.namespace === "urn:schemas-microsoft-com:vml" && current.localName === "imagedata")) {

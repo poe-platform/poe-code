@@ -70,6 +70,14 @@ export function validateDocxOptionRules(operation: string, options: Readonly<Rec
   checkLengths(options);
   const has = (name: string) => options[name] !== undefined;
   const reject = (message: string): never => { throw new DocxUsageError(message); };
+  if (operation.startsWith("notes.")) {
+    if (has("reference") && has("references")) reject("Choose one reference or all references.");
+    if (has("reference") && options.all === true) reject("A reference ordinal requires one selected note.");
+    if (operation === "notes.add") {
+      if (has("scope") && options.scope !== "body") reject("Note references must be inserted in the body.");
+    } else if (has("scope") && !["footnotes", "endnotes", "all-stories"].includes(String(options.scope))) reject("Notes require a note story scope.");
+    if (has("kind") && has("scope") && options.scope !== "body" && options.scope !== "all-stories" && options.scope !== options.kind + "s") reject("Note kind conflicts with scope.");
+  }
   if (["headers.set", "footers.set"].includes(operation)) {
     if (!has("text") && !has("linkToPrevious")) reject("Story set requires text or link-to-previous intent.");
     if (options.shared === true && has("linkToPrevious")) reject("Shared editing and binding changes conflict.");

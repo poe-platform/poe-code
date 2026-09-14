@@ -1,4 +1,5 @@
 import { executeFieldsCommand } from "./fields-command.js";
+import { executeNotesCommand } from "./notes-command.js";
 import { inspectDocumentFields } from "./fields.js";
 import { executeBookmarksCommand } from "./bookmarks-command.js";
 import { inspectDocumentBookmarks } from "./bookmarks.js";
@@ -60,6 +61,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
       let output: Uint8Array;
       let exitCode = 0;
       const fieldOperation = ["fields.add", "fields.set", "toc.add", "toc.set", "captions.add", "captions.set"].includes(invocation.operation);
+      const noteOperation = ["notes.list", "notes.get", "notes.add", "notes.set", "notes.remove"].includes(invocation.operation);
       const bookmarkOperation = ["bookmarks.add", "bookmarks.set", "bookmarks.remove"].includes(invocation.operation);
       const linkOperation = ["links.add", "links.set", "links.remove"].includes(invocation.operation);
       const tableOperation = ["tables.set", "tables.rows.add", "tables.rows.remove", "tables.columns.add", "tables.columns.remove", "tables.merge", "tables.split"].includes(invocation.operation);
@@ -70,7 +72,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
           output = await executeCreateCommand(invocation, request, context, io);
           budget.check("serializedOutput", output.length);
         } else {
-        if (!fieldOperation && invocation.operation !== "fields.list" && !bookmarkOperation && invocation.operation !== "bookmarks.list" && !linkOperation && invocation.operation !== "links.list" && !tableOperation && invocation.operation !== "tables.get" && !listOperation && !storyOperation && invocation.operation !== "batch" && invocation.operation !== "inspect" && invocation.operation !== "validate" && invocation.operation !== "text.get" && invocation.operation !== "text.replace" && invocation.operation !== "runs.set" && !["paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation) && !["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set"].includes(invocation.operation) && invocation.operation !== "xml.get" && invocation.operation !== "xml.set") {
+        if (!noteOperation && !fieldOperation && invocation.operation !== "fields.list" && !bookmarkOperation && invocation.operation !== "bookmarks.list" && !linkOperation && invocation.operation !== "links.list" && !tableOperation && invocation.operation !== "tables.get" && !listOperation && !storyOperation && invocation.operation !== "batch" && invocation.operation !== "inspect" && invocation.operation !== "validate" && invocation.operation !== "text.get" && invocation.operation !== "text.replace" && invocation.operation !== "runs.set" && !["paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation) && !["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set"].includes(invocation.operation) && invocation.operation !== "xml.get" && invocation.operation !== "xml.set") {
           throw Object.assign(new Error("This document operation is not implemented."), { code: "unsupported-profile" });
         }
         if (!fieldOperation && invocation.operation !== "fields.list" && !bookmarkOperation && invocation.operation !== "bookmarks.list" && !linkOperation && invocation.operation !== "links.list" && ["link", "control", "revision", "shape", "field", "bookmark"].some(key => invocation.options[key] !== undefined)) {
@@ -79,7 +81,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         const input = invocation.inputs[0]!;
         acquiring = true;
         let inputIdentity: PublicationInput | undefined;
-        if ((fieldOperation || bookmarkOperation || linkOperation || tableOperation || ["lists.add", "lists.set", "headers.set", "headers.remove", "footers.set", "footers.remove", "sections.set", "sections.add", "batch", "styles.add", "styles.set", "styles.defaults.set", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.set", "xml.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation)) && input !== "-" && request.filesystem.lstat) {
+        if (((noteOperation && !["notes.list", "notes.get"].includes(invocation.operation)) || fieldOperation || bookmarkOperation || linkOperation || tableOperation || ["lists.add", "lists.set", "headers.set", "headers.remove", "footers.set", "footers.remove", "sections.set", "sections.add", "batch", "styles.add", "styles.set", "styles.defaults.set", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.set", "xml.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation)) && input !== "-" && request.filesystem.lstat) {
           const path = resolvePath(request.cwd, input);
           inputIdentity = { path, stat: await request.filesystem.lstat(path, { signal: request.signal }) };
         }
@@ -90,8 +92,9 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
           return { async *[Symbol.asyncIterator]() { yield await request.filesystem.readFile(path, { signal }); } };
         } });
         acquiring = false;
-        if (fieldOperation || bookmarkOperation || linkOperation || tableOperation || listOperation || storyOperation || ["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set", "xml.get", "xml.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation)) {
-          output = fieldOperation ? await executeFieldsCommand(invocation, bytes, inputIdentity, request, context)
+        if (noteOperation || fieldOperation || bookmarkOperation || linkOperation || tableOperation || listOperation || storyOperation || ["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set", "xml.get", "xml.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add", "tables.add"].includes(invocation.operation)) {
+          output = noteOperation ? await executeNotesCommand(invocation, bytes, inputIdentity, request, context)
+            : fieldOperation ? await executeFieldsCommand(invocation, bytes, inputIdentity, request, context)
             : bookmarkOperation ? await executeBookmarksCommand(invocation, bytes, inputIdentity, request, context)
             : linkOperation ? await executeLinksCommand(invocation, bytes, inputIdentity, request, context)
             : tableOperation ? await executeTableEditCommand(invocation, bytes, inputIdentity, request, context)

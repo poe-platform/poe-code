@@ -26,15 +26,21 @@ export function replaceParagraphContent(xml: DocumentXmlEditor, p: XmlElement, p
     if (child.localName === "pPr") { patches.set(child, ""); continue; }
     if (markers.has(child.localName)) continue;
     const check = (node: XmlElement): void => {
+      if (["footnoteRef", "endnoteRef"].includes(node.localName) && (child.localName !== "r" || !child.children.includes(node)))
+        throw new UnsupportedEditError("Whole paragraph text cannot discard nested note markers.");
       if (node.localName !== "rPr" && node.content.some(c => c.kind !== "element" && c.kind !== "text"))
         throw new UnsupportedEditError("Whole paragraph text cannot discard XML annotations.");
-      if (node.namespace !== p.namespace || !["r", "rPr", "t", "tab", "br", "cr", "hyperlink"].includes(node.localName)) {
+      if (node.namespace !== p.namespace || !["r", "rPr", "t", "tab", "br", "cr", "hyperlink", "footnoteRef", "endnoteRef"].includes(node.localName)) {
         throw new UnsupportedEditError("Whole paragraph text cannot replace fields, objects or review content.");
       }
       if (node.localName !== "rPr") for (const c of node.children) check(c);
     };
     check(child);
-    patches.set(child, inserted || !text ? "" : paragraphTextRun(p.namespace, text)); inserted = true;
+    const noteMarks = child.children.filter(n => n.namespace === p.namespace && ["footnoteRef", "endnoteRef"].includes(n.localName));
+    const preserved = noteMarks.length ? runElementOpen(child) + child.children.filter(n => n.localName === "rPr" || noteMarks.includes(n)).map(n => xml.sourceXml(n)).join("") + `</${child.name}>` : "";
+    const hasText = child.children.some(n => !["rPr", "footnoteRef", "endnoteRef"].includes(n.localName));
+    patches.set(child, preserved + (inserted || !text || !hasText && noteMarks.length ? "" : paragraphTextRun(p.namespace, text)));
+    if (hasText || !noteMarks.length) inserted = true;
   }
   return runElementOpen(p) + properties + xml.sourceXml(p, patches, true) + (!inserted && text ? paragraphTextRun(p.namespace, text) : "") + `</${p.name}>`;
 }

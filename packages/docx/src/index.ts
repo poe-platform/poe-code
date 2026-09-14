@@ -16,3 +16,10 @@ export {
   type ArchiveWriteOptions,
   type ArchiveSink
 } from "./archive-write.js";
+export {
+  readDocumentArchive,
+  UnsupportedProfileError,
+  InvalidPackageError,
+  InvalidXmlError,
+  type AdmittedDocumentArchive
+} from "./admission.js";

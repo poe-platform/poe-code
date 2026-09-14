@@ -1,8 +1,8 @@
 # Bounded DOCX ZIP64 and format admission
 
 Task: `zip64-and-format-admission`, 2026-09-14. This execution record supplements
-`docx-typescript-safe-bash.md`, whose unrelated working-tree edits remain intact. At completion, only this
-task's status will be updated and staged separately from that rewrite. Later
+`docx-typescript-safe-bash.md`, whose unrelated working-tree edits remain intact. Only this
+task's status is updated and staged separately from that rewrite. Later
 tasks, including `opc-package-graph`, remain pending.
 
 ## Owned changes
@@ -121,7 +121,7 @@ is retained at `/tmp/docx-zip64-tests-verified.log`; no assertion was weakened.
 A leaf investigation reproduced the exact pre-build lock assertion. To qualify
 current intended bytes before normal commits, an isolated temporary Git index
 captured HEAD plus only the owned files listed above (excluding the pipeline
-status update, which remains pending). Review-only commit object
+status update, applied only after the full gate passed). Review-only commit object
 `de4d0e74786bdaf0082327f11e87e69a69f3458e`, tree
 `5819598823aa385c88dfb9dfc1e51126a00822e7`, has no branch/ref and did not change
 main or the normal index. This is QA evidence, not main delivery or an old
@@ -144,6 +144,7 @@ lint-stress check. Safe-bash reported 38,053 passes and 823 skips; SafeJS report
 skips. The orchestrator completed all 44 declared workspace test tasks, with
 no exclusions; workspaces without declared tests were not counted as passes.
 
-Delivery uses separate normal hook-running codec and admission commits on main,
-staging only owned paths/status edits. The committed export verifier will also
+The codec fix is local main commit `be8ff1504`. The admission change and current
+task status form the following separate Conventional Commit, with only owned
+paths/status edits staged and normal hooks enabled. The committed export verifier will also
 be checked at final HEAD. No push or release is authorized.

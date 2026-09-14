@@ -783,7 +783,7 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status: done
   - id: opc-package-graph
     title: Implement the OPC package and relationship graph
     prompt: |

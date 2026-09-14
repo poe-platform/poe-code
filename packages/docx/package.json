@@ -24,7 +24,8 @@
     "lint": "eslint src tests && tsc --noEmit && tsc -p tsconfig.test.json"
   },
   "dependencies": {
-    "@poe-code/office-package": "*"
+    "@poe-code/office-package": "*",
+    "saxes": "6.0.0"
   },
   "repository": {
     "type": "git",
@@ -32,7 +33,6 @@
     "directory": "packages/docx"
   },
   "devDependencies": {
-    "memfs": "4.56.10",
-    "saxes": "6.0.0"
+    "memfs": "4.56.10"
   }
 }

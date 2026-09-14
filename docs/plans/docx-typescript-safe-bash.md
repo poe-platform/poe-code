@@ -5,48 +5,16 @@ version: 1
 name: Original docx utility — comprehensive OOXML implementation
 readiness: draft
 setup:
-  prompt: |
-    Prepare docs/plans/docx-typescript-safe-bash.md using root/scoped AGENTS.md.
-    The single authoritative proposed contract is docs/specs/docx.md. Implement an
-    original TypeScript utility named exactly docx with matching SDK and explicit
-    safe-bash plugin. No reference-project branding, copied product code/binary fixtures or native
-    build/runtime dependencies. Adapt upstream behavioral test cases with original data. Read the actual seeded QA fixture inventory
-    in docs/docx/corpus-manifest.json and corpus-report.md; acquisition and census
-    are completed preparation, not proof that product operations work.
-    Downloads in .cache/docx-corpus are disposable QA fixtures ONLY. Do not ship or
-    commit them, and do not make canonical unit tests depend on them. Derive useful
-    findings into small original memfs unit tests, then delete downloaded fixtures
-    and owned outputs after QA when no active campaign needs them. Retain only
-    manifest/provenance, concise evidence and permanent small regressions.
-    Tasks execute in listed order. Use failing tests before code, scoped ownership/
-    delegation rules for safe-bash, maintained checks and bounded no-host-fallback
-    I/O. Work on main, preserve unrelated changes. During execution, commit verified atomic improvements
-    using Conventional Commits and explicitly staged owned paths; do not push or release. README edits require explicit permission;
-    keep drafts under docs/docx meanwhile. Override inherited automatic Git teardown.
+  prompt: |-
+    Read docs/plans/docx-typescript-safe-bash.md, root AGENTS.md and scoped AGENTS.md before executing. This is an ordered implementation pipeline for an original TypeScript utility named exactly docx, its matching SDK and an explicit safe-bash plugin. docs/specs/docx.md is the sole format contract; docs/specs/office-cli.md and office-sdk.md govern shared command/SDK behavior. Resolve recorded wording drift before product code; this plan does not create a competing specification.
 
-    Reference-project names, links and attributions belong only in plans/research
-    and required standalone legal notices. Never put them in product source, code
-    comments, test names, fixtures, identifiers, CLI output or package branding.
-    Adapt behavioral cases with original wording/assets; retain any required MIT
-    notice separately for substantial derived material.
-    Read docs/docx/upstream-test-audit.md and upstream-test-inventory.json. Map every
-    collected parametrized unit case and expanded BDD example; no handpicked subset.
-    All applicable cases require original passing TS tests. Private Python mechanics
-    may map to equivalent observable assertions with an explicit rationale. Difficult
-    public behavior is not architecture-only; any deferral remains a visible gap and
-    blocks parity claims.
+    Run tasks in listed order. Record current main branch, status and index; preserve unrelated edits and staging. Assign explicit owned paths before edits. For substantive safe-bash work, root delegates investigation/implementation/verification to leaf workers, assigns the integration/export owner, and coordinates Git. Independent review uses a different worker. Delegation within the current task does not authorize starting later tasks out of order. Follow packages/safe-bash/AGENTS.md, guarded paths and exact literal integration-input registration; preserve historical seals.
 
-    Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
-    command/SDK contracts. Use plural resources (images, tables, properties), text
-    replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
-    The model SDK retains documented neutral method/property spellings; whole public
-    API coverage includes inherited members, enums, collections, helpers and APIs
-    without upstream tests. Read docs/docx/upstream-api-audit.md and
-    upstream-api-inventory.json; record exact JS language/security mappings and
-    resolve documentation drift. Do not hide unsupported public APIs as private
-    merely because a type name starts with an underscore. Reference-project names
-    remain only in plans/research and legally required standalone notices; never in
-    code, comments, tests, fixtures or CLI output.
+    Read docs/docx/corpus-manifest.json and corpus-report.md and both upstream test/API audits and inventories. Acquisition/census and reference passes are preparation only. Product operations and adaptations remain unverified until original TS tests pass. Keep all case identities/provenance in research and required standalone legal notices; product source/comments/tests/fixtures/identifiers/output contain no reference identities, copied code or binary assets. No native build/runtime dependency, ambient host I/O or implicit network; QA-only independent tools never enter product/build dependency closure.
+
+    Use failing tests before code, original small memfs fixtures, maintained uncached checks and bounded capability I/O. Research and usage drafts belong in docs/docx; every plan/QA procedure belongs in docs/plans. Do not edit README files without explicit permission. Keep downloaded QA inputs only in the disposable ignored cache while a campaign needs them; reduce findings before owned cleanup.
+
+    This setup overrides inherited setup. Per-task statuses select implement and, where appropriate, test only; never select inherited commit/release steps. Task prompts own verified atomic Conventional Commits of explicit owned paths on main. No blanket staging, co-author, ignored-file commits, hook bypass, push or release. The explicit teardown overrides automatic Git teardown. Do not mark implementation, parity or product QA complete from preparation evidence.
 teardown:
   prompt: |
     Report completed versus pending docx specification families, actual maintained
@@ -115,10 +83,12 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: done
   - id: reconcile-documented-public-api
     title: Reconcile the whole documented public API
-    status: open
+    status:
+      implement: done
     prompt: |-
       Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
       docs/specs/office-cli.md and docs/specs/office-sdk.md. Documentation/research only; do not implement product code in this task.
@@ -149,8 +119,9 @@ tasks:
       No empty read-only commits. Report local hashes; do not push or release.
   - id: define-mirrored-js-api
     title: Define the complete mirrored JavaScript API
-    status: open
-    prompt: |-
+    status:
+      implement: done
+    prompt: |
       Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
       docs/specs/office-cli.md and docs/specs/office-sdk.md. Documentation/research only; do not implement product code in this task.
       Read docs/docx/upstream-api-audit.md, upstream-api-inventory.json,
@@ -178,9 +149,12 @@ tasks:
       with a Conventional Commit, explicitly staging only owned files and relevant
       plan updates. Never commit ignored fixtures, use --no-verify or add co-authors.
       No empty read-only commits. Report local hashes; do not push or release.
+
+      The current 331 records across 39 documentation files are a candidate starting set, not a closed denominator. Record exact async factory/save/input admission signatures; sync live property/model behavior; trailing typed source-spelled keyword options versus camelCase operation options; zero-based sequence lookup, at/slice/iteration/length versus keyed lookup and one-based CLI selectors; null/undefined/false/zero; safe integer units/rounding; enum symbols/aliases; Uint8Array ownership; UTC Date precision; neutral type/value/index/key errors; explicit time/author/fonts/VFS capabilities; safe element/part views and invalidated handles. Include inherited, returned, underscore-prefixed public types, prose-only workflows and untested APIs. Record documentation drift comment_id/timestamp versus id/date without inventing aliases. Dispositions are implemented, planned, language-mapped, security-mapped, documentation-error or unsupported; only passing evidence closes behavior.
   - id: map-all-features-to-commands
     title: Map every feature and API behavior to commands
-    status: open
+    status:
+      implement: done
     prompt: |-
       Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
       docs/specs/office-cli.md and docs/specs/office-sdk.md. Documentation/research only; do not implement product code in this task.
@@ -211,7 +185,8 @@ tasks:
       No empty read-only commits. Report local hashes; do not push or release.
   - id: paired-cli-acceptance
     title: Write paired ergonomic command acceptance cases
-    status: open
+    status:
+      implement: done
     prompt: |-
       Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
       docs/specs/office-cli.md and docs/specs/office-sdk.md. Documentation/research only; do not implement product code in this task.
@@ -242,7 +217,8 @@ tasks:
       No empty read-only commits. Report local hashes; do not push or release.
   - id: verify-python-test-baseline
     title: Verify the pinned document test baseline
-    status: open
+    status:
+      implement: done
     prompt: |
       Use docs/specs/docx.md and root/scoped AGENTS.md. Documentation/research only; do not implement the product in this task.
       Read docs/docx/upstream-test-audit.md and upstream-test-inventory.json and the
@@ -278,7 +254,8 @@ tasks:
       code, comments, tests, fixtures or CLI output.
   - id: map-all-upstream-tests
     title: Map every document test variant
-    status: open
+    status:
+      implement: done
     prompt: |
       Use docs/specs/docx.md and root/scoped AGENTS.md. Documentation/research only; do not implement the product in this task.
       Read docs/docx/upstream-test-audit.md and upstream-test-inventory.json and the
@@ -312,9 +289,12 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
+
+      The current pinned inventory has 1,609 distinct collected unit variants and 650 expanded BDD examples: account for all 2,259 rows, not only files/functions/templates. Preserve unit node_id; use source_file + line + expanded name for BDD identity, recording example identity if needed to disambiguate. Verify no duplicate, missing or orphan mapping rows by set comparison to parsed inventory. Each row records owning ordered task, original target test path/title, semantic assertion and expected edge values, disposition/rationale, red evidence before implementation and passing result/source revision. Many-to-one targets must show each variant's invariant is exercised. Keep this crosswalk in research so upstream identities never enter product tests. Every feature task must select and write all of its assigned failing cases before implementing that behavior; later adaptation tasks close residual gaps rather than postponing TDD. Architecture-only dispositions are limited to genuinely private mechanics; observable public behavior requires original passing TS assertions.
   - id: reconcile-upstream-contract
     title: Reconcile upstream behavior with the DOCX contract
-    status: open
+    status:
+      implement: done
     prompt: |
       Use docs/specs/docx.md and root/scoped AGENTS.md. Documentation/research only; do not implement the product in this task.
       Read docs/docx/upstream-test-audit.md and upstream-test-inventory.json and the
@@ -324,7 +304,7 @@ tasks:
       never shipped or canonical unit-test dependencies. Reduce meaningful cases into
       original in-memory tests before deleting QA fixtures.
 
-      Audit all discovered public semantics against F01-F50, including table logical grids/merged cells, section/header linkage, style inheritance, comments, image characterization, numbering, hyperlinks and rendered page-break metadata. Extend the proposed contract/tasks for applicable missing behavior rather than dropping tests because an initial plan omitted them. Preserve spec-based differences with explicit original acceptance cases; Python API spelling and private wrapper identity are not required.
+      Audit all discovered public semantics against F01-F50, including table logical grids/merged cells, section/header linkage, style inheritance, comments, image characterization, numbering, hyperlinks and rendered page-break metadata. Extend the proposed contract/tasks for applicable missing behavior rather than dropping tests because an initial plan omitted them. Preserve spec-based differences with explicit original acceptance cases; Neutral documented method/property spelling is retained under office-sdk.md; private Python wrapper identity may map to observable behavior with an explicit rationale.
 
       Reference-project names, links and attributions belong only in plans/research
       and required standalone legal notices. Never put them in product source, code
@@ -348,6 +328,8 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
+
+      Resolve specific current docx.md wording drift in the authoritative proposed spec before code: section 1's prohibition on deriving tests from another suite conflicts with section 11 and the user-authorized original behavioral adaptation; section 9's allowMissing conflicts with shared allowEmpty/--allow-empty, and its multiple-match wording must require exactly one of --first/--all/--occurrence for text replace. Separate the CLI's explicit pixel-to-EMU 96-DPI convention from the model API's documented native-image DPI/default sizing. Preserve Status: Proposed and Implemented Through: Not applicable until actual implementation evidence exists. Do not treat these stale phrases as permission to drop cases, add aliases or change shared semantics.
   - id: finalize-command-contract
     title: Resolve the complete CLI and SDK command grammar
     prompt: |
@@ -362,7 +344,7 @@ tasks:
       for create/inspect/validate/text/xml, editing families, graphics/review/forms,
       batch/diff/extract/pack and help/version. Define arguments, JSON operation
       schemas, typed results, stable errors, selectors, scopes, defaults and precedence.
-      Utility name is exactly docx; no compatibility aliases. Resolve positional
+      Utility name is exactly docx; reject obsolete conflicting aliases while retaining shared text/text get, --help/-h, --version and -o discovery/output aliases. Resolve positional
       input versus stdin, --ops-json/--ops-file, --output/--in-place/--force, shared
       resource intent and raw/JSON conflicts. Specify real defaults, supported JSON
       keys, empty/null/absent handling and stale-location fingerprints. Keep standards
@@ -399,7 +381,8 @@ tasks:
       format-specific grammar and shared register entries without renaming common
       paths/options. Replace old top-level replace/image/table/metadata vocabulary
       with text replace/images/tables/properties. Include schema and capabilities.
-    status: open
+    status:
+      implement: done
   - id: audit-downloaded-qa-fixtures
     title: Audit the downloaded disposable fixture inventory
     prompt: |
@@ -447,7 +430,8 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: done
   - id: fill-corpus-feature-gaps
     title: Find additional QA documents for uncovered structures
     prompt: |
@@ -459,7 +443,7 @@ tasks:
       assets or canonical unit tests. Do not push or release.
 
       Use the manifest's actual feature census to find missing real examples,
-      particularly editable charts, comments/revisions, Strict markup, RTL/CJK text,
+      particularly comments/revisions, Strict markup and meaningful RTL/CJK text; chart inventory/preservation already has nine chart parts in the second inventory volume. Check
       linked/shared graphics, footnotes and form controls. Research authoritative
       public publishers and actually download suitable files where available. Record
       source/landing URL, license evidence, SHA-256, date and measured structure;
@@ -495,7 +479,8 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: done
   - id: author-original-unit-fixtures
     title: Author small independent unit fixtures
     prompt: |
@@ -513,8 +498,7 @@ tasks:
       Create original in-memory documents using community garden handbooks,
       observatory maintenance logs, museum catalogs and multilingual equipment lists.
       Vary runs, paragraphs, stories, tables, lists, fields, sections, images and opaque
-      extensions. Use original wording and authored image bytes; do not rename or
-      paraphrase imported cases. Canonical fixtures remain small and deterministic,
+      extensions. Use original wording and authored image bytes; do not copy product code, fixture bytes or report passages. Adapt the inventoried behavioral boundaries with independently authored wording/assets and retain substantial-derivation notices separately. Canonical fixtures remain small and deterministic,
       with no network, external binaries, LLMs or host scratch files. Build only the
       minimal fixture helpers needed, with explicit valid/invalid variants. Record
       F01-F50 coverage and keep downloaded report bodies out of these tests.
@@ -544,7 +528,11 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+
+      For new artistic fixture images or motifs follow root artwork instructions: use the supplied reference or GPT-Image-2.5-Sunburst first, inspect/iterate and preserve prompts/references; report unavailable model access rather than substituting. Technical image-format header/pixel fixtures are non-artwork and may be authored deterministically in memory. Never call image generation from canonical tests.
+    status:
+      implement: done
+      test: done
   - id: independent-structure-assertions
     title: Build independent package and structure assertions
     prompt: |
@@ -592,7 +580,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: done
+      test: done
   - id: fixture-reduction-workflow
     title: Define how QA findings become tiny regressions
     prompt: |
@@ -638,7 +628,8 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: done
   - id: shared-zip-read
     title: Expose a bounded shared ZIP reader
     prompt: |
@@ -687,7 +678,11 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+
+      First inspect the current packages/zip, packages/docx, shared XML and package/export declarations; prior plans are not evidence these packages are missing or need reimplementation. Establish the smallest original TypeScript ESM package boundary, maintained build/test/type checks and original default-template ownership as needed. Keep shell adapters thin and runtime/native dependencies absent; no host compression fallback. Draft the required package README under docs/docx pending explicit permission. Delegate any substantive safe-bash extraction/refactor to an assigned leaf owner, with independent existing-archive behavior review, and preserve current public archive semantics.
+    status:
+      implement: done
+      test: done
   - id: shared-zip-write
     title: Implement deterministic bounded ZIP writing
     prompt: |
@@ -735,7 +730,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: done
+      test: done
   - id: zip64-and-format-admission
     title: Handle bounded ZIP64 and unsupported containers
     prompt: |
@@ -783,7 +780,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: done
+    status:
+      implement: done
+      test: done
   - id: opc-package-graph
     title: Implement the OPC package and relationship graph
     prompt: |
@@ -831,7 +830,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: done
+      test: done
   - id: namespace-xml-read
     title: Implement bounded namespace-aware XML parsing
     prompt: |
@@ -879,7 +880,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: done
+      test: done
   - id: loss-preserving-xml-write
     title: Implement dirty-part serialization and opaque preservation
     prompt: |
@@ -927,7 +930,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: done
+      test: done
   - id: markup-compatibility
     title: Implement MCE and alternate-content preservation
     prompt: |
@@ -975,7 +980,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: done
+      test: done
   - id: strict-transitional-dialects
     title: Support Strict and Transitional DOCX dialects
     prompt: |
@@ -1023,7 +1030,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: done
+      test: done
   - id: package-semantic-validation
     title: Validate package-wide semantic invariants
     prompt: |
@@ -1071,7 +1080,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: done
+      test: done
   - id: limits-and-work-accounting
     title: Implement invocation-wide resource and work budgets
     prompt: |
@@ -1119,7 +1130,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: done
+      test: done
   - id: streams-and-cleanup
     title: Integrate byte streams cancellation and owned cleanup
     prompt: |
@@ -1167,7 +1180,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: done
+      test: done
   - id: safe-file-publication
     title: Implement exclusive and conditional document publication
     prompt: |
@@ -1182,7 +1197,7 @@ tasks:
       to small original unit regressions independent of downloads. Preserve unrelated
       work and historical evidence; run maintained checks for the changed scope.
 
-      Require exactly one explicit output/stdout/in-place mode. New outputs are
+      Require exactly one output or in-place mode for publishing mutations; output - is binary stdout. Dry-run requires no output and validates any proposed destination; creation requires output. New outputs are
       exclusive; overwrite needs force and in-place is explicit replacement intent.
       Resolve per-path capabilities and alias identity using actual VFS contracts.
       Stage and validate before publication; reject missing guarantees or unknown
@@ -1216,7 +1231,11 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+
+      For multi-file extraction require adapter transactions or explicit allowPartialOutput/--allow-partial-output with precise published-file manifests. Unknown alias identity or absent conditional/staged guarantees refuses destructive publication. Force never authorizes an input alias or bypasses protection, limits or validation.
+    status:
+      implement: done
+      test: done
   - id: document-locations
     title: Implement stable selectors and stale-edit detection
     prompt: |
@@ -1234,7 +1253,7 @@ tasks:
       Define typed part/story/paragraph/run/table/cell/image/annotation locations with
       a document revision fingerprint. Reject stale locations, ambiguous matches and
       out-of-range coordinates before mutation; expose explicit occurrence/all and
-      allowMissing options consistently. Logical locations must not leak parser object
+      allowEmpty options consistently. Logical locations must not leak parser object
       identity or depend on pretty printing. Mutation results include updated locations
       and counts. Test shared parts, repeated text, edited revisions and namespace
       prefix changes without confusing byte identity with displayed strings.
@@ -1264,7 +1283,153 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: done
+      test: done
+  - id: sdk-live-object-model
+    title: Implement live SDK objects and documented setters
+    status:
+      implement: done
+      test: done
+    prompt: |
+      Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
+      docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
+      Read docs/docx/upstream-api-audit.md, upstream-api-inventory.json,
+      upstream-test-audit.md and upstream-test-inventory.json. Preserve unrelated work,
+      keep plans and agent QA procedures in docs/plans, and use docs/docx for evidence.
+      Downloaded publisher decks/documents and cloned binaries are disposable QA only;
+      reduce meaningful cases into original small unit tests before cleanup. No README
+      edits, ambient host I/O, native runtime or implicit network.
+
+      Implement the documented object graph and public properties/methods as the primary SDK, backed by the same domain primitives as command operations. Preserve documented getter side effects, returned object types, owner identity and invalidated handles. Test destructive text setters/clear separately from preserving text replace, and ensure read-only CLI inspection does not invoke creating getters. Avoid duplicate editors or a forest of forwarding alias functions.
+
+      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
+      command/SDK contracts. Use plural resources (images, tables, properties), text
+      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
+      The model SDK retains documented neutral method/property spellings; whole public
+      API coverage includes inherited members, enums, collections, helpers and APIs
+      without upstream tests. Read docs/docx/upstream-api-audit.md and
+      upstream-api-inventory.json; record exact JS language/security mappings and
+      resolve documentation drift. Do not hide unsupported public APIs as private
+      merely because a type name starts with an underscore. Reference-project names
+      remain only in plans/research and legally required standalone notices; never in
+      code, comments, tests, fixtures or CLI output.
+
+      After relevant maintained checks pass, commit each atomic improvement on main
+      with a Conventional Commit, explicitly staging only owned files and relevant
+      plan updates. Never commit ignored fixtures, use --no-verify or add co-authors.
+      No empty read-only commits. Report local hashes; do not push or release.
+      Complete the public object surface over the domain behavior already implemented
+      by earlier feature tasks. Reuse/extend those live types instead of creating a
+      second editor or placeholder implementation.
+  - id: sdk-collections-values
+    title: Implement complete collections units colors and enums
+    status:
+      implement: done
+      test: done
+    prompt: |
+      Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
+      docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
+      Read docs/docx/upstream-api-audit.md, upstream-api-inventory.json,
+      upstream-test-audit.md and upstream-test-inventory.json. Preserve unrelated work,
+      keep plans and agent QA procedures in docs/plans, and use docs/docx for evidence.
+      Downloaded publisher decks/documents and cloned binaries are disposable QA only;
+      reduce meaningful cases into original small unit tests before cleanup. No README
+      edits, ambient host I/O, native runtime or implicit network.
+
+      Cover documented sequence/keyed lookup, length, iteration, bounds, negative-index/slice mappings and mutation protocols. Preserve sparse ID-keyed collections and null/false/zero distinctions. Implement all documented unit/color helpers, enum members/aliases and value conversions with original tests. Add cases for public members with no upstream unit test.
+
+      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
+      command/SDK contracts. Use plural resources (images, tables, properties), text
+      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
+      The model SDK retains documented neutral method/property spellings; whole public
+      API coverage includes inherited members, enums, collections, helpers and APIs
+      without upstream tests. Read docs/docx/upstream-api-audit.md and
+      upstream-api-inventory.json; record exact JS language/security mappings and
+      resolve documentation drift. Do not hide unsupported public APIs as private
+      merely because a type name starts with an underscore. Reference-project names
+      remain only in plans/research and legally required standalone notices; never in
+      code, comments, tests, fixtures or CLI output.
+
+      After relevant maintained checks pass, commit each atomic improvement on main
+      with a Conventional Commit, explicitly staging only owned files and relevant
+      plan updates. Never commit ignored fixtures, use --no-verify or add co-authors.
+      No empty read-only commits. Report local hashes; do not push or release.
+      Complete the public object surface over the domain behavior already implemented
+      by earlier feature tasks. Reuse/extend those live types instead of creating a
+      second editor or placeholder implementation.
+  - id: sdk-async-capabilities
+    title: Implement consistent async I/O and context mappings
+    status:
+      implement: done
+      test: done
+    prompt: |
+      Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
+      docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
+      Read docs/docx/upstream-api-audit.md, upstream-api-inventory.json,
+      upstream-test-audit.md and upstream-test-inventory.json. Preserve unrelated work,
+      keep plans and agent QA procedures in docs/plans, and use docs/docx for evidence.
+      Downloaded publisher decks/documents and cloned binaries are disposable QA only;
+      reduce meaningful cases into original small unit tests before cleanup. No README
+      edits, ambient host I/O, native runtime or implicit network.
+
+      Make factories/save/input-admitting methods consistently async and in-memory model operations synchronous, using explicit bytes/streams/VFS capabilities. Define typed context time/author/metrics/cancellation defaults without ambient discovery. Preserve documented argument defaults where safe and record deliberate mappings. Test no value-or-Promise ambiguity, byte ownership, failures, stale publication and cancellation.
+
+      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
+      command/SDK contracts. Use plural resources (images, tables, properties), text
+      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
+      The model SDK retains documented neutral method/property spellings; whole public
+      API coverage includes inherited members, enums, collections, helpers and APIs
+      without upstream tests. Read docs/docx/upstream-api-audit.md and
+      upstream-api-inventory.json; record exact JS language/security mappings and
+      resolve documentation drift. Do not hide unsupported public APIs as private
+      merely because a type name starts with an underscore. Reference-project names
+      remain only in plans/research and legally required standalone notices; never in
+      code, comments, tests, fixtures or CLI output.
+
+      After relevant maintained checks pass, commit each atomic improvement on main
+      with a Conventional Commit, explicitly staging only owned files and relevant
+      plan updates. Never commit ignored fixtures, use --no-verify or add co-authors.
+      No empty read-only commits. Report local hashes; do not push or release.
+      Complete the public object surface over the domain behavior already implemented
+      by earlier feature tasks. Reuse/extend those live types instead of creating a
+      second editor or placeholder implementation.
+  - id: sdk-xml-package-views
+    title: Expose bounded documented XML and package views
+    status:
+      implement: done
+      test: done
+    prompt: |
+      Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
+      docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
+      Read docs/docx/upstream-api-audit.md, upstream-api-inventory.json,
+      upstream-test-audit.md and upstream-test-inventory.json. Preserve unrelated work,
+      keep plans and agent QA procedures in docs/plans, and use docs/docx for evidence.
+      Downloaded publisher decks/documents and cloned binaries are disposable QA only;
+      reduce meaningful cases into original small unit tests before cleanup. No README
+      edits, ambient host I/O, native runtime or implicit network.
+
+      Cover public element/part and returned package-view behaviors that documentation exposes. Specify safe JS XML traversal/attributes/structured mutation and graph validation without importing an entire Python dependency API or bypassing limits. Map genuine private helpers separately; a documented underscore-prefixed return type is not automatically private. Test every exposed read/write behavior and publication invariants.
+
+      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
+      command/SDK contracts. Use plural resources (images, tables, properties), text
+      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
+      The model SDK retains documented neutral method/property spellings; whole public
+      API coverage includes inherited members, enums, collections, helpers and APIs
+      without upstream tests. Read docs/docx/upstream-api-audit.md and
+      upstream-api-inventory.json; record exact JS language/security mappings and
+      resolve documentation drift. Do not hide unsupported public APIs as private
+      merely because a type name starts with an underscore. Reference-project names
+      remain only in plans/research and legally required standalone notices; never in
+      code, comments, tests, fixtures or CLI output.
+
+      After relevant maintained checks pass, commit each atomic improvement on main
+      with a Conventional Commit, explicitly staging only owned files and relevant
+      plan updates. Never commit ignored fixtures, use --no-verify or add co-authors.
+      No empty read-only commits. Report local hashes; do not push or release.
+      Complete the public object surface over the domain behavior already implemented
+      by earlier feature tasks. Reuse/extend those live types instead of creating a
+      second editor or placeholder implementation.
   - id: command-registration
     title: Register the explicit docx safe-bash plugin
     prompt: |
@@ -1312,7 +1477,13 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+
+      Root assigns the packages/safe-bash/src/commands/docx owner and separate root package.json/export integration owner before changes; leaf workers do substantive scoped work and report exact owned files/checks. Keep virtual-bash private and its runtime dependencies empty. Register new integration tests by exact literal path in packages/safe-bash/scripts/integration-inputs.test.mjs; preserve default command inventories and authenticated historical inputs. Inspect actual ZIP/XML public exports before wiring packages/docx; proposed import names are not availability claims. Verify packed runtime and declaration consumers, package contents and browser/worker closure before advertising them.
+
+      Verify docx is absent from agentCommands/createAgentCommands before explicit plugin registration and present only after opt-in; assert actual dispatch, collision refusal and deliberate replacement. Workers do not stage or commit without explicit root assignment.
+    status:
+      implement: done
+      test: done
   - id: argument-and-json-parsing
     title: Implement command arguments and versioned JSON schemas
     prompt: |
@@ -1359,7 +1530,42 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: done
+      test: done
+  - id: simple-selector-ergonomics
+    title: Implement simple selectors and direct edit flags
+    status:
+      implement: done
+      test: done
+    prompt: |-
+      Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
+      docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
+      Read docs/docx/upstream-api-audit.md, upstream-api-inventory.json,
+      upstream-test-audit.md and upstream-test-inventory.json. Preserve unrelated work,
+      keep plans and agent QA procedures in docs/plans, and use docs/docx for evidence.
+      Downloaded publisher decks/documents and cloned binaries are disposable QA only;
+      reduce meaningful cases into original small unit tests before cleanup. No README
+      edits, ambient host I/O, native runtime or implicit network.
+
+      Make routine edits work without XML IDs, fingerprints or JSON: scoped one-based paragraph/table/image selectors, logical cell coordinates and applicable slide/shape labels. Preserve safe fingerprint tokens for automation. Implement consistent first/all/occurrence and explicit shared-resource behavior, good ambiguity errors and destination/force/dry-run semantics. Run original paired SDK/CLI acceptance cases.
+
+      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
+      command/SDK contracts. Use plural resources (images, tables, properties), text
+      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
+      The model SDK retains documented neutral method/property spellings; whole public
+      API coverage includes inherited members, enums, collections, helpers and APIs
+      without upstream tests. Read docs/docx/upstream-api-audit.md and
+      upstream-api-inventory.json; record exact JS language/security mappings and
+      resolve documentation drift. Do not hide unsupported public APIs as private
+      merely because a type name starts with an underscore. Reference-project names
+      remain only in plans/research and legally required standalone notices; never in
+      code, comments, tests, fixtures or CLI output.
+
+      After relevant maintained checks pass, commit each atomic improvement on main
+      with a Conventional Commit, explicitly staging only owned files and relevant
+      plan updates. Never commit ignored fixtures, use --no-verify or add co-authors.
+      No empty read-only commits. Report local hashes; do not push or release.
   - id: help-errors-and-output
     title: Implement coherent help results and diagnostics
     prompt: |
@@ -1407,7 +1613,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: done
+      test: done
   - id: inspect-and-validate-commands
     title: Expose document inventory and validation reports
     prompt: |
@@ -1455,7 +1663,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: done
+      test: done
   - id: story-text-extraction
     title: Extract visible text across document stories
     prompt: |
@@ -1503,7 +1713,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: done
+      test: done
   - id: xml-part-access
     title: Expose raw XML pretty output and validated part replacement
     prompt: |
@@ -1551,7 +1763,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: done
+      test: done
   - id: create-documents-and-templates
     title: Create new DOCX and macro-free templates
     prompt: |
@@ -1599,7 +1813,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: done
+      test: done
   - id: run-aware-replacement
     title: Implement literal replacement across formatting runs
     prompt: |
@@ -1619,7 +1835,7 @@ tasks:
       field/object/revision/container barriers. Preserve unmatched run fragments and
       properties; inherit first-match formatting unless explicit formatting is given.
       Handle empty replacement, xml:space, tabs/newlines, Unicode and checked offsets.
-      Require explicit all/occurrence for multiple matches and report no-match policy.
+      Require exactly one of first/all/occurrence even for one match; missing mutations fail unless allowEmpty is explicit.
       Test exact text and formatting, not merely the presence of replacement words.
 
       After the task passes its relevant maintained checks, commit each atomic improvement
@@ -1647,7 +1863,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: done
+      test: done
   - id: run-formatting
     title: Implement direct character formatting
     prompt: |
@@ -1694,7 +1912,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: done
+      test: done
   - id: paragraph-formatting
     title: Implement paragraphs spacing tabs and breaks
     prompt: |
@@ -1741,7 +1961,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: done
+      test: done
   - id: styles-and-headings
     title: Implement styles inheritance and heading levels
     prompt: |
@@ -1757,7 +1979,7 @@ tasks:
       work and historical evidence; run maintained checks for the changed scope.
 
       Inspect/create/edit/reuse paragraph, character and table styles, defaults,
-      linked styles, basedOn/next relationships and headings 1-9. Detect style cycles
+      linked styles, basedOn/next relationships and Title via heading level 0 and headings 1-9. Detect style cycles
       and missing references. Do not overwrite a user style merely because its name
       matches a desired built-in heading. Allocate collision-free IDs deterministically;
       preserve unedited latent/style metadata. Test inherited versus direct properties,
@@ -1788,7 +2010,42 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: done
+      test: done
+  - id: sdk-style-and-format-api
+    title: Complete all style and formatting API members
+    status:
+      implement: done
+      test: done
+    prompt: |-
+      Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
+      docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
+      Read docs/docx/upstream-api-audit.md, upstream-api-inventory.json,
+      upstream-test-audit.md and upstream-test-inventory.json. Preserve unrelated work,
+      keep plans and agent QA procedures in docs/plans, and use docs/docx for evidence.
+      Downloaded publisher decks/documents and cloned binaries are disposable QA only;
+      reduce meaningful cases into original small unit tests before cleanup. No README
+      edits, ambient host I/O, native runtime or implicit network.
+
+      Implement inherited character/paragraph/table style properties, latent-style defaults/individual entries, style visibility/priority/locking, next/base styles, all documented Font flags and tab-stop insertion/deletion/clear. Include Title via heading level 0, built-in style aliases, tri-state values and style-name lookup semantics. Every API row and source case must map to original tests.
+
+      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
+      command/SDK contracts. Use plural resources (images, tables, properties), text
+      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
+      The model SDK retains documented neutral method/property spellings; whole public
+      API coverage includes inherited members, enums, collections, helpers and APIs
+      without upstream tests. Read docs/docx/upstream-api-audit.md and
+      upstream-api-inventory.json; record exact JS language/security mappings and
+      resolve documentation drift. Do not hide unsupported public APIs as private
+      merely because a type name starts with an underscore. Reference-project names
+      remain only in plans/research and legally required standalone notices; never in
+      code, comments, tests, fixtures or CLI output.
+
+      After relevant maintained checks pass, commit each atomic improvement on main
+      with a Conventional Commit, explicitly staging only owned files and relevant
+      plan updates. Never commit ignored fixtures, use --no-verify or add co-authors.
+      No empty read-only commits. Report local hashes; do not push or release.
   - id: themes-and-font-resources
     title: Preserve themes fonts and language resources
     prompt: |
@@ -1835,7 +2092,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: done
+      test: done
   - id: sections-and-page-settings
     title: Implement sections margins columns and page metadata
     prompt: |
@@ -1882,7 +2141,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: done
+      test: done
   - id: headers-and-footers
     title: Implement shared and section-specific header footer edits
     prompt: |
@@ -1929,7 +2190,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: done
+      test: open
   - id: multilevel-numbering
     title: Implement lists restarts and numbering definitions
     prompt: |
@@ -1976,7 +2239,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: table-construction
     title: Create formatted tables and validate grids
     prompt: |
@@ -2023,7 +2288,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: table-cell-updates
     title: Implement table selection cell edits and row column changes
     prompt: |
@@ -2070,7 +2337,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: merged-cell-operations
     title: Implement merged-cell resolution merge and split
     prompt: |
@@ -2118,7 +2387,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: hyperlinks
     title: Implement internal and external hyperlink operations
     prompt: |
@@ -2165,7 +2436,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: bookmarks-and-locations
     title: Implement bookmark ranges and reference-safe updates
     prompt: |
@@ -2212,7 +2485,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: field-structure-and-results
     title: Implement nested fields and displayed result editing
     prompt: |
@@ -2260,7 +2535,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: toc-captions-and-crossrefs
     title: Create TOCs captions and cross-reference fields
     prompt: |
@@ -2307,7 +2584,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: footnotes-and-endnotes
     title: Implement notes references and separators
     prompt: |
@@ -2354,7 +2633,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: classic-comments
     title: Implement classic comment ranges and bodies
     prompt: |
@@ -2401,7 +2682,42 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
+  - id: sdk-table-section-review-api
+    title: Complete table section and review object APIs
+    status:
+      implement: open
+      test: open
+    prompt: |-
+      Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
+      docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
+      Read docs/docx/upstream-api-audit.md, upstream-api-inventory.json,
+      upstream-test-audit.md and upstream-test-inventory.json. Preserve unrelated work,
+      keep plans and agent QA procedures in docs/plans, and use docs/docx for evidence.
+      Downloaded publisher decks/documents and cloned binaries are disposable QA only;
+      reduce meaningful cases into original small unit tests before cleanup. No README
+      edits, ambient host I/O, native runtime or implicit network.
+
+      Cover omitted row cells versus empty cells, repeated logical cells across merges, nested ordered content, section iteration and linked first/even/default headers/footers. Complete rich comment containers and metadata/range semantics, hyperlink traversal and rendered-page-break fragments. Correct source-guide typos via the audit; do not invent id/date aliases when the verified API uses comment_id/timestamp.
+
+      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
+      command/SDK contracts. Use plural resources (images, tables, properties), text
+      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
+      The model SDK retains documented neutral method/property spellings; whole public
+      API coverage includes inherited members, enums, collections, helpers and APIs
+      without upstream tests. Read docs/docx/upstream-api-audit.md and
+      upstream-api-inventory.json; record exact JS language/security mappings and
+      resolve documentation drift. Do not hide unsupported public APIs as private
+      merely because a type name starts with an underscore. Reference-project names
+      remain only in plans/research and legally required standalone notices; never in
+      code, comments, tests, fixtures or CLI output.
+
+      After relevant maintained checks pass, commit each atomic improvement on main
+      with a Conventional Commit, explicitly staging only owned files and relevant
+      plan updates. Never commit ignored fixtures, use --no-verify or add co-authors.
+      No empty read-only commits. Report local hashes; do not push or release.
   - id: modern-comment-extensions
     title: Preserve modern and threaded comment metadata
     prompt: |
@@ -2448,7 +2764,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: revision-read-views
     title: Implement final original and annotated revision views
     prompt: |
@@ -2495,7 +2813,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: tracked-text-edits
     title: Create tracked text insertion and deletion
     prompt: |
@@ -2542,7 +2862,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: accept-reject-revisions
     title: Accept and reject supported selected revisions
     prompt: |
@@ -2590,7 +2912,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: content-control-values
     title: Implement content control inspection and filling
     prompt: |
@@ -2637,7 +2961,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: repeat-controls-and-bindings
     title: Implement bounded repeat controls and data binding
     prompt: |
@@ -2685,7 +3011,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: custom-xml-and-glossary
     title: Preserve custom XML glossary and ancillary document parts
     prompt: |
@@ -2732,7 +3060,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: typed-document-properties
     title: Implement core extended and custom properties
     prompt: |
@@ -2779,7 +3109,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: image-inventory-extraction
     title: Inspect and extract inline floating and shared images
     prompt: |
@@ -2826,7 +3158,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: raster-image-insertion
     title: Insert PNG and JPEG with correct dimensions and alt text
     prompt: |
@@ -2841,11 +3175,10 @@ tasks:
       to small original unit regressions independent of downloads. Preserve unrelated
       work and historical evidence; run maintained checks for the changed scope.
 
-      Validate PNG/JPEG signatures and dimension headers from bounded bytes; reject
+      Validate PNG/JPEG/GIF/BMP/TIFF signatures and bounded dimension/DPI headers under F32 and the complete public API map; reject
       extension/type mismatch and oversized/overflow dimensions. Insert inline
       DrawingML with correct media/content type/relationship/drawing IDs. Accept
-      positive EMU or pixels with checked 96-DPI conversion and explicit aspect-ratio
-      policy. Require/allow alt text and decorative intent according to schema.
+      checked unit values and explicit aspect-ratio policy. CLI pixel inputs use its documented 96-DPI convention; the model API preserves documented native DPI/fallback sizing. Require/allow alt text and decorative intent according to schema.
       Test original authored images, alpha PNG, portrait/landscape JPEG and placement
       in body/table/header/note without rasterization dependencies.
 
@@ -2874,7 +3207,42 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
+  - id: sdk-image-format-api
+    title: Complete image sizing and metadata parity
+    status:
+      implement: open
+      test: open
+    prompt: |-
+      Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
+      docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
+      Read docs/docx/upstream-api-audit.md, upstream-api-inventory.json,
+      upstream-test-audit.md and upstream-test-inventory.json. Preserve unrelated work,
+      keep plans and agent QA procedures in docs/plans, and use docs/docx for evidence.
+      Downloaded publisher decks/documents and cloned binaries are disposable QA only;
+      reduce meaningful cases into original small unit tests before cleanup. No README
+      edits, ambient host I/O, native runtime or implicit network.
+
+      Reconcile every accepted source image format and tested header/DPI/size behavior, including GIF/BMP/TIFF beyond PNG/JPEG. Implement bounded characterization, source aspect ratio/native-size defaults and original file/stream equivalents under explicit VFS capabilities. Add all missing API edge cases; no imported binary test fixtures or external decoders at runtime without policy-compliant explicit design.
+
+      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
+      command/SDK contracts. Use plural resources (images, tables, properties), text
+      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
+      The model SDK retains documented neutral method/property spellings; whole public
+      API coverage includes inherited members, enums, collections, helpers and APIs
+      without upstream tests. Read docs/docx/upstream-api-audit.md and
+      upstream-api-inventory.json; record exact JS language/security mappings and
+      resolve documentation drift. Do not hide unsupported public APIs as private
+      merely because a type name starts with an underscore. Reference-project names
+      remain only in plans/research and legally required standalone notices; never in
+      code, comments, tests, fixtures or CLI output.
+
+      After relevant maintained checks pass, commit each atomic improvement on main
+      with a Conventional Commit, explicitly staging only owned files and relevant
+      plan updates. Never commit ignored fixtures, use --no-verify or add co-authors.
+      No empty read-only commits. Report local hashes; do not push or release.
   - id: image-occurrence-replacement
     title: Replace one image occurrence or an explicitly shared resource
     prompt: |
@@ -2922,7 +3290,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: floating-image-layout
     title: Edit floating image geometry crop rotation and wrapping
     prompt: |
@@ -2970,7 +3340,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: svg-and-image-fallbacks
     title: Preserve vector formats and support explicit SVG fallback insertion
     prompt: |
@@ -3017,7 +3389,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: shapes-and-text-boxes
     title: Inspect shapes and edit supported text-box stories
     prompt: |
@@ -3064,7 +3438,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: charts-and-workbooks
     title: Inspect charts and preserve embedded workbook relationships
     prompt: |
@@ -3112,7 +3488,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: smartart-and-diagrams
     title: Preserve SmartArt diagrams and extension graphics
     prompt: |
@@ -3159,7 +3537,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: omml-equations
     title: Inspect preserve and explicitly insert validated OMML
     prompt: |
@@ -3178,7 +3558,7 @@ tasks:
       on ordinary text replacement and expose explicit bounded validated OMML fragment
       insertion/replacement at safe locations. Reject malformed math trees, external
       resources and XML namespace misuse; do not imply LaTeX conversion or evaluate
-      expressions. Use the downloaded mathematical appendix as QA input only and
+      expressions. Use the manifest-pinned nz-ghg-inventory-2025-vol-1 (45 OMML expressions) as QA input only and
       retain small original fraction/matrix/subscript fixtures for unit coverage.
 
       After the task passes its relevant maintained checks, commit each atomic improvement
@@ -3206,7 +3586,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: embedded-objects
     title: Inspect preserve and explicitly extract inert embedded objects
     prompt: |
@@ -3253,7 +3635,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: settings-and-protection
     title: Respect document settings protection and locked structures
     prompt: |
@@ -3301,7 +3685,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: signatures-and-explicit-removal
     title: Detect signatures and require explicit removal before editing
     prompt: |
@@ -3348,7 +3734,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: range-and-structure-removal
     title: Implement exact range removal with reference preservation
     prompt: |
@@ -3395,7 +3783,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: deterministic-dummy-text
     title: Generate seeded dummy text without privacy claims
     prompt: |
@@ -3442,7 +3832,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: explicit-sanitization
     title: Implement selective sanitization with an exact effect report
     prompt: |
@@ -3490,7 +3882,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: ordered-batch-operations
     title: Implement typed ordered batch edits with one publication
     prompt: |
@@ -3538,7 +3932,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: data-driven-template-expansion
     title: Expand templates from bounded typed records
     prompt: |
@@ -3586,7 +3982,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: semantic-document-diff
     title: Compare package payloads and semantic document structures
     prompt: |
@@ -3634,7 +4032,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: safe-docx-extraction
     title: Extract admitted document parts into owned VFS destinations
     prompt: |
@@ -3682,7 +4082,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: validated-docx-packing
     title: Reconstruct a DOCX from an explicit virtual directory
     prompt: |
@@ -3729,7 +4131,156 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
+  - id: schema-capability-discovery
+    title: Expose exhaustive schemas help and capabilities
+    status:
+      implement: open
+      test: open
+    prompt: |-
+      Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
+      docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
+      Read docs/docx/upstream-api-audit.md, upstream-api-inventory.json,
+      upstream-test-audit.md and upstream-test-inventory.json. Preserve unrelated work,
+      keep plans and agent QA procedures in docs/plans, and use docs/docx for evidence.
+      Downloaded publisher decks/documents and cloned binaries are disposable QA only;
+      reduce meaningful cases into original small unit tests before cleanup. No README
+      edits, ambient host I/O, native runtime or implicit network.
+
+      Expose schema and capabilities commands from the actual declared operations and verified support levels. Generate matching help with selectors, scopes, limits, output semantics and edit/read/preserve/reject differences. Link every feature/API register row to a usable operation and test. Do not infer full editing from parser recognition or omit unsupported namespaces.
+
+      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
+      command/SDK contracts. Use plural resources (images, tables, properties), text
+      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
+      The model SDK retains documented neutral method/property spellings; whole public
+      API coverage includes inherited members, enums, collections, helpers and APIs
+      without upstream tests. Read docs/docx/upstream-api-audit.md and
+      upstream-api-inventory.json; record exact JS language/security mappings and
+      resolve documentation drift. Do not hide unsupported public APIs as private
+      merely because a type name starts with an underscore. Reference-project names
+      remain only in plans/research and legally required standalone notices; never in
+      code, comments, tests, fixtures or CLI output.
+
+      After relevant maintained checks pass, commit each atomic improvement on main
+      with a Conventional Commit, explicitly staging only owned files and relevant
+      plan updates. Never commit ignored fixtures, use --no-verify or add co-authors.
+      No empty read-only commits. Report local hashes; do not push or release.
+  - id: adapt-upstream-opc-xml-images
+    title: Adapt all OPC XML and image cases
+    status:
+      implement: open
+      test: open
+    prompt: |
+      Use docs/specs/docx.md and root/scoped AGENTS.md. Use TDD and small original fast memfs tests; keep product logic in its package and CLI backed by the SDK. Follow scoped ownership/delegation rules.
+      Read docs/docx/upstream-test-audit.md and upstream-test-inventory.json and the
+      crosslinked counterpart audit for shared OPC/XML/image behavior. Keep all plans/QA
+      procedures in docs/plans, and evidence/provenance in docs/docx. No README edits.
+      Downloaded documents and temporary cloned binary fixtures are disposable QA inputs,
+      never shipped or canonical unit-test dependencies. Reduce meaningful cases into
+      original in-memory tests before deleting QA fixtures.
+
+      Adapt every mapped package/URI/content-type/serializer/XML/image-characterization case, including all parameter variants, into independent original memfs tests. Preserve logical edge values but replace copied assets/snippets. Mock architecture cases must become observable invariants where possible; retain required notices separately. Reconcile every row in these families with a passing target test.
+
+      Reference-project names, links and attributions belong only in plans/research
+      and required standalone legal notices. Never put them in product source, code
+      comments, test names, fixtures, identifiers, CLI output or package branding.
+      Adapt behavioral cases with original wording/assets; retain any required MIT
+      notice separately for substantial derived material.
+
+      After relevant maintained checks pass, commit each atomic improvement on main
+      with a Conventional Commit. Stage only explicitly named owned files and relevant
+      plan updates. Preserve unrelated work; never commit ignored QA fixtures, use
+      --no-verify, add a co-author or create empty commits. Do not push or release.
+
+      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
+      command/SDK contracts. Use plural resources (images, tables, properties), text
+      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
+      The model SDK retains documented neutral method/property spellings; whole public
+      API coverage includes inherited members, enums, collections, helpers and APIs
+      without upstream tests. Read docs/docx/upstream-api-audit.md and
+      upstream-api-inventory.json; record exact JS language/security mappings and
+      resolve documentation drift. Do not hide unsupported public APIs as private
+      merely because a type name starts with an underscore. Reference-project names
+      remain only in plans/research and legally required standalone notices; never in
+      code, comments, tests, fixtures or CLI output.
+  - id: adapt-upstream-text-style-document
+    title: Adapt all text style and document cases
+    status:
+      implement: open
+      test: open
+    prompt: |
+      Use docs/specs/docx.md and root/scoped AGENTS.md. Use TDD and small original fast memfs tests; keep product logic in its package and CLI backed by the SDK. Follow scoped ownership/delegation rules.
+      Read docs/docx/upstream-test-audit.md and upstream-test-inventory.json and the
+      crosslinked counterpart audit for shared OPC/XML/image behavior. Keep all plans/QA
+      procedures in docs/plans, and evidence/provenance in docs/docx. No README edits.
+      Downloaded documents and temporary cloned binary fixtures are disposable QA inputs,
+      never shipped or canonical unit-test dependencies. Reduce meaningful cases into
+      original in-memory tests before deleting QA fixtures.
+
+      Cover every mapped document/paragraph/run/font/style/section/header/footer/hyperlink/page-break/comment/settings case and boundary. Express them through typed SDK behavior and original exact XML assertions, not Python private proxy classes. Test inherited/absent/explicit-false values, IDs, Unicode and shared header relationships. Add missing applicable behavior rather than silently deferring it.
+
+      Reference-project names, links and attributions belong only in plans/research
+      and required standalone legal notices. Never put them in product source, code
+      comments, test names, fixtures, identifiers, CLI output or package branding.
+      Adapt behavioral cases with original wording/assets; retain any required MIT
+      notice separately for substantial derived material.
+
+      After relevant maintained checks pass, commit each atomic improvement on main
+      with a Conventional Commit. Stage only explicitly named owned files and relevant
+      plan updates. Preserve unrelated work; never commit ignored QA fixtures, use
+      --no-verify, add a co-author or create empty commits. Do not push or release.
+
+      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
+      command/SDK contracts. Use plural resources (images, tables, properties), text
+      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
+      The model SDK retains documented neutral method/property spellings; whole public
+      API coverage includes inherited members, enums, collections, helpers and APIs
+      without upstream tests. Read docs/docx/upstream-api-audit.md and
+      upstream-api-inventory.json; record exact JS language/security mappings and
+      resolve documentation drift. Do not hide unsupported public APIs as private
+      merely because a type name starts with an underscore. Reference-project names
+      remain only in plans/research and legally required standalone notices; never in
+      code, comments, tests, fixtures or CLI output.
+  - id: adapt-upstream-tables-bdd
+    title: Adapt all table and BDD workflow cases
+    status:
+      implement: open
+      test: open
+    prompt: |
+      Use docs/specs/docx.md and root/scoped AGENTS.md. Use TDD and small original fast memfs tests; keep product logic in its package and CLI backed by the SDK. Follow scoped ownership/delegation rules.
+      Read docs/docx/upstream-test-audit.md and upstream-test-inventory.json and the
+      crosslinked counterpart audit for shared OPC/XML/image behavior. Keep all plans/QA
+      procedures in docs/plans, and evidence/provenance in docs/docx. No README edits.
+      Downloaded documents and temporary cloned binary fixtures are disposable QA inputs,
+      never shipped or canonical unit-test dependencies. Reduce meaningful cases into
+      original in-memory tests before deleting QA fixtures.
+
+      Cover every grid/row/column/cell/merge case and all expanded BDD scenarios with original unit/SDK/safe-bash tests. Account for grid-before/after, spanning cells, content preservation and invalid merge shapes. Keep renderer-only behavior in explicit Markdown QA when necessary and report its run status. Each upstream case row needs independent passing evidence or a specific justified semantic disposition.
+
+      Reference-project names, links and attributions belong only in plans/research
+      and required standalone legal notices. Never put them in product source, code
+      comments, test names, fixtures, identifiers, CLI output or package branding.
+      Adapt behavioral cases with original wording/assets; retain any required MIT
+      notice separately for substantial derived material.
+
+      After relevant maintained checks pass, commit each atomic improvement on main
+      with a Conventional Commit. Stage only explicitly named owned files and relevant
+      plan updates. Preserve unrelated work; never commit ignored QA fixtures, use
+      --no-verify, add a co-author or create empty commits. Do not push or release.
+
+      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
+      command/SDK contracts. Use plural resources (images, tables, properties), text
+      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
+      The model SDK retains documented neutral method/property spellings; whole public
+      API coverage includes inherited members, enums, collections, helpers and APIs
+      without upstream tests. Read docs/docx/upstream-api-audit.md and
+      upstream-api-inventory.json; record exact JS language/security mappings and
+      resolve documentation drift. Do not hide unsupported public APIs as private
+      merely because a type name starts with an underscore. Reference-project names
+      remain only in plans/research and legally required standalone notices; never in
+      code, comments, tests, fixtures or CLI output.
   - id: malformed-input-adversarial-review
     title: Verify hostile ZIP XML and document graphs
     prompt: |
@@ -3777,7 +4328,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: lifecycle-adversarial-review
     title: Verify cancellation aliases budgets and publication failures
     prompt: |
@@ -3825,7 +4378,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: large-document-profiles
     title: Measure large-document scaling and trusted profiles
     prompt: |
@@ -3873,7 +4428,11 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+
+      Record the distinction between census and product ceilings: ordinary seed inspection used 512 MiB expanded and 5 million XML nodes, whereas the proposed product defaults are 256 MiB and 2 million. Exercise default rejection and explicit large-profile success through actual public SDK and Shell, including at least two successful large/dense round trips plus targeted edits. Do not label generated inputs as downloaded or claim the unfulfilled two-input 20 MiB/100 MiB acquisition regime.
+    status:
+      implement: open
+      test: open
   - id: corpus-text-structure-qa
     title: Execute real-report text table field and structure QA
     prompt: |
@@ -3918,7 +4477,8 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
   - id: corpus-image-qa
     title: Execute image-heavy and floating-figure QA
     prompt: |
@@ -3963,7 +4523,8 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
   - id: independent-ooxml-interoperability
     title: Validate outputs against independent OOXML tooling
     prompt: |
@@ -4011,7 +4572,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: behavior-and-coverage-audit
     title: Audit F01-F50 behavior and measured code coverage
     prompt: |
@@ -4059,7 +4622,9 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+      test: open
   - id: public-consumer-and-shell-qa
     title: Verify packaged SDK and actual virtual-shell workflows
     prompt: |
@@ -4107,347 +4672,13 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
-  - id: sdk-live-object-model
-    title: Implement live SDK objects and documented setters
-    status: open
-    prompt: |
-      Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
-      docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
-      Read docs/docx/upstream-api-audit.md, upstream-api-inventory.json,
-      upstream-test-audit.md and upstream-test-inventory.json. Preserve unrelated work,
-      keep plans and agent QA procedures in docs/plans, and use docs/docx for evidence.
-      Downloaded publisher decks/documents and cloned binaries are disposable QA only;
-      reduce meaningful cases into original small unit tests before cleanup. No README
-      edits, ambient host I/O, native runtime or implicit network.
-
-      Implement the documented object graph and public properties/methods as the primary SDK, backed by the same domain primitives as command operations. Preserve documented getter side effects, returned object types, owner identity and invalidated handles. Test destructive text setters/clear separately from preserving text replace, and ensure read-only CLI inspection does not invoke creating getters. Avoid duplicate editors or a forest of forwarding alias functions.
-
-      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
-      command/SDK contracts. Use plural resources (images, tables, properties), text
-      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
-      The model SDK retains documented neutral method/property spellings; whole public
-      API coverage includes inherited members, enums, collections, helpers and APIs
-      without upstream tests. Read docs/docx/upstream-api-audit.md and
-      upstream-api-inventory.json; record exact JS language/security mappings and
-      resolve documentation drift. Do not hide unsupported public APIs as private
-      merely because a type name starts with an underscore. Reference-project names
-      remain only in plans/research and legally required standalone notices; never in
-      code, comments, tests, fixtures or CLI output.
-
-      After relevant maintained checks pass, commit each atomic improvement on main
-      with a Conventional Commit, explicitly staging only owned files and relevant
-      plan updates. Never commit ignored fixtures, use --no-verify or add co-authors.
-      No empty read-only commits. Report local hashes; do not push or release.
-      Complete the public object surface over the domain behavior already implemented
-      by earlier feature tasks. Reuse/extend those live types instead of creating a
-      second editor or placeholder implementation.
-  - id: sdk-collections-values
-    title: Implement complete collections units colors and enums
-    status: open
-    prompt: |
-      Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
-      docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
-      Read docs/docx/upstream-api-audit.md, upstream-api-inventory.json,
-      upstream-test-audit.md and upstream-test-inventory.json. Preserve unrelated work,
-      keep plans and agent QA procedures in docs/plans, and use docs/docx for evidence.
-      Downloaded publisher decks/documents and cloned binaries are disposable QA only;
-      reduce meaningful cases into original small unit tests before cleanup. No README
-      edits, ambient host I/O, native runtime or implicit network.
-
-      Cover documented sequence/keyed lookup, length, iteration, bounds, negative-index/slice mappings and mutation protocols. Preserve sparse ID-keyed collections and null/false/zero distinctions. Implement all documented unit/color helpers, enum members/aliases and value conversions with original tests. Add cases for public members with no upstream unit test.
-
-      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
-      command/SDK contracts. Use plural resources (images, tables, properties), text
-      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
-      The model SDK retains documented neutral method/property spellings; whole public
-      API coverage includes inherited members, enums, collections, helpers and APIs
-      without upstream tests. Read docs/docx/upstream-api-audit.md and
-      upstream-api-inventory.json; record exact JS language/security mappings and
-      resolve documentation drift. Do not hide unsupported public APIs as private
-      merely because a type name starts with an underscore. Reference-project names
-      remain only in plans/research and legally required standalone notices; never in
-      code, comments, tests, fixtures or CLI output.
-
-      After relevant maintained checks pass, commit each atomic improvement on main
-      with a Conventional Commit, explicitly staging only owned files and relevant
-      plan updates. Never commit ignored fixtures, use --no-verify or add co-authors.
-      No empty read-only commits. Report local hashes; do not push or release.
-      Complete the public object surface over the domain behavior already implemented
-      by earlier feature tasks. Reuse/extend those live types instead of creating a
-      second editor or placeholder implementation.
-  - id: sdk-async-capabilities
-    title: Implement consistent async I/O and context mappings
-    status: open
-    prompt: |
-      Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
-      docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
-      Read docs/docx/upstream-api-audit.md, upstream-api-inventory.json,
-      upstream-test-audit.md and upstream-test-inventory.json. Preserve unrelated work,
-      keep plans and agent QA procedures in docs/plans, and use docs/docx for evidence.
-      Downloaded publisher decks/documents and cloned binaries are disposable QA only;
-      reduce meaningful cases into original small unit tests before cleanup. No README
-      edits, ambient host I/O, native runtime or implicit network.
-
-      Make factories/save/input-admitting methods consistently async and in-memory model operations synchronous, using explicit bytes/streams/VFS capabilities. Define typed context time/author/metrics/cancellation defaults without ambient discovery. Preserve documented argument defaults where safe and record deliberate mappings. Test no value-or-Promise ambiguity, byte ownership, failures, stale publication and cancellation.
-
-      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
-      command/SDK contracts. Use plural resources (images, tables, properties), text
-      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
-      The model SDK retains documented neutral method/property spellings; whole public
-      API coverage includes inherited members, enums, collections, helpers and APIs
-      without upstream tests. Read docs/docx/upstream-api-audit.md and
-      upstream-api-inventory.json; record exact JS language/security mappings and
-      resolve documentation drift. Do not hide unsupported public APIs as private
-      merely because a type name starts with an underscore. Reference-project names
-      remain only in plans/research and legally required standalone notices; never in
-      code, comments, tests, fixtures or CLI output.
-
-      After relevant maintained checks pass, commit each atomic improvement on main
-      with a Conventional Commit, explicitly staging only owned files and relevant
-      plan updates. Never commit ignored fixtures, use --no-verify or add co-authors.
-      No empty read-only commits. Report local hashes; do not push or release.
-      Complete the public object surface over the domain behavior already implemented
-      by earlier feature tasks. Reuse/extend those live types instead of creating a
-      second editor or placeholder implementation.
-  - id: sdk-xml-package-views
-    title: Expose bounded documented XML and package views
-    status: open
-    prompt: |
-      Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
-      docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
-      Read docs/docx/upstream-api-audit.md, upstream-api-inventory.json,
-      upstream-test-audit.md and upstream-test-inventory.json. Preserve unrelated work,
-      keep plans and agent QA procedures in docs/plans, and use docs/docx for evidence.
-      Downloaded publisher decks/documents and cloned binaries are disposable QA only;
-      reduce meaningful cases into original small unit tests before cleanup. No README
-      edits, ambient host I/O, native runtime or implicit network.
-
-      Cover public element/part and returned package-view behaviors that documentation exposes. Specify safe JS XML traversal/attributes/structured mutation and graph validation without importing an entire Python dependency API or bypassing limits. Map genuine private helpers separately; a documented underscore-prefixed return type is not automatically private. Test every exposed read/write behavior and publication invariants.
-
-      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
-      command/SDK contracts. Use plural resources (images, tables, properties), text
-      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
-      The model SDK retains documented neutral method/property spellings; whole public
-      API coverage includes inherited members, enums, collections, helpers and APIs
-      without upstream tests. Read docs/docx/upstream-api-audit.md and
-      upstream-api-inventory.json; record exact JS language/security mappings and
-      resolve documentation drift. Do not hide unsupported public APIs as private
-      merely because a type name starts with an underscore. Reference-project names
-      remain only in plans/research and legally required standalone notices; never in
-      code, comments, tests, fixtures or CLI output.
-
-      After relevant maintained checks pass, commit each atomic improvement on main
-      with a Conventional Commit, explicitly staging only owned files and relevant
-      plan updates. Never commit ignored fixtures, use --no-verify or add co-authors.
-      No empty read-only commits. Report local hashes; do not push or release.
-      Complete the public object surface over the domain behavior already implemented
-      by earlier feature tasks. Reuse/extend those live types instead of creating a
-      second editor or placeholder implementation.
-  - id: sdk-style-and-format-api
-    title: Complete all style and formatting API members
-    status: open
-    prompt: |-
-      Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
-      docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
-      Read docs/docx/upstream-api-audit.md, upstream-api-inventory.json,
-      upstream-test-audit.md and upstream-test-inventory.json. Preserve unrelated work,
-      keep plans and agent QA procedures in docs/plans, and use docs/docx for evidence.
-      Downloaded publisher decks/documents and cloned binaries are disposable QA only;
-      reduce meaningful cases into original small unit tests before cleanup. No README
-      edits, ambient host I/O, native runtime or implicit network.
-
-      Implement inherited character/paragraph/table style properties, latent-style defaults/individual entries, style visibility/priority/locking, next/base styles, all documented Font flags and tab-stop insertion/deletion/clear. Include Title via heading level 0, built-in style aliases, tri-state values and style-name lookup semantics. Every API row and source case must map to original tests.
-
-      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
-      command/SDK contracts. Use plural resources (images, tables, properties), text
-      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
-      The model SDK retains documented neutral method/property spellings; whole public
-      API coverage includes inherited members, enums, collections, helpers and APIs
-      without upstream tests. Read docs/docx/upstream-api-audit.md and
-      upstream-api-inventory.json; record exact JS language/security mappings and
-      resolve documentation drift. Do not hide unsupported public APIs as private
-      merely because a type name starts with an underscore. Reference-project names
-      remain only in plans/research and legally required standalone notices; never in
-      code, comments, tests, fixtures or CLI output.
-
-      After relevant maintained checks pass, commit each atomic improvement on main
-      with a Conventional Commit, explicitly staging only owned files and relevant
-      plan updates. Never commit ignored fixtures, use --no-verify or add co-authors.
-      No empty read-only commits. Report local hashes; do not push or release.
-  - id: sdk-table-section-review-api
-    title: Complete table section and review object APIs
-    status: open
-    prompt: |-
-      Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
-      docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
-      Read docs/docx/upstream-api-audit.md, upstream-api-inventory.json,
-      upstream-test-audit.md and upstream-test-inventory.json. Preserve unrelated work,
-      keep plans and agent QA procedures in docs/plans, and use docs/docx for evidence.
-      Downloaded publisher decks/documents and cloned binaries are disposable QA only;
-      reduce meaningful cases into original small unit tests before cleanup. No README
-      edits, ambient host I/O, native runtime or implicit network.
-
-      Cover omitted row cells versus empty cells, repeated logical cells across merges, nested ordered content, section iteration and linked first/even/default headers/footers. Complete rich comment containers and metadata/range semantics, hyperlink traversal and rendered-page-break fragments. Correct source-guide typos via the audit; do not invent id/date aliases when the verified API uses comment_id/timestamp.
-
-      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
-      command/SDK contracts. Use plural resources (images, tables, properties), text
-      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
-      The model SDK retains documented neutral method/property spellings; whole public
-      API coverage includes inherited members, enums, collections, helpers and APIs
-      without upstream tests. Read docs/docx/upstream-api-audit.md and
-      upstream-api-inventory.json; record exact JS language/security mappings and
-      resolve documentation drift. Do not hide unsupported public APIs as private
-      merely because a type name starts with an underscore. Reference-project names
-      remain only in plans/research and legally required standalone notices; never in
-      code, comments, tests, fixtures or CLI output.
-
-      After relevant maintained checks pass, commit each atomic improvement on main
-      with a Conventional Commit, explicitly staging only owned files and relevant
-      plan updates. Never commit ignored fixtures, use --no-verify or add co-authors.
-      No empty read-only commits. Report local hashes; do not push or release.
-  - id: sdk-image-format-api
-    title: Complete image sizing and metadata parity
-    status: open
-    prompt: |-
-      Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
-      docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
-      Read docs/docx/upstream-api-audit.md, upstream-api-inventory.json,
-      upstream-test-audit.md and upstream-test-inventory.json. Preserve unrelated work,
-      keep plans and agent QA procedures in docs/plans, and use docs/docx for evidence.
-      Downloaded publisher decks/documents and cloned binaries are disposable QA only;
-      reduce meaningful cases into original small unit tests before cleanup. No README
-      edits, ambient host I/O, native runtime or implicit network.
-
-      Reconcile every accepted source image format and tested header/DPI/size behavior, including GIF/BMP/TIFF beyond PNG/JPEG. Implement bounded characterization, source aspect ratio/native-size defaults and original file/stream equivalents under explicit VFS capabilities. Add all missing API edge cases; no imported binary test fixtures or external decoders at runtime without policy-compliant explicit design.
-
-      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
-      command/SDK contracts. Use plural resources (images, tables, properties), text
-      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
-      The model SDK retains documented neutral method/property spellings; whole public
-      API coverage includes inherited members, enums, collections, helpers and APIs
-      without upstream tests. Read docs/docx/upstream-api-audit.md and
-      upstream-api-inventory.json; record exact JS language/security mappings and
-      resolve documentation drift. Do not hide unsupported public APIs as private
-      merely because a type name starts with an underscore. Reference-project names
-      remain only in plans/research and legally required standalone notices; never in
-      code, comments, tests, fixtures or CLI output.
-
-      After relevant maintained checks pass, commit each atomic improvement on main
-      with a Conventional Commit, explicitly staging only owned files and relevant
-      plan updates. Never commit ignored fixtures, use --no-verify or add co-authors.
-      No empty read-only commits. Report local hashes; do not push or release.
-  - id: adapt-upstream-opc-xml-images
-    title: Adapt all OPC XML and image cases
-    status: open
-    prompt: |
-      Use docs/specs/docx.md and root/scoped AGENTS.md. Use TDD and small original fast memfs tests; keep product logic in its package and CLI backed by the SDK. Follow scoped ownership/delegation rules.
-      Read docs/docx/upstream-test-audit.md and upstream-test-inventory.json and the
-      crosslinked counterpart audit for shared OPC/XML/image behavior. Keep all plans/QA
-      procedures in docs/plans, and evidence/provenance in docs/docx. No README edits.
-      Downloaded documents and temporary cloned binary fixtures are disposable QA inputs,
-      never shipped or canonical unit-test dependencies. Reduce meaningful cases into
-      original in-memory tests before deleting QA fixtures.
-
-      Adapt every mapped package/URI/content-type/serializer/XML/image-characterization case, including all parameter variants, into independent original memfs tests. Preserve logical edge values but replace copied assets/snippets. Mock architecture cases must become observable invariants where possible; retain required notices separately. Reconcile every row in these families with a passing target test.
-
-      Reference-project names, links and attributions belong only in plans/research
-      and required standalone legal notices. Never put them in product source, code
-      comments, test names, fixtures, identifiers, CLI output or package branding.
-      Adapt behavioral cases with original wording/assets; retain any required MIT
-      notice separately for substantial derived material.
-
-      After relevant maintained checks pass, commit each atomic improvement on main
-      with a Conventional Commit. Stage only explicitly named owned files and relevant
-      plan updates. Preserve unrelated work; never commit ignored QA fixtures, use
-      --no-verify, add a co-author or create empty commits. Do not push or release.
-
-      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
-      command/SDK contracts. Use plural resources (images, tables, properties), text
-      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
-      The model SDK retains documented neutral method/property spellings; whole public
-      API coverage includes inherited members, enums, collections, helpers and APIs
-      without upstream tests. Read docs/docx/upstream-api-audit.md and
-      upstream-api-inventory.json; record exact JS language/security mappings and
-      resolve documentation drift. Do not hide unsupported public APIs as private
-      merely because a type name starts with an underscore. Reference-project names
-      remain only in plans/research and legally required standalone notices; never in
-      code, comments, tests, fixtures or CLI output.
-  - id: adapt-upstream-text-style-document
-    title: Adapt all text style and document cases
-    status: open
-    prompt: |
-      Use docs/specs/docx.md and root/scoped AGENTS.md. Use TDD and small original fast memfs tests; keep product logic in its package and CLI backed by the SDK. Follow scoped ownership/delegation rules.
-      Read docs/docx/upstream-test-audit.md and upstream-test-inventory.json and the
-      crosslinked counterpart audit for shared OPC/XML/image behavior. Keep all plans/QA
-      procedures in docs/plans, and evidence/provenance in docs/docx. No README edits.
-      Downloaded documents and temporary cloned binary fixtures are disposable QA inputs,
-      never shipped or canonical unit-test dependencies. Reduce meaningful cases into
-      original in-memory tests before deleting QA fixtures.
-
-      Cover every mapped document/paragraph/run/font/style/section/header/footer/hyperlink/page-break/comment/settings case and boundary. Express them through typed SDK behavior and original exact XML assertions, not Python private proxy classes. Test inherited/absent/explicit-false values, IDs, Unicode and shared header relationships. Add missing applicable behavior rather than silently deferring it.
-
-      Reference-project names, links and attributions belong only in plans/research
-      and required standalone legal notices. Never put them in product source, code
-      comments, test names, fixtures, identifiers, CLI output or package branding.
-      Adapt behavioral cases with original wording/assets; retain any required MIT
-      notice separately for substantial derived material.
-
-      After relevant maintained checks pass, commit each atomic improvement on main
-      with a Conventional Commit. Stage only explicitly named owned files and relevant
-      plan updates. Preserve unrelated work; never commit ignored QA fixtures, use
-      --no-verify, add a co-author or create empty commits. Do not push or release.
-
-      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
-      command/SDK contracts. Use plural resources (images, tables, properties), text
-      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
-      The model SDK retains documented neutral method/property spellings; whole public
-      API coverage includes inherited members, enums, collections, helpers and APIs
-      without upstream tests. Read docs/docx/upstream-api-audit.md and
-      upstream-api-inventory.json; record exact JS language/security mappings and
-      resolve documentation drift. Do not hide unsupported public APIs as private
-      merely because a type name starts with an underscore. Reference-project names
-      remain only in plans/research and legally required standalone notices; never in
-      code, comments, tests, fixtures or CLI output.
-  - id: adapt-upstream-tables-bdd
-    title: Adapt all table and BDD workflow cases
-    status: open
-    prompt: |
-      Use docs/specs/docx.md and root/scoped AGENTS.md. Use TDD and small original fast memfs tests; keep product logic in its package and CLI backed by the SDK. Follow scoped ownership/delegation rules.
-      Read docs/docx/upstream-test-audit.md and upstream-test-inventory.json and the
-      crosslinked counterpart audit for shared OPC/XML/image behavior. Keep all plans/QA
-      procedures in docs/plans, and evidence/provenance in docs/docx. No README edits.
-      Downloaded documents and temporary cloned binary fixtures are disposable QA inputs,
-      never shipped or canonical unit-test dependencies. Reduce meaningful cases into
-      original in-memory tests before deleting QA fixtures.
-
-      Cover every grid/row/column/cell/merge case and all expanded BDD scenarios with original unit/SDK/safe-bash tests. Account for grid-before/after, spanning cells, content preservation and invalid merge shapes. Keep renderer-only behavior in explicit Markdown QA when necessary and report its run status. Each upstream case row needs independent passing evidence or a specific justified semantic disposition.
-
-      Reference-project names, links and attributions belong only in plans/research
-      and required standalone legal notices. Never put them in product source, code
-      comments, test names, fixtures, identifiers, CLI output or package branding.
-      Adapt behavioral cases with original wording/assets; retain any required MIT
-      notice separately for substantial derived material.
-
-      After relevant maintained checks pass, commit each atomic improvement on main
-      with a Conventional Commit. Stage only explicitly named owned files and relevant
-      plan updates. Preserve unrelated work; never commit ignored QA fixtures, use
-      --no-verify, add a co-author or create empty commits. Do not push or release.
-
-      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
-      command/SDK contracts. Use plural resources (images, tables, properties), text
-      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
-      The model SDK retains documented neutral method/property spellings; whole public
-      API coverage includes inherited members, enums, collections, helpers and APIs
-      without upstream tests. Read docs/docx/upstream-api-audit.md and
-      upstream-api-inventory.json; record exact JS language/security mappings and
-      resolve documentation drift. Do not hide unsupported public APIs as private
-      merely because a type name starts with an underscore. Reference-project names
-      remain only in plans/research and legally required standalone notices; never in
-      code, comments, tests, fixtures or CLI output.
+    status:
+      implement: open
+      test: open
   - id: audit-upstream-test-completeness
     title: Verify complete upstream test accounting
-    status: open
+    status:
+      implement: open
     prompt: |
       Use docs/specs/docx.md and root/scoped AGENTS.md. Documentation/research only; do not implement the product in this task.
       Read docs/docx/upstream-test-audit.md and upstream-test-inventory.json and the
@@ -4481,6 +4712,151 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
+  - id: cross-format-cli-conformance
+    title: Verify cross-format command consistency
+    status:
+      implement: open
+      test: open
+    prompt: |-
+      Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
+      docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
+      Read docs/docx/upstream-api-audit.md, upstream-api-inventory.json,
+      upstream-test-audit.md and upstream-test-inventory.json. Preserve unrelated work,
+      keep plans and agent QA procedures in docs/plans, and use docs/docx for evidence.
+      Downloaded publisher decks/documents and cloned binaries are disposable QA only;
+      reduce meaningful cases into original small unit tests before cleanup. No README
+      edits, ambient host I/O, native runtime or implicit network.
+
+      Run the common contract cases against both available public adapters: identical common paths, option names, output envelopes, ordinary exit codes and diff 0/equal 1/different 2/trouble 130/cancel. Verify no singular image/table or metadata aliases, no top-level replace and no silent ignored flags. If the counterpart is not built, verify its declared schema and retain that runtime half as pending rather than claiming paired success.
+
+      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
+      command/SDK contracts. Use plural resources (images, tables, properties), text
+      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
+      The model SDK retains documented neutral method/property spellings; whole public
+      API coverage includes inherited members, enums, collections, helpers and APIs
+      without upstream tests. Read docs/docx/upstream-api-audit.md and
+      upstream-api-inventory.json; record exact JS language/security mappings and
+      resolve documentation drift. Do not hide unsupported public APIs as private
+      merely because a type name starts with an underscore. Reference-project names
+      remain only in plans/research and legally required standalone notices; never in
+      code, comments, tests, fixtures or CLI output.
+
+      After relevant maintained checks pass, commit each atomic improvement on main
+      with a Conventional Commit, explicitly staging only owned files and relevant
+      plan updates. Never commit ignored fixtures, use --no-verify or add co-authors.
+      No empty read-only commits. Report local hashes; do not push or release.
+  - id: whole-api-acceptance
+    title: Verify the entire public API and examples
+    status:
+      implement: open
+      test: open
+    prompt: |-
+      Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
+      docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
+      Read docs/docx/upstream-api-audit.md, upstream-api-inventory.json,
+      upstream-test-audit.md and upstream-test-inventory.json. Preserve unrelated work,
+      keep plans and agent QA procedures in docs/plans, and use docs/docx for evidence.
+      Downloaded publisher decks/documents and cloned binaries are disposable QA only;
+      reduce meaningful cases into original small unit tests before cleanup. No README
+      edits, ambient host I/O, native runtime or implicit network.
+
+      Close public-api-map.json against reconciled docs, actual exports and original tests, including members absent from upstream tests. Execute original JavaScript equivalents of all guide workflows with unit/SDK/CLI evidence. Every supported behavior needs a CLI route; every language/security difference is explicit. Unsupported public members block full coverage claims; do not replace the denominator with the subset implemented.
+
+      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
+      command/SDK contracts. Use plural resources (images, tables, properties), text
+      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
+      The model SDK retains documented neutral method/property spellings; whole public
+      API coverage includes inherited members, enums, collections, helpers and APIs
+      without upstream tests. Read docs/docx/upstream-api-audit.md and
+      upstream-api-inventory.json; record exact JS language/security mappings and
+      resolve documentation drift. Do not hide unsupported public APIs as private
+      merely because a type name starts with an underscore. Reference-project names
+      remain only in plans/research and legally required standalone notices; never in
+      code, comments, tests, fixtures or CLI output.
+
+      After relevant maintained checks pass, commit each atomic improvement on main
+      with a Conventional Commit, explicitly staging only owned files and relevant
+      plan updates. Never commit ignored fixtures, use --no-verify or add co-authors.
+      No empty read-only commits. Report local hashes; do not push or release.
+  - id: ergonomic-cli-qa
+    title: Execute paired command usability and help QA
+    status:
+      implement: open
+      test: open
+    prompt: |-
+      Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
+      docs/specs/office-cli.md and docs/specs/office-sdk.md. Execute agent QA and permit only validated usability fixes, with a failing original test before code and maintained verification.
+      Read docs/docx/upstream-api-audit.md, upstream-api-inventory.json,
+      upstream-test-audit.md and upstream-test-inventory.json. Preserve unrelated work,
+      keep plans and agent QA procedures in docs/plans, and use docs/docx for evidence.
+      Downloaded publisher decks/documents and cloned binaries are disposable QA only;
+      reduce meaningful cases into original small unit tests before cleanup. No README
+      edits, ambient host I/O, native runtime or implicit network.
+
+      Execute docs/plans/office-cli-qa.md against built commands, inspecting help/error screenshots via maintained tooling. Verify that common tasks are concise, selectors discoverable, errors actionable and advanced data supported without forcing JSON for simple edits. Fix validated usability defects through failing focused tests; no screenshot test suite or scripted QA replacement. Record unrun counterpart cases honestly.
+
+      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
+      command/SDK contracts. Use plural resources (images, tables, properties), text
+      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
+      The model SDK retains documented neutral method/property spellings; whole public
+      API coverage includes inherited members, enums, collections, helpers and APIs
+      without upstream tests. Read docs/docx/upstream-api-audit.md and
+      upstream-api-inventory.json; record exact JS language/security mappings and
+      resolve documentation drift. Do not hide unsupported public APIs as private
+      merely because a type name starts with an underscore. Reference-project names
+      remain only in plans/research and legally required standalone notices; never in
+      code, comments, tests, fixtures or CLI output.
+
+      After relevant maintained checks pass, commit each atomic improvement on main
+      with a Conventional Commit, explicitly staging only owned files and relevant
+      plan updates. Never commit ignored fixtures, use --no-verify or add co-authors.
+      No empty read-only commits. Report local hashes; do not push or release.
+  - id: visual-cli-and-document-qa
+    title: Inspect CLI and representative document page screenshots
+    prompt: |
+      Work on the proposed original docx utility using docs/specs/docx.md and root
+      AGENTS.md. Do not implement product code or change README files in this task.
+      Keep all planning/QA plans in docs/plans, durable specifications in docs/specs,
+      and evidence/manifests in docs/docx. Adapt external behavioral test cases into original tests; do not copy branding
+      or binary fixtures. Downloaded documents are disposable QA inputs, not shipped
+      assets or canonical unit tests. Do not push or release.
+
+      Write and execute docs/plans/docx-visual-qa.md with actual supported commands.
+      Use screenshot-poe-code for help/text/JSON/errors and inspect images; no screenshot
+      tests. Use an available documented renderer via the applicable document skill
+      for representative edited outputs with images, tables, sections, lists, notes,
+      comments/revisions and RTL/CJK when available. Inspect repair warnings, wrapping,
+      page breaks, clipping and missing graphics. Record app/version and unverified
+      cases honestly. Visual checks are QA only; turn meaningful defects into small
+      structural unit tests before fixture cleanup.
+
+      After the task passes its relevant maintained checks, commit each atomic improvement
+      with a Conventional Commit on main. Stage only owned files explicitly, include
+      relevant plan updates, preserve unrelated changes, and never commit ignored QA
+      fixtures, use --no-verify or add a co-author. Do not create empty commits for
+      read-only work. Report local commit hashes; do not push or release.
+
+
+      Reference-project names, links and attributions belong only in plans/research
+      and required standalone legal notices. Never put them in product source, code
+      comments, test names, fixtures, identifiers, CLI output or package branding.
+      Adapt behavioral cases with original wording/assets; retain any required MIT
+      notice separately for substantial derived material.
+
+
+      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
+      command/SDK contracts. Use plural resources (images, tables, properties), text
+      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
+      The model SDK retains documented neutral method/property spellings; whole public
+      API coverage includes inherited members, enums, collections, helpers and APIs
+      without upstream tests. Read docs/docx/upstream-api-audit.md and
+      upstream-api-inventory.json; record exact JS language/security mappings and
+      resolve documentation drift. Do not hide unsupported public APIs as private
+      merely because a type name starts with an underscore. Reference-project names
+      remain only in plans/research and legally required standalone notices; never in
+      code, comments, tests, fixtures or CLI output.
+    status:
+      implement: open
   - id: cross-workspace-release-readiness
     title: Run maintained build lint and unit routes
     prompt: |
@@ -4528,207 +4904,11 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
-  - id: visual-cli-and-document-qa
-    title: Inspect CLI and representative document page screenshots
-    prompt: |
-      Work on the proposed original docx utility using docs/specs/docx.md and root
-      AGENTS.md. Do not implement product code or change README files in this task.
-      Keep all planning/QA plans in docs/plans, durable specifications in docs/specs,
-      and evidence/manifests in docs/docx. Adapt external behavioral test cases into original tests; do not copy branding
-      or binary fixtures. Downloaded documents are disposable QA inputs, not shipped
-      assets or canonical unit tests. Do not push or release.
 
-      Write and execute docs/plans/docx-visual-qa.md with actual supported commands.
-      Use screenshot-poe-code for help/text/JSON/errors and inspect images; no screenshot
-      tests. Use an available documented renderer via the applicable document skill
-      for representative edited outputs with images, tables, sections, lists, notes,
-      comments/revisions and RTL/CJK when available. Inspect repair warnings, wrapping,
-      page breaks, clipping and missing graphics. Record app/version and unverified
-      cases honestly. Visual checks are QA only; turn meaningful defects into small
-      structural unit tests before fixture cleanup.
-
-      After the task passes its relevant maintained checks, commit each atomic improvement
-      with a Conventional Commit on main. Stage only owned files explicitly, include
-      relevant plan updates, preserve unrelated changes, and never commit ignored QA
-      fixtures, use --no-verify or add a co-author. Do not create empty commits for
-      read-only work. Report local commit hashes; do not push or release.
-
-
-      Reference-project names, links and attributions belong only in plans/research
-      and required standalone legal notices. Never put them in product source, code
-      comments, test names, fixtures, identifiers, CLI output or package branding.
-      Adapt behavioral cases with original wording/assets; retain any required MIT
-      notice separately for substantial derived material.
-
-
-      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
-      command/SDK contracts. Use plural resources (images, tables, properties), text
-      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
-      The model SDK retains documented neutral method/property spellings; whole public
-      API coverage includes inherited members, enums, collections, helpers and APIs
-      without upstream tests. Read docs/docx/upstream-api-audit.md and
-      upstream-api-inventory.json; record exact JS language/security mappings and
-      resolve documentation drift. Do not hide unsupported public APIs as private
-      merely because a type name starts with an underscore. Reference-project names
-      remain only in plans/research and legally required standalone notices; never in
-      code, comments, tests, fixtures or CLI output.
-    status: open
-  - id: simple-selector-ergonomics
-    title: Implement simple selectors and direct edit flags
-    status: open
-    prompt: |-
-      Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
-      docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
-      Read docs/docx/upstream-api-audit.md, upstream-api-inventory.json,
-      upstream-test-audit.md and upstream-test-inventory.json. Preserve unrelated work,
-      keep plans and agent QA procedures in docs/plans, and use docs/docx for evidence.
-      Downloaded publisher decks/documents and cloned binaries are disposable QA only;
-      reduce meaningful cases into original small unit tests before cleanup. No README
-      edits, ambient host I/O, native runtime or implicit network.
-
-      Make routine edits work without XML IDs, fingerprints or JSON: scoped one-based paragraph/table/image selectors, logical cell coordinates and applicable slide/shape labels. Preserve safe fingerprint tokens for automation. Implement consistent first/all/occurrence and explicit shared-resource behavior, good ambiguity errors and destination/force/dry-run semantics. Run original paired SDK/CLI acceptance cases.
-
-      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
-      command/SDK contracts. Use plural resources (images, tables, properties), text
-      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
-      The model SDK retains documented neutral method/property spellings; whole public
-      API coverage includes inherited members, enums, collections, helpers and APIs
-      without upstream tests. Read docs/docx/upstream-api-audit.md and
-      upstream-api-inventory.json; record exact JS language/security mappings and
-      resolve documentation drift. Do not hide unsupported public APIs as private
-      merely because a type name starts with an underscore. Reference-project names
-      remain only in plans/research and legally required standalone notices; never in
-      code, comments, tests, fixtures or CLI output.
-
-      After relevant maintained checks pass, commit each atomic improvement on main
-      with a Conventional Commit, explicitly staging only owned files and relevant
-      plan updates. Never commit ignored fixtures, use --no-verify or add co-authors.
-      No empty read-only commits. Report local hashes; do not push or release.
-  - id: schema-capability-discovery
-    title: Expose exhaustive schemas help and capabilities
-    status: open
-    prompt: |-
-      Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
-      docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
-      Read docs/docx/upstream-api-audit.md, upstream-api-inventory.json,
-      upstream-test-audit.md and upstream-test-inventory.json. Preserve unrelated work,
-      keep plans and agent QA procedures in docs/plans, and use docs/docx for evidence.
-      Downloaded publisher decks/documents and cloned binaries are disposable QA only;
-      reduce meaningful cases into original small unit tests before cleanup. No README
-      edits, ambient host I/O, native runtime or implicit network.
-
-      Expose schema and capabilities commands from the actual declared operations and verified support levels. Generate matching help with selectors, scopes, limits, output semantics and edit/read/preserve/reject differences. Link every feature/API register row to a usable operation and test. Do not infer full editing from parser recognition or omit unsupported namespaces.
-
-      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
-      command/SDK contracts. Use plural resources (images, tables, properties), text
-      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
-      The model SDK retains documented neutral method/property spellings; whole public
-      API coverage includes inherited members, enums, collections, helpers and APIs
-      without upstream tests. Read docs/docx/upstream-api-audit.md and
-      upstream-api-inventory.json; record exact JS language/security mappings and
-      resolve documentation drift. Do not hide unsupported public APIs as private
-      merely because a type name starts with an underscore. Reference-project names
-      remain only in plans/research and legally required standalone notices; never in
-      code, comments, tests, fixtures or CLI output.
-
-      After relevant maintained checks pass, commit each atomic improvement on main
-      with a Conventional Commit, explicitly staging only owned files and relevant
-      plan updates. Never commit ignored fixtures, use --no-verify or add co-authors.
-      No empty read-only commits. Report local hashes; do not push or release.
-  - id: cross-format-cli-conformance
-    title: Verify cross-format command consistency
-    status: open
-    prompt: |-
-      Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
-      docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
-      Read docs/docx/upstream-api-audit.md, upstream-api-inventory.json,
-      upstream-test-audit.md and upstream-test-inventory.json. Preserve unrelated work,
-      keep plans and agent QA procedures in docs/plans, and use docs/docx for evidence.
-      Downloaded publisher decks/documents and cloned binaries are disposable QA only;
-      reduce meaningful cases into original small unit tests before cleanup. No README
-      edits, ambient host I/O, native runtime or implicit network.
-
-      Run the common contract cases against both available public adapters: identical common paths, option names, output envelopes, ordinary exit codes and diff 0/equal 1/different 2/trouble 130/cancel. Verify no singular image/table or metadata aliases, no top-level replace and no silent ignored flags. If the counterpart is not built, verify its declared schema and retain that runtime half as pending rather than claiming paired success.
-
-      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
-      command/SDK contracts. Use plural resources (images, tables, properties), text
-      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
-      The model SDK retains documented neutral method/property spellings; whole public
-      API coverage includes inherited members, enums, collections, helpers and APIs
-      without upstream tests. Read docs/docx/upstream-api-audit.md and
-      upstream-api-inventory.json; record exact JS language/security mappings and
-      resolve documentation drift. Do not hide unsupported public APIs as private
-      merely because a type name starts with an underscore. Reference-project names
-      remain only in plans/research and legally required standalone notices; never in
-      code, comments, tests, fixtures or CLI output.
-
-      After relevant maintained checks pass, commit each atomic improvement on main
-      with a Conventional Commit, explicitly staging only owned files and relevant
-      plan updates. Never commit ignored fixtures, use --no-verify or add co-authors.
-      No empty read-only commits. Report local hashes; do not push or release.
-  - id: whole-api-acceptance
-    title: Verify the entire public API and examples
-    status: open
-    prompt: |-
-      Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
-      docs/specs/office-cli.md and docs/specs/office-sdk.md. Use TDD and fast original memfs tests; implement domain behavior in the format package with SDK-backed CLI. Follow scoped delegation and ownership.
-      Read docs/docx/upstream-api-audit.md, upstream-api-inventory.json,
-      upstream-test-audit.md and upstream-test-inventory.json. Preserve unrelated work,
-      keep plans and agent QA procedures in docs/plans, and use docs/docx for evidence.
-      Downloaded publisher decks/documents and cloned binaries are disposable QA only;
-      reduce meaningful cases into original small unit tests before cleanup. No README
-      edits, ambient host I/O, native runtime or implicit network.
-
-      Close public-api-map.json against reconciled docs, actual exports and original tests, including members absent from upstream tests. Execute original JavaScript equivalents of all guide workflows with unit/SDK/CLI evidence. Every supported behavior needs a CLI route; every language/security difference is explicit. Unsupported public members block full coverage claims; do not replace the denominator with the subset implemented.
-
-      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
-      command/SDK contracts. Use plural resources (images, tables, properties), text
-      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
-      The model SDK retains documented neutral method/property spellings; whole public
-      API coverage includes inherited members, enums, collections, helpers and APIs
-      without upstream tests. Read docs/docx/upstream-api-audit.md and
-      upstream-api-inventory.json; record exact JS language/security mappings and
-      resolve documentation drift. Do not hide unsupported public APIs as private
-      merely because a type name starts with an underscore. Reference-project names
-      remain only in plans/research and legally required standalone notices; never in
-      code, comments, tests, fixtures or CLI output.
-
-      After relevant maintained checks pass, commit each atomic improvement on main
-      with a Conventional Commit, explicitly staging only owned files and relevant
-      plan updates. Never commit ignored fixtures, use --no-verify or add co-authors.
-      No empty read-only commits. Report local hashes; do not push or release.
-  - id: ergonomic-cli-qa
-    title: Execute paired command usability and help QA
-    status: open
-    prompt: |-
-      Work on docx using root/scoped AGENTS.md, docs/specs/docx.md,
-      docs/specs/office-cli.md and docs/specs/office-sdk.md. Documentation/research only; do not implement product code in this task.
-      Read docs/docx/upstream-api-audit.md, upstream-api-inventory.json,
-      upstream-test-audit.md and upstream-test-inventory.json. Preserve unrelated work,
-      keep plans and agent QA procedures in docs/plans, and use docs/docx for evidence.
-      Downloaded publisher decks/documents and cloned binaries are disposable QA only;
-      reduce meaningful cases into original small unit tests before cleanup. No README
-      edits, ambient host I/O, native runtime or implicit network.
-
-      Execute docs/plans/office-cli-qa.md against built commands, inspecting help/error screenshots via maintained tooling. Verify that common tasks are concise, selectors discoverable, errors actionable and advanced data supported without forcing JSON for simple edits. Fix validated usability defects through failing focused tests; no screenshot test suite or scripted QA replacement. Record unrun counterpart cases honestly.
-
-      Apply docs/specs/office-cli.md and docs/specs/office-sdk.md as the shared
-      command/SDK contracts. Use plural resources (images, tables, properties), text
-      replace, common flags/selectors/JSON/exit statuses and schema/capabilities.
-      The model SDK retains documented neutral method/property spellings; whole public
-      API coverage includes inherited members, enums, collections, helpers and APIs
-      without upstream tests. Read docs/docx/upstream-api-audit.md and
-      upstream-api-inventory.json; record exact JS language/security mappings and
-      resolve documentation drift. Do not hide unsupported public APIs as private
-      merely because a type name starts with an underscore. Reference-project names
-      remain only in plans/research and legally required standalone notices; never in
-      code, comments, tests, fixtures or CLI output.
-
-      After relevant maintained checks pass, commit each atomic improvement on main
-      with a Conventional Commit, explicitly staging only owned files and relevant
-      plan updates. Never commit ignored fixtures, use --no-verify or add co-authors.
-      No empty read-only commits. Report local hashes; do not push or release.
+      This task is a local integration gate, not release authorization. Run after all SDK, case adaptation, schema/selector, ergonomic and whole-API corrections, so evidence qualifies the final owned revision. For virtual-bash use maintained npm test --workspace=virtual-bash and test:contracts where contracts changed, plus npm run typecheck:all --workspace=virtual-bash for build/source/tests/strict consumers. Root ESLint uses npm run lint:eslint with only supported flags, no path operands/direct ESLint bypass. verify:release:whole and launcher-v3 are retired, not passing gates. Use maintained build/workspace closure declarations, not fixed task counts or root-only test:unit. Scope SAFE_BASH_TEST_RG, SAFEJS_LOCAL_ROOT, S3_HTTP_EXPORTS_REVISION and FULL_GATE_ROOT to the virtual-bash unit child; clear repository-local Git hook variables in children using git rev-parse --local-env-vars without changing the parent or private/global Git config. Preserve guarded ownership receipts; report unavailable prerequisites honestly.
+    status:
+      implement: open
+      test: open
   - id: usage-and-support-documentation
     title: Document truthful usage schemas and feature support
     prompt: |
@@ -4773,7 +4953,8 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
   - id: retire-disposable-qa-fixtures
     title: Delete disposable QA files after preserving useful regressions
     prompt: |
@@ -4820,7 +5001,20 @@ tasks:
       merely because a type name starts with an underscore. Reference-project names
       remain only in plans/research and legally required standalone notices; never in
       code, comments, tests, fixtures or CLI output.
-    status: open
+    status:
+      implement: open
+steps:
+  implement:
+    prompt: |-
+      Execute only this task under its complete prompt. Follow failing-tests-before-code and its owned commit rules; keep later tasks pending.
+
+      {{prompt}}
+  test:
+    prompt: |-
+      Verify only the task below against its acceptance requirements and maintained scoped checks. Inspect actual outputs and prior red/green evidence; reproduce any new defect with a failing original memfs test before fixing. Commit only verified task-owned corrections as atomic Conventional Commits. Preserve unrelated work and index entries; no push, release, README edits or broad staging. Report checks and gaps; do not rerun implementation blindly or claim unavailable QA passed.
+
+      {{prompt}}
+finalization: pending
 ---
 
 # Comprehensive docx implementation pipeline
@@ -4870,10 +5064,10 @@ clearly distinguished from downloaded real documents.
 
 ## Execution and completion
 
-All 107 tasks are ordered, self-contained and stepless (`status: open`). Each task
+All 107 tasks are ordered and self-contained. The configured pipeline steps are selected per task: documentation/research uses `implement: open`; code and behavioral verification use `implement: open` and `test: open`. No task selects `commit` or `release`. Each task
 prompt includes implementation or documentation, appropriate validation, and atomic
 Conventional Commits of explicitly staged owned files on main. Setup and teardown
-are explicit. Commit instructions are part of task execution, not a pipeline step.
+are explicit. Commit instructions remain inside owned task prompts. Explicit implement/test overrides prevent generic inherited instructions from broadening ownership. The configured automatic Git teardown is replaced by the plan's explicit teardown.
 Do not push or release. This edit does not start execution of the plan.
 
 Run focused maintained checks per task, then full maintained build/unit/lint and
@@ -4905,3 +5099,26 @@ full test inventory; untested public APIs still require original tests.
 Acceptance includes a complete feature-to-command register, direct flags for
 common workflows, schema/capabilities discovery, paired command recipes and
 CLI/SDK equivalence. A candidate inventory is not proof of completed coverage.
+
+## Preparation snapshot and execution dependencies
+
+Prepared on 2026-09-13 from the actual JSON inventories and audits. No task is marked complete by this plan edit. Recheck these hashes when execution begins; document a changed baseline instead of silently reusing old coverage denominators.
+
+| Input | SHA-256 |
+| --- | --- |
+| `docs/specs/docx.md` | `c9aaa6e6c78e761fa665ff3bc5a77e07244a3bc1a8406b7aec38c799ce2ee434` |
+| `docs/specs/office-cli.md` | `cb5614e03c841f31d98efe4bcf2aabdb419926aa26775d17b401598d9a2d74ce` |
+| `docs/specs/office-sdk.md` | `a73354b0e643eef159f9bda0cb9b096234fb34f0d224c3fbead5a92f38e673b9` |
+| `docs/docx/corpus-manifest.json` | `6f044ed7ea327bef04fe71d07e3c79f2bb4f8e5fbfaa603154009c76f6348f81` |
+| `docs/docx/upstream-test-inventory.json` | `14c609ceb775158cb36c0423d24678b4a3e9f09d429085730b28103a759ad797` |
+| `docs/docx/upstream-api-inventory.json` | `2a24cf4475d4bccae0f2433d0b59dfd06fb55f964eae839459b2f93a74fdb919` |
+
+The test inventory contains **1,609 unit variants + 650 expanded BDD cases = 2,259 required dispositions** at commit `e45454602b53e8e572b179ccf1c91093ec9f4ed7`. All adaptation statuses remain `unmapped_not_implemented`. The API inventory contains **331 candidate records across 39 documentation files**; inherited/protocol/prose/alias closure can increase that denominator. A coverage register is preparation, never passing behavior evidence.
+
+The manifest lists **19 files, 142,217,570 compressed bytes and 655 stored media parts**. Every product status is `not_run_product_not_implemented`. The ordinary census profile allowed 512 MiB expanded/5 million nodes, above the proposed product defaults of 256 MiB/2 million; census admission must not be presented as default product admission. Volume 2's 40,415,536-byte XML required a separate 128 MiB XML profile rather than the 32 MiB default. Its 46,916 paragraphs, 44,985 cells, 698 vertical-merge markers and nine charts motivate original table/limit/preservation regressions. Volume 1 contributes 45 OMML expressions and five embedded objects; the easy-read fixture has 124 media parts, 29 floating drawings and 30 text-box containers.
+
+Comments/revisions, Strict and meaningful RTL/CJK behavior remain evidence gaps. Language tags alone do not establish those workflows. Only one input exceeds 20 MiB compressed and none exceeds 100 MiB expanded: do not claim the earlier two-large-file acquisition target. At least two explicitly admitted large/dense inputs must actually round-trip and complete targeted edits before a scoped large-document claim; separately labeled original stress inputs cover missing size regimes. The Scotland template remains read-only pending rights review. The cache remains available for future campaigns; this planning edit does not delete it.
+
+Execution order puts API mapping and contract reconciliation before product code; bounded ZIP/XML/OPC/publication before SDK and command construction; SDK primitives before feature use; all assigned source cases enter the owning feature's red/green cycle. Later adaptation tasks close any residual variants before adversarial/corpus acceptance. Selector/schema work precedes public consumers and paired QA. The final cross-workspace gate follows whole-API, ergonomic and visual corrections. No later task may begin merely because a worker on the current task is waiting.
+
+A task closes only with owned-file changes, exact applicable case/API/feature mappings, verified checks and atomic local commits during execution. Preserve red/green evidence and distinguish structural assertions, actual SDK/Shell results, renderer evidence and unavailable cases. Deferred public APIs remain blocking gaps. A later product correction invalidates affected earlier evidence and requires scoped requalification before the final gate. README permission remains a separate documentation-delivery constraint; keep complete usage/config/environment drafts under docs/docx.

@@ -53,6 +53,7 @@ export type HostCallRecord = {
   asynchronous?: boolean;
   sharedPrefix?: ReplayData;
   sharedRegistry?: true;
+  sharedGraph?: true;
   sharedPrefixOrder?: number;
   sharedEffectOrder?: number;
   callbacks?: HostCallbackRecord[];
@@ -386,13 +387,35 @@ export class HostCallJournal {
     record.lifecycle = "running";
   }
 
-  registerSharedArguments(record:HostCallRecord, values:readonly SharedArrayBuffer[]):void {
+  registerSharedArguments(
+    record: HostCallRecord,
+    values: readonly SharedArrayBuffer[],
+    exported: readonly SharedArrayBuffer[] = [],
+    restored = this.recordedReplay
+  ): void {
+    // Keep the historical digest's block order. The export traversal also sees
+    // collection entries and named/symbol properties omitted by that digest.
+    const blocks = new Set(values.map(value => sharedArrayBufferStorage(value).block));
+    const additional = exported.filter(value => {
+      const { block } = sharedArrayBufferStorage(value);
+      if (blocks.has(block)) return false;
+      blocks.add(block);
+      return true;
+    });
+    if (additional.length > 0) {
+      if (restored && record.sharedGraph !== true &&
+          (record.sharedRegistry !== true || additional.some(value =>
+            !this.exposedSharedStorage.has(sharedArrayBufferStorage(value).block))))
+        throw new MissingReplayCapabilityError("Shared argument graph has no recorded recovery coverage.");
+      if (!restored) record.sharedGraph = true;
+    }
     for (const value of values) this.registerSharedStorage(value);
-    const tracked = !this.recordedReplay || record.sharedRegistry === true
+    for (const value of additional) this.registerSharedStorage(value);
+    const tracked = !restored || record.sharedRegistry === true
       ? [...this.exposedSharedStorage.values()] : [...values];
     if (tracked.length > 0) {
       this.sharedArguments.set(record.id, tracked);
-      if (!this.recordedReplay) record.sharedRegistry = true;
+      if (!restored) record.sharedRegistry = true;
     }
   }
 
@@ -1233,6 +1256,8 @@ function validateRestoredRecords(
   for (const record of records) {
     if (record.sharedRegistry !== undefined && record.sharedRegistry !== true)
       throw new TypeError("Invalid shared host registry marker.");
+    if (record.sharedGraph !== undefined && (record.sharedGraph !== true || record.sharedRegistry !== true))
+      throw new TypeError("Invalid shared argument graph marker.");
     for (const order of [record.sharedPrefixOrder, record.sharedEffectOrder, ...(record.callbacks ?? []).map(callback => callback.sharedOrder)]) {
       if (order === undefined) continue;
       if (!Number.isSafeInteger(order) || order < 1 || order >= Number.MAX_SAFE_INTEGER || sharedOrders.has(order))

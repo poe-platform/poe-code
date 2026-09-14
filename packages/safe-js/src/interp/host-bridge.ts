@@ -222,8 +222,10 @@ function wrapCallerInjectedFunction(
           seen: new WeakMap(),
           restored: []
         };
+        const exportedSharedArguments: SharedArrayBuffer[] = [];
         const copyArguments = (values: readonly SandboxValue[]) => deepCopyFromSandbox([...values], {
           compilation,
+          onSharedBuffer: value => { exportedSharedArguments.push(value); },
           unwrapHostObject: options.realm === undefined ? undefined : object => exportHostCapability(object, options.realm!.owner),
           wrapClosure: (closure) =>
             options.realm?.wrapCallback(closure) ?? wrapSandboxClosureForHost(
@@ -273,7 +275,7 @@ function wrapCallerInjectedFunction(
           operation,
           policy
         });
-        hostCalls.registerSharedArguments(issued.record,sharedArguments);
+        hostCalls.registerSharedArguments(issued.record, sharedArguments, exportedSharedArguments, issued.restored);
         callbacks.record = issued.record;
         for (const [id, closure] of callbacks.sourceFunctions) {
           hostCalls.registerCallbackFunction(

@@ -36,6 +36,7 @@ freezeDeclaration(docxCommonFields);
 freezeDeclaration(docxEnumSymbols);
 export const docxOperationSchemas = operationDeclarations;
 export const docxCommonOptions = docxCommonFields;
+export const docxEnumCanonicalNames: Readonly<Record<string, string>> = Object.freeze({ MSO_THEME_COLOR_INDEX: "MSO_THEME_COLOR", WD_ALIGN_PARAGRAPH: "WD_PARAGRAPH_ALIGNMENT" });
 
 type ObjectValue = Record<string, unknown>;
 function object(value: unknown): value is ObjectValue {
@@ -165,8 +166,8 @@ function valid(type: string, value: unknown): boolean {
   if (["identifier", "VfsInput", "VfsDestination", "VfsDirectory", "declared binding ID", "PackURI"].includes(type)) return nonempty(value);
   if (type === "boolean") return typeof value === "boolean";
   if (["number", "finite number", "finite degrees"].includes(type)) return typeof value === "number" && Number.isFinite(value) && (type !== "finite degrees" || Math.abs(value) <= 360);
-  if (["integer", "safe integer", "nonnegative integer", "nonnegative safe integer", "positive integer", "integer 0..8", "integer 0..9"].includes(type)) {
-    return typeof value === "number" && Number.isSafeInteger(value) && (!type.startsWith("nonnegative") || value >= 0) && (type !== "positive integer" || value > 0) && (!type.startsWith("integer 0..") || (value >= 0 && value <= Number(type.at(-1))));
+  if (["integer", "safe integer", "nonnegative integer", "nonnegative safe integer", "positive integer", "integer 0..8", "integer 0..9", "integer 0..99"].includes(type)) {
+    return typeof value === "number" && Number.isSafeInteger(value) && (!type.startsWith("nonnegative") || value >= 0) && (type !== "positive integer" || value > 0) && (!type.startsWith("integer 0..") || (value >= 0 && value <= Number(type.slice("integer 0..".length))));
   }
   if (type === "fraction 0..1") return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 1;
   if (type === "literal 1") return value === 1;
@@ -178,7 +179,7 @@ function valid(type: string, value: unknown): boolean {
   if (type === "Length" || type.startsWith("Length (explicit")) return closed(value, { value: "number", unit: "identifier" }) && ["emu", "in", "cm", "mm", "pt", ...(type === "Length" ? ["twip"] : [])].includes(String(value.unit));
   if (type === "Baseline") return typeof value === "string" && ["baseline", "superscript", "subscript"].includes(value);
   if (type === "RGBColor" || type === "RGB hex") return text(value) && value.length === 6 && [...value].every(c => "0123456789abcdefABCDEF".includes(c));
-  if (Object.hasOwn(docxEnumSymbols, type)) return closed(value, { enum: "identifier", name: "identifier" }) && value.enum === type && docxEnumSymbols[type]!.includes(String(value.name));
+  if (Object.hasOwn(docxEnumSymbols, type)) return closed(value, { enum: "identifier", name: "identifier" }) && (value.enum === type || value.enum === docxEnumCanonicalNames[type]) && docxEnumSymbols[type]!.includes(String(value.name));
   if (type === "BinaryInput") return object(value) && (value.kind === "bytes" ? closed(value, { kind: "identifier", base64: "string" }) && base64(value.base64) : value.kind === "vfs" && closed(value, { kind: "identifier", path: "identifier", capability: "identifier" }));
   if (type === "Uint8Array") return value instanceof Uint8Array || valid("BinaryInput", value);
   if (type === "Input") return value instanceof Uint8Array || valid("BinaryInput", value) || valid("VfsPath", value);
@@ -246,6 +247,13 @@ export type DocxOperationId =
   | "runs.remove"
   | "styles.defaults.get"
   | "styles.defaults.set"
+  | "styles.latent.list"
+  | "styles.latent.get"
+  | "styles.latent.add"
+  | "styles.latent.set"
+  | "styles.latent.remove"
+  | "styles.latent.defaults.get"
+  | "styles.latent.defaults.set"
   | "styles.list"
   | "sections.list"
   | "headers.list"

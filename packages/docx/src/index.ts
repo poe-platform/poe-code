@@ -109,3 +109,8 @@ export type { TextData, TextView, TextSegment, TextFormatting } from "./text-tra
 export { getDocumentXml, replaceDocumentXmlPart, type XmlOptions, type XmlData, type XmlMutationData } from "./xml-parts.js";
 export { inspectDocumentStyles, editDocumentStyles, type StyleEditOptions, type StyleInspectionOptions, type StyleInfo, type StyleInspectionData, type StyleMutationData } from "./styles.js";
 export type { StyleProperties } from "./style-properties.js";
+
+export { openDocumentStyleModel, Styles, BaseStyle, CharacterStyle, ParagraphStyle, TableStyle, _TableStyle, _NumberingStyle, LatentStyles, LatentStyle, _LatentStyle, WD_STYLE_TYPE } from "./styles-model.js";
+export { Font, ParagraphFormat, TabStops, TabStop, ColorFormat, RGBColor, type FormattingXmlOwner } from "./formatting-model.js";
+export { applyStyleModelBatch } from "./style-model-batch.js";
+export { Length, Emu, Inches, Cm, Mm, Pt, Twips, WD_UNDERLINE, WD_COLOR_INDEX, WD_COLOR, WD_PARAGRAPH_ALIGNMENT, WD_ALIGN_PARAGRAPH, WD_LINE_SPACING, WD_TAB_ALIGNMENT, WD_TAB_LEADER, WD_BUILTIN_STYLE, WD_STYLE, MSO_THEME_COLOR, MSO_THEME_COLOR_INDEX, MSO_COLOR_TYPE, enumValue, enumFromValue, enumMembers, enumXml, enumFromXml, enumString } from "./formatting-values.js";

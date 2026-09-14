@@ -109,3 +109,13 @@ it("rejects an explicit style together with heading level zero before acquiring 
   expect(result.exitCode).toBe(2);
   expect(reads).toBe(0);
 });
+
+it("keeps human style inspection focused on populated properties", async () => {
+  const bytes = await textFixture(paragraph("Marsh"), { styles: { kind: "styles", xml: `<w:styles xmlns:w="${w}"><w:style w:type="character" w:styleId="Label"><w:name w:val="Label"/><w:rPr><w:b/></w:rPr></w:style></w:styles>` } });
+  let stdout = "";
+  const volume = Volume.fromJSON({ "/input.docx": Buffer.from(bytes) });
+  await createDocxInspectionCommandEngine({ limits: textContext.limits }).execute({ args: ["styles", "get", "input.docx", "--name", "Label"].map(a => new TextEncoder().encode(a)), cwd: "/", signal: textContext.signal,
+    filesystem: { async readFile(path) { return new Uint8Array(volume.readFileSync(path) as Buffer); } }, stdin: { async *[Symbol.asyncIterator]() {} }, stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } }, stderr: { async write() {} } });
+  expect(stdout).toContain('Direct: {"bold":true}');
+  expect(stdout).not.toContain('"italic":null');
+});

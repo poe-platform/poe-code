@@ -1,7 +1,7 @@
 import { DocxUsageError } from "./argument-json.js";
 import { documentLimitDefaults } from "./budget.js";
 import { docxEnumSymbols } from "./operation-schema-data.js";
-import { docxCommonOptions, isDocxLiteralUnion, docxOperationSchemas, splitDocxType, type DocxFieldSchema } from "./operation-schema.js";
+import { docxEnumCanonicalNames, docxCommonOptions, isDocxLiteralUnion, docxOperationSchemas, splitDocxType, type DocxFieldSchema } from "./operation-schema.js";
 
 export interface DocxJsonSchema {
   readonly $schema?: string;
@@ -74,7 +74,7 @@ function valueSchema(type: string, definitions: Record<string, DocxJsonSchema>):
   if (type === "integer" || type === "safe integer") return integer;
   if (type === "nonnegative integer" || type === "nonnegative safe integer") return { ...integer, minimum: 0 };
   if (type === "positive integer") return { ...integer, minimum: 1 };
-  if (type === "integer 0..8" || type === "integer 0..9") return { ...integer, minimum: 0, maximum: Number(type.at(-1)) };
+  if (type === "integer 0..8" || type === "integer 0..9" || type === "integer 0..99") return { ...integer, minimum: 0, maximum: Number(type.slice("integer 0..".length)) };
   if (type === "fraction 0..1") return { ...number, minimum: 0, maximum: 1 };
   if (type === "literal 1") return { const: 1 };
   if (["identifier", "VfsInput", "VfsDestination", "VfsDirectory", "declared binding ID", "PackURI"].includes(type)) return identifier;
@@ -85,7 +85,7 @@ function valueSchema(type: string, definitions: Record<string, DocxJsonSchema>):
   if (type === "closed operation ID") return { enum: Object.keys(docxOperationSchemas) };
   if (type === "Length" || type.startsWith("Length (explicit")) return { type: "object", properties: { value: number, unit: { enum: ["emu", "in", "cm", "mm", "pt", ...(type === "Length" ? ["twip"] : [])] } }, required: ["value", "unit"], additionalProperties: false };
   if (type === "RGBColor" || type === "RGB hex") return { type: "string", pattern: "^[0-9A-Fa-f]{6}$" };
-  if (Object.hasOwn(docxEnumSymbols, type)) return { type: "object", properties: { enum: { const: type }, name: { enum: docxEnumSymbols[type]! } }, required: ["enum", "name"], additionalProperties: false };
+  if (Object.hasOwn(docxEnumSymbols, type)) return { type: "object", properties: { enum: docxEnumCanonicalNames[type] ? { enum: [type, docxEnumCanonicalNames[type]!] } : { const: type }, name: { enum: docxEnumSymbols[type]! } }, required: ["enum", "name"], additionalProperties: false };
   if (type === "BinaryInput") return { oneOf: [
     { type: "object", properties: { kind: { const: "bytes" }, base64: { type: "string", contentEncoding: "base64", pattern: "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/][AQgw]==|[A-Za-z0-9+/]{2}[AEIMQUYcgkosw048]=)?$" } }, required: ["kind", "base64"], additionalProperties: false },
     { type: "object", properties: { kind: { const: "vfs" }, path: identifier, capability: identifier }, required: ["kind", "path", "capability"], additionalProperties: false }

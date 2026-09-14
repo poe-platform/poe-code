@@ -78,7 +78,9 @@ export function validateDocxOptionRules(operation: string, options: Readonly<Rec
     if (has("priority") && Number(options.priority) < 0) reject("Style priority must be nonnegative.");
     if (has("color") && options.color !== null && (typeof options.color !== "string" || options.color.length !== 6 || [...options.color].some(c => !"0123456789abcdefABCDEF".includes(c)))) reject("Style color requires six hexadecimal digits.");
   }
-  if (operation === "paragraphs.set") {
+  if (operation === "paragraphs.set" || ["styles.add", "styles.set", "styles.defaults.set"].includes(operation)) {
+    if (["tabStops", "tabStopAdd", "tabStopDelete", "tabStopsClear"].filter(has).length > 1) reject("Tab replacement, insertion, deletion and clear are mutually exclusive.");
+    if (options.tabStopsClear === false) reject("Tab clear requires true.");
     const paragraph = options as DocxOperationArguments<"paragraphs.set">;
     if (paragraph.lineSpacing !== undefined && paragraph.lineSpacingRule !== undefined && !(paragraph.lineSpacing === null && paragraph.lineSpacingRule === null)) {
       const rule = paragraph.lineSpacingRule?.name;
@@ -97,7 +99,7 @@ export function validateDocxOptionRules(operation: string, options: Readonly<Rec
       if (typeof value !== "number") paragraphUnits(value);
     }
     const positions = new Set<number>();
-    for (const tab of paragraph.tabStops ?? []) {
+    for (const tab of [...paragraph.tabStops ?? [], ...paragraph.tabStopAdd ? [paragraph.tabStopAdd] : []]) {
       const position = paragraphUnits(tab.position);
       if (positions.has(position)) reject("Tab stops require unique rounded positions.");
       positions.add(position);

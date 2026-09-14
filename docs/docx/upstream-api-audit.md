@@ -1,7 +1,8 @@
 # DOCX Public API Documentation Audit
 
 Status: Pinned documentation/source reconciliation completed on 2026-09-13;
-mapping status reconciled on 2026-09-14; document object model implementation not started.
+mapping status reconciled on 2026-09-14; bounded style/formatting model evidence
+now recorded separately, full document object model remains incomplete.
 Bounded package primitives now have separate evidence in the
 [validation profile](validation-profile.md); they do not establish model API coverage.
 The later [logical text read milestone](text-extraction.md) also remains a utility
@@ -13,10 +14,14 @@ unchanged pending model/inherited/enum inventory statuses are recorded in the
 [bounded task plan](../plans/docx-paragraph-editing.md#standards-and-exact-languagesecurity-mappings).
 
 The [style and heading utility milestone](styles.md) adds named definition/default
-operations and heading levels 0–9. Its [bounded task record](../plans/docx-styles.md)
-reconciles D05–D08 and D22, additive command routes and exact JS/security mappings.
-Live styles, inherited members, underscore-prefixed types, latent mutation and
-enum/model inventory statuses remain pending; utility tests do not promote them.
+operations and heading levels 0–9. The later [style/formatting audit](style-formatting-audit.md)
+and [exact scoped case map](style-formatting-case-map.json) record latent mutation,
+inherited style interfaces, complete Font flags, tab collections and explicit
+language/security mappings. Their original tests are implementation evidence for
+that subgraph only; inherited/public underscore-prefixed interfaces remain
+accounted for, and unrelated model operations remain pending. The original pinned
+inventory is retained as research provenance rather than rewritten as execution
+results.
 
 ## Sources and baseline
 

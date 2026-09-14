@@ -61,7 +61,8 @@ it("sets document defaults, reciprocal linked styles, next style and a unique ty
 it("reports cycles and missing references and refuses invalid staged links before publication", async () => {
   const invalid = await fixture(definition("A", "paragraph", '<w:basedOn w:val="B"/>') + definition("B", "paragraph", '<w:basedOn w:val="A"/><w:next w:val="Missing"/>'));
   const info = await sdk.inspectDocumentStyles(invalid, {}, textContext);
-  expect(info.diagnostics.map(d => d.code)).toEqual(expect.arrayContaining(["style-cycle", "style-reference"]));
+  expect(info.diagnostics.map(d => d.code)).toEqual(expect.arrayContaining(["style-cycle"]));
+  expect(sdk.validateDocumentArchive(await sdk.readDocumentArchive(invalid, textContext)).warnings).toContain("Unresolved style references use document defaults or inherited formatting.");
   const input = await fixture(definition("Base", "paragraph") + definition("Detail", "paragraph", '<w:basedOn w:val="Base"/>') + definition("Mark", "character"));
   for (const options of [{ base: "Detail" }, { base: "Absent" }, { base: "Mark" }, { linkedStyle: "Detail" }, { next: "Mark" }]) {
     const volume = Volume.fromJSON({ "/out": "sentinel" });

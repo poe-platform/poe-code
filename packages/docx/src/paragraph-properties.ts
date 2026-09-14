@@ -17,7 +17,7 @@ export function paragraphUnits(value: DocxLength, divisor = 635): number {
 }
 
 const order = "pStyle keepNext keepLines pageBreakBefore framePr widowControl numPr suppressLineNumbers pBdr shd tabs suppressAutoHyphens kinsoku wordWrap overflowPunct topLinePunct autoSpaceDE autoSpaceDN bidi adjustRightInd snapToGrid spacing ind contextualSpacing mirrorIndents suppressOverlap jc textDirection textAlignment textboxTightWrap outlineLvl divId cnfStyle rPr sectPr pPrChange".split(" ");
-const alignments = { LEFT: "left", CENTER: "center", RIGHT: "right", JUSTIFY: "both", DISTRIBUTE: "distribute", JUSTIFY_MED: "mediumKashida", JUSTIFY_HI: "highKashida", JUSTIFY_LOW: "lowKashida", THAI_JUSTIFY: "thaiDistribute" };
+export const alignments = { LEFT: "left", CENTER: "center", RIGHT: "right", JUSTIFY: "both", DISTRIBUTE: "distribute", JUSTIFY_MED: "mediumKashida", JUSTIFY_HI: "highKashida", JUSTIFY_LOW: "lowKashida", THAI_JUSTIFY: "thaiDistribute" };
 const tabAlignments = { LEFT: "left", CENTER: "center", RIGHT: "right", DECIMAL: "decimal", BAR: "bar", LIST: "list", CLEAR: "clear", END: "end", NUM: "num", START: "start" };
 const leaders = { SPACES: "none", DOTS: "dot", DASHES: "hyphen", LINES: "underscore", HEAVY: "heavy", MIDDLE_DOT: "middleDot" };
 export const paragraphLineMultiples: Readonly<Partial<Record<DocxEnumNames["WD_LINE_SPACING"], number>>> = { SINGLE: 1, ONE_POINT_FIVE: 1.5, DOUBLE: 2 };
@@ -107,6 +107,34 @@ export function paragraphProperties(xml: DocumentXmlEditor, paragraph: XmlElemen
   if (Object.keys(spacing).length) set("spacing", spacing);
   if (strict && options.tabStops?.some(tab => tab.alignment?.name === "LIST")) throw new UnsupportedEditError("The deprecated list tab alignment is unavailable in Strict documents.");
   if (options.tabStops !== undefined) set("tabs", options.tabStops === null || options.tabStops.length === 0 ? null : {}, options.tabStops?.slice().sort((a, b) => paragraphUnits(a.position) - paragraphUnits(b.position)).map(tab => element("tab", { pos: String(paragraphUnits(tab.position)), val: directional(tabAlignments[tab.alignment?.name ?? "LEFT"]), leader: leaders[tab.leader?.name ?? "SPACES"] })).join(""));
+  if (options.tabStopsClear === true) set("tabs", null);
+  if (options.tabStopAdd !== undefined || options.tabStopDelete !== undefined) {
+    const container = find("tabs");
+    const stops = container?.children.filter(c => c.namespace === w && c.localName === "tab") ?? [];
+    const changes = new Map<XmlElement, string>();
+    let tail = "";
+    if (options.tabStopDelete !== undefined) {
+      const index = options.tabStopDelete < 0 ? stops.length + options.tabStopDelete : options.tabStopDelete;
+      const stop = stops[index];
+      if (!stop) throw new UnsupportedEditError("Tab stop index is out of range.");
+      changes.set(stop, "");
+    } else {
+      const tab = options.tabStopAdd!;
+      if (strict && tab.alignment?.name === "LIST") throw new UnsupportedEditError("The deprecated list tab alignment is unavailable in Strict documents.");
+      const position = paragraphUnits(tab.position);
+      const markup = element("tab", { pos: String(position), val: directional(tabAlignments[tab.alignment?.name ?? "LEFT"]), leader: leaders[tab.leader?.name ?? "SPACES"] });
+      const positions = stops.map(stop => {
+        const stored = stop.attributes.find(a => a.namespace === w && a.localName === "pos")?.value;
+        if (stored === undefined || stored.trim() === "" || !Number.isSafeInteger(Number(stored))) throw new UnsupportedEditError("Malformed tab stop positions cannot be edited.");
+        return Number(stored);
+      });
+      const next = stops.find((_, index) => positions[index]! > position);
+      if (next) changes.set(next, markup + xml.sourceXml(next)); else tail = markup;
+    }
+    const content = (container ? xml.sourceXml(container, changes, true) : "") + tail;
+    if (options.tabStopDelete !== undefined && stops.length === 1 && container?.content.every(c => c.kind === "element" && c.namespace === w && c.localName === "tab")) set("tabs", null);
+    else set("tabs", {}, content);
+  }
   if (options.shading !== undefined) set("shd", options.shading === null ? null : { fill: options.shading.fill.toUpperCase(), color: options.shading.color?.toUpperCase() ?? "auto", val: options.shading.pattern, themeFill: null, themeFillTint: null, themeFillShade: null, themeColor: null, themeTint: null, themeShade: null });
   if (options.borders !== undefined) {
     if (options.borders === null) set("pBdr", null);

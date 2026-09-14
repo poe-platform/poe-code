@@ -10,16 +10,22 @@ import { DocumentArchiveEditor } from "./package-write.js";
 import { type XmlElement } from "./package-xml.js";
 import { paragraphProperties } from "./paragraph-properties.js";
 import { formattedRunProperties } from "./run-properties.js";
-import { mergeStyleChildren, readStyleProperties, styleAttribute as attr, styleChild as child, styleToggle, type StyleProperties } from "./style-properties.js";
+import { inheritStyleProperties, mergeStyleChildren, readStyleProperties, styleAttribute as attr, styleChild as child, styleToggle, styleInteger, type StyleProperties } from "./style-properties.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { validateDocumentArchive, SemanticValidationError, type ValidationDiagnostic } from "./validation.js";
 import { DocumentXmlEditor, UnsupportedEditError } from "./xml-write.js";
+import { editLatentStyles, readLatentStyles, type LatentStylesInfo } from "./latent-styles.js";
+import { styleDisplayName, styleStoredName } from "./style-names.js";
 import type { DocxOperationArguments } from "./operation-types.js";
 
-export type StyleInspectionOptions = Pick<DocxOperationArguments<"styles.get">, "name" | "json" | "limit"> extends infer T ? Partial<T> : never;
+export type StyleInspectionOptions = Partial<Pick<DocxOperationArguments<"styles.get">, "name" | "json" | "limit">> & { readonly latent?: boolean };
 export type StyleEditOptions = ({ readonly operation: "styles.add" } & DocxOperationArguments<"styles.add"> |
   { readonly operation: "styles.set" } & DocxOperationArguments<"styles.set"> |
-  { readonly operation: "styles.defaults.set" } & DocxOperationArguments<"styles.defaults.set">) & { readonly input?: PublicationInput };
+  { readonly operation: "styles.defaults.set" } & DocxOperationArguments<"styles.defaults.set"> |
+  { readonly operation: "styles.latent.add" } & DocxOperationArguments<"styles.latent.add"> |
+  { readonly operation: "styles.latent.set" } & DocxOperationArguments<"styles.latent.set"> |
+  { readonly operation: "styles.latent.remove" } & DocxOperationArguments<"styles.latent.remove"> |
+  { readonly operation: "styles.latent.defaults.set" } & DocxOperationArguments<"styles.latent.defaults.set">) & { readonly input?: PublicationInput };
 export interface StyleInfo {
   readonly id: string; readonly name: string; readonly type: string; readonly builtin: boolean;
   readonly base: string | null; readonly next: string | null; readonly linkedStyle: string | null;
@@ -32,6 +38,7 @@ export interface StyleInspectionData {
   readonly styles: readonly StyleInfo[];
   readonly defaults: { readonly run: StyleProperties; readonly paragraph: StyleProperties };
   readonly latentXml: string | null;
+  readonly latent: LatentStylesInfo | null;
   readonly diagnostics: readonly ValidationDiagnostic[];
 }
 export interface StyleMutationData {
@@ -47,9 +54,10 @@ function stylePart(archive: AdmittedDocumentArchive): string | undefined {
 
 /** Read-only, bounded definition inspection. Effective values are the supported style subset, not layout. */
 export async function inspectDocumentStyles(input: Uint8Array, options: StyleInspectionOptions, context: ArchiveContext): Promise<StyleInspectionData> {
-  closedRecord(options, ["name", "json", "limit"]);
+  closedRecord(options, ["name", "json", "limit", "latent"]);
+  const { latent, ...args } = options;
   const settings = archiveSettings(context);
-  const invocation = validateDocxInvocation({ operation: options.name === undefined ? "styles.list" : "styles.get", inputs: ["document"], options }, settings.budget);
+  const invocation = validateDocxInvocation({ operation: latent ? options.name === undefined ? "styles.latent.list" : "styles.latent.get" : options.name === undefined ? "styles.list" : "styles.get", inputs: ["document"], options: args }, settings.budget);
   const budget = settings.budget.lower(Object.fromEntries((invocation.options.limit as StyleInspectionOptions["limit"] ?? []).map(v => [v.name, v.value])));
   const archive = await readDocumentArchive(input, { ...settings, budget });
   const part = stylePart(archive);
@@ -61,8 +69,7 @@ export async function inspectDocumentStyles(input: Uint8Array, options: StyleIns
   const defined = new Map(nodes.map(n => [attr(n, "styleId"), n]));
   const name = (id: string | undefined): string | null => id === undefined ? null : attr(child(defined.get(id), "name"), "val") ?? id;
   const resolved = new Map<XmlElement, StyleProperties | null>();
-  const defaultProperties = { ...runDefaults, outlineLevel: paragraphDefaults.outlineLevel, keepWithNext: paragraphDefaults.keepWithNext,
-    spaceBefore: paragraphDefaults.spaceBefore, spaceAfter: paragraphDefaults.spaceAfter, numbering: paragraphDefaults.numbering };
+  const defaultProperties = Object.fromEntries(Object.entries(runDefaults).map(([key, value]) => [key, value ?? paragraphDefaults[key as keyof StyleProperties]])) as unknown as StyleProperties;
   for (const start of nodes) {
     if (resolved.has(start)) continue;
     const chain: XmlElement[] = [], seen = new Set<XmlElement>();
@@ -73,32 +80,27 @@ export async function inspectDocumentStyles(input: Uint8Array, options: StyleIns
     let value: StyleProperties | null = node && seen.has(node) ? null : node ? resolved.get(node)! : defaultProperties;
     for (const current of chain.reverse()) {
       const direct = readStyleProperties(child(current, "rPr"), child(current, "pPr"));
-      if (value !== null) {
-        const inherited: StyleProperties = value;
-        value = Object.fromEntries(Object.entries(direct).map(([key, item]) => [key, item === null ? inherited[key as keyof StyleProperties] : item])) as unknown as StyleProperties;
-        // In style definitions these are OOXML toggle properties; false leaves the inherited state unchanged.
-        value = { ...value, bold: direct.bold === null ? inherited.bold : direct.bold ? !inherited.bold : inherited.bold,
-          italic: direct.italic === null ? inherited.italic : direct.italic ? !inherited.italic : inherited.italic,
-          numbering: direct.numbering === null ? inherited.numbering : { id: direct.numbering.id ?? inherited.numbering?.id ?? null, level: direct.numbering.level ?? inherited.numbering?.level ?? null } };
-      }
+      if (value !== null) value = inheritStyleProperties(value, direct);
       resolved.set(current, value);
     }
   }
-  const selected = options.name === undefined ? nodes : nodes.filter(n => attr(child(n, "name"), "val") === options.name);
-  if (options.name !== undefined && selected.length !== 1) throw new SelectionError(selected.length ? "ambiguous-selection" : "missing-selection");
+  const selected = options.name === undefined || latent ? nodes : nodes.filter(n => styleStoredName(attr(child(n, "name"), "val") ?? "") === styleStoredName(options.name!));
+  if (!latent && options.name !== undefined && selected.length !== 1) throw new SelectionError(selected.length ? "ambiguous-selection" : "missing-selection");
+  if (latent && options.name !== undefined && !xml) throw new SelectionError("missing-selection");
   const report = validateDocumentArchive(archive, {}, budget);
   const data: StyleInspectionData = { styles: selected.map(n => {
     const source = (tag: string) => child(n, tag) ? xml!.sourceXml(child(n, tag)!) : null;
-    return { id: attr(n, "styleId") ?? "", name: attr(child(n, "name"), "val") ?? "", type: attr(n, "type") ?? "",
+    return { id: attr(n, "styleId") ?? "", name: styleDisplayName(attr(child(n, "name"), "val") ?? ""), type: attr(n, "type") ?? "",
       builtin: !["1", "true", "on"].includes(attr(n, "customStyle") ?? "0"), base: name(attr(child(n, "basedOn"), "val")),
       next: name(attr(child(n, "next"), "val")) ?? (attr(n, "type") === "paragraph" ? attr(child(n, "name"), "val") ?? null : null),
       linkedStyle: name(attr(child(n, "link"), "val")), defaultForType: ["1", "true", "on"].includes(attr(n, "default") ?? "0"),
-      priority: child(n, "uiPriority") ? Number(attr(child(n, "uiPriority"), "val")) : null,
+      priority: styleInteger(attr(child(n, "uiPriority"), "val")),
       hidden: styleToggle(child(n, "semiHidden")) ?? false, locked: styleToggle(child(n, "locked")) ?? false,
       quickStyle: styleToggle(child(n, "qFormat")) ?? false, unhideWhenUsed: styleToggle(child(n, "unhideWhenUsed")) ?? false,
       direct: readStyleProperties(child(n, "rPr"), child(n, "pPr")), effective: resolved.get(n) ?? null,
       runXml: source("rPr"), paragraphXml: source("pPr"), tableXml: source("tblPr") };
   }), defaults: { run: runDefaults, paragraph: paragraphDefaults }, latentXml: child(xml?.root, "latentStyles") ? xml!.sourceXml(child(xml!.root, "latentStyles")!) : null,
+  latent: xml ? readLatentStyles(xml.root, latent ? options.name : undefined) : null,
   diagnostics: report.diagnostics.filter(d => d.code.startsWith("style-") || d.code.startsWith("numbering-")) };
   budget.check("serializedOutput", new TextEncoder().encode(JSON.stringify(data)).length);
   return data;
@@ -110,7 +112,7 @@ const styleOrder = "name aliases basedOn next link autoRedefine hidden uiPriorit
 export async function editDocumentStyles(input: Uint8Array, options: StyleEditOptions, context: PublicationContext): Promise<StyleMutationData> {
   const settings = archiveSettings(context);
   const { operation, input: identity, ...args } = options;
-  if (!["styles.add", "styles.set", "styles.defaults.set"].includes(operation)) throw new InvalidValueError("Expected a style edit operation.");
+  if (!["styles.add", "styles.set", "styles.defaults.set", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.set"].includes(operation)) throw new InvalidValueError("Expected a style edit operation.");
   const invocation = validateDocxInvocation({ operation, inputs: [identity?.path ?? "document"], options: args }, settings.budget);
   const opts = invocation.options as DocxOperationArguments<"styles.set"> & Partial<DocxOperationArguments<"styles.add">>;
   const budget = settings.budget.lower(Object.fromEntries((opts.limit ?? []).map(v => [v.name, v.value])));
@@ -128,7 +130,7 @@ export async function editDocumentStyles(input: Uint8Array, options: StyleEditOp
   const absentPart = part === undefined;
   let writable = archive;
   if (!part) {
-    if (operation !== "styles.defaults.set") throw new SelectionError("missing-selection");
+    if (operation !== "styles.defaults.set" && !operation.startsWith("styles.latent.")) throw new SelectionError("missing-selection");
     const materialized = addDocumentStylesPart(archive, archive, "", budget);
     part = materialized.name;
     writable = { ...archive, ...materialized.archive };
@@ -137,7 +139,7 @@ export async function editDocumentStyles(input: Uint8Array, options: StyleEditOp
   const xml = editor.xml(part), w = xml.root.namespace;
   const nodes = xml.root.children.filter(n => n.namespace === w && n.localName === "style");
   const resolve = (name: string): XmlElement => {
-    const matches = nodes.filter(n => attr(child(n, "name"), "val") === name);
+    const matches = nodes.filter(n => styleStoredName(attr(child(n, "name"), "val") ?? "") === styleStoredName(name));
     if (matches.length !== 1) throw new SelectionError(matches.length ? "ambiguous-selection" : "missing-selection");
     return matches[0]!;
   };
@@ -154,12 +156,15 @@ export async function editDocumentStyles(input: Uint8Array, options: StyleEditOp
     update(node, tag, value === null ? "" : element(tag, value));
   };
   const formatting = (node: XmlElement) => {
-    const run = formattedRunProperties(xml, node, opts);
+    const run = formattedRunProperties(xml, node, { ...opts, hidden: opts.fontHidden });
     const para = paragraphProperties(xml, node, opts);
     if (run !== (child(node, "rPr") ? xml.sourceXml(child(node, "rPr")!) : "")) update(node, "rPr", run);
     if (para !== (child(node, "pPr") ? xml.sourceXml(child(node, "pPr")!) : "")) update(node, "pPr", para);
   };
-  if (operation === "styles.defaults.set") {
+  if (operation.startsWith("styles.latent.")) {
+    const id = editLatentStyles(xml, operation, invocation.options);
+    if (id !== null) changes.push({ kind: "style", id });
+  } else if (operation === "styles.defaults.set") {
     const defaults = child(xml.root, "docDefaults");
     const defaultsXml = defaults ? xml : new DocumentXmlEditor(new TextEncoder().encode(`<st:docDefaults xmlns:st="${w}"/>`), {}, undefined, budget);
     const target = defaults ?? defaultsXml.root;
@@ -168,7 +173,7 @@ export async function editDocumentStyles(input: Uint8Array, options: StyleEditOp
       const existing = child(target, container);
       const fragment = existing ? defaultsXml : new DocumentXmlEditor(new TextEncoder().encode(`<st:${container} xmlns:st="${w}"/>`), {}, undefined, budget);
       const owner = existing ?? fragment.root;
-      const props = property === "rPr" ? formattedRunProperties(fragment, owner, opts) : paragraphProperties(fragment, owner, opts);
+      const props = property === "rPr" ? formattedRunProperties(fragment, owner, { ...opts, hidden: opts.fontHidden }) : paragraphProperties(fragment, owner, opts);
       const old = child(owner, property);
       if (props === (old ? fragment.sourceXml(old) : "")) continue;
       updates.set(container, mergeStyleChildren(fragment, owner, new Map([[property, props]]), [property]));
@@ -181,7 +186,7 @@ export async function editDocumentStyles(input: Uint8Array, options: StyleEditOp
   } else {
     const selected = resolve(opts.name), type = attr(selected, "type");
     if (!["paragraph", "character", "table"].includes(type!)) throw new UnsupportedEditError("Editing supports paragraph, character and table styles.");
-    if (type === "character" && [opts.outlineLevel, opts.keepWithNext, opts.spaceBefore, opts.spaceAfter].some(v => v !== undefined))
+    if (type === "character" && [opts.outlineLevel, opts.keepWithNext, opts.keepTogether, opts.widowControl, opts.pageBreakBefore, opts.spaceBefore, opts.spaceAfter, opts.alignment, opts.leftIndent, opts.rightIndent, opts.firstLineIndent, opts.lineSpacing, opts.lineSpacingRule, opts.tabStops, opts.tabStopAdd, opts.tabStopDelete, opts.tabStopsClear, opts.borders, opts.shading].some(v => v !== undefined))
       throw new InvalidValueError("Character styles cannot contain paragraph properties.");
     for (const [key, tag] of [["base", "basedOn"], ["next", "next"]] as const) {
       const value = opts[key]; if (value === undefined) continue;
@@ -206,9 +211,9 @@ export async function editDocumentStyles(input: Uint8Array, options: StyleEditOp
       if (opts.defaultForType !== ["1", "true", "on"].includes(attr(selected, "default") ?? "0")) attributes.set(selected, { default: opts.defaultForType ? "1" : null });
       if (opts.defaultForType) for (const node of nodes) if (node !== selected && attr(node, "type") === type && attr(node, "default") !== undefined) attributes.set(node, { default: null });
     }
-    for (const [key, tag] of [["hidden", "semiHidden"], ["locked", "locked"], ["quickStyle", "qFormat"]] as const)
-      if (opts[key] !== undefined) setValue(selected, tag, opts[key] ? "1" : "0");
-    if (opts.priority !== undefined) setValue(selected, "uiPriority", String(opts.priority));
+    for (const [key, tag] of [["hidden", "semiHidden"], ["locked", "locked"], ["quickStyle", "qFormat"], ["unhideWhenUsed", "unhideWhenUsed"]] as const)
+      if (opts[key] !== undefined) setValue(selected, tag, opts[key] ? "1" : null);
+    if (opts.priority !== undefined) setValue(selected, "uiPriority", opts.priority === null ? null : String(opts.priority));
     formatting(selected);
     for (const node of new Set([...patches.keys(), ...attributes.keys()])) {
       const markup = mergeStyleChildren(xml, node, patches.get(node) ?? new Map(), styleOrder, attributes.get(node));

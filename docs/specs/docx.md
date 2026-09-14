@@ -26,11 +26,14 @@ planned live object model, run whole-text setters or batch execution to implemen
 The bounded paragraph operations are described in
 [paragraph editing evidence](../docx/paragraph-editing.md). They add paragraph
 properties and explicit whole-paragraph text assignment, plus block/inline caret
-insertion. Live model members and batch execution remain pending.
+insertion. Whole Paragraph owner bindings remain pending; the later style
+milestone below implements its bounded formatting model and batch subset.
 
 The bounded style/default operations and collision-safe Title/headings 0–9 are
 recorded in [style evidence](../docx/styles.md). They expose utility operations;
-latent mutation, live style objects and complete model API coverage remain pending.
+the later [style-formatting evidence](../docx/style-formatting-audit.md) records
+latent mutation and the bounded live style/font/paragraph/tab subgraph. Complete
+document-model coverage remains pending.
 
 ## Normative language
 
@@ -502,6 +505,13 @@ independent text/XML/OPC/value assertions, not only to one another.
 | `styles set` | edit | `name!`: string; optional StyleDefinitionFields below | StyleMutationData | F12, F14 |
 | `styles defaults get` | read | none | StyleInspectionData | F14 |
 | `styles defaults set` | edit | optional StyleFormattingFields below | StyleMutationData | F14 |
+| `styles latent list` | read | none | StyleInspectionData | F14 |
+| `styles latent get` | read | `name!`: string | StyleInspectionData | F14 |
+| `styles latent add` | edit | `name!`: string; optional latent entry fields below | StyleMutationData | F14 |
+| `styles latent set` | edit | `name!`: string; optional latent entry fields below | StyleMutationData | F14 |
+| `styles latent remove` | edit | `name!`: string | StyleMutationData | F14 |
+| `styles latent defaults get` | read | none | StyleInspectionData | F14 |
+| `styles latent defaults set` | edit | latent default fields below | StyleMutationData | F14 |
 | `styles remove`         | selectedEdit | `name!`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | MutationData     | F14                                                                                                |
 | `sections add`          | selectedEdit | `startType?`: WD_SECTION_START                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | MutationData     | F06, F11, F16                                                                                      |
 | `sections set`          | selectedEdit | `orientation?`: WD_ORIENTATION; `pageWidth?`: Length (explicit emu/in/cm/mm/pt); `pageHeight?`: Length (explicit emu/in/cm/mm/pt); `topMargin?`: Length (explicit emu/in/cm/mm/pt); `bottomMargin?`: Length (explicit emu/in/cm/mm/pt); `leftMargin?`: Length (explicit emu/in/cm/mm/pt); `rightMargin?`: Length (explicit emu/in/cm/mm/pt); `columns?`: positive integer; `pageNumberStart?`: nonnegative integer; `differentFirstPage?`: boolean                                                                                                                                                         | MutationData     | F16                                                                                                |
@@ -584,22 +594,40 @@ independent text/XML/OPC/value assertions, not only to one another.
 | `capabilities`          | discovery    | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | CapabilitiesData | F01, F04, F06, F08, F11, F12, F13, F14, F15, F16, F17, F19, F20, F21, F25, F30, F31, F32, F42, F49 |
 | `version`               | discovery    | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | VersionData      | F06, F49                                                                                           |
 
-For the bounded style operations, `StyleFormattingFields` is the closed set of
-optional nullable fields: `bold`, `italic`, `keepWithNext` (boolean), `font`,
-`color` (string), `size`, `spaceBefore`, `spaceAfter` (explicit emu/in/cm/mm/pt
-length), and `outlineLevel` (integer 0–9). `StyleDefinitionFields` adds `base`,
-`next`, `linkedStyle` (optional string or null), `defaultForType`, `hidden`,
-`locked`, `quickStyle` (optional boolean), and `priority` (optional nonnegative
-safe integer). Color and length admission uses the existing formatting rules.
-These fields have the same SDK and direct CLI meanings. Character styles reject
-paragraph formatting; `next` requires a paragraph style. Numbering style creation
-remains a declared target that the bounded implementation rejects as unsupported.
+For style operations, `StyleFormattingFields` includes the run-formatting and
+paragraph-formatting fields described below, including their nullable values,
+explicit units and enum symbols. `fontHidden` controls hidden text in a style;
+`hidden` controls style-gallery visibility. The additional Font flags are
+`allCaps`, `complexScriptEnabled`, `csBold`, `csItalic`, `doubleStrike`, `emboss`,
+`imprint`, `math`, `noProof`, `outline`, `shadow`, `smallCaps`, `snapToGrid`,
+`specVanish` and `webHidden`. These are nullable booleans. Font-slot
+`complexScript` remains a nullable font name. `tabStopAdd` inserts one typed stop,
+`tabStopDelete` removes a zero-based stop (negative indices count from the end),
+and `tabStopsClear` removes direct stops. These options and `tabStops` replacement
+are mutually exclusive. A missing deletion index MUST fail before publication.
+
+`StyleDefinitionFields` additionally includes `base`, `next`, `linkedStyle`
+(string or null), `defaultForType` (boolean), `hidden`, `locked`, `quickStyle`,
+`unhideWhenUsed` (boolean or null), and `priority` (integer 0–99 or null).
+Character styles MUST reject paragraph formatting. Direct `next` requires a
+paragraph style. Numbering style creation remains unsupported by direct utility
+commands; the live model includes its documented base interface.
+
+The direct latent paths are `styles latent list/get/add/set/remove` and
+`styles latent defaults get/set`. Entry get/add/set/remove require `name`.
+Entry add/set accepts nullable `hidden`, `locked`, `quickStyle`, `unhideWhenUsed`
+and `priority` (integer 0–99). Defaults set accepts strict boolean
+`defaultToHidden`, `defaultToLocked`, `defaultToQuickStyle`,
+`defaultToUnhideWhenUsed`, nullable `defaultPriority` (integer 0–99) and nullable
+`loadCount` (nonnegative safe integer). Entry absence remains null; absent
+boolean defaults read false. Inspection MUST NOT materialize missing definitions.
 
 Style operations are package-global and reject scope, ordinal/token selectors and
-`allowEmpty`. Their edit profile admits only json/limit/output/inPlace/force/dryRun
-in addition to the listed fields. Defaults get takes no name. Defaults set requires
-at least one formatting field; named set requires at least one definition field.
-These additive direct operations do not establish typed batch execution.
+`allowEmpty`. Their edit profile admits json/limit/output/inPlace/force/dryRun.
+Defaults get takes no name; set requires at least one applicable property.
+The schema enumerates the exact closed fields and implemented model batch IDs.
+Typed batch execution is limited to the declared style/formatting subgraph;
+unrelated model operations MUST reject without publication.
 
 ### 6.5 Format operation semantics and defaults
 
@@ -649,8 +677,9 @@ appropriate semantic error. Unsupported affected content is `unsupported-edit`.
   Negative indentation is allowed, negative spacing/font size is not; font size
   must be positive. Line spacing accepts an explicit length or positive decimal
   multiple, or nullable reset. Outline level 9 is body text. Superscript and
-  subscript cannot both be true. Advanced font flags, tabs, borders, shading,
-  latent styles and theme links use fixed typed model/format batch operations.
+  subscript cannot both be true. Advanced style/font/tab model operations use
+  fixed typed batches; common
+  formatting, tab edits and latent settings also have direct flags.
   The bounded `runs set` formatting subset additionally accepts nullable `size`,
   `font` and `language`; `ascii`, `highAnsi`, `eastAsia`, `complexScript` are
   nullable font names, and `asciiTheme`, `highAnsiTheme`, `eastAsiaTheme`,
@@ -1198,15 +1227,32 @@ planned generic resource/location records. Style/default reads return the full
 inspection envelope, with get narrowing `styles` to one exact name and defaults
 get retaining the definition list. Raw metadata is inert retained XML. Resolved
 values cover only the supported subset, not layout or conditional table/theme
-resolution; bold/italic follow style toggle inheritance. Size/spacing reads are
-points. A cyclic base chain yields null effective properties and diagnostics.
+resolution; OOXML toggle flags follow style toggle inheritance, while absolute
+flags preserve explicit false. Built-in aliases use their finite documented name
+map; custom names remain case-sensitive. Size/spacing reads are
+points, except relative line spacing is a multiplier. Unresolved style references
+use document defaults or inherited formatting and produce a validation warning;
+missing required reference values and invalid relationship types remain errors.
+A cyclic base chain yields null effective properties and diagnostics.
 
 ```typescript
 type StyleProperties = {
-  bold: boolean | null; italic: boolean | null;
+  bold: boolean | null; italic: boolean | null; allCaps: boolean | null;
+  complexScriptEnabled: boolean | null; csBold: boolean | null; csItalic: boolean | null;
+  doubleStrike: boolean | null; emboss: boolean | null; imprint: boolean | null;
+  math: boolean | null; noProof: boolean | null; outline: boolean | null;
+  shadow: boolean | null; smallCaps: boolean | null; snapToGrid: boolean | null;
+  specVanish: boolean | null; webHidden: boolean | null; strike: boolean | null;
+  fontHidden: boolean | null; rtl: boolean | null;
   font: string | null; size: number | null; color: string | null;
+  themeColor: string | null; underline: string | null; highlight: string | null;
+  baseline: string | null; language: string | null;
   outlineLevel: number | null; keepWithNext: boolean | null;
+  keepTogether: boolean | null; widowControl: boolean | null; pageBreakBefore: boolean | null;
   spaceBefore: number | null; spaceAfter: number | null;
+  leftIndent: number | null; rightIndent: number | null; firstLineIndent: number | null;
+  lineSpacing: number | null; lineSpacingRule: string | null; alignment: string | null;
+  tabStops: { position: number; alignment: string; leader: string }[] | null;
   numbering: { id: string | null; level: number | null } | null;
 };
 type StyleInspectionData = {
@@ -1220,6 +1266,13 @@ type StyleInspectionData = {
   }[];
   defaults: { run: StyleProperties; paragraph: StyleProperties };
   latentXml: string | null;
+  latent: {
+    defaults: { defaultToHidden: boolean; defaultToLocked: boolean;
+      defaultToQuickStyle: boolean; defaultToUnhideWhenUsed: boolean;
+      defaultPriority: number | null; loadCount: number | null };
+    entries: { name: string; hidden: boolean | null; locked: boolean | null;
+      quickStyle: boolean | null; unhideWhenUsed: boolean | null; priority: number | null }[];
+  } | null;
   diagnostics: { code: string; part: string; location: string; message: string }[];
 };
 type StyleMutationData = {
@@ -1231,10 +1284,12 @@ type StyleMutationData = {
 ```
 
 Style mutations report each changed definition once (including reciprocal/default
-updates); document-default changes use ID `docDefaults`. Their `affected` is the
+updates); document-default changes use ID `docDefaults`; latent-default changes
+use `latentStyles`, and individual exceptions use their names. Their `affected` is the
 change count and `locations` is empty. Existing common error/publication rules
-apply. Neither these result types nor the implemented utility functions promote
-planned live model, inherited member, enum or collection coverage.
+apply. These utility result types do not establish full document-model coverage;
+the style-formatting evidence separately records implemented live members,
+inherited interfaces, enums and collections.
 
 Compound resource data uses a closed, resource-discriminated `details` union.
 It is required for the listed resource kinds and absent for other kinds; scalar

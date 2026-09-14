@@ -71,6 +71,7 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
   budget.charge("work", total * 8);
   const diagnostics: ValidationDiagnostic[] = [];
   const failed = new Set<string>();
+  let styleFallback = false;
   const add = (code: string, part: string, location: string, message: string, check = "references") => {
     if (diagnostics.length >= limits.maxDiagnostics) throw new ResourceLimitError("Validation diagnostic limit exceeded.");
     budget.charge("diagnosticBytes", new TextEncoder().encode(code + part + location + message).length);
@@ -82,7 +83,8 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
     checks: documentValidationProfile.checks.map(id => ({ id, status: failed.has(id) ? "failed" :
       ["container", "protection", "signatures", "extension-coverage"].includes(id) ? "unvalidated" : diagnostics.length ? "unvalidated" : "passed" })),
     warnings: ["Partial schema and semantic validation only; no full conformance certification.",
-      "Container integrity requires byte admission; protection, signatures and extension semantics are unvalidated."]
+      "Container integrity requires byte admission; protection, signatures and extension semantics are unvalidated.",
+      ...(styleFallback ? ["Unresolved style references use document defaults or inherited formatting."] : [])]
   });
   for (const name of ["[Content_Types].xml", "_rels/.rels"]) {
     if (!archive.members.some(m => !m.directory && m.name.toLowerCase() === name.toLowerCase()))
@@ -314,8 +316,10 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
     }
     if (namespace === wp && name === "docPr" && !claim("drawing", integer(attr(node, "id", ""), 0, 4294967295))) issue(node, "drawing-id", "Invalid or duplicate document drawing ID.");
     if (namespace !== w) continue;
-    if (["pStyle", "rStyle", "tblStyle", "basedOn", "next", "link", "numStyleLink", "styleLink"].includes(name) && !lookup("style", attr(node, "val")))
-      issue(node, "style-reference", "Style reference has no definition.");
+    if (["pStyle", "rStyle", "tblStyle", "basedOn", "next", "link", "numStyleLink", "styleLink"].includes(name) && !lookup("style", attr(node, "val"))) {
+      if (attr(node, "val") !== undefined && !["numStyleLink", "styleLink"].includes(name)) styleFallback = true;
+      else issue(node, "style-reference", "Style reference has no definition.");
+    }
     const expectedStyleType: Record<string, string> = { pStyle: "paragraph", rStyle: "character", tblStyle: "table" };
     if (Object.hasOwn(expectedStyleType, name)) {
       const style = lookup("style", attr(node, "val"));

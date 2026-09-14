@@ -3,9 +3,9 @@ import type { DocxOperationArguments } from "./operation-types.js";
 import type { XmlElement } from "./package-xml.js";
 import { UnsupportedEditError, type DocumentXmlEditor } from "./xml-write.js";
 
-const underline = { NONE: "none", SINGLE: "single", WORDS: "words", DOUBLE: "double", DOTTED: "dotted", THICK: "thick", DASH: "dash", DOT_DASH: "dotDash", DOT_DOT_DASH: "dotDotDash", WAVY: "wave", DOTTED_HEAVY: "dottedHeavy", DASH_HEAVY: "dashedHeavy", DOT_DASH_HEAVY: "dashDotHeavy", DOT_DOT_DASH_HEAVY: "dashDotDotHeavy", WAVY_HEAVY: "wavyHeavy", DASH_LONG: "dashLong", WAVY_DOUBLE: "wavyDouble", DASH_LONG_HEAVY: "dashLongHeavy" };
-const highlights = { AUTO: "none", BLACK: "black", BLUE: "blue", BRIGHT_GREEN: "green", DARK_BLUE: "darkBlue", DARK_RED: "darkRed", DARK_YELLOW: "darkYellow", GRAY_25: "lightGray", GRAY_50: "darkGray", GREEN: "darkGreen", PINK: "magenta", RED: "red", TEAL: "darkCyan", TURQUOISE: "cyan", VIOLET: "darkMagenta", WHITE: "white", YELLOW: "yellow" };
-const themes = { ACCENT_1: "accent1", ACCENT_2: "accent2", ACCENT_3: "accent3", ACCENT_4: "accent4", ACCENT_5: "accent5", ACCENT_6: "accent6", BACKGROUND_1: "background1", BACKGROUND_2: "background2", DARK_1: "dark1", DARK_2: "dark2", FOLLOWED_HYPERLINK: "followedHyperlink", HYPERLINK: "hyperlink", LIGHT_1: "light1", LIGHT_2: "light2", TEXT_1: "text1", TEXT_2: "text2" };
+export const underline = { NONE: "none", SINGLE: "single", WORDS: "words", DOUBLE: "double", DOTTED: "dotted", THICK: "thick", DASH: "dash", DOT_DASH: "dotDash", DOT_DOT_DASH: "dotDotDash", WAVY: "wave", DOTTED_HEAVY: "dottedHeavy", DASH_HEAVY: "dashedHeavy", DOT_DASH_HEAVY: "dashDotHeavy", DOT_DOT_DASH_HEAVY: "dashDotDotHeavy", WAVY_HEAVY: "wavyHeavy", DASH_LONG: "dashLong", WAVY_DOUBLE: "wavyDouble", DASH_LONG_HEAVY: "dashLongHeavy" };
+export const highlights = { AUTO: "none", BLACK: "black", BLUE: "blue", BRIGHT_GREEN: "green", DARK_BLUE: "darkBlue", DARK_RED: "darkRed", DARK_YELLOW: "darkYellow", GRAY_25: "lightGray", GRAY_50: "darkGray", GREEN: "darkGreen", PINK: "magenta", RED: "red", TEAL: "darkCyan", TURQUOISE: "cyan", VIOLET: "darkMagenta", WHITE: "white", YELLOW: "yellow" };
+export const themes = { ACCENT_1: "accent1", ACCENT_2: "accent2", ACCENT_3: "accent3", ACCENT_4: "accent4", ACCENT_5: "accent5", ACCENT_6: "accent6", BACKGROUND_1: "background1", BACKGROUND_2: "background2", DARK_1: "dark1", DARK_2: "dark2", FOLLOWED_HYPERLINK: "followedHyperlink", HYPERLINK: "hyperlink", LIGHT_1: "light1", LIGHT_2: "light2", TEXT_1: "text1", TEXT_2: "text2" };
 const order = "rStyle rFonts b bCs i iCs caps smallCaps strike dstrike outline shadow emboss imprint noProof snapToGrid vanish webHidden color spacing w kern position sz szCs highlight u effect bdr shd fitText vertAlign rtl cs em lang eastAsianLayout specVanish oMath rPrChange".split(" ");
 const toggles = new Set("b bCs i iCs caps smallCaps strike dstrike outline shadow emboss imprint noProof snapToGrid vanish webHidden rtl cs specVanish oMath".split(" "));
 const xmlns = "http://www.w3.org/2000/xmlns/";
@@ -46,7 +46,7 @@ export function formattedRunProperties(editor: DocumentXmlEditor, run: XmlElemen
     const xml = !retained && !values && !content ? "" : `<${qualified}${declarations}${retained}${values}${content ? ">" + content + `</${qualified}>` : "/>"}`;
     if (node) patches.set(node, xml); else if (xml) added.push({ name, xml });
   };
-  for (const [key, name] of [["bold", "b"], ["italic", "i"], ["strike", "strike"], ["hidden", "vanish"], ["rtl", "rtl"]] as const) {
+  for (const [key, name] of [["bold", "b"], ["italic", "i"], ["strike", "strike"], ["hidden", "vanish"], ["rtl", "rtl"], ["allCaps", "caps"], ["complexScriptEnabled", "cs"], ["csBold", "bCs"], ["csItalic", "iCs"], ["doubleStrike", "dstrike"], ["emboss", "emboss"], ["imprint", "imprint"], ["math", "oMath"], ["noProof", "noProof"], ["outline", "outline"], ["shadow", "shadow"], ["smallCaps", "smallCaps"], ["snapToGrid", "snapToGrid"], ["specVanish", "specVanish"], ["webHidden", "webHidden"]] as const) {
     const value = options[key];
     if (value !== undefined) property(name, value === null ? null : { val: String(Number(value)) });
   }

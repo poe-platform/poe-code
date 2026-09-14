@@ -24,7 +24,7 @@ function document(body: string, extra: Record<string, string> = {}): DocumentArc
 }
 
 it.each([
-  ['<w:p><w:pPr><w:pStyle w:val="Absent"/></w:pPr></w:p>', "style-reference"],
+  ['<w:p><w:pPr><w:pStyle/></w:pPr></w:p>', "style-reference"],
   ['<w:p><w:pPr><w:numPr><w:numId w:val="7"/></w:numPr></w:pPr></w:p>', "numbering-reference"],
   ['<w:p><w:r><w:footnoteReference w:id="3"/></w:r></w:p>', "note-reference"],
   ['<w:p><w:r><w:endnoteReference w:id="3"/></w:r></w:p>', "note-reference"],
@@ -234,4 +234,13 @@ it("locates a related-part dialect failure before publishing to memfs", async ()
     limits: { maxArchiveBytes: 65536, maxEntryBytes: 16384, maxTotalBytes: 65536, maxMembers: 32, maxPathBytes: 256, maxDepth: 16, maxExtraBytes: 0, maxCommentBytes: 0, maxRetainedBytes: 4 * 1024 * 1024, chunkSize: 512 }
   })).rejects.toMatchObject({ code: "invalid-package", diagnostics: [expect.objectContaining(diagnostic)] });
   expect(fs.readFileSync("/out", "utf8")).toBe("prior");
+});
+
+it("admits unresolved applied styles as a declared default fallback without altering references", () => {
+  const archive = document('<w:p><w:pPr><w:pStyle w:val="Retired"/></w:pPr><w:r><w:rPr><w:rStyle w:val="RetiredMark"/></w:rPr><w:t>Waterline</w:t></w:r></w:p>');
+  const before = archive.members.map(m => m.bytes.slice());
+  const report = validateDocumentArchive(archive);
+  expect(report.valid).toBe(true);
+  expect(report.warnings).toContain("Unresolved style references use document defaults or inherited formatting.");
+  expect(archive.members.map(m => m.bytes)).toEqual(before);
 });

@@ -246,7 +246,7 @@ export function parseDocxArguments(args: readonly Uint8Array[], budget = new Doc
     docxInvocationBudgets.set(invocation, budget);
     return invocation;
   }
-  for (const name of ["tabStops", "borders", "shading"]) {
+  for (const name of ["tabStops", "tabStopAdd", "borders", "shading"]) {
     if (options[name + "Json"] !== undefined) { options[name] = options[name + "Json"]; delete options[name + "Json"]; }
   }
   const sources: DocxArgumentSource[] = [];
@@ -387,6 +387,10 @@ function handleType(receiver: Record<string, unknown>, handles: ReadonlyMap<stri
     if (receiver.key !== undefined) usage("Sequences require an index.");
     return type.slice(14, -1);
   }
+  if (type.startsWith("ReadonlyMap<string, ") && type.endsWith(">")) {
+    if (receiver.index !== undefined || typeof receiver.key !== "string") usage("Maps require a string key.");
+    return type.slice("ReadonlyMap<string, ".length, -1);
+  }
   const lookups = Object.entries(docxOperationSchemas).filter(([id, schema]) => schema.receiver === type && id.includes(".__getitem__.") && !id.endsWith(".slice"));
   const lookup = lookups.find(([, schema]) => receiver.index !== undefined ? Object.hasOwn(schema.fields, "index") : Object.hasOwn(schema.fields, "key") || Object.hasOwn(schema.fields, "rId"));
   if (!lookup) usage("The handle does not expose that collection lookup.");
@@ -430,7 +434,8 @@ export function validateDocxBatch(value: unknown, budget = new DocumentBudget())
         if (receiver.index !== undefined && (typeof receiver.index !== "number" || !Number.isSafeInteger(receiver.index) || receiver.index < 0)) usage("Invalid handle index.");
         if (receiver.key !== undefined && typeof receiver.key !== "string") usage("Invalid handle key.");
         const type = handleType(receiver, handles);
-        if (!type.split(" | ").includes(schema.receiver!)) usage("Handle type does not match receiver.");
+        const styleReceivers: Readonly<Record<string, readonly string[]>> = { BaseStyle: ["CharacterStyle", "ParagraphStyle", "_TableStyle", "_NumberingStyle"], CharacterStyle: ["BaseStyle", "ParagraphStyle", "_TableStyle"], ParagraphStyle: ["BaseStyle", "CharacterStyle", "_TableStyle"], _TableStyle: ["BaseStyle", "CharacterStyle", "ParagraphStyle"], _NumberingStyle: ["BaseStyle"] };
+        if (!type.split(" | ").some(candidate => candidate === schema.receiver || styleReceivers[candidate]?.includes(schema.receiver!))) usage("Handle type does not match receiver.");
       } else if (typeof receiver.id !== "string" || !receiver.id || typeof receiver.type !== "string" || !receiver.type || typeof receiver.owner !== "string" || !receiver.owner || typeof receiver.revision !== "number" || !Number.isSafeInteger(receiver.revision) || receiver.revision < 0) usage("Invalid model receiver.");
       else if (receiver.type !== schema.receiver) usage("Receiver type does not match operation.");
     }

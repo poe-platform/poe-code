@@ -1,3 +1,4 @@
+import { styleFontFlags } from "./style-properties.js";
 import type { DocxJsonSchema } from "./operation-json-schema.js";
 
 const string: DocxJsonSchema = { type: "string" };
@@ -68,7 +69,13 @@ const textData = object({ text: string, view: { enum: ["final", "original", "all
       paragraph: object({ style: nullableString, bidi: nullableBoolean }) }) })) });
 const styleMutationData = object({ ...mutationData.properties, changes: array(object({ kind: { const: "style" }, id: string })) });
 const styleNumber: DocxJsonSchema = { oneOf: [{ type: "number" }, { type: "null" }] };
-const styleProperties = object({ bold: nullableBoolean, italic: nullableBoolean, font: nullableString, size: styleNumber, color: nullableString,
+const styleProperties = object({
+  ...Object.fromEntries(Object.keys(styleFontFlags).map(key => [key, nullableBoolean])),
+  ...Object.fromEntries(["themeColor", "underline", "highlight", "baseline", "language", "lineSpacingRule", "alignment"].map(key => [key, nullableString])),
+  ...Object.fromEntries(["leftIndent", "rightIndent", "firstLineIndent", "lineSpacing"].map(key => [key, styleNumber])),
+  ...Object.fromEntries(["keepTogether", "widowControl", "pageBreakBefore"].map(key => [key, nullableBoolean])),
+  tabStops: { oneOf: [array(object({ position: styleNumber, alignment: string, leader: string })), { type: "null" }] },
+  bold: nullableBoolean, italic: nullableBoolean, font: nullableString, size: styleNumber, color: nullableString,
   outlineLevel: styleNumber, keepWithNext: nullableBoolean, spaceBefore: styleNumber, spaceAfter: styleNumber,
   numbering: { oneOf: [object({ id: nullableString, level: styleNumber }), { type: "null" }] } });
 const styleInspectionData = object({
@@ -77,9 +84,17 @@ const styleInspectionData = object({
     unhideWhenUsed: boolean, direct: styleProperties, effective: { oneOf: [styleProperties, { type: "null" }] },
     runXml: nullableString, paragraphXml: nullableString, tableXml: nullableString })),
   defaults: object({ run: styleProperties, paragraph: styleProperties }), latentXml: nullableString,
+  latent: { oneOf: [object({ defaults: object({ defaultToHidden: boolean, defaultToLocked: boolean, defaultToQuickStyle: boolean, defaultToUnhideWhenUsed: boolean, defaultPriority: styleNumber, loadCount: styleNumber }), entries: array(object({ name: string, hidden: nullableBoolean, locked: nullableBoolean, quickStyle: nullableBoolean, unhideWhenUsed: nullableBoolean, priority: styleNumber })) }), { type: "null" }] },
   diagnostics: array(object({ code: string, part: string, location: string, message: string }))
 });
 export const inspectionOperationMetadata: Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>> = Object.fromEntries([
+  ["styles.latent.list", "Inspect latent style entries and defaults without creating definitions.", ["F14"], styleInspectionData],
+  ["styles.latent.get", "Inspect latent style entries and defaults without creating definitions.", ["F14"], styleInspectionData],
+  ["styles.latent.add", "Edit latent style entries or defaults with explicit inheritance resets.", ["F14"], styleMutationData],
+  ["styles.latent.set", "Edit latent style entries or defaults with explicit inheritance resets.", ["F14"], styleMutationData],
+  ["styles.latent.remove", "Edit latent style entries or defaults with explicit inheritance resets.", ["F14"], styleMutationData],
+  ["styles.latent.defaults.get", "Inspect latent style entries and defaults without creating definitions.", ["F14"], styleInspectionData],
+  ["styles.latent.defaults.set", "Edit latent style entries or defaults with explicit inheritance resets.", ["F14"], styleMutationData],
   ["styles.list", "Inspect style definitions, inherited properties, document defaults and relationship diagnostics.", ["F14"], styleInspectionData],
   ["styles.get", "Inspect one style by exact name without creating missing definitions.", ["F14"], styleInspectionData],
   ["styles.defaults.get", "Inspect document run and paragraph defaults without mutation.", ["F14"], styleInspectionData],
@@ -99,5 +114,5 @@ export const inspectionOperationMetadata: Readonly<Record<string, { description:
   ["xml.set", "Replace one complete XML part with validated bytes; preserve opaque content and unrelated parts.", ["F04", "F07"], mutationData]
 ].map(([id, description, featureIds, data]) => [id, { description, featureIds, result: { oneOf: [object({
   version: { const: 1 }, operation: { const: id }, ok: { const: true }, data: data as DocxJsonSchema,
-  warnings: array(diagnostic), errors: empty, affected: ["styles.add", "styles.set", "styles.defaults.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add"].includes(id as string) ? number : id === "create" ? { const: 1 } : id === "xml.set" ? { type: "integer", minimum: 0, maximum: 1 } : { const: 0 }, locations: array(location)
+  warnings: array(diagnostic), errors: empty, affected: ["styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.set", "styles.add", "styles.set", "styles.defaults.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add"].includes(id as string) ? number : id === "create" ? { const: 1 } : id === "xml.set" ? { type: "integer", minimum: 0, maximum: 1 } : { const: 0 }, locations: array(location)
 }), object({ version: { const: 1 }, operation: { const: id }, ok: { const: false }, data: { type: "null" }, warnings: array(diagnostic), errors: { type: "array", minItems: 1, items: { type: "object" } }, affected: { const: 0 }, locations: empty })] } }])) as Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>>;

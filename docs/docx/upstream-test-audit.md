@@ -1,6 +1,8 @@
 # DOCX Upstream Test Audit
 
-Status: Research complete for the pinned baseline; TypeScript adaptation not started.
+Status: Research complete for the pinned baseline; bounded style/formatting
+TypeScript adaptation is recorded in [the scoped audit](style-formatting-audit.md)
+and [case map](style-formatting-case-map.json). Full format adaptation is pending.
 
 ## Pinned source
 

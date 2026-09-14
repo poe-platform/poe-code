@@ -1,0 +1,1771 @@
+[
+  {
+    "id": "pptx@0.0.1",
+    "name": "pptx",
+    "version": "0.0.1",
+    "size": 603441,
+    "unpackedSize": 4661909,
+    "shasum": "b242201314626d5053e5060f17ede27a884eb9f1",
+    "integrity": "sha512-O3SgYdMTF6NG1jltf4W9Zv1YNqtBFcFygEjmT6jr71QoThwJ2L0vvrEEi3QRCUXOOfwXt+IrfEa2xK/rDsfR5Q==",
+    "filename": "pptx-0.0.1.tgz",
+    "files": [
+      {
+        "path": "LICENSE",
+        "size": 1069,
+        "mode": 420
+      },
+      {
+        "path": "THIRD_PARTY_NOTICES.txt",
+        "size": 1104,
+        "mode": 420
+      },
+      {
+        "path": "dist/accessibility-schema.d.ts",
+        "size": 26093,
+        "mode": 420
+      },
+      {
+        "path": "dist/accessibility-schema.js",
+        "size": 9006,
+        "mode": 420
+      },
+      {
+        "path": "dist/accessibility.d.ts",
+        "size": 2010,
+        "mode": 420
+      },
+      {
+        "path": "dist/accessibility.js",
+        "size": 12887,
+        "mode": 420
+      },
+      {
+        "path": "dist/animation-batch-command.d.ts",
+        "size": 988,
+        "mode": 420
+      },
+      {
+        "path": "dist/animation-batch-command.js",
+        "size": 4592,
+        "mode": 420
+      },
+      {
+        "path": "dist/animation-batch-schema.d.ts",
+        "size": 66200,
+        "mode": 420
+      },
+      {
+        "path": "dist/animation-batch-schema.js",
+        "size": 4948,
+        "mode": 420
+      },
+      {
+        "path": "dist/animation-editing.d.ts",
+        "size": 2005,
+        "mode": 420
+      },
+      {
+        "path": "dist/animation-editing.js",
+        "size": 27999,
+        "mode": 420
+      },
+      {
+        "path": "dist/animations-schema.d.ts",
+        "size": 42798,
+        "mode": 420
+      },
+      {
+        "path": "dist/animations-schema.js",
+        "size": 8891,
+        "mode": 420
+      },
+      {
+        "path": "dist/animations.d.ts",
+        "size": 1843,
+        "mode": 420
+      },
+      {
+        "path": "dist/animations.js",
+        "size": 10748,
+        "mode": 420
+      },
+      {
+        "path": "dist/backgrounds.d.ts",
+        "size": 1450,
+        "mode": 420
+      },
+      {
+        "path": "dist/backgrounds.js",
+        "size": 12473,
+        "mode": 420
+      },
+      {
+        "path": "dist/bytes.d.ts",
+        "size": 356,
+        "mode": 420
+      },
+      {
+        "path": "dist/bytes.js",
+        "size": 5756,
+        "mode": 420
+      },
+      {
+        "path": "dist/capabilities-discovery.d.ts",
+        "size": 9013,
+        "mode": 420
+      },
+      {
+        "path": "dist/capabilities-discovery.js",
+        "size": 14258,
+        "mode": 420
+      },
+      {
+        "path": "dist/chart-data-model.d.ts",
+        "size": 6699,
+        "mode": 420
+      },
+      {
+        "path": "dist/chart-data-model.js",
+        "size": 20430,
+        "mode": 420
+      },
+      {
+        "path": "dist/chart-editing.d.ts",
+        "size": 3667,
+        "mode": 420
+      },
+      {
+        "path": "dist/chart-editing.js",
+        "size": 39565,
+        "mode": 420
+      },
+      {
+        "path": "dist/chart-enums.d.ts",
+        "size": 12375,
+        "mode": 420
+      },
+      {
+        "path": "dist/chart-enums.js",
+        "size": 4763,
+        "mode": 420
+      },
+      {
+        "path": "dist/chart-font-operations.d.ts",
+        "size": 46000,
+        "mode": 420
+      },
+      {
+        "path": "dist/chart-font-operations.js",
+        "size": 9020,
+        "mode": 420
+      },
+      {
+        "path": "dist/chart-import.d.ts",
+        "size": 523,
+        "mode": 420
+      },
+      {
+        "path": "dist/chart-import.js",
+        "size": 2999,
+        "mode": 420
+      },
+      {
+        "path": "dist/chart-model-axes.d.ts",
+        "size": 2815,
+        "mode": 420
+      },
+      {
+        "path": "dist/chart-model-axes.js",
+        "size": 10716,
+        "mode": 420
+      },
+      {
+        "path": "dist/chart-model-core.d.ts",
+        "size": 2499,
+        "mode": 420
+      },
+      {
+        "path": "dist/chart-model-core.js",
+        "size": 19113,
+        "mode": 420
+      },
+      {
+        "path": "dist/chart-model-series.d.ts",
+        "size": 4984,
+        "mode": 420
+      },
+      {
+        "path": "dist/chart-model-series.js",
+        "size": 17695,
+        "mode": 420
+      },
+      {
+        "path": "dist/chart-model.d.ts",
+        "size": 1435,
+        "mode": 420
+      },
+      {
+        "path": "dist/chart-model.js",
+        "size": 6050,
+        "mode": 420
+      },
+      {
+        "path": "dist/chart-object-mutations.d.ts",
+        "size": 228,
+        "mode": 420
+      },
+      {
+        "path": "dist/chart-object-mutations.js",
+        "size": 11470,
+        "mode": 420
+      },
+      {
+        "path": "dist/chart-object-operations.d.ts",
+        "size": 92656,
+        "mode": 420
+      },
+      {
+        "path": "dist/chart-object-operations.js",
+        "size": 11095,
+        "mode": 420
+      },
+      {
+        "path": "dist/chart-objects.d.ts",
+        "size": 620,
+        "mode": 420
+      },
+      {
+        "path": "dist/chart-objects.js",
+        "size": 620,
+        "mode": 420
+      },
+      {
+        "path": "dist/chart-type-model.d.ts",
+        "size": 164,
+        "mode": 420
+      },
+      {
+        "path": "dist/chart-type-model.js",
+        "size": 6879,
+        "mode": 420
+      },
+      {
+        "path": "dist/chart-workbook.d.ts",
+        "size": 2175,
+        "mode": 420
+      },
+      {
+        "path": "dist/chart-workbook.js",
+        "size": 23750,
+        "mode": 420
+      },
+      {
+        "path": "dist/charts-schema.d.ts",
+        "size": 330680,
+        "mode": 420
+      },
+      {
+        "path": "dist/charts-schema.js",
+        "size": 15255,
+        "mode": 420
+      },
+      {
+        "path": "dist/charts.d.ts",
+        "size": 3457,
+        "mode": 420
+      },
+      {
+        "path": "dist/charts.js",
+        "size": 14300,
+        "mode": 420
+      },
+      {
+        "path": "dist/color-enums.d.ts",
+        "size": 2285,
+        "mode": 420
+      },
+      {
+        "path": "dist/color-enums.js",
+        "size": 1510,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-accessibility.d.ts",
+        "size": 1034,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-accessibility.js",
+        "size": 5623,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-comments.d.ts",
+        "size": 1092,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-comments.js",
+        "size": 5573,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-diff.d.ts",
+        "size": 244,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-diff.js",
+        "size": 8315,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-engine-values.d.ts",
+        "size": 204,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-engine-values.js",
+        "size": 2982,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-engine.d.ts",
+        "size": 1589,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-engine.js",
+        "size": 341727,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-equations.d.ts",
+        "size": 867,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-equations.js",
+        "size": 4519,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-links.d.ts",
+        "size": 1058,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-links.js",
+        "size": 10013,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-media-editing.d.ts",
+        "size": 1182,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-media-editing.js",
+        "size": 6423,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-metadata.d.ts",
+        "size": 980,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-metadata.js",
+        "size": 8773,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-notes.d.ts",
+        "size": 877,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-notes.js",
+        "size": 4971,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-objects-add.d.ts",
+        "size": 15040,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-objects-add.js",
+        "size": 8955,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-opaque.d.ts",
+        "size": 1064,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-opaque.js",
+        "size": 4406,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-package-tools.d.ts",
+        "size": 1251,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-package-tools.js",
+        "size": 9520,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-placeholder.d.ts",
+        "size": 839,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-placeholder.js",
+        "size": 4074,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-schema.d.ts",
+        "size": 880089,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-schema.js",
+        "size": 133857,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-template.d.ts",
+        "size": 1071,
+        "mode": 420
+      },
+      {
+        "path": "dist/command-template.js",
+        "size": 5413,
+        "mode": 420
+      },
+      {
+        "path": "dist/comment-import.d.ts",
+        "size": 894,
+        "mode": 420
+      },
+      {
+        "path": "dist/comment-import.js",
+        "size": 6726,
+        "mode": 420
+      },
+      {
+        "path": "dist/comments-schema.d.ts",
+        "size": 37606,
+        "mode": 420
+      },
+      {
+        "path": "dist/comments-schema.js",
+        "size": 11668,
+        "mode": 420
+      },
+      {
+        "path": "dist/comments.d.ts",
+        "size": 2283,
+        "mode": 420
+      },
+      {
+        "path": "dist/comments.js",
+        "size": 24368,
+        "mode": 420
+      },
+      {
+        "path": "dist/compatibility.d.ts",
+        "size": 738,
+        "mode": 420
+      },
+      {
+        "path": "dist/compatibility.js",
+        "size": 12691,
+        "mode": 420
+      },
+      {
+        "path": "dist/connector-operations.d.ts",
+        "size": 2952,
+        "mode": 420
+      },
+      {
+        "path": "dist/connector-operations.js",
+        "size": 8339,
+        "mode": 420
+      },
+      {
+        "path": "dist/connectors-model.d.ts",
+        "size": 1589,
+        "mode": 420
+      },
+      {
+        "path": "dist/connectors-model.js",
+        "size": 6239,
+        "mode": 420
+      },
+      {
+        "path": "dist/connectors-schema.d.ts",
+        "size": 112,
+        "mode": 420
+      },
+      {
+        "path": "dist/connectors-schema.js",
+        "size": 6152,
+        "mode": 420
+      },
+      {
+        "path": "dist/connectors.d.ts",
+        "size": 3794,
+        "mode": 420
+      },
+      {
+        "path": "dist/connectors.js",
+        "size": 23163,
+        "mode": 420
+      },
+      {
+        "path": "dist/content-types.d.ts",
+        "size": 427,
+        "mode": 420
+      },
+      {
+        "path": "dist/content-types.js",
+        "size": 8491,
+        "mode": 420
+      },
+      {
+        "path": "dist/contracts.d.ts",
+        "size": 2540,
+        "mode": 420
+      },
+      {
+        "path": "dist/contracts.js",
+        "size": 11,
+        "mode": 420
+      },
+      {
+        "path": "dist/creation.d.ts",
+        "size": 1415,
+        "mode": 420
+      },
+      {
+        "path": "dist/creation.js",
+        "size": 14947,
+        "mode": 420
+      },
+      {
+        "path": "dist/diagram-import.d.ts",
+        "size": 283,
+        "mode": 420
+      },
+      {
+        "path": "dist/diagram-import.js",
+        "size": 1924,
+        "mode": 420
+      },
+      {
+        "path": "dist/diagram-resources.d.ts",
+        "size": 1167,
+        "mode": 420
+      },
+      {
+        "path": "dist/diagram-resources.js",
+        "size": 2560,
+        "mode": 420
+      },
+      {
+        "path": "dist/diff-schema.d.ts",
+        "size": 10532,
+        "mode": 420
+      },
+      {
+        "path": "dist/diff-schema.js",
+        "size": 4710,
+        "mode": 420
+      },
+      {
+        "path": "dist/diff.d.ts",
+        "size": 1079,
+        "mode": 420
+      },
+      {
+        "path": "dist/diff.js",
+        "size": 9456,
+        "mode": 420
+      },
+      {
+        "path": "dist/drawing-enums.d.ts",
+        "size": 8888,
+        "mode": 420
+      },
+      {
+        "path": "dist/drawing-enums.js",
+        "size": 3202,
+        "mode": 420
+      },
+      {
+        "path": "dist/drawing-format.d.ts",
+        "size": 7676,
+        "mode": 420
+      },
+      {
+        "path": "dist/drawing-format.js",
+        "size": 20500,
+        "mode": 420
+      },
+      {
+        "path": "dist/drawing-operations.d.ts",
+        "size": 5392,
+        "mode": 420
+      },
+      {
+        "path": "dist/drawing-operations.js",
+        "size": 5549,
+        "mode": 420
+      },
+      {
+        "path": "dist/drawing-schema.d.ts",
+        "size": 71266,
+        "mode": 420
+      },
+      {
+        "path": "dist/drawing-schema.js",
+        "size": 8074,
+        "mode": 420
+      },
+      {
+        "path": "dist/enum-definition.d.ts",
+        "size": 746,
+        "mode": 420
+      },
+      {
+        "path": "dist/enum-definition.js",
+        "size": 1962,
+        "mode": 420
+      },
+      {
+        "path": "dist/equations-compatibility.d.ts",
+        "size": 413,
+        "mode": 420
+      },
+      {
+        "path": "dist/equations-compatibility.js",
+        "size": 1731,
+        "mode": 420
+      },
+      {
+        "path": "dist/equations-schema.d.ts",
+        "size": 16321,
+        "mode": 420
+      },
+      {
+        "path": "dist/equations-schema.js",
+        "size": 3884,
+        "mode": 420
+      },
+      {
+        "path": "dist/equations.d.ts",
+        "size": 1287,
+        "mode": 420
+      },
+      {
+        "path": "dist/equations.js",
+        "size": 12276,
+        "mode": 420
+      },
+      {
+        "path": "dist/errors.d.ts",
+        "size": 1781,
+        "mode": 420
+      },
+      {
+        "path": "dist/errors.js",
+        "size": 1784,
+        "mode": 420
+      },
+      {
+        "path": "dist/fields-schema.d.ts",
+        "size": 26354,
+        "mode": 420
+      },
+      {
+        "path": "dist/fields-schema.js",
+        "size": 15602,
+        "mode": 420
+      },
+      {
+        "path": "dist/fields.d.ts",
+        "size": 1641,
+        "mode": 420
+      },
+      {
+        "path": "dist/fields.js",
+        "size": 10947,
+        "mode": 420
+      },
+      {
+        "path": "dist/font-metrics.d.ts",
+        "size": 1794,
+        "mode": 420
+      },
+      {
+        "path": "dist/font-metrics.js",
+        "size": 9853,
+        "mode": 420
+      },
+      {
+        "path": "dist/freeform-builder.d.ts",
+        "size": 1902,
+        "mode": 420
+      },
+      {
+        "path": "dist/freeform-builder.js",
+        "size": 8201,
+        "mode": 420
+      },
+      {
+        "path": "dist/group-model.d.ts",
+        "size": 380,
+        "mode": 420
+      },
+      {
+        "path": "dist/group-model.js",
+        "size": 527,
+        "mode": 420
+      },
+      {
+        "path": "dist/image-admission.d.ts",
+        "size": 178,
+        "mode": 420
+      },
+      {
+        "path": "dist/image-admission.js",
+        "size": 13075,
+        "mode": 420
+      },
+      {
+        "path": "dist/image-extraction.d.ts",
+        "size": 768,
+        "mode": 420
+      },
+      {
+        "path": "dist/image-extraction.js",
+        "size": 3805,
+        "mode": 420
+      },
+      {
+        "path": "dist/image-formatting.d.ts",
+        "size": 1249,
+        "mode": 420
+      },
+      {
+        "path": "dist/image-formatting.js",
+        "size": 10630,
+        "mode": 420
+      },
+      {
+        "path": "dist/image-insertion.d.ts",
+        "size": 563,
+        "mode": 420
+      },
+      {
+        "path": "dist/image-insertion.js",
+        "size": 6992,
+        "mode": 420
+      },
+      {
+        "path": "dist/image-metadata.d.ts",
+        "size": 391,
+        "mode": 420
+      },
+      {
+        "path": "dist/image-metadata.js",
+        "size": 7439,
+        "mode": 420
+      },
+      {
+        "path": "dist/image-replacement.d.ts",
+        "size": 914,
+        "mode": 420
+      },
+      {
+        "path": "dist/image-replacement.js",
+        "size": 13457,
+        "mode": 420
+      },
+      {
+        "path": "dist/image-value.d.ts",
+        "size": 573,
+        "mode": 420
+      },
+      {
+        "path": "dist/image-value.js",
+        "size": 2387,
+        "mode": 420
+      },
+      {
+        "path": "dist/images-schema.d.ts",
+        "size": 126085,
+        "mode": 420
+      },
+      {
+        "path": "dist/images-schema.js",
+        "size": 23536,
+        "mode": 420
+      },
+      {
+        "path": "dist/images.d.ts",
+        "size": 2093,
+        "mode": 420
+      },
+      {
+        "path": "dist/images.js",
+        "size": 12692,
+        "mode": 420
+      },
+      {
+        "path": "dist/index.d.ts",
+        "size": 13400,
+        "mode": 420
+      },
+      {
+        "path": "dist/index.js",
+        "size": 7699,
+        "mode": 420
+      },
+      {
+        "path": "dist/indexed-collection.d.ts",
+        "size": 95,
+        "mode": 420
+      },
+      {
+        "path": "dist/indexed-collection.js",
+        "size": 1247,
+        "mode": 420
+      },
+      {
+        "path": "dist/inventory-schema.d.ts",
+        "size": 14168,
+        "mode": 420
+      },
+      {
+        "path": "dist/inventory-schema.js",
+        "size": 7693,
+        "mode": 420
+      },
+      {
+        "path": "dist/inventory.d.ts",
+        "size": 2316,
+        "mode": 420
+      },
+      {
+        "path": "dist/inventory.js",
+        "size": 7096,
+        "mode": 420
+      },
+      {
+        "path": "dist/language-enum.d.ts",
+        "size": 5793,
+        "mode": 420
+      },
+      {
+        "path": "dist/language-enum.js",
+        "size": 23960,
+        "mode": 420
+      },
+      {
+        "path": "dist/layouts.d.ts",
+        "size": 2962,
+        "mode": 420
+      },
+      {
+        "path": "dist/layouts.js",
+        "size": 19828,
+        "mode": 420
+      },
+      {
+        "path": "dist/length.d.ts",
+        "size": 643,
+        "mode": 420
+      },
+      {
+        "path": "dist/length.js",
+        "size": 2012,
+        "mode": 420
+      },
+      {
+        "path": "dist/links-model.d.ts",
+        "size": 3848,
+        "mode": 420
+      },
+      {
+        "path": "dist/links-model.js",
+        "size": 8820,
+        "mode": 420
+      },
+      {
+        "path": "dist/links-schema.d.ts",
+        "size": 19950,
+        "mode": 420
+      },
+      {
+        "path": "dist/links-schema.js",
+        "size": 10492,
+        "mode": 420
+      },
+      {
+        "path": "dist/links.d.ts",
+        "size": 2350,
+        "mode": 420
+      },
+      {
+        "path": "dist/links.js",
+        "size": 25068,
+        "mode": 420
+      },
+      {
+        "path": "dist/masters.d.ts",
+        "size": 4068,
+        "mode": 420
+      },
+      {
+        "path": "dist/masters.js",
+        "size": 27780,
+        "mode": 420
+      },
+      {
+        "path": "dist/media-editing.d.ts",
+        "size": 1417,
+        "mode": 420
+      },
+      {
+        "path": "dist/media-editing.js",
+        "size": 20544,
+        "mode": 420
+      },
+      {
+        "path": "dist/media-enum.d.ts",
+        "size": 399,
+        "mode": 420
+      },
+      {
+        "path": "dist/media-enum.js",
+        "size": 504,
+        "mode": 420
+      },
+      {
+        "path": "dist/media-extraction.d.ts",
+        "size": 739,
+        "mode": 420
+      },
+      {
+        "path": "dist/media-extraction.js",
+        "size": 3931,
+        "mode": 420
+      },
+      {
+        "path": "dist/media-schema.d.ts",
+        "size": 30396,
+        "mode": 420
+      },
+      {
+        "path": "dist/media-schema.js",
+        "size": 11701,
+        "mode": 420
+      },
+      {
+        "path": "dist/media.d.ts",
+        "size": 1826,
+        "mode": 420
+      },
+      {
+        "path": "dist/media.js",
+        "size": 13876,
+        "mode": 420
+      },
+      {
+        "path": "dist/memberships.d.ts",
+        "size": 1103,
+        "mode": 420
+      },
+      {
+        "path": "dist/memberships.js",
+        "size": 24475,
+        "mode": 420
+      },
+      {
+        "path": "dist/metadata-schema.d.ts",
+        "size": 21616,
+        "mode": 420
+      },
+      {
+        "path": "dist/metadata-schema.js",
+        "size": 6566,
+        "mode": 420
+      },
+      {
+        "path": "dist/model-sequence.d.ts",
+        "size": 123,
+        "mode": 420
+      },
+      {
+        "path": "dist/model-sequence.js",
+        "size": 820,
+        "mode": 420
+      },
+      {
+        "path": "dist/modern-comments.d.ts",
+        "size": 1307,
+        "mode": 420
+      },
+      {
+        "path": "dist/modern-comments.js",
+        "size": 6154,
+        "mode": 420
+      },
+      {
+        "path": "dist/notes-schema.d.ts",
+        "size": 15911,
+        "mode": 420
+      },
+      {
+        "path": "dist/notes-schema.js",
+        "size": 6680,
+        "mode": 420
+      },
+      {
+        "path": "dist/notes.d.ts",
+        "size": 1064,
+        "mode": 420
+      },
+      {
+        "path": "dist/notes.js",
+        "size": 16026,
+        "mode": 420
+      },
+      {
+        "path": "dist/ole-enum.d.ts",
+        "size": 1011,
+        "mode": 420
+      },
+      {
+        "path": "dist/ole-enum.js",
+        "size": 741,
+        "mode": 420
+      },
+      {
+        "path": "dist/ole-insertion.d.ts",
+        "size": 726,
+        "mode": 420
+      },
+      {
+        "path": "dist/ole-insertion.js",
+        "size": 7829,
+        "mode": 420
+      },
+      {
+        "path": "dist/opaque-objects.d.ts",
+        "size": 2197,
+        "mode": 420
+      },
+      {
+        "path": "dist/opaque-objects.js",
+        "size": 10392,
+        "mode": 420
+      },
+      {
+        "path": "dist/opaque-schema.d.ts",
+        "size": 22294,
+        "mode": 420
+      },
+      {
+        "path": "dist/opaque-schema.js",
+        "size": 5570,
+        "mode": 420
+      },
+      {
+        "path": "dist/package-reader.d.ts",
+        "size": 678,
+        "mode": 420
+      },
+      {
+        "path": "dist/package-reader.js",
+        "size": 4994,
+        "mode": 420
+      },
+      {
+        "path": "dist/package-tools-schema.d.ts",
+        "size": 17331,
+        "mode": 420
+      },
+      {
+        "path": "dist/package-tools-schema.js",
+        "size": 6017,
+        "mode": 420
+      },
+      {
+        "path": "dist/package-tools.d.ts",
+        "size": 1024,
+        "mode": 420
+      },
+      {
+        "path": "dist/package-tools.js",
+        "size": 7484,
+        "mode": 420
+      },
+      {
+        "path": "dist/package-uri.d.ts",
+        "size": 540,
+        "mode": 420
+      },
+      {
+        "path": "dist/package-uri.js",
+        "size": 6162,
+        "mode": 420
+      },
+      {
+        "path": "dist/package-view.d.ts",
+        "size": 898,
+        "mode": 420
+      },
+      {
+        "path": "dist/package-view.js",
+        "size": 5589,
+        "mode": 420
+      },
+      {
+        "path": "dist/package-writer.d.ts",
+        "size": 480,
+        "mode": 420
+      },
+      {
+        "path": "dist/package-writer.js",
+        "size": 7587,
+        "mode": 420
+      },
+      {
+        "path": "dist/paragraph-alignment.d.ts",
+        "size": 749,
+        "mode": 420
+      },
+      {
+        "path": "dist/paragraph-alignment.js",
+        "size": 2011,
+        "mode": 420
+      },
+      {
+        "path": "dist/picture-input.d.ts",
+        "size": 81,
+        "mode": 420
+      },
+      {
+        "path": "dist/picture-input.js",
+        "size": 3998,
+        "mode": 420
+      },
+      {
+        "path": "dist/presentation-model.d.ts",
+        "size": 1591,
+        "mode": 420
+      },
+      {
+        "path": "dist/presentation-model.js",
+        "size": 36932,
+        "mode": 420
+      },
+      {
+        "path": "dist/presentation-settings.d.ts",
+        "size": 1827,
+        "mode": 420
+      },
+      {
+        "path": "dist/presentation-settings.js",
+        "size": 19656,
+        "mode": 420
+      },
+      {
+        "path": "dist/properties.d.ts",
+        "size": 2235,
+        "mode": 420
+      },
+      {
+        "path": "dist/properties.js",
+        "size": 19638,
+        "mode": 420
+      },
+      {
+        "path": "dist/relationships.d.ts",
+        "size": 1550,
+        "mode": 420
+      },
+      {
+        "path": "dist/relationships.js",
+        "size": 11085,
+        "mode": 420
+      },
+      {
+        "path": "dist/sanitize.d.ts",
+        "size": 971,
+        "mode": 420
+      },
+      {
+        "path": "dist/sanitize.js",
+        "size": 13558,
+        "mode": 420
+      },
+      {
+        "path": "dist/selector-schema.d.ts",
+        "size": 4119,
+        "mode": 420
+      },
+      {
+        "path": "dist/selector-schema.js",
+        "size": 3063,
+        "mode": 420
+      },
+      {
+        "path": "dist/selectors.d.ts",
+        "size": 2335,
+        "mode": 420
+      },
+      {
+        "path": "dist/selectors.js",
+        "size": 17676,
+        "mode": 420
+      },
+      {
+        "path": "dist/settings-scaling.d.ts",
+        "size": 137,
+        "mode": 420
+      },
+      {
+        "path": "dist/settings-scaling.js",
+        "size": 5040,
+        "mode": 420
+      },
+      {
+        "path": "dist/shape-adjustment-defaults.d.ts",
+        "size": 112,
+        "mode": 420
+      },
+      {
+        "path": "dist/shape-adjustment-defaults.js",
+        "size": 11023,
+        "mode": 420
+      },
+      {
+        "path": "dist/shape-adjustments.d.ts",
+        "size": 772,
+        "mode": 420
+      },
+      {
+        "path": "dist/shape-adjustments.js",
+        "size": 6703,
+        "mode": 420
+      },
+      {
+        "path": "dist/shape-groups.d.ts",
+        "size": 1569,
+        "mode": 420
+      },
+      {
+        "path": "dist/shape-groups.js",
+        "size": 24085,
+        "mode": 420
+      },
+      {
+        "path": "dist/shape-id.d.ts",
+        "size": 399,
+        "mode": 420
+      },
+      {
+        "path": "dist/shape-id.js",
+        "size": 4173,
+        "mode": 420
+      },
+      {
+        "path": "dist/shape-operations.d.ts",
+        "size": 2598,
+        "mode": 420
+      },
+      {
+        "path": "dist/shape-operations.js",
+        "size": 8071,
+        "mode": 420
+      },
+      {
+        "path": "dist/shape-owner-token.d.ts",
+        "size": 106,
+        "mode": 420
+      },
+      {
+        "path": "dist/shape-owner-token.js",
+        "size": 129,
+        "mode": 420
+      },
+      {
+        "path": "dist/shape-path-operations.d.ts",
+        "size": 1671,
+        "mode": 420
+      },
+      {
+        "path": "dist/shape-path-operations.js",
+        "size": 5030,
+        "mode": 420
+      },
+      {
+        "path": "dist/shape-paths.d.ts",
+        "size": 1265,
+        "mode": 420
+      },
+      {
+        "path": "dist/shape-paths.js",
+        "size": 9950,
+        "mode": 420
+      },
+      {
+        "path": "dist/shape-placeholder-types.d.ts",
+        "size": 3116,
+        "mode": 420
+      },
+      {
+        "path": "dist/shape-placeholder-types.js",
+        "size": 2281,
+        "mode": 420
+      },
+      {
+        "path": "dist/shape-presets.d.ts",
+        "size": 21740,
+        "mode": 420
+      },
+      {
+        "path": "dist/shape-presets.js",
+        "size": 12423,
+        "mode": 420
+      },
+      {
+        "path": "dist/shape-selection.d.ts",
+        "size": 1576,
+        "mode": 420
+      },
+      {
+        "path": "dist/shape-selection.js",
+        "size": 19298,
+        "mode": 420
+      },
+      {
+        "path": "dist/shape-transforms.d.ts",
+        "size": 719,
+        "mode": 420
+      },
+      {
+        "path": "dist/shape-transforms.js",
+        "size": 5358,
+        "mode": 420
+      },
+      {
+        "path": "dist/shape-types.d.ts",
+        "size": 2204,
+        "mode": 420
+      },
+      {
+        "path": "dist/shape-types.js",
+        "size": 944,
+        "mode": 420
+      },
+      {
+        "path": "dist/shapes.d.ts",
+        "size": 8736,
+        "mode": 420
+      },
+      {
+        "path": "dist/shapes.js",
+        "size": 48167,
+        "mode": 420
+      },
+      {
+        "path": "dist/slide-copy-xml.d.ts",
+        "size": 523,
+        "mode": 420
+      },
+      {
+        "path": "dist/slide-copy-xml.js",
+        "size": 9047,
+        "mode": 420
+      },
+      {
+        "path": "dist/slide-copy.d.ts",
+        "size": 513,
+        "mode": 420
+      },
+      {
+        "path": "dist/slide-copy.js",
+        "size": 16935,
+        "mode": 420
+      },
+      {
+        "path": "dist/slide-import.d.ts",
+        "size": 771,
+        "mode": 420
+      },
+      {
+        "path": "dist/slide-import.js",
+        "size": 28005,
+        "mode": 420
+      },
+      {
+        "path": "dist/slide-layout-model.d.ts",
+        "size": 1321,
+        "mode": 420
+      },
+      {
+        "path": "dist/slide-layout-model.js",
+        "size": 5788,
+        "mode": 420
+      },
+      {
+        "path": "dist/slide-merge-split.d.ts",
+        "size": 1300,
+        "mode": 420
+      },
+      {
+        "path": "dist/slide-merge-split.js",
+        "size": 8928,
+        "mode": 420
+      },
+      {
+        "path": "dist/slide-model.d.ts",
+        "size": 7687,
+        "mode": 420
+      },
+      {
+        "path": "dist/slide-model.js",
+        "size": 32867,
+        "mode": 420
+      },
+      {
+        "path": "dist/slide-removal.d.ts",
+        "size": 449,
+        "mode": 420
+      },
+      {
+        "path": "dist/slide-removal.js",
+        "size": 17990,
+        "mode": 420
+      },
+      {
+        "path": "dist/slide-transfer-budget.d.ts",
+        "size": 952,
+        "mode": 420
+      },
+      {
+        "path": "dist/slide-transfer-budget.js",
+        "size": 10340,
+        "mode": 420
+      },
+      {
+        "path": "dist/slides.d.ts",
+        "size": 1393,
+        "mode": 420
+      },
+      {
+        "path": "dist/slides.js",
+        "size": 27300,
+        "mode": 420
+      },
+      {
+        "path": "dist/table-operations.d.ts",
+        "size": 4261,
+        "mode": 420
+      },
+      {
+        "path": "dist/table-operations.js",
+        "size": 9508,
+        "mode": 420
+      },
+      {
+        "path": "dist/table-spans.d.ts",
+        "size": 853,
+        "mode": 420
+      },
+      {
+        "path": "dist/table-spans.js",
+        "size": 17115,
+        "mode": 420
+      },
+      {
+        "path": "dist/tables-model.d.ts",
+        "size": 3900,
+        "mode": 420
+      },
+      {
+        "path": "dist/tables-model.js",
+        "size": 15896,
+        "mode": 420
+      },
+      {
+        "path": "dist/tables-schema.d.ts",
+        "size": 6031,
+        "mode": 420
+      },
+      {
+        "path": "dist/tables-schema.js",
+        "size": 8904,
+        "mode": 420
+      },
+      {
+        "path": "dist/tables.d.ts",
+        "size": 3811,
+        "mode": 420
+      },
+      {
+        "path": "dist/tables.js",
+        "size": 26462,
+        "mode": 420
+      },
+      {
+        "path": "dist/tags.d.ts",
+        "size": 957,
+        "mode": 420
+      },
+      {
+        "path": "dist/tags.js",
+        "size": 11347,
+        "mode": 420
+      },
+      {
+        "path": "dist/template-bindings.d.ts",
+        "size": 1026,
+        "mode": 420
+      },
+      {
+        "path": "dist/template-bindings.js",
+        "size": 20756,
+        "mode": 420
+      },
+      {
+        "path": "dist/template-repeat.d.ts",
+        "size": 747,
+        "mode": 420
+      },
+      {
+        "path": "dist/template-repeat.js",
+        "size": 6380,
+        "mode": 420
+      },
+      {
+        "path": "dist/template-schema.d.ts",
+        "size": 28821,
+        "mode": 420
+      },
+      {
+        "path": "dist/template-schema.js",
+        "size": 5022,
+        "mode": 420
+      },
+      {
+        "path": "dist/text-fitting.d.ts",
+        "size": 1483,
+        "mode": 420
+      },
+      {
+        "path": "dist/text-fitting.js",
+        "size": 12089,
+        "mode": 420
+      },
+      {
+        "path": "dist/text-frame-enums.d.ts",
+        "size": 1036,
+        "mode": 420
+      },
+      {
+        "path": "dist/text-frame-enums.js",
+        "size": 2187,
+        "mode": 420
+      },
+      {
+        "path": "dist/text-frames.d.ts",
+        "size": 4502,
+        "mode": 420
+      },
+      {
+        "path": "dist/text-frames.js",
+        "size": 23566,
+        "mode": 420
+      },
+      {
+        "path": "dist/text-link-capability.d.ts",
+        "size": 189,
+        "mode": 420
+      },
+      {
+        "path": "dist/text-link-capability.js",
+        "size": 51,
+        "mode": 420
+      },
+      {
+        "path": "dist/text-paragraphs.d.ts",
+        "size": 7545,
+        "mode": 420
+      },
+      {
+        "path": "dist/text-paragraphs.js",
+        "size": 34971,
+        "mode": 420
+      },
+      {
+        "path": "dist/text-reading.d.ts",
+        "size": 2055,
+        "mode": 420
+      },
+      {
+        "path": "dist/text-reading.js",
+        "size": 11476,
+        "mode": 420
+      },
+      {
+        "path": "dist/text-replacement.d.ts",
+        "size": 874,
+        "mode": 420
+      },
+      {
+        "path": "dist/text-replacement.js",
+        "size": 11429,
+        "mode": 420
+      },
+      {
+        "path": "dist/text-run-color.d.ts",
+        "size": 2294,
+        "mode": 420
+      },
+      {
+        "path": "dist/text-run-color.js",
+        "size": 10276,
+        "mode": 420
+      },
+      {
+        "path": "dist/text-runs.d.ts",
+        "size": 5284,
+        "mode": 420
+      },
+      {
+        "path": "dist/text-runs.js",
+        "size": 21994,
+        "mode": 420
+      },
+      {
+        "path": "dist/text-style-resolution.d.ts",
+        "size": 1359,
+        "mode": 420
+      },
+      {
+        "path": "dist/text-style-resolution.js",
+        "size": 16268,
+        "mode": 420
+      },
+      {
+        "path": "dist/themes.d.ts",
+        "size": 1392,
+        "mode": 420
+      },
+      {
+        "path": "dist/themes.js",
+        "size": 6388,
+        "mode": 420
+      },
+      {
+        "path": "dist/transitions-schema.d.ts",
+        "size": 22335,
+        "mode": 420
+      },
+      {
+        "path": "dist/transitions-schema.js",
+        "size": 11792,
+        "mode": 420
+      },
+      {
+        "path": "dist/transitions.d.ts",
+        "size": 1525,
+        "mode": 420
+      },
+      {
+        "path": "dist/transitions.js",
+        "size": 12784,
+        "mode": 420
+      },
+      {
+        "path": "dist/validation.d.ts",
+        "size": 942,
+        "mode": 420
+      },
+      {
+        "path": "dist/validation.js",
+        "size": 14366,
+        "mode": 420
+      },
+      {
+        "path": "dist/xml-parts.d.ts",
+        "size": 914,
+        "mode": 420
+      },
+      {
+        "path": "dist/xml-parts.js",
+        "size": 14475,
+        "mode": 420
+      },
+      {
+        "path": "dist/xml-scalars.d.ts",
+        "size": 207,
+        "mode": 420
+      },
+      {
+        "path": "dist/xml-scalars.js",
+        "size": 2238,
+        "mode": 420
+      },
+      {
+        "path": "dist/xml-view-validation.d.ts",
+        "size": 370,
+        "mode": 420
+      },
+      {
+        "path": "dist/xml-view-validation.js",
+        "size": 6996,
+        "mode": 420
+      },
+      {
+        "path": "dist/xml-view.d.ts",
+        "size": 774,
+        "mode": 420
+      },
+      {
+        "path": "dist/xml-view.js",
+        "size": 5921,
+        "mode": 420
+      },
+      {
+        "path": "dist/xml.d.ts",
+        "size": 1596,
+        "mode": 420
+      },
+      {
+        "path": "dist/xml.js",
+        "size": 26354,
+        "mode": 420
+      },
+      {
+        "path": "package.json",
+        "size": 1006,
+        "mode": 420
+      }
+    ],
+    "entryCount": 351,
+    "bundled": []
+  }
+]

@@ -481,6 +481,11 @@ export {
 } from "./images.js";
 
 export { addImage, type AddImageOptions } from "./image-insertion.js";
+export {
+  replaceImage,
+  type ReplaceImageOptions,
+  type ReplaceImageResult
+} from "./image-replacement.js";
 
 export {
   setImage,
@@ -536,6 +541,13 @@ export {
   type PropertyRecord,
   type MutatePropertyOptions
 } from "./properties.js";
+export {
+  sanitize,
+  type SanitizeCategory,
+  type SanitizeOptions,
+  type SanitizeEntry,
+  type SanitizeResult
+} from "./sanitize.js";
 export { readTags, mutateTags, type TagRecord, type TagOptions } from "./tags.js";
 export {
   readObjects,

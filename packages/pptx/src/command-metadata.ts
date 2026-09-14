@@ -2,7 +2,8 @@ import type { PptxCommandEngineOptions, PptxCommandRequest, PptxPublicationReque
 import type { OfficeResult, Location } from "./contracts.js";
 import { OfficeError } from "./errors.js";
 import { metadataSchemas } from "./metadata-schema.js";
-import { coreDefinition, mutateProperty, readProperties, sanitizeProperties, type PropertyType } from "./properties.js";
+import { coreDefinition, mutateProperty, readProperties, type PropertyType } from "./properties.js";
+import { sanitize as sanitizePresentation, type SanitizeCategory } from "./sanitize.js";
 import { mutateTags, readTags, type TagOptions } from "./tags.js";
 import { SelectionError } from "./selectors.js";
 
@@ -25,6 +26,16 @@ export interface MetadataArguments {
   allowEmpty?: boolean;
 }
 function usage(message: string): never { throw new OfficeError("invalid-value", message, "usage"); }
+function removalCategories(value: string | undefined): SanitizeCategory[] {
+  const categories = ["notes", "comments", "properties", "links", "objects"];
+  let parsed: unknown = value;
+  if (value !== undefined && !categories.includes(value)) {
+    try { parsed = JSON.parse(value); } catch { usage("Remove requires a category or a JSON array of categories."); }
+  }
+  const values: unknown[] = Array.isArray(parsed) ? parsed : [parsed];
+  if (!values.length || values.some(item => typeof item !== "string" || !categories.includes(item)) || new Set(values).size !== values.length) usage("Remove requires distinct notes, comments, properties, links or objects categories.");
+  return values as SanitizeCategory[];
+}
 export function validateMetadataCommand(args: MetadataArguments, positionals: readonly string[], seen: ReadonlySet<string>): void {
   const allowed = Object.keys(metadataSchemas[args.operation]!.options.properties).map(key => "--" + [...key].map(c => c >= "A" && c <= "Z" ? "-" + c.toLowerCase() : c).join(""));
   if ([...seen].some(flag => !allowed.includes(flag))) usage("Option does not apply to this metadata operation.");
@@ -40,7 +51,7 @@ export function validateMetadataCommand(args: MetadataArguments, positionals: re
   if (action === "add" && (!args.metadataName || args.metadataValue === undefined)) usage("New tags require name and value.");
   if (action === "set" && (tags ? args.metadataName === undefined && args.metadataValue === undefined : args.metadataValue === undefined)) usage("Metadata edit value is required.");
   if (args.metadataType !== undefined && !["string", "number", "boolean", "date"].includes(args.metadataType)) usage("Unknown property type.");
-  if (sanitize && args.metadataRemove !== "properties") usage("Only explicit properties sanitization is supported.");
+  if (sanitize) removalCategories(args.metadataRemove);
   if (!sanitize && ["list", "get"].includes(action!)) return;
   if (tags && !args.token && args.slide === undefined && args.scope !== "presentation" && !args.all) throw new SelectionError("missing-selection");
   if (args.inPlace && args.input === "-") usage("Stdin cannot be edited in place.");
@@ -66,16 +77,13 @@ export async function executeMetadataCommand(args: MetadataArguments, request: P
     return { result: envelope({ [tags ? "tags" : "properties"]: records }, 0, tags ? (records as Awaited<ReturnType<typeof readTags>>).map(r => r.location) : []), human: records.map(r => `${JSON.stringify(r.name)}: ${JSON.stringify(r.value)}\n`).join("") };
   }
   let bytes: Uint8Array, affected: number, locations: readonly Location[] = [];
-  let remaining: Awaited<ReturnType<typeof readProperties>> | undefined;
+  let sanitization: Awaited<ReturnType<typeof sanitizePresentation>> | undefined;
   if (tags) {
     const result = await mutateTags(original, action as "add" | "set" | "remove", { ...tagOptions, ...(args.metadataName === undefined ? {} : { name: args.metadataName }), ...(args.metadataValue === undefined ? {} : { value: args.metadataValue }), ...(args.allowEmpty === undefined ? {} : { allowEmpty: args.allowEmpty }) }, context);
     bytes = result.bytes; affected = result.affected; locations = result.locations;
   } else if (sanitize) {
-    const before = await readProperties(original, {}, context);
-    bytes = (await sanitizeProperties(original, context)).bytes;
-    remaining = await readProperties(bytes, {}, context);
-    affected = before.length - remaining.length;
-    if (!affected && !args.allowEmpty) throw new SelectionError("missing-selection");
+    sanitization = await sanitizePresentation(original, { remove: removalCategories(args.metadataRemove), ...(args.allowEmpty === undefined ? {} : { allowEmpty: args.allowEmpty }) }, context);
+    bytes = sanitization.bytes; affected = sanitization.affected;
   } else {
     const known = await readProperties(original, { name: args.metadataName! }, context);
     if (known.length > 1) throw new SelectionError("ambiguous-selection");
@@ -94,7 +102,8 @@ export async function executeMetadataCommand(args: MetadataArguments, request: P
   const dryRun = args.dryRun ?? false, destination = args.inPlace ? args.input! : args.output;
   if (destination && destination !== "-" && !request.publishOutput) throw Object.assign(new Error("Output publication capability is unavailable."), { code: "publication-unsupported" });
   return {
-    result: envelope({ dryRun, ...(remaining === undefined ? {} : { remaining }) }, affected, locations), human: `${dryRun ? "Validated" : "Updated"} ${affected} metadata item(s)\n`,
+    result: { ...envelope({ dryRun, ...(sanitization === undefined ? {} : { removed: sanitization.removed, retained: sanitization.retained }) }, affected, locations), warnings: sanitization?.warnings.map(message => ({ code: "retained-content", message, context: { phase: "validate-result" as const } })) ?? [] },
+    human: sanitization === undefined ? `${dryRun ? "Validated" : "Updated"} ${affected} metadata item(s)\n` : `${dryRun ? "Validated removal of" : "Removed"} ${affected} selected item(s)\nRetained ${sanitization.retained.length} reported item(s); unrecognized hidden data may remain.\n${sanitization.retained.map(entry => `Retained ${entry.category} ${entry.kind} ${JSON.stringify(entry.part)}: ${entry.reason}\n`).join("")}`,
     ...(destination === "-" && !dryRun ? { binary: bytes } : {}),
     ...(destination && destination !== "-" ? { publication: { inputPath: args.input!, outputPath: destination, bytes, originalBytes: original, inPlace: args.inPlace ?? false, force: args.force ?? false, dryRun } } : {})
   };

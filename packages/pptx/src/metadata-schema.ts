@@ -3,10 +3,11 @@ import { inspectSchema, textGetSchema } from "./command-schema.js";
 export const metadataUsage =
   "Usage: pptx properties list|get|set|remove INPUT [--name NAME] [--value VALUE] [--type string|number|boolean|date]\n" +
   "       pptx tags list|get|add|set|remove INPUT [--slide N | --select TOKEN | --scope presentation] [--name NAME] [--value VALUE]\n" +
-  "       pptx sanitize INPUT --remove properties [output]\n" +
+  "       pptx sanitize INPUT --remove '[\"notes\",\"comments\",\"properties\",\"links\",\"objects\"]' [output]\n" +
   "New custom properties require explicit type. Dates require caller-supplied UTC whole seconds.\n" +
   "Tag names are case-sensitive; duplicates fail. Presentation tags require presentation scope.\n" +
-  "Sanitize removes supported properties only; unknown types, namespaces, tags and custom XML remain.\n" +
+  "Sanitize removes only selected families throughout the presentation. A single category may be supplied directly.\n" +
+  "Reports detail removed and retained content; unrecognized hidden data prevents clean-file claims.\n" +
   "Mutations require --output PATH | --in-place | --dry-run. Common: --json --limit NAME=VALUE.\n";
 const property = {
   type: "object", additionalProperties: false,
@@ -21,6 +22,14 @@ const tag = {
   type: "object", additionalProperties: false,
   required: ["name", "value", "part", "owner", "slide", "selector", "location"],
   properties: { name: { type: "string" }, value: { type: "string" }, part: { type: "string" }, owner: { type: "string" }, slide: { type: ["integer", "null"], minimum: 1 }, selector: { type: "string" }, location: inspectSchema.result.properties.locations.items }
+};
+const sanitizationEntry = {
+  type: "object", additionalProperties: false, required: ["category", "kind", "part", "reason"],
+  properties: {
+    category: { enum: ["notes", "comments", "properties", "links", "objects", "resources", "unknown"] },
+    kind: { enum: ["part", "relationship", "element"] }, part: { type: "string" }, reason: { type: "string" },
+    relationshipId: { type: "string" }, target: { type: "string" }
+  }
 };
 export const metadataSchemas = Object.fromEntries(
   ["properties.list", "properties.get", "properties.set", "properties.remove", "tags.list", "tags.get", "tags.add", "tags.set", "tags.remove", "sanitize"].map(operation => {
@@ -40,7 +49,7 @@ export const metadataSchemas = Object.fromEntries(
           ...((!tags && !sanitize) || edit ? { name: { type: "string", minLength: 1 } } : {}),
           ...(edit ? { value: tags ? { type: "string" } : { type: ["string", "number", "boolean"] } } : {}),
           ...(operation === "properties.set" ? { type: { enum: ["string", "number", "boolean", "date"] } } : {}),
-          ...(sanitize ? { remove: { const: "properties" } } : {}),
+          ...(sanitize ? { remove: { oneOf: [{ enum: ["notes", "comments", "properties", "links", "objects"] }, { type: "array", minItems: 1, uniqueItems: true, items: { enum: ["notes", "comments", "properties", "links", "objects"] } }] } } : {}),
           ...(mutation ? { output: { type: "string", minLength: 1 }, inPlace: { type: "boolean" }, force: { type: "boolean" }, dryRun: { type: "boolean" }, ...(tags || sanitize ? { all: { type: "boolean" }, allowEmpty: { type: "boolean" } } : {}) } : {})
         },
         allOf: [
@@ -56,8 +65,8 @@ export const metadataSchemas = Object.fromEntries(
       },
       result: { ...textGetSchema.result, properties: { ...textGetSchema.result.properties, affected: mutation ? { type: "integer", minimum: 0 } : { const: 0 }, operation: { const: operation }, data: { oneOf: [{ type: "null" }, {
         type: "object", additionalProperties: false,
-        required: mutation ? sanitize ? ["dryRun", "remaining"] : ["dryRun"] : [tags ? "tags" : "properties"],
-        properties: mutation ? { dryRun: { type: "boolean" }, ...(sanitize ? { remaining: { type: "array", items: property } } : {}) } : tags ? { tags: { type: "array", items: tag } } : { properties: { type: "array", items: property } }
+        required: mutation ? sanitize ? ["dryRun", "removed", "retained"] : ["dryRun"] : [tags ? "tags" : "properties"],
+        properties: mutation ? { dryRun: { type: "boolean" }, ...(sanitize ? { removed: { type: "array", items: sanitizationEntry }, retained: { type: "array", items: sanitizationEntry } } : {}) } : tags ? { tags: { type: "array", items: tag } } : { properties: { type: "array", items: property } }
       }] } } }
     }];
   })

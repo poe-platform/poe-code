@@ -5,7 +5,7 @@ import { addImage } from "./image-insertion.js";
 import { readImages } from "./images.js";
 import { attr, child, escape, invalid, loadShared, nextRel, relPart, required } from "./masters.js";
 import { readMedia, type ReadMediaOptions } from "./media.js";
-import { relativePartReference } from "./package-uri.js";
+import { packageUri, relativePartReference } from "./package-uri.js";
 import { SelectionError, type SelectionContext } from "./selectors.js";
 import type { XmlElement } from "./xml.js";
 export interface MediaPoster {
@@ -184,7 +184,7 @@ function edge(s: Shared, owner: string, part: string, type: string): string {
   s.save(
     path,
     doc.spliceChildren(doc.root, doc.root.children.length, 0, [
-      `<Relationship xmlns="${relNs}" Id="${id}" Type="${type}" Target="${escape(relativePartReference(part, owner.slice(0, owner.lastIndexOf("/"))))}"/>`
+      `<Relationship xmlns="${relNs}" Id="${id}" Type="${type}" Target="${escape(relativePartReference(part, packageUri(owner).baseURI))}"/>`
     ])
   );
   return id;
@@ -287,7 +287,7 @@ export async function addMedia(
     owner,
     doc.spliceChildren(nvPr, 0, 0, [
       `<a:${options.kind}File xmlns:a="${s.a}" xmlns:r="${s.r}" r:link="${legacy}"/>`,
-      `<p:extLst xmlns:p="${s.p}"><p:ext uri="{DAA4B4D4-AB47-4377-ADDB-5F13B3166E9F}"><m:media xmlns:m="${mediaNs}" xmlns:r="${s.r}" r:embed="${modern}">${options.trimStart !== undefined || options.trimEnd !== undefined ? `<m:trim st="${options.trimStart ?? 0}" end="${options.trimEnd ?? 0}"/>` : ""}</m:media></p:ext></p:extLst>`
+      `<p:extLst xmlns:p="${s.p}"><p:ext uri="{DAA4B4D4-6D71-4841-9C94-3DE7FCFB9230}"><m:media xmlns:m="${mediaNs}" xmlns:r="${s.r}" r:embed="${modern}">${options.trimStart !== undefined || options.trimEnd !== undefined ? `<m:trim st="${options.trimStart ?? 0}" end="${options.trimEnd ?? 0}"/>` : ""}</m:media></p:ext></p:extLst>`
     ])
   );
   doc = s.doc(owner);
@@ -385,6 +385,68 @@ export async function replaceMedia(
     const kind = options.kind ?? occurrence.kind;
     if (kind !== occurrence.kind) invalid("Replacement cannot change media kind.");
     admit(bytes, type, kind, context);
+    const doc = s.doc(occurrence.sourcePart);
+    const shape = walk(doc.root).find(
+      (node) =>
+        node.name.namespace === s.p &&
+        ["pic", "sp", "graphicFrame"].includes(node.name.localName) &&
+        node.children.some((nv) =>
+          nv.children.some(
+            (identity) =>
+              identity.name.namespace === s.p &&
+              identity.name.localName === "cNvPr" &&
+              attr(identity, "id") === occurrence.shapeId
+          )
+        )
+    );
+    if (!shape) throw new SelectionError("missing-selection");
+    const bindings = new Map<XmlElement, string>();
+    for (const container of shape.children.filter((node) => node.name.namespace === s.p)) {
+      if (container.name.localName === "blipFill") {
+        for (const node of container.children)
+          if (node.name.namespace === s.a && node.name.localName === "blip")
+            bindings.set(node, "embed");
+      }
+      if (!["nvPicPr", "nvSpPr", "nvGraphicFramePr"].includes(container.name.localName)) continue;
+      for (const nv of container.children.filter(
+        (node) => node.name.namespace === s.p && node.name.localName === "nvPr"
+      )) {
+        for (const node of nv.children) {
+          if (node.name.namespace === s.a) {
+            if (["videoFile", "audioFile"].includes(node.name.localName))
+              bindings.set(node, "link");
+            if (node.name.localName === "wavAudioFile") bindings.set(node, "embed");
+          }
+          if (node.name.namespace !== s.p || node.name.localName !== "extLst") continue;
+          for (const ext of node.children.filter(
+            (element) => element.name.namespace === s.p && element.name.localName === "ext"
+          ))
+            for (const media of ext.children)
+              if (media.name.namespace === mediaNs && media.name.localName === "media")
+                bindings.set(media, "embed");
+        }
+      }
+    }
+    const replacedIds = new Set(
+      [...occurrence.relationships, ...occurrence.posters].map(
+        (reference) => reference.relationshipId
+      )
+    );
+    if (
+      walk(shape).some((node) =>
+        node.attributes.some(
+          (attribute) =>
+            attribute.name.namespace === s.r &&
+            replacedIds.has(attribute.value) &&
+            bindings.get(node) !== attribute.name.localName
+        )
+      )
+    )
+      throw new OfficeError(
+        "unsupported-edit",
+        "Replacement would rebind unsupported media or track metadata.",
+        "validate-intent"
+      );
   }
   const posters = admitImage(icon.bytes, icon.contentType);
   const affectedSlides = new Set<number>();
@@ -432,7 +494,7 @@ export async function replaceMedia(
               {
                 namespace: "",
                 localName: "Target",
-                value: relativePartReference(newPart, owner.slice(0, owner.lastIndexOf("/")))
+                value: relativePartReference(newPart, packageUri(owner).baseURI)
               }
             ]
           })

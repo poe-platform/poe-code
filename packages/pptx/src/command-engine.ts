@@ -65,6 +65,7 @@ import { validateOpaqueCommand, executeOpaqueCommand, type OpaqueManifestItem } 
 import { readImages } from "./images.js";
 import { extractImages, type ExtractedImage } from "./image-extraction.js";
 import { addImage, type AddImageOptions } from "./image-insertion.js";
+import { replaceImage, type ReplaceImageOptions } from "./image-replacement.js";
 import { setImage, type SetImageOptions } from "./image-formatting.js";
 import { readMedia } from "./media.js";
 import { extractMedia, type ExtractedMedia } from "./media-extraction.js";
@@ -323,7 +324,7 @@ const help =
   "       pptx notes list|get INPUT [--slide N | --select TOKEN] [--json]\n" +
   "       pptx properties list|get|set|remove INPUT [--name NAME] [--value VALUE] [--type TYPE] [output]\n" +
   "       pptx tags list|get|add|set|remove INPUT [--slide N | --scope presentation | --select TOKEN] [--name NAME] [--value TEXT] [output]\n" +
-  "       pptx sanitize INPUT --remove properties [output]\n" +
+  "       pptx sanitize INPUT --remove CATEGORY|JSON [output]\n" +
   "       pptx template apply INPUT (--data-json JSON | --data-file PATH) [output]\n" +
   "       pptx notes add|set INPUT --text TEXT [--slide N | --select TOKEN | --all] [output]\n" +
   "       pptx notes remove INPUT [--slide N | --select TOKEN | --all] [output]\n" +
@@ -554,6 +555,7 @@ interface Arguments {
     | "charts.set"
     | "charts.replace"
     | "images.add"
+    | "images.replace"
     | "images.set"
     | "xml.get"
     | "xml.set"
@@ -633,6 +635,7 @@ interface Arguments {
   deduplicate?: boolean;
   poster?: string;
   posterContentType?: string;
+  imageReplace?: Partial<ReplaceImageOptions>;
   imageSet?: Partial<SetImageOptions>;
   chartEdit?: Partial<AddChartOptions>;
   chartWorkbookPolicy?: string;
@@ -759,6 +762,9 @@ const scalarOptions = [
   "--advance-on-click",
   "--poster", "--poster-content-type", "--mime-type", "--trim-start", "--trim-end", "--loop", "--volume",
   ...imageSetFlags,
+  "--preserve-crop",
+  "--preserve-geometry",
+  "--preserve-alt-text",
   "--content-type",
   "--fit",
   "--image",
@@ -1515,6 +1521,11 @@ function parse(
       result.mediaEdit = {...result.mediaEdit, shared:true};
       continue;
     }
+    if (argument === "--shared") {
+      if (operation !== "images.replace") usage("Shared requires images replace.");
+      result.imageReplace = { ...result.imageReplace, shared: true };
+      continue;
+    }
     if (["--pretty", "--in-place", "--force", "--dry-run"].includes(argument)) {
       if (argument === "--pretty") result.pretty = true;
       else if (argument === "--in-place") result.inPlace = true;
@@ -1546,7 +1557,7 @@ function parse(
     if (
       value === undefined ||
       (value.length === 0 &&
-        !((operation === "images.add" || operation === "images.set") && argument === "--alt-text") &&
+        !(operation.startsWith("images.") && argument === "--alt-text") &&
         ![
           "--author",
           "--name",
@@ -1616,6 +1627,31 @@ function parse(
       continue;
     }
     if (
+      operation === "images.replace" &&
+      [
+        "--content-type",
+        "--alt-text",
+        "--preserve-crop",
+        "--preserve-geometry",
+        "--preserve-alt-text"
+      ].includes(argument)
+    ) {
+      const key = argument
+        .slice(2)
+        .split("-")
+        .map((part, i) => (i ? part[0]!.toUpperCase() + part.slice(1) : part))
+        .join("");
+      if (key === "contentType" && !["image/png", "image/jpeg", "image/gif", "image/bmp", "image/tiff", "image/x-wmf"].includes(value))
+        usage("Unsupported image content type.");
+      if (argument.startsWith("--preserve-") && value !== "true" && value !== "false")
+        usage("Image preservation requires true or false.");
+      result.imageReplace = {
+        ...result.imageReplace,
+        [key]: argument.startsWith("--preserve-") ? value === "true" : value
+      };
+      continue;
+    }
+    if (
       operation === "images.add" &&
       ["--content-type", "--fit", "--left", "--top", "--width", "--height", "--alt-text"].includes(
         argument
@@ -1638,8 +1674,13 @@ function parse(
       continue;
     }
     if (argument === "--image") {
-      if (operation !== "images.list" && operation !== "images.extract" && operation !== "images.set")
-        usage("Image selection requires images list, extract or set.");
+      if (
+        operation !== "images.list" &&
+        operation !== "images.extract" &&
+        operation !== "images.replace" &&
+        operation !== "images.set"
+      )
+        usage("Image selection requires images list, extract, replace or set.");
       if (
         !value.length ||
         [...value].some((c) => c < "0" || c > "9") ||
@@ -2630,19 +2671,27 @@ function parse(
     if (operation === "charts.add" && Object.keys(result.chartEdit ?? {}).some(key => !["type", "data"].includes(key)))
       usage("Chart placeholder insertion accepts type and data.");
   }
-  if (operation === "images.add") {
+  if (operation === "images.add" || operation === "images.replace") {
+    const replacing = operation === "images.replace";
     const allowed = [
       "--json",
       "--limit",
       "--slide",
       "--file",
       "--content-type",
-      "--placeholder",
-      "--left",
-      "--top",
-      "--width",
-      "--height",
-      "--fit",
+      ...(replacing
+        ? [
+            "--scope",
+            "--image",
+            "--select",
+            "--shared",
+            "--all",
+            "--allow-empty",
+            "--preserve-crop",
+            "--preserve-geometry",
+            "--preserve-alt-text"
+          ]
+        : ["--placeholder", "--left", "--top", "--width", "--height", "--fit"]),
       "--alt-text",
       "--output",
       "--in-place",
@@ -2650,13 +2699,42 @@ function parse(
       "--dry-run"
     ];
     if ([...seen].some((option) => !allowed.includes(option)))
-      usage("Option does not apply to images add.");
-    if (positionals.length !== 1 || !positionals[0] || result.slide === undefined || !result.file)
-      usage("Images add requires one input, slide and file.");
+      usage("Option does not apply to this image operation.");
+    if (
+      positionals.length !== 1 ||
+      !positionals[0] ||
+      (!replacing && result.slide === undefined) ||
+      !result.file
+    )
+      usage("Image mutation requires one input, selection and file.");
+    if (replacing) {
+      if (result.scope === "presentation") usage("Presentation scope has no image owners.");
+      if (result.scope === "shared" && !result.imageReplace?.shared)
+        usage("Shared scope requires explicit shared replacement.");
+      if (
+        result.token &&
+        ["--slide", "--image", "--scope", "--all"].some((option) => seen.has(option))
+      )
+        usage("Opaque and simple selectors cannot be combined.");
+      if (!result.token && result.image === undefined && !result.all)
+        usage("Image replacement requires an image selector or all.");
+      if (
+        result.image !== undefined &&
+        (!result.scope || result.scope === "slides") &&
+        result.slide === undefined
+      )
+        usage("Slide image selection requires a slide.");
+      result.imageReplace = {
+        ...result.imageReplace,
+        ...(result.all ? { all: true } : {}),
+        ...(result.allowEmpty ? { allowEmpty: true } : {})
+      };
+    }
     result.input = positionals[0];
     if (result.input === "-" && result.file === "-")
       usage("Document and image cannot both use stdin.");
-    if (!result.imageAdd?.contentType) {
+    const imageOptions = replacing ? result.imageReplace : result.imageAdd;
+    if (!imageOptions?.contentType) {
       const extension = result.file.slice(result.file.lastIndexOf(".") + 1).toLowerCase();
       const contentType = (
         { png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", bmp: "image/bmp", tif: "image/tiff", tiff: "image/tiff", wmf: "image/x-wmf" } as Record<
@@ -2666,10 +2744,11 @@ function parse(
       )[extension];
       if (!contentType)
         usage("Image file requires an explicit supported content type or extension.");
-      result.imageAdd = { ...result.imageAdd, contentType };
+      if (replacing) result.imageReplace = { ...result.imageReplace, contentType };
+      else result.imageAdd = { ...result.imageAdd, contentType };
     }
-    const both = result.imageAdd.width !== undefined && result.imageAdd.height !== undefined;
-    if (!both && result.imageAdd.fit !== undefined)
+    const both = result.imageAdd?.width !== undefined && result.imageAdd?.height !== undefined;
+    if (!replacing && !both && result.imageAdd?.fit !== undefined)
       usage("Both dimensions and explicit fit must be supplied together.");
     if (result.inPlace && result.input === "-") usage("Stdin cannot be edited in place.");
     if (result.inPlace && result.output) usage("Output and in-place cannot be combined.");
@@ -2684,6 +2763,32 @@ function parse(
   }
   if (["media.add", "media.replace", "media.extract"].includes(operation)) {
     validateMediaEditingCommand(result, positionals, seen);
+    return result;
+  }
+  if (Object.hasOwn(mediaSchemas, operation)) {
+    const allowed = ["--json", "--limit", "--scope", "--slide", "--shape", "--select"];
+    if ([...seen].some((option) => !allowed.includes(option)))
+      usage("Option does not apply to media inspection.");
+    if (positionals.length !== 1 || !positionals[0])
+      usage("Media inspection requires exactly one input.");
+    if (
+      result.scope !== undefined &&
+      ![
+        "slides",
+        "layouts",
+        "masters",
+        "notes",
+        "notes-master",
+        "handout-master",
+        "shared"
+      ].includes(result.scope)
+    )
+      usage("Unsupported media scope.");
+    if (result.token && ["--slide", "--shape", "--scope"].some((option) => seen.has(option)))
+      usage("Opaque and simple selectors cannot be combined.");
+    if (result.shape !== undefined && result.slide === undefined)
+      usage("Shape selection requires an owning slide.");
+    result.input = positionals[0];
     return result;
   }
   if (Object.hasOwn(commentSchemas, operation)) {
@@ -2770,32 +2875,6 @@ function parse(
       usage("Replacing input requires --in-place.");
     if (result.output === "-" && result.json && !result.dryRun)
       usage("Binary stdout cannot be combined with JSON.");
-    return result;
-  }
-  if (Object.hasOwn(mediaSchemas, operation)) {
-    const allowed = ["--json", "--limit", "--scope", "--slide", "--shape", "--select"];
-    if ([...seen].some((option) => !allowed.includes(option)))
-      usage("Option does not apply to media inspection.");
-    if (positionals.length !== 1 || !positionals[0])
-      usage("Media inspection requires exactly one input.");
-    if (
-      result.scope !== undefined &&
-      ![
-        "slides",
-        "layouts",
-        "masters",
-        "notes",
-        "notes-master",
-        "handout-master",
-        "shared"
-      ].includes(result.scope)
-    )
-      usage("Unsupported media scope.");
-    if (result.token && ["--slide", "--shape", "--scope"].some((option) => seen.has(option)))
-      usage("Opaque and simple selectors cannot be combined.");
-    if (result.shape !== undefined && result.slide === undefined)
-      usage("Shape selection requires an owning slide.");
-    result.input = positionals[0];
     return result;
   }
   if (operation === "charts.list" || operation === "charts.get") {
@@ -4155,6 +4234,24 @@ async function execute(
           "  [--alt-text TEXT] [--output PATH | --in-place] [--force] [--dry-run] [--json]\n" +
           "Placeholder IDX is a nonnegative sparse key; PNG/JPEG only, inherited box with cover fit; no geometry/fit flags.\n" +
           "Lengths require emu, in, cm, mm or pt. Both dimensions default to stretch; one dimension preserves aspect.\n";
+      if (args.schemaPath === "images.replace")
+        resolvedUsage =
+          "Usage: pptx images replace INPUT --slide N --image N --file PATH [output]\n" +
+          "Selection: --scope SCOPE --slide N --image N | --select TOKEN | --all\n" +
+          "  --allow-empty permits an empty selection. Positions are one-based.\n" +
+          "Scopes: slides (default), layouts, masters, notes, notes-master, handout-master.\n" +
+          "  shared scope requires --shared. Opaque and simple selectors cannot be mixed.\n" +
+          "Default: clone and rebind selected occurrences.\n" +
+          "  --shared replaces the resource and reports every occurrence across scopes.\n" +
+          "Policies: --preserve-crop true|false --preserve-geometry true|false\n" +
+          "  --preserve-alt-text true|false; all preservation policies default to true.\n" +
+          "  --alt-text TEXT overrides the description. False crop clears cropping.\n" +
+          "  False geometry uses native size at origin; false alt text clears description/title.\n" +
+          "Input: --content-type image/png|image/jpeg|image/gif|image/bmp|image/tiff|image/x-wmf\n" +
+          "  Otherwise inferred from extension. Links and vector/fallback pairs are rejected.\n" +
+          "  Media parts owning relationships are also outside this replacement profile.\n" +
+          "Output: --output PATH | --in-place; --force --dry-run --json --limit NAME=VALUE\n" +
+          "Shared reports include masters and notes referencing the selected resource.\n";
       if (args.schemaPath === "images.extract")
         resolvedUsage =
           "Usage: pptx images extract INPUT --output-dir DIR [--allow-partial-output]\n" +
@@ -4268,7 +4365,7 @@ async function execute(
             level: "edit",
             operations: Object.keys(imageSchemas),
             subset:
-              "F30: image occurrences and unique media parts, hashes, crop, alt text, geometry, inherited scopes, linked targets and vector fallbacks. F35: original image extraction by occurrence or hash with safe names, bounded bytes/counts and explicit transaction or partial publication. F31/F33: insert explicit PNG/JPEG/GIF/BMP/TIFF/placeable-WMF bytes with bounded intrinsic dimensions, sizing and contain/cover/stretch. F33 also edits crop, rotation, flips, opacity, solid picture borders and alt text. Crop edits require positive visible area after quantization. Other edits preserve extended crop. Links are never fetched; decoding is not provided; other vector types remain preserve-only."
+              "F30: image occurrences and unique media parts, hashes, crop, alt text, geometry, inherited scopes, linked targets and vector fallbacks. F35: original image extraction by occurrence or hash with safe names, bounded bytes/counts and explicit transaction or partial publication. F31/F33: insert explicit PNG/JPEG/GIF/BMP/TIFF/placeable-WMF bytes with bounded intrinsic dimensions, sizing and contain/cover/stretch. F32: occurrence-local clone/rebind or explicit shared-resource replacement with affected-occurrence reports and crop/geometry/alt-text policies. Replacement excludes links, vector/fallback pairs and media owning relationships. F33: picture crop, rotation, flips, opacity, solid borders and alt text. Signed crop is preserved; crop edits require positive visible area after quantization. Links are never fetched; decoding is not provided; other vector types remain preserve-only."
           },
           drawing: {
             level: "edit",
@@ -4334,7 +4431,7 @@ async function execute(
           },
           sanitize: {
             supported: true, level: "edit", operations: ["sanitize"],
-            subset: "F56 subset: explicit supported property removal only. Unknown properties, tags, custom XML and extended metadata remain."
+            subset: "F56: explicit notes, comments, supported properties, external hyperlinks and supported embedded-object removal with retained-content reporting. Shared and unknown content is retained; signed packages reject mutation. No clean-file certification."
           },
           transitions: {
             supported: true,
@@ -4944,6 +5041,65 @@ async function execute(
           dryRun
         };
       }
+    } else if (args.operation === "images.replace") {
+      const context = { ...options.context, signal: request.signal };
+      const bytes = await request.readInput(
+        args.input!,
+        Math.min(context.limits.maxBytes, context.archiveLimits.maxArchiveBytes)
+      );
+      const imageBytes = await request.readInput(
+        args.file!,
+        Math.min(context.limits.maxBytes, context.archiveLimits.maxEntryBytes)
+      );
+      const changed = await replaceImage(
+        bytes,
+        {
+          ...(args.scope === undefined ? {} : { scope: args.scope }),
+          ...(args.slide === undefined ? {} : { slide: args.slide }),
+          ...(args.image === undefined ? {} : { image: args.image }),
+          ...(args.token === undefined ? {} : { select: args.token })
+        },
+        imageBytes,
+        args.imageReplace as ReplaceImageOptions,
+        context
+      );
+      const dryRun = args.dryRun ?? false;
+      result = {
+        ...success(operation, {
+          dryRun,
+          shared: args.imageReplace?.shared ?? false,
+          occurrences: changed.occurrences,
+          affectedSlides: changed.affectedSlides
+        }),
+        affected: changed.affected,
+        locations: changed.occurrences.map((item) => item.location)
+      };
+      human =
+        `${dryRun ? "Validated" : "Replaced"} ${changed.affected} image occurrence(s)${args.imageReplace?.shared ? " across shared resources" : ""}\n` +
+        changed.occurrences
+          .map(
+            (item) =>
+              `  ${item.sourcePart} #${item.position} ${JSON.stringify(item.shapeName ?? item.kind)}\n`
+          )
+          .join("");
+      const destination = args.inPlace ? args.input! : args.output;
+      if (destination === "-" && !dryRun) binary = changed.bytes;
+      else if (destination && destination !== "-") {
+        if (!request.publishOutput)
+          throw Object.assign(new Error("Output publication capability is unavailable."), {
+            code: "publication-unsupported"
+          });
+        publication = {
+          inputPath: args.input!,
+          protectedInputPaths: [args.file!],
+          outputPath: destination,
+          bytes: changed.bytes,
+          originalBytes: bytes,
+          inPlace: args.inPlace ?? false,
+          force: args.force ?? false,
+          dryRun
+        };
+      }
     } else if (args.operation === "images.extract") {
       const context = { ...options.context, signal: request.signal };
       const bytes = await request.readInput(
@@ -5158,14 +5314,19 @@ async function execute(
       };
       human =
         `Images: ${data.occurrences.length} occurrences, ${data.media.length} media ${args.unique ? "hashes" : "parts"}\n` +
-        (args.unique ? data.media.map((item) =>
-          `${item.sha256}\n  ${item.contentTypes.join(", ")} | ${item.bytes} bytes | ${item.occurrenceIds.length} occurrences\n${item.parts.map((part) => `  ${part}\n`).join("")}`
-        ).join("") : data.occurrences
-          .map(
-            (item) =>
-              `${item.sourcePart} #${item.position}\t${item.shapeName ?? item.kind}\t${item.role}\t${item.contentType ?? "linked"}\t${item.bytes ?? "unknown"} bytes\n`
-          )
-          .join(""));
+        (args.unique
+          ? data.media
+              .map(
+                (item) =>
+                  `${item.sha256}\n  ${item.contentTypes.join(", ")} | ${item.bytes} bytes | ${item.occurrenceIds.length} occurrences\n${item.parts.map((part) => `  ${part}\n`).join("")}`
+              )
+              .join("")
+          : data.occurrences
+              .map(
+                (item) =>
+                  `${item.sourcePart} #${item.position}\t${item.shapeName ?? item.kind}\t${item.role}\t${item.contentType ?? "linked"}\t${item.bytes ?? "unknown"} bytes\n`
+              )
+              .join(""));
     } else if (
       args.operation === "fields.list" ||
       args.operation === "fields.get" ||

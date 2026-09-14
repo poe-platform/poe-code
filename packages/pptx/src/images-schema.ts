@@ -199,7 +199,14 @@ export const imageSchemas = {
         flipVertical: { type: "boolean" },
         opacity: { type: "number", minimum: 0, maximum: 1 },
         borderColor: { type: "string", minLength: 6, maxLength: 6 },
-        borderWidth: { ...imageLength, description: "Nonnegative length, at most 20116800 EMUs after conversion.", properties: {...imageLength.properties, value: {...imageLength.properties.value, minimum: 0}} },
+        borderWidth: {
+          ...imageLength,
+          description: "Nonnegative length, at most 20116800 EMUs after conversion.",
+          properties: {
+            ...imageLength.properties,
+            value: { ...imageLength.properties.value, minimum: 0 }
+          }
+        },
         altText: { type: "string" },
         select: textGetSchema.options.properties.select,
         scope: { enum: scopes.filter((scope) => scope !== "shared") },
@@ -271,6 +278,107 @@ export const imageSchemas = {
               required: ["dryRun", "occurrences", "affectedSlides"],
               properties: {
                 dryRun: { type: "boolean" },
+                affectedSlides: { type: "array", items: { type: "integer", minimum: 1 } },
+                occurrences: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    additionalProperties: false,
+                    required: Object.keys(occurrenceProperties),
+                    properties: occurrenceProperties
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+  "images.replace": {
+    description:
+      "Clone and rebind selected image occurrences by default. Explicit shared replacement reports all references across scopes. PNG/JPEG/GIF bytes only; external links, vector/fallback pairs and media owning relationships are rejected. No fetching or decoding. Preservation defaults to true; false geometry resets to intrinsic size at origin, false crop clears crop, false alt text clears description and title. Explicit altText overrides description.",
+    input: textGetSchema.input,
+    options: {
+      type: "object",
+      additionalProperties: false,
+      $defs: textGetSchema.result.$defs,
+      required: ["file"],
+      properties: {
+        file: { type: "string", minLength: 1 },
+        contentType: { enum: ["image/png", "image/jpeg", "image/gif", "image/bmp", "image/tiff", "image/x-wmf"] },
+        select: textGetSchema.options.properties.select,
+        scope: { enum: scopes },
+        slide: textGetSchema.options.properties.slide,
+        image: { type: "integer", minimum: 1, maximum: Number.MAX_SAFE_INTEGER },
+        shared: { type: "boolean", default: false },
+        all: { type: "boolean" },
+        allowEmpty: { type: "boolean" },
+        preserveCrop: { type: "boolean", default: true },
+        preserveGeometry: { type: "boolean", default: true },
+        preserveAltText: { type: "boolean", default: true },
+        altText: { type: "string" },
+        json: { type: "boolean" },
+        limit: textGetSchema.options.properties.limit,
+        output: { type: "string", minLength: 1 },
+        inPlace: { type: "boolean" },
+        force: { type: "boolean" },
+        dryRun: { type: "boolean" }
+      },
+      allOf: [
+        {
+          if: { required: ["image"], properties: { scope: { const: "slides" } } },
+          then: { required: ["slide"] }
+        },
+        {
+          if: { required: ["scope"], properties: { scope: { const: "shared" } } },
+          then: { required: ["shared"], properties: { shared: { const: true } } }
+        },
+        {
+          anyOf: [
+            { required: ["select"] },
+            { required: ["image"] },
+            { required: ["all"], properties: { all: { const: true } } }
+          ]
+        },
+        {
+          if: { required: ["select"] },
+          then: {
+            not: { anyOf: ["scope", "slide", "image", "all"].map((key) => ({ required: [key] })) }
+          }
+        },
+        { not: { required: ["output", "inPlace"] } },
+        {
+          if: { required: ["force"], properties: { force: { const: true } } },
+          then: { required: ["output"] }
+        },
+        {
+          if: { not: { required: ["dryRun"], properties: { dryRun: { const: true } } } },
+          then: {
+            oneOf: [
+              { required: ["output"] },
+              { required: ["inPlace"], properties: { inPlace: { const: true } } }
+            ]
+          }
+        }
+      ]
+    },
+    result: {
+      ...textGetSchema.result,
+      properties: {
+        ...textGetSchema.result.properties,
+        operation: { const: "images.replace" },
+        affected: { type: "integer", minimum: 0 },
+        data: {
+          oneOf: [
+            { type: "null" },
+            {
+              type: "object",
+              additionalProperties: false,
+              required: ["dryRun", "shared", "occurrences", "affectedSlides"],
+              properties: {
+                dryRun: { type: "boolean" },
+                shared: { type: "boolean" },
                 affectedSlides: { type: "array", items: { type: "integer", minimum: 1 } },
                 occurrences: {
                   type: "array",

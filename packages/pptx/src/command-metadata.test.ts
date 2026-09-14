@@ -51,7 +51,7 @@ it("publishes tags through the SDK, validates nonempty schemas and dry runs", as
   const dry = await f.run(["tags", "set", "/deck", "--select", list.envelope.data.tags[0].selector, "--value", "", "--dry-run"]);
   expect(dry.exitCode, JSON.stringify(dry.envelope)).toBe(0);
   expect(new Uint8Array(f.v.readFileSync("/deck") as Buffer)).toEqual(bytes);
-  expect((await f.run(["sanitize", "/deck", "--remove", "notes", "--dry-run"])).exitCode).toBe(2);
+  expect((await f.run(["sanitize", "/deck", "--remove", "history", "--dry-run"])).exitCode).toBe(2);
 });
 it("creates all core string fields using the common JSON option spellings", async () => {
   const f = await fixture();

@@ -2266,6 +2266,7 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/pptx/chart-editing.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/chart-crossing.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/image-density.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/image-replacement.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/image-extraction.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/image-formatting.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/create.test.ts"));
@@ -2276,6 +2277,8 @@ test("default normal runner passes every discovered active file to serial Node e
   assert.ok(files.includes("tests/commands/pptx/diff.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/accessibility.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/media-inventory.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/media-track-preservation.test.ts"));
+  assert.ok(files.includes("tests/commands/pptx/media-root-owner.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/modern-comments.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/template-bindings.test.ts"));
   assert.ok(files.includes("tests/commands/pptx/template-repeat.test.ts"));

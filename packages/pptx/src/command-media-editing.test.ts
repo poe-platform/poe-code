@@ -103,6 +103,11 @@ it("inserts supplied media through the command and preserves exact payload bytes
   });
   const entries = inspectZip(output);
   expect(
+    new TextDecoder().decode(
+      entries.find((entry) => entry.name === "ppt/slides/slide1.xml")?.payload
+    )
+  ).toContain('uri="{DAA4B4D4-6D71-4841-9C94-3DE7FCFB9230}"');
+  expect(
     entries.find((entry) => entry.name === inventory.media[0]!.part.slice(1))?.payload
   ).toEqual(clip);
 });

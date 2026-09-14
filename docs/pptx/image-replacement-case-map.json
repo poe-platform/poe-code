@@ -1,0 +1,2874 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "278b47b1dedd5b46ee84c286e77cdfb0bf4594be",
+  "scope": "Research/provenance: complete 121-row image baseline plus four adjacent picture-placeholder unit variants. No direct upstream image-replacement method/scenario is identified; replacement graph/publication obligations are original supplemental cases.",
+  "baseline": "image-insertion-case-map.json",
+  "apiObligations": "image-inventory-api-map.json",
+  "notice": "upstream-license-notice.txt; test-case-map-notice.txt",
+  "counts": {
+    "total": 125,
+    "unit": 84,
+    "bdd": 41
+  },
+  "rows": [
+    {
+      "id": "presentation-unit-91c243814808",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1361",
+      "identity": "tests/oxml/shapes/test_picture.py::DescribeCT_Picture::it_can_create_a_new_pic_element[kittens.jpg-kittens.jpg]",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "desc": "'kittens.jpg'",
+            "xml_desc": "'kittens.jpg'"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-fb2e9411289a",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1362",
+      "identity": "tests/oxml/shapes/test_picture.py::DescribeCT_Picture::it_can_create_a_new_pic_element[bits&bobs.png-bits&amp;bobs.png]",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "desc": "'bits&bobs.png'",
+            "xml_desc": "'bits&amp;bobs.png'"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-b366143c022b",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1363",
+      "identity": "tests/oxml/shapes/test_picture.py::DescribeCT_Picture::it_can_create_a_new_pic_element[img&.png-img&amp;.png]",
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "desc": "'img&.png'",
+            "xml_desc": "'img&amp;.png'"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-e790db98ac5f",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1364",
+      "identity": "tests/oxml/shapes/test_picture.py::DescribeCT_Picture::it_can_create_a_new_pic_element[im<ag>e.png-im&lt;ag&gt;e.png]",
+      "selectedParameters": [
+        {
+          "table_index": 3,
+          "bindings": {
+            "desc": "'im<ag>e.png'",
+            "xml_desc": "'im&lt;ag&gt;e.png'"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-720e948c0952",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1365",
+      "identity": "tests/oxml/shapes/test_picture.py::DescribeCT_Picture::it_can_create_a_new_video_pic_element",
+      "selectedParameters": {},
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-4a3220beb224",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1585",
+      "identity": "tests/parts/test_image.py::DescribeImagePart::it_can_construct_from_an_image_object",
+      "selectedParameters": {},
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-3854b6bc0856",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1586",
+      "identity": "tests/parts/test_image.py::DescribeImagePart::it_provides_access_to_its_image",
+      "selectedParameters": {},
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-b5504d5046c9",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1587",
+      "identity": "tests/parts/test_image.py::DescribeImagePart::it_can_scale_its_dimensions[None-None-2590800-2590800]",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "width": "None",
+            "height": "None",
+            "expected_width": "Emu(2590800)",
+            "expected_height": "Emu(2590800)"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Original nonsquare 4-by-2 image covers native dimensions, width-only, height-only and explicit stretch box. The neutral ImagePart method is still absent; no whole-model parity. Explicit width plus height requires an explicit fit in this bounded operation API; this is a deliberate safety divergence, not claimed neutral model compatibility.",
+      "evidence": [
+        {
+          "kind": "insertion",
+          "files": [
+            "packages/pptx/src/image-insertion.test.ts"
+          ],
+          "cases": [
+            "inserts byte-preserving media with explicit geometry %j"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "adapted-insertion-behavior",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-ad7fd90ba643",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1588",
+      "identity": "tests/parts/test_image.py::DescribeImagePart::it_can_scale_its_dimensions[1000-None-1000-1000]",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "width": "1000",
+            "height": "None",
+            "expected_width": "1000",
+            "expected_height": "1000"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Original nonsquare 4-by-2 image covers native dimensions, width-only, height-only and explicit stretch box. The neutral ImagePart method is still absent; no whole-model parity. Explicit width plus height requires an explicit fit in this bounded operation API; this is a deliberate safety divergence, not claimed neutral model compatibility.",
+      "evidence": [
+        {
+          "kind": "insertion",
+          "files": [
+            "packages/pptx/src/image-insertion.test.ts"
+          ],
+          "cases": [
+            "inserts byte-preserving media with explicit geometry %j"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "adapted-insertion-behavior",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-9bda14f4e567",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1589",
+      "identity": "tests/parts/test_image.py::DescribeImagePart::it_can_scale_its_dimensions[None-3000-3000-3000]",
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "width": "None",
+            "height": "3000",
+            "expected_width": "3000",
+            "expected_height": "3000"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Original nonsquare 4-by-2 image covers native dimensions, width-only, height-only and explicit stretch box. The neutral ImagePart method is still absent; no whole-model parity. Explicit width plus height requires an explicit fit in this bounded operation API; this is a deliberate safety divergence, not claimed neutral model compatibility.",
+      "evidence": [
+        {
+          "kind": "insertion",
+          "files": [
+            "packages/pptx/src/image-insertion.test.ts"
+          ],
+          "cases": [
+            "inserts byte-preserving media with explicit geometry %j"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "adapted-insertion-behavior",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-b86a88b628a1",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1590",
+      "identity": "tests/parts/test_image.py::DescribeImagePart::it_can_scale_its_dimensions[3337-9999-3337-9999]",
+      "selectedParameters": [
+        {
+          "table_index": 3,
+          "bindings": {
+            "width": "3337",
+            "height": "9999",
+            "expected_width": "3337",
+            "expected_height": "9999"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Original nonsquare 4-by-2 image covers native dimensions, width-only, height-only and explicit stretch box. The neutral ImagePart method is still absent; no whole-model parity. Explicit width plus height requires an explicit fit in this bounded operation API; this is a deliberate safety divergence, not claimed neutral model compatibility.",
+      "evidence": [
+        {
+          "kind": "insertion",
+          "files": [
+            "packages/pptx/src/image-insertion.test.ts"
+          ],
+          "cases": [
+            "inserts byte-preserving media with explicit geometry %j"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "adapted-insertion-behavior",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-a96183408cb0",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1591",
+      "identity": "tests/parts/test_image.py::DescribeImagePart::it_knows_its_pixel_dimensions_to_help",
+      "selectedParameters": {},
+      "status": "retained-baseline-accounting",
+      "reason": "Original 204 by 204 JPEG header asserts pixel dimensions and absent-density 72 fallback; dependency internals and raw decoder tuple identity are not replicated.",
+      "evidence": [
+        {
+          "kind": "existing-inventory-or-metadata",
+          "files": [
+            "packages/pptx/src/image-metadata.test.ts"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "existing-inventory-evidence",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-d7de68e11d14",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1592",
+      "identity": "tests/parts/test_image.py::DescribeImage::it_can_construct_from_a_path",
+      "selectedParameters": {},
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-31051f87d8e9",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1593",
+      "identity": "tests/parts/test_image.py::DescribeImage::it_can_construct_from_a_stream",
+      "selectedParameters": {},
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-6265ea43dbe1",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1594",
+      "identity": "tests/parts/test_image.py::DescribeImage::it_can_construct_from_a_blob",
+      "selectedParameters": {},
+      "status": "retained-baseline-accounting",
+      "reason": "Explicit byte input, retention and ownership tested; public Image constructor/property remains separate.",
+      "evidence": [
+        {
+          "kind": "insertion",
+          "files": [
+            "packages/pptx/src/image-insertion.test.ts"
+          ],
+          "cases": [
+            "owns supplied image bytes before asynchronous package acquisition",
+            "inserts byte-preserving media with explicit geometry %j"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "adapted-insertion-behavior",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-4051e9d84ca3",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1595",
+      "identity": "tests/parts/test_image.py::DescribeImage::it_knows_its_blob",
+      "selectedParameters": {},
+      "status": "retained-baseline-accounting",
+      "reason": "Explicit byte input, retention and ownership tested; public Image constructor/property remains separate.",
+      "evidence": [
+        {
+          "kind": "insertion",
+          "files": [
+            "packages/pptx/src/image-insertion.test.ts"
+          ],
+          "cases": [
+            "owns supplied image bytes before asynchronous package acquisition",
+            "inserts byte-preserving media with explicit geometry %j"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "adapted-insertion-behavior",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-8515443702c1",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1596",
+      "identity": "tests/parts/test_image.py::DescribeImage::it_knows_its_content_type[content_type_fixture0]",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "content_type_fixture": "('BMP', 'image/bmp')"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "BMP/TIFF/vector metadata inventory does not imply insertion support; insertion rejects this format.",
+      "evidence": [
+        {
+          "kind": "existing-inventory-or-metadata",
+          "files": [
+            "packages/pptx/src/images.test.ts",
+            "packages/pptx/src/image-metadata.test.ts"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "unsupported-insertion-format",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-0857c460092d",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1597",
+      "identity": "tests/parts/test_image.py::DescribeImage::it_knows_its_content_type[content_type_fixture1]",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "content_type_fixture": "('GIF', 'image/gif')"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Exact MIME and canonical extension tested with original bytes; public Image model remains separate.",
+      "evidence": [
+        {
+          "kind": "existing-inventory-or-metadata",
+          "files": [
+            "packages/pptx/src/images.test.ts",
+            "packages/pptx/src/image-metadata.test.ts"
+          ]
+        },
+        {
+          "kind": "admission",
+          "files": [
+            "packages/pptx/src/image-admission.test.ts"
+          ],
+          "cases": [
+            "reads %s intrinsic dimensions"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "adapted-admission-behavior",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-77ac10c68e39",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1598",
+      "identity": "tests/parts/test_image.py::DescribeImage::it_knows_its_content_type[content_type_fixture2]",
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "content_type_fixture": "('JPEG', 'image/jpeg')"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Exact MIME and canonical extension tested with original bytes; public Image model remains separate.",
+      "evidence": [
+        {
+          "kind": "existing-inventory-or-metadata",
+          "files": [
+            "packages/pptx/src/images.test.ts",
+            "packages/pptx/src/image-metadata.test.ts"
+          ]
+        },
+        {
+          "kind": "admission",
+          "files": [
+            "packages/pptx/src/image-admission.test.ts"
+          ],
+          "cases": [
+            "reads %s intrinsic dimensions"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "adapted-admission-behavior",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-1c59ff997265",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1599",
+      "identity": "tests/parts/test_image.py::DescribeImage::it_knows_its_content_type[content_type_fixture3]",
+      "selectedParameters": [
+        {
+          "table_index": 3,
+          "bindings": {
+            "content_type_fixture": "('PNG', 'image/png')"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Exact MIME and canonical extension tested with original bytes; public Image model remains separate.",
+      "evidence": [
+        {
+          "kind": "existing-inventory-or-metadata",
+          "files": [
+            "packages/pptx/src/images.test.ts",
+            "packages/pptx/src/image-metadata.test.ts"
+          ]
+        },
+        {
+          "kind": "admission",
+          "files": [
+            "packages/pptx/src/image-admission.test.ts"
+          ],
+          "cases": [
+            "reads %s intrinsic dimensions"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "adapted-admission-behavior",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-8fdeaf90135b",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1600",
+      "identity": "tests/parts/test_image.py::DescribeImage::it_knows_its_content_type[content_type_fixture4]",
+      "selectedParameters": [
+        {
+          "table_index": 4,
+          "bindings": {
+            "content_type_fixture": "('TIFF', 'image/tiff')"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "BMP/TIFF/vector metadata inventory does not imply insertion support; insertion rejects this format.",
+      "evidence": [
+        {
+          "kind": "existing-inventory-or-metadata",
+          "files": [
+            "packages/pptx/src/images.test.ts",
+            "packages/pptx/src/image-metadata.test.ts"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "unsupported-insertion-format",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-5f28737a850f",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1601",
+      "identity": "tests/parts/test_image.py::DescribeImage::it_knows_its_content_type[content_type_fixture5]",
+      "selectedParameters": [
+        {
+          "table_index": 5,
+          "bindings": {
+            "content_type_fixture": "('WMF', 'image/x-wmf')"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "BMP/TIFF/vector metadata inventory does not imply insertion support; insertion rejects this format.",
+      "evidence": [
+        {
+          "kind": "existing-inventory-or-metadata",
+          "files": [
+            "packages/pptx/src/images.test.ts",
+            "packages/pptx/src/image-metadata.test.ts"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "unsupported-insertion-format",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-d32b8f4a1db9",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1602",
+      "identity": "tests/parts/test_image.py::DescribeImage::it_knows_its_canonical_filename_extension[ext_fixture0]",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "ext_fixture": "('BMP', 'bmp')"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "BMP/TIFF/vector metadata inventory does not imply insertion support; insertion rejects this format.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "unsupported-insertion-format",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-27d892830d64",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1603",
+      "identity": "tests/parts/test_image.py::DescribeImage::it_knows_its_canonical_filename_extension[ext_fixture1]",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "ext_fixture": "('GIF', 'gif')"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Exact MIME and canonical extension tested with original bytes; public Image model remains separate.",
+      "evidence": [
+        {
+          "kind": "admission",
+          "files": [
+            "packages/pptx/src/image-admission.test.ts"
+          ],
+          "cases": [
+            "reads %s intrinsic dimensions"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "adapted-admission-behavior",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-047b50bed43a",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1604",
+      "identity": "tests/parts/test_image.py::DescribeImage::it_knows_its_canonical_filename_extension[ext_fixture2]",
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "ext_fixture": "('JPEG', 'jpg')"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Exact MIME and canonical extension tested with original bytes; public Image model remains separate.",
+      "evidence": [
+        {
+          "kind": "admission",
+          "files": [
+            "packages/pptx/src/image-admission.test.ts"
+          ],
+          "cases": [
+            "reads %s intrinsic dimensions"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "adapted-admission-behavior",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-147a581f9a6c",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1605",
+      "identity": "tests/parts/test_image.py::DescribeImage::it_knows_its_canonical_filename_extension[ext_fixture3]",
+      "selectedParameters": [
+        {
+          "table_index": 3,
+          "bindings": {
+            "ext_fixture": "('PNG', 'png')"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Exact MIME and canonical extension tested with original bytes; public Image model remains separate.",
+      "evidence": [
+        {
+          "kind": "admission",
+          "files": [
+            "packages/pptx/src/image-admission.test.ts"
+          ],
+          "cases": [
+            "reads %s intrinsic dimensions"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "adapted-admission-behavior",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-8c34f8831879",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1606",
+      "identity": "tests/parts/test_image.py::DescribeImage::it_knows_its_canonical_filename_extension[ext_fixture4]",
+      "selectedParameters": [
+        {
+          "table_index": 4,
+          "bindings": {
+            "ext_fixture": "('TIFF', 'tiff')"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "BMP/TIFF/vector metadata inventory does not imply insertion support; insertion rejects this format.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "unsupported-insertion-format",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-3371bece8cae",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1607",
+      "identity": "tests/parts/test_image.py::DescribeImage::it_knows_its_canonical_filename_extension[ext_fixture5]",
+      "selectedParameters": [
+        {
+          "table_index": 5,
+          "bindings": {
+            "ext_fixture": "('WMF', 'wmf')"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "BMP/TIFF/vector metadata inventory does not imply insertion support; insertion rejects this format.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "unsupported-insertion-format",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-5a5652e1f037",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1608",
+      "identity": "tests/parts/test_image.py::DescribeImage::it_knows_its_dpi[dpi_fixture0]",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "dpi_fixture": "((42, 24), (42, 24))"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Original numeric tuple cases assert each audited normalization result through the bounded header metadata helper; number-only admission and half-up rounding have explicit JS mappings.",
+      "evidence": [
+        {
+          "kind": "existing-inventory-or-metadata",
+          "files": [
+            "packages/pptx/src/image-metadata.test.ts"
+          ]
+        },
+        {
+          "kind": "existing-density-characterization",
+          "files": [
+            "packages/pptx/src/image-metadata.test.ts"
+          ],
+          "cases": [
+            "normalizes density axes independently (%j)",
+            "reads PNG dimensions and physical density without decoding pixels",
+            "reads JPEG frame dimensions and centimeter density",
+            "rounds numeric density before applying the supported range (%j)"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "existing-inventory-evidence",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-1f25980fb288",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1609",
+      "identity": "tests/parts/test_image.py::DescribeImage::it_knows_its_dpi[dpi_fixture1]",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "dpi_fixture": "((42.1, 23.6), (42, 24))"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Original numeric tuple cases assert each audited normalization result through the bounded header metadata helper; number-only admission and half-up rounding have explicit JS mappings.",
+      "evidence": [
+        {
+          "kind": "existing-inventory-or-metadata",
+          "files": [
+            "packages/pptx/src/image-metadata.test.ts"
+          ]
+        },
+        {
+          "kind": "existing-density-characterization",
+          "files": [
+            "packages/pptx/src/image-metadata.test.ts"
+          ],
+          "cases": [
+            "normalizes density axes independently (%j)",
+            "reads PNG dimensions and physical density without decoding pixels",
+            "reads JPEG frame dimensions and centimeter density",
+            "rounds numeric density before applying the supported range (%j)"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "existing-inventory-evidence",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-740838c88241",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1610",
+      "identity": "tests/parts/test_image.py::DescribeImage::it_knows_its_dpi[dpi_fixture2]",
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "dpi_fixture": "(None, (72, 72))"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Original numeric tuple cases assert each audited normalization result through the bounded header metadata helper; number-only admission and half-up rounding have explicit JS mappings.",
+      "evidence": [
+        {
+          "kind": "existing-inventory-or-metadata",
+          "files": [
+            "packages/pptx/src/image-metadata.test.ts"
+          ]
+        },
+        {
+          "kind": "existing-density-characterization",
+          "files": [
+            "packages/pptx/src/image-metadata.test.ts"
+          ],
+          "cases": [
+            "normalizes density axes independently (%j)",
+            "reads PNG dimensions and physical density without decoding pixels",
+            "reads JPEG frame dimensions and centimeter density",
+            "rounds numeric density before applying the supported range (%j)"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "existing-inventory-evidence",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-b6831ecbaf09",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1611",
+      "identity": "tests/parts/test_image.py::DescribeImage::it_knows_its_dpi[dpi_fixture3]",
+      "selectedParameters": [
+        {
+          "table_index": 3,
+          "bindings": {
+            "dpi_fixture": "((3047, 2388), (72, 72))"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Original numeric tuple cases assert each audited normalization result through the bounded header metadata helper; number-only admission and half-up rounding have explicit JS mappings.",
+      "evidence": [
+        {
+          "kind": "existing-inventory-or-metadata",
+          "files": [
+            "packages/pptx/src/image-metadata.test.ts"
+          ]
+        },
+        {
+          "kind": "existing-density-characterization",
+          "files": [
+            "packages/pptx/src/image-metadata.test.ts"
+          ],
+          "cases": [
+            "normalizes density axes independently (%j)",
+            "reads PNG dimensions and physical density without decoding pixels",
+            "reads JPEG frame dimensions and centimeter density",
+            "rounds numeric density before applying the supported range (%j)"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "existing-inventory-evidence",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-fc9c9fdcdc67",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1612",
+      "identity": "tests/parts/test_image.py::DescribeImage::it_knows_its_dpi[dpi_fixture4]",
+      "selectedParameters": [
+        {
+          "table_index": 4,
+          "bindings": {
+            "dpi_fixture": "('foobar', (72, 72))"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Original numeric tuple cases assert each audited normalization result through the bounded header metadata helper; number-only admission and half-up rounding have explicit JS mappings.",
+      "evidence": [
+        {
+          "kind": "existing-inventory-or-metadata",
+          "files": [
+            "packages/pptx/src/image-metadata.test.ts"
+          ]
+        },
+        {
+          "kind": "existing-density-characterization",
+          "files": [
+            "packages/pptx/src/image-metadata.test.ts"
+          ],
+          "cases": [
+            "normalizes density axes independently (%j)",
+            "reads PNG dimensions and physical density without decoding pixels",
+            "reads JPEG frame dimensions and centimeter density",
+            "rounds numeric density before applying the supported range (%j)"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "existing-inventory-evidence",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-b3d8217c08ce",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1613",
+      "identity": "tests/parts/test_image.py::DescribeImage::it_knows_its_filename[foo.bar]",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "filename_fixture": "'foo.bar'"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-4d9204685be4",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1614",
+      "identity": "tests/parts/test_image.py::DescribeImage::it_knows_its_filename[None]",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "filename_fixture": "None"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-dc79ef5c9bf0",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1615",
+      "identity": "tests/parts/test_image.py::DescribeImage::it_knows_its_sha1_hash",
+      "selectedParameters": {},
+      "status": "retained-baseline-accounting",
+      "reason": "Media compatibility SHA-1 and integrity SHA-256 are independently asserted with Node crypto over original authored bytes; the Image model property remains separate.",
+      "evidence": [
+        {
+          "kind": "existing-inventory-or-metadata",
+          "files": [
+            "packages/pptx/src/images.test.ts"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "existing-inventory-evidence",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-aa873e116a88",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1616",
+      "identity": "tests/parts/test_image.py::DescribeImage::it_knows_its_PIL_properties_to_help",
+      "selectedParameters": {},
+      "status": "retained-baseline-accounting",
+      "reason": "Original 204 by 204 JPEG header asserts pixel dimensions and absent-density 72 fallback; dependency internals and raw decoder tuple identity are not replicated.",
+      "evidence": [
+        {
+          "kind": "existing-inventory-or-metadata",
+          "files": [
+            "packages/pptx/src/image-metadata.test.ts"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "existing-inventory-evidence",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-f4382377e979",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1900",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_knows_its_cropping[crop_get_fixture0]",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "crop_get_fixture": "('p:pic/p:blipFill', 'left', 0.0)"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Original authored picture markup asserts each recorded crop read value, including missing attributes, negative crop and greater-than-one values. Direct Picture.crop_* model properties remain a separate API obligation.",
+      "evidence": [
+        {
+          "kind": "existing-inventory-or-metadata",
+          "files": [
+            "packages/pptx/src/images.test.ts"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "existing-inventory-evidence",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-b78ba82ddac8",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1901",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_knows_its_cropping[crop_get_fixture1]",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "crop_get_fixture": "('p:pic/p:blipFill/a:srcRect', 'top', 0.0)"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Original authored picture markup asserts each recorded crop read value, including missing attributes, negative crop and greater-than-one values. Direct Picture.crop_* model properties remain a separate API obligation.",
+      "evidence": [
+        {
+          "kind": "existing-inventory-or-metadata",
+          "files": [
+            "packages/pptx/src/images.test.ts"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "existing-inventory-evidence",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-5637df81e4c5",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1902",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_knows_its_cropping[crop_get_fixture2]",
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "crop_get_fixture": "('p:pic/p:blipFill/a:srcRect{l=99999}', 'bottom', 0.0)"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Original authored picture markup asserts each recorded crop read value, including missing attributes, negative crop and greater-than-one values. Direct Picture.crop_* model properties remain a separate API obligation.",
+      "evidence": [
+        {
+          "kind": "existing-inventory-or-metadata",
+          "files": [
+            "packages/pptx/src/images.test.ts"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "existing-inventory-evidence",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-34ba8092668b",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1903",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_knows_its_cropping[crop_get_fixture3]",
+      "selectedParameters": [
+        {
+          "table_index": 3,
+          "bindings": {
+            "crop_get_fixture": "('p:pic/p:blipFill/a:srcRect{l=42424}', 'left', 0.42424)"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Original authored picture markup asserts each recorded crop read value, including missing attributes, negative crop and greater-than-one values. Direct Picture.crop_* model properties remain a separate API obligation.",
+      "evidence": [
+        {
+          "kind": "existing-inventory-or-metadata",
+          "files": [
+            "packages/pptx/src/images.test.ts"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "existing-inventory-evidence",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-eae707fb55fa",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1904",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_knows_its_cropping[crop_get_fixture4]",
+      "selectedParameters": [
+        {
+          "table_index": 4,
+          "bindings": {
+            "crop_get_fixture": "('p:pic/p:blipFill/a:srcRect{t=-10000}', 'top', -0.1)"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Original authored picture markup asserts each recorded crop read value, including missing attributes, negative crop and greater-than-one values. Direct Picture.crop_* model properties remain a separate API obligation.",
+      "evidence": [
+        {
+          "kind": "existing-inventory-or-metadata",
+          "files": [
+            "packages/pptx/src/images.test.ts"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "existing-inventory-evidence",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-ea14a8d403b4",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1905",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_knows_its_cropping[crop_get_fixture5]",
+      "selectedParameters": [
+        {
+          "table_index": 5,
+          "bindings": {
+            "crop_get_fixture": "('p:pic/p:blipFill/a:srcRect{r=250000}', 'right', 2.5)"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Original authored picture markup asserts each recorded crop read value, including missing attributes, negative crop and greater-than-one values. Direct Picture.crop_* model properties remain a separate API obligation.",
+      "evidence": [
+        {
+          "kind": "existing-inventory-or-metadata",
+          "files": [
+            "packages/pptx/src/images.test.ts"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "existing-inventory-evidence",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-d27c8d5a5a57",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1906",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_knows_its_cropping[crop_get_fixture6]",
+      "selectedParameters": [
+        {
+          "table_index": 6,
+          "bindings": {
+            "crop_get_fixture": "('p:pic/p:blipFill/a:srcRect{b=33333}', 'bottom', 0.33333)"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Original authored picture markup asserts each recorded crop read value, including missing attributes, negative crop and greater-than-one values. Direct Picture.crop_* model properties remain a separate API obligation.",
+      "evidence": [
+        {
+          "kind": "existing-inventory-or-metadata",
+          "files": [
+            "packages/pptx/src/images.test.ts"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "existing-inventory-evidence",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-83dac690f32a",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1907",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture0]",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "crop_set_fixture": "('p:pic{a:b=c}/p:blipFill', 'left', 0.11, 'p:pic{a:b=c}/p:blipFill/a:srcRect{l=11000}')"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-6376b0f15679",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1908",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture1]",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "crop_set_fixture": "('p:pic{a:b=c}/p:blipFill', 'top', 0.21, 'p:pic{a:b=c}/p:blipFill/a:srcRect{t=21000}')"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-6a65aacb6191",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1909",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture2]",
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "crop_set_fixture": "('p:pic{a:b=c}/p:blipFill', 'right', 0.31, 'p:pic{a:b=c}/p:blipFill/a:srcRect{r=31000}')"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-0d71658602d5",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1910",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture3]",
+      "selectedParameters": [
+        {
+          "table_index": 3,
+          "bindings": {
+            "crop_set_fixture": "('p:pic{a:b=c}/p:blipFill', 'bottom', 0.41, 'p:pic{a:b=c}/p:blipFill/a:srcRect{b=41000}')"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-556a3ac44074",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1911",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture4]",
+      "selectedParameters": [
+        {
+          "table_index": 4,
+          "bindings": {
+            "crop_set_fixture": "('p:pic{a:b=c}/p:blipFill/a:srcRect{l=80000}', 'left', 0.21, 'p:pic{a:b=c}/p:blipFill/a:srcRect{l=21000}')"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-ebcffaf400c8",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1912",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture5]",
+      "selectedParameters": [
+        {
+          "table_index": 5,
+          "bindings": {
+            "crop_set_fixture": "('p:pic{a:b=c}/p:blipFill/a:srcRect{t=70000}', 'top', 0.22, 'p:pic{a:b=c}/p:blipFill/a:srcRect{t=22000}')"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-12450cf9ee92",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1913",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture6]",
+      "selectedParameters": [
+        {
+          "table_index": 6,
+          "bindings": {
+            "crop_set_fixture": "('p:pic{a:b=c}/p:blipFill/a:srcRect{r=60000}', 'right', 0.23, 'p:pic{a:b=c}/p:blipFill/a:srcRect{r=23000}')"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-853acd97deef",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1914",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture7]",
+      "selectedParameters": [
+        {
+          "table_index": 7,
+          "bindings": {
+            "crop_set_fixture": "('p:pic{a:b=c}/p:blipFill/a:srcRect{b=50000}', 'bottom', 0.24, 'p:pic{a:b=c}/p:blipFill/a:srcRect{b=24000}')"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-840c6be64e4e",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1915",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture8]",
+      "selectedParameters": [
+        {
+          "table_index": 8,
+          "bindings": {
+            "crop_set_fixture": "('p:pic{a:b=c}/p:blipFill/a:srcRect{l=90000}', 'left', 0, 'p:pic{a:b=c}/p:blipFill/a:srcRect')"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-a83f1bc84b50",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1916",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture9]",
+      "selectedParameters": [
+        {
+          "table_index": 9,
+          "bindings": {
+            "crop_set_fixture": "('p:pic{a:b=c}/p:blipFill/a:srcRect{t=91000}', 'top', 0.0, 'p:pic{a:b=c}/p:blipFill/a:srcRect')"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-4ed44d0f3035",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1917",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture10]",
+      "selectedParameters": [
+        {
+          "table_index": 10,
+          "bindings": {
+            "crop_set_fixture": "('p:pic{a:b=c}/p:blipFill/a:srcRect{r=92000}', 'right', 0, 'p:pic{a:b=c}/p:blipFill/a:srcRect')"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-efc54aabbc6e",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1918",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_can_change_its_cropping[crop_set_fixture11]",
+      "selectedParameters": [
+        {
+          "table_index": 11,
+          "bindings": {
+            "crop_set_fixture": "('p:pic{a:b=c}/p:blipFill/a:srcRect{b=93000}', 'bottom', 0.0, 'p:pic{a:b=c}/p:blipFill/a:srcRect')"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-eeed295d75f6",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1919",
+      "identity": "tests/shapes/test_picture.py::Describe_BasePicture::it_provides_access_to_its_outline",
+      "selectedParameters": {},
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-d1b2c2679401",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1920",
+      "identity": "tests/shapes/test_picture.py::DescribeMovie::it_knows_its_shape_type",
+      "selectedParameters": {},
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-75859a74b031",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1921",
+      "identity": "tests/shapes/test_picture.py::DescribeMovie::it_knows_its_media_type",
+      "selectedParameters": {},
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-2a40c68c6e2d",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1922",
+      "identity": "tests/shapes/test_picture.py::DescribeMovie::it_provides_access_to_its_media_format",
+      "selectedParameters": {},
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-f413e6833613",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1923",
+      "identity": "tests/shapes/test_picture.py::DescribeMovie::it_provides_access_to_its_poster_frame_image[pfrm_fixture0]",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "pfrm_fixture": "('p:pic/p:blipFill/a:blip{r:embed=rId42}', True)"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-48e912b0c901",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1924",
+      "identity": "tests/shapes/test_picture.py::DescribeMovie::it_provides_access_to_its_poster_frame_image[pfrm_fixture1]",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "pfrm_fixture": "('p:pic/p:blipFill/a:blip', False)"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-211ef5b0556d",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1925",
+      "identity": "tests/shapes/test_picture.py::DescribePicture::it_knows_its_masking_shape[autoshape_get_fixture0]",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "autoshape_get_fixture": "('', None)"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-b5a9ecedaa1b",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1926",
+      "identity": "tests/shapes/test_picture.py::DescribePicture::it_knows_its_masking_shape[autoshape_get_fixture1]",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "autoshape_get_fixture": "('/a:prstGeom{prst=rect}', MSO_SHAPE.RECTANGLE)"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-5adda9ea035d",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1927",
+      "identity": "tests/shapes/test_picture.py::DescribePicture::it_knows_its_masking_shape[autoshape_get_fixture2]",
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "autoshape_get_fixture": "('/a:prstGeom{prst=hexagon}', MSO_SHAPE.HEXAGON)"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-2b0ceede9805",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1928",
+      "identity": "tests/shapes/test_picture.py::DescribePicture::it_can_change_its_masking_shape[autoshape_set_fixture0]",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "autoshape_set_fixture": "('p:pic/p:spPr/a:custGeom', MSO_SHAPE.RECTANGLE, 'p:pic/p:spPr/a:prstGeom{prst=rect}')"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-112a0f5a9535",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1929",
+      "identity": "tests/shapes/test_picture.py::DescribePicture::it_can_change_its_masking_shape[autoshape_set_fixture1]",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "autoshape_set_fixture": "('p:pic/p:spPr/a:prstGeom{prst=rect}', MSO_SHAPE.OVAL, 'p:pic/p:spPr/a:prstGeom{prst=ellipse}')"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-7eefb7318396",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1930",
+      "identity": "tests/shapes/test_picture.py::DescribePicture::it_can_change_its_masking_shape[autoshape_set_fixture2]",
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "autoshape_set_fixture": "('p:pic/p:spPr/a:prstGeom{prst=ellipse}', MSO_SHAPE.PIE, 'p:pic/p:spPr/a:prstGeom{prst=pie}')"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-b3271b2c2383",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1931",
+      "identity": "tests/shapes/test_picture.py::DescribePicture::it_knows_its_shape_type",
+      "selectedParameters": {},
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-9de16ca3f584",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1932",
+      "identity": "tests/shapes/test_picture.py::DescribePicture::it_provides_access_to_its_image",
+      "selectedParameters": {},
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-3a2c7866d339",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2194",
+      "identity": "tests/test_package.py::DescribePackage::it_can_get_or_add_an_image_part",
+      "selectedParameters": {},
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-ef00251b2abb",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2196",
+      "identity": "tests/test_package.py::DescribePackage::it_knows_the_next_available_image_partname[next_fixture0]",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "next_fixture": "((3, 4, 2), 1)"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-578cf476ec91",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2197",
+      "identity": "tests/test_package.py::DescribePackage::it_knows_the_next_available_image_partname[next_fixture1]",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "next_fixture": "((4, 2, 1), 3)"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-c925eb99d943",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2198",
+      "identity": "tests/test_package.py::DescribePackage::it_knows_the_next_available_image_partname[next_fixture2]",
+      "selectedParameters": [
+        {
+          "table_index": 2,
+          "bindings": {
+            "next_fixture": "((2, 3, 1), 4)"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-b172f886586e",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2203",
+      "identity": "tests/test_package.py::Describe_ImageParts::it_can_iterate_over_the_package_image_parts",
+      "selectedParameters": {},
+      "status": "retained-baseline-accounting",
+      "reason": "Shared occurrences yield one default media record per part; linked targets remain occurrences with no bytes. Non-image relationships do not produce media rows.",
+      "evidence": [
+        {
+          "kind": "existing-inventory-or-metadata",
+          "files": [
+            "packages/pptx/src/images.test.ts"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "existing-inventory-evidence",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-854276fcba16",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2204",
+      "identity": "tests/test_package.py::Describe_ImageParts::it_can_get_a_matching_image_part",
+      "selectedParameters": {},
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-24b83881c66b",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2205",
+      "identity": "tests/test_package.py::Describe_ImageParts::it_can_add_an_image_part",
+      "selectedParameters": {},
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-3bba2df7e506",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2206",
+      "identity": "tests/test_package.py::Describe_ImageParts::it_can_find_an_image_part_by_sha1_hash[True]",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "find_fixture": "True"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-54df6c3779ee",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2207",
+      "identity": "tests/test_package.py::Describe_ImageParts::it_can_find_an_image_part_by_sha1_hash[False]",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "find_fixture": "False"
+          }
+        }
+      ],
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-2548d24c40ba",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/2208",
+      "identity": "tests/test_package.py::Describe_ImageParts::but_it_skips_unsupported_image_types",
+      "selectedParameters": {},
+      "status": "retained-baseline-accounting",
+      "reason": "Opaque vectors are retained and hashed rather than skipped by a private hash lookup. Intrinsic size is explicitly unknown. No image insertion/deduplication lookup API is claimed.",
+      "evidence": [
+        {
+          "kind": "existing-inventory-or-metadata",
+          "files": [
+            "packages/pptx/src/images.test.ts",
+            "packages/pptx/src/image-metadata.test.ts"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "existing-inventory-evidence",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-a9830ddf61a6",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/496",
+      "identity": "Insert an image into a picture placeholder -- @1.1 Images inserted into a picture placeholder",
+      "selectedParameters": {
+        "filename": "monty-truth.png",
+        "sides": "top and bottom",
+        "value": "0.23715"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-beb1261edaeb",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/497",
+      "identity": "Insert an image into a picture placeholder -- @1.2 Images inserted into a picture placeholder",
+      "selectedParameters": {
+        "filename": "python-powered.png",
+        "sides": "left and right",
+        "value": "0.23333"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-de957907b33b",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/539",
+      "identity": "Load presentation with invalid image/jpg MIME-type",
+      "selectedParameters": {},
+      "status": "retained-baseline-accounting",
+      "reason": "Inventory accepts and preserves a declared image/jpg MIME value without rewriting the package. Canonical characterization and subsequent model save behavior are separate obligations.",
+      "evidence": [
+        {
+          "kind": "existing-inventory-or-metadata",
+          "files": [
+            "packages/pptx/src/images.test.ts"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "existing-inventory-evidence",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-dbb7a1d72792",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/591",
+      "identity": "Picture.auto_shape_type getter -- @1.1 auto-shape-type getter cases",
+      "selectedParameters": {
+        "shape": "rectangle",
+        "member": "RECTANGLE"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-a466e4f3e2c6",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/592",
+      "identity": "Picture.auto_shape_type getter -- @1.2 auto-shape-type getter cases",
+      "selectedParameters": {
+        "shape": "circle",
+        "member": "OVAL"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-c44f2df416aa",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/593",
+      "identity": "Picture.auto_shape_type setter -- @1.1 auto-shape-type getter cases",
+      "selectedParameters": {
+        "shape": "rectangle",
+        "member": "OVAL"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-726b2e4e1796",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/594",
+      "identity": "Picture.auto_shape_type setter -- @1.2 auto-shape-type getter cases",
+      "selectedParameters": {
+        "shape": "circle",
+        "member": "RECTANGLE"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-47dc6bf879ef",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/595",
+      "identity": "Picture.crop_x() getters -- @1.1 Cropping getter cases",
+      "selectedParameters": {
+        "crop-or-no": "no cropping",
+        "l-crop": "0.0",
+        "t-crop": "0.0",
+        "r-crop": "0.0",
+        "b-crop": "0.0"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Original authored picture markup asserts each recorded crop read value, including missing attributes, negative crop and greater-than-one values. Direct Picture.crop_* model properties remain a separate API obligation.",
+      "evidence": [
+        {
+          "kind": "existing-inventory-or-metadata",
+          "files": [
+            "packages/pptx/src/images.test.ts"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "existing-inventory-evidence",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-a18292bfe492",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/596",
+      "identity": "Picture.crop_x() getters -- @1.2 Cropping getter cases",
+      "selectedParameters": {
+        "crop-or-no": "cropping",
+        "l-crop": ".15479",
+        "t-crop": ".25571",
+        "r-crop": ".10463",
+        "b-crop": ".25572"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Original authored picture markup asserts each recorded crop read value, including missing attributes, negative crop and greater-than-one values. Direct Picture.crop_* model properties remain a separate API obligation.",
+      "evidence": [
+        {
+          "kind": "existing-inventory-or-metadata",
+          "files": [
+            "packages/pptx/src/images.test.ts"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "existing-inventory-evidence",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-f97fa248a247",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/597",
+      "identity": "Picture.crop_x() setters -- @1.1 Cropping setter cases",
+      "selectedParameters": {
+        "crop-or-no": "no cropping",
+        "value": ".1",
+        "side": "left"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-9ff264b21d88",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/598",
+      "identity": "Picture.crop_x() setters -- @1.2 Cropping setter cases",
+      "selectedParameters": {
+        "crop-or-no": "no cropping",
+        "value": ".2",
+        "side": "top"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-4c26ce757f70",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/599",
+      "identity": "Picture.crop_x() setters -- @1.3 Cropping setter cases",
+      "selectedParameters": {
+        "crop-or-no": "no cropping",
+        "value": ".3",
+        "side": "right"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-df781268e734",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/600",
+      "identity": "Picture.crop_x() setters -- @1.4 Cropping setter cases",
+      "selectedParameters": {
+        "crop-or-no": "no cropping",
+        "value": ".4",
+        "side": "bottom"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-c68356dbaf0f",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/601",
+      "identity": "Picture.crop_x() setters -- @1.5 Cropping setter cases",
+      "selectedParameters": {
+        "crop-or-no": "cropping",
+        "value": ".5",
+        "side": "left"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-254b5eff72c9",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/602",
+      "identity": "Picture.crop_x() setters -- @1.6 Cropping setter cases",
+      "selectedParameters": {
+        "crop-or-no": "cropping",
+        "value": ".6",
+        "side": "top"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-d5eb46286927",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/603",
+      "identity": "Picture.crop_x() setters -- @1.7 Cropping setter cases",
+      "selectedParameters": {
+        "crop-or-no": "cropping",
+        "value": ".7",
+        "side": "right"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-be18506184f1",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/604",
+      "identity": "Picture.crop_x() setters -- @1.8 Cropping setter cases",
+      "selectedParameters": {
+        "crop-or-no": "cropping",
+        "value": ".8",
+        "side": "bottom"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-c79f2d505c9d",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/605",
+      "identity": "Picture.crop_x() setters -- @1.9 Cropping setter cases",
+      "selectedParameters": {
+        "crop-or-no": "no cropping",
+        "value": "0.0",
+        "side": "left"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-68e07a3c8494",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/606",
+      "identity": "Picture.crop_x() setters -- @1.10 Cropping setter cases",
+      "selectedParameters": {
+        "crop-or-no": "no cropping",
+        "value": "0.0",
+        "side": "top"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-b0ea90fa73e5",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/607",
+      "identity": "Picture.crop_x() setters -- @1.11 Cropping setter cases",
+      "selectedParameters": {
+        "crop-or-no": "no cropping",
+        "value": "0.0",
+        "side": "right"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-9649ae7ccf82",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/608",
+      "identity": "Picture.crop_x() setters -- @1.12 Cropping setter cases",
+      "selectedParameters": {
+        "crop-or-no": "no cropping",
+        "value": "0.0",
+        "side": "bottom"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-c9060ab30649",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/609",
+      "identity": "Picture.crop_x() setters -- @1.13 Cropping setter cases",
+      "selectedParameters": {
+        "crop-or-no": "cropping",
+        "value": "0.0",
+        "side": "left"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-450cafe9e13f",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/610",
+      "identity": "Picture.crop_x() setters -- @1.14 Cropping setter cases",
+      "selectedParameters": {
+        "crop-or-no": "cropping",
+        "value": "0.0",
+        "side": "top"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-def2e613cf20",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/611",
+      "identity": "Picture.crop_x() setters -- @1.15 Cropping setter cases",
+      "selectedParameters": {
+        "crop-or-no": "cropping",
+        "value": "0.0",
+        "side": "right"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-f910559e664f",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/612",
+      "identity": "Picture.crop_x() setters -- @1.16 Cropping setter cases",
+      "selectedParameters": {
+        "crop-or-no": "cropping",
+        "value": "0.0",
+        "side": "bottom"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Crop read/write behavior is independently retained; preserving/resetting replacement metadata does not implement model crop setters.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-02b71ac19a1f",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/613",
+      "identity": "Picture.image",
+      "selectedParameters": {},
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-1a54af20915e",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/614",
+      "identity": "Picture.line",
+      "selectedParameters": {},
+      "status": "retained-baseline-accounting",
+      "reason": "Returned Image/ImagePart/Picture model, cropping setters, playback and other neighboring APIs remain obligations; bounded insertion does not establish parity.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "model-or-mutation-gap",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-16d75de07073",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/673",
+      "identity": "SlideShapes.add_picture() (using filename) -- @1.1 image files of supported types",
+      "selectedParameters": {
+        "filename": "sonic.gif",
+        "ext": "gif"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Original GIF bytes pass header admission and independent SDK package insertion assertions. Explicit VFS/bytes replace ambient filename/seekable-handle APIs; exact neutral public model scenario remains partial.",
+      "evidence": [
+        {
+          "kind": "admission",
+          "files": [
+            "packages/pptx/src/image-admission.test.ts"
+          ],
+          "cases": [
+            "reads %s intrinsic dimensions"
+          ]
+        },
+        {
+          "kind": "insertion",
+          "files": [
+            "packages/pptx/src/image-insertion.test.ts"
+          ],
+          "cases": [
+            "inserts byte-preserving media with explicit geometry %j"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "partial-insertion-scenario",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-b40a00cb2ef4",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/674",
+      "identity": "SlideShapes.add_picture() (using filename) -- @1.2 image files of supported types",
+      "selectedParameters": {
+        "filename": "python-icon.jpeg",
+        "ext": "jpg"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Original JPG bytes pass header admission and independent SDK package insertion assertions. Explicit VFS/bytes replace ambient filename/seekable-handle APIs; exact neutral public model scenario remains partial.",
+      "evidence": [
+        {
+          "kind": "admission",
+          "files": [
+            "packages/pptx/src/image-admission.test.ts"
+          ],
+          "cases": [
+            "reads %s intrinsic dimensions"
+          ]
+        },
+        {
+          "kind": "insertion",
+          "files": [
+            "packages/pptx/src/image-insertion.test.ts"
+          ],
+          "cases": [
+            "uses JPEG frame dimensions without altering compressed bytes"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "partial-insertion-scenario",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-4a377fae63aa",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/675",
+      "identity": "SlideShapes.add_picture() (using filename) -- @1.3 image files of supported types",
+      "selectedParameters": {
+        "filename": "monty-truth.png",
+        "ext": "png"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Original PNG bytes pass header admission and independent SDK package insertion assertions. Explicit VFS/bytes replace ambient filename/seekable-handle APIs; exact neutral public model scenario remains partial.",
+      "evidence": [
+        {
+          "kind": "admission",
+          "files": [
+            "packages/pptx/src/image-admission.test.ts"
+          ],
+          "cases": [
+            "reads %s intrinsic dimensions"
+          ]
+        },
+        {
+          "kind": "insertion",
+          "files": [
+            "packages/pptx/src/image-insertion.test.ts"
+          ],
+          "cases": [
+            "retains an original RGBA PNG compressed payload and transparent pixel"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "partial-insertion-scenario",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-eec99c93e60c",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/676",
+      "identity": "SlideShapes.add_picture() (using filename) -- @1.4 image files of supported types",
+      "selectedParameters": {
+        "filename": "72-dpi.tiff",
+        "ext": "tiff"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Format remains a future insertion obligation; no test claims equivalence from read-only metadata.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "unsupported-insertion-format",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-7ef30a31d8e1",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/677",
+      "identity": "SlideShapes.add_picture() (using filename) -- @1.5 image files of supported types",
+      "selectedParameters": {
+        "filename": "CVS_LOGO.WMF",
+        "ext": "wmf"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Format remains a future insertion obligation; no test claims equivalence from read-only metadata.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "unsupported-insertion-format",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-dc4f4580ac55",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/678",
+      "identity": "SlideShapes.add_picture() (using filename) -- @1.6 image files of supported types",
+      "selectedParameters": {
+        "filename": "pic.emf",
+        "ext": "wmf"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Format remains a future insertion obligation; no test claims equivalence from read-only metadata.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "unsupported-insertion-format",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-bd43137a6647",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/679",
+      "identity": "SlideShapes.add_picture() (using filename) -- @1.7 image files of supported types",
+      "selectedParameters": {
+        "filename": "python.bmp",
+        "ext": "bmp"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Format remains a future insertion obligation; no test claims equivalence from read-only metadata.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "unsupported-insertion-format",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-69b3cf51b29d",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/680",
+      "identity": "SlideShapes.add_picture() (using file-like object) -- @1.1 image files of supported types",
+      "selectedParameters": {
+        "filename": "sonic.gif",
+        "ext": "gif"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Original GIF bytes pass header admission and independent SDK package insertion assertions. Explicit VFS/bytes replace ambient filename/seekable-handle APIs; exact neutral public model scenario remains partial.",
+      "evidence": [
+        {
+          "kind": "admission",
+          "files": [
+            "packages/pptx/src/image-admission.test.ts"
+          ],
+          "cases": [
+            "reads %s intrinsic dimensions"
+          ]
+        },
+        {
+          "kind": "insertion",
+          "files": [
+            "packages/pptx/src/image-insertion.test.ts"
+          ],
+          "cases": [
+            "inserts byte-preserving media with explicit geometry %j"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "partial-insertion-scenario",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-31929f0f2a0a",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/681",
+      "identity": "SlideShapes.add_picture() (using file-like object) -- @1.2 image files of supported types",
+      "selectedParameters": {
+        "filename": "python-icon.jpeg",
+        "ext": "jpg"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Original JPG bytes pass header admission and independent SDK package insertion assertions. Explicit VFS/bytes replace ambient filename/seekable-handle APIs; exact neutral public model scenario remains partial.",
+      "evidence": [
+        {
+          "kind": "admission",
+          "files": [
+            "packages/pptx/src/image-admission.test.ts"
+          ],
+          "cases": [
+            "reads %s intrinsic dimensions"
+          ]
+        },
+        {
+          "kind": "insertion",
+          "files": [
+            "packages/pptx/src/image-insertion.test.ts"
+          ],
+          "cases": [
+            "uses JPEG frame dimensions without altering compressed bytes"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "partial-insertion-scenario",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-7422d19c3d36",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/682",
+      "identity": "SlideShapes.add_picture() (using file-like object) -- @1.3 image files of supported types",
+      "selectedParameters": {
+        "filename": "monty-truth.png",
+        "ext": "png"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Original PNG bytes pass header admission and independent SDK package insertion assertions. Explicit VFS/bytes replace ambient filename/seekable-handle APIs; exact neutral public model scenario remains partial.",
+      "evidence": [
+        {
+          "kind": "admission",
+          "files": [
+            "packages/pptx/src/image-admission.test.ts"
+          ],
+          "cases": [
+            "reads %s intrinsic dimensions"
+          ]
+        },
+        {
+          "kind": "insertion",
+          "files": [
+            "packages/pptx/src/image-insertion.test.ts"
+          ],
+          "cases": [
+            "retains an original RGBA PNG compressed payload and transparent pixel"
+          ]
+        }
+      ],
+      "wholeRowParity": false,
+      "baselineStatus": "partial-insertion-scenario",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-266bb2222c6d",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/683",
+      "identity": "SlideShapes.add_picture() (using file-like object) -- @1.4 image files of supported types",
+      "selectedParameters": {
+        "filename": "72-dpi.tiff",
+        "ext": "tiff"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Format remains a future insertion obligation; no test claims equivalence from read-only metadata.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "unsupported-insertion-format",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-a35e548b135c",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/684",
+      "identity": "SlideShapes.add_picture() (using file-like object) -- @1.5 image files of supported types",
+      "selectedParameters": {
+        "filename": "CVS_LOGO.WMF",
+        "ext": "wmf"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Format remains a future insertion obligation; no test claims equivalence from read-only metadata.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "unsupported-insertion-format",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-17a91580ca54",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/685",
+      "identity": "SlideShapes.add_picture() (using file-like object) -- @1.6 image files of supported types",
+      "selectedParameters": {
+        "filename": "pic.emf",
+        "ext": "wmf"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Format remains a future insertion obligation; no test claims equivalence from read-only metadata.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "unsupported-insertion-format",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-bdd-a1a5870ff7ae",
+      "kind": "bdd",
+      "source": "upstream-test-inventory.json#/bdd_cases/686",
+      "identity": "SlideShapes.add_picture() (using file-like object) -- @1.7 image files of supported types",
+      "selectedParameters": {
+        "filename": "python.bmp",
+        "ext": "bmp"
+      },
+      "status": "retained-baseline-accounting",
+      "reason": "Format remains a future insertion obligation; no test claims equivalence from read-only metadata.",
+      "evidence": [],
+      "wholeRowParity": false,
+      "baselineStatus": "unsupported-insertion-format",
+      "replacementDisposition": "Adjacent image admission/inventory/insertion/model obligation; replacement does not upgrade its prior coverage.",
+      "replacementEvidence": []
+    },
+    {
+      "id": "presentation-unit-7656c29e31ac",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1971",
+      "identity": "tests/shapes/test_placeholder.py::DescribePicturePlaceholder::it_can_insert_a_picture_into_itself",
+      "selectedParameters": {},
+      "status": "adjacent-placeholder-model-gap",
+      "reason": "Replacing an existing image occurrence does not implement rich placeholder insertion, returned handles or invalidation semantics.",
+      "evidence": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-fef8f64925fc",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1972",
+      "identity": "tests/shapes/test_placeholder.py::DescribePicturePlaceholder::it_creates_a_pic_element_to_help[image_size0-crop_attr_names0]",
+      "selectedParameters": [
+        {
+          "table_index": 0,
+          "bindings": {
+            "image_size": "(444, 333)",
+            "crop_attr_names": "('l', 'r')"
+          }
+        }
+      ],
+      "status": "adjacent-placeholder-model-gap",
+      "reason": "Replacing an existing image occurrence does not implement rich placeholder insertion, returned handles or invalidation semantics.",
+      "evidence": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-390af2f4f150",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1973",
+      "identity": "tests/shapes/test_placeholder.py::DescribePicturePlaceholder::it_creates_a_pic_element_to_help[image_size1-crop_attr_names1]",
+      "selectedParameters": [
+        {
+          "table_index": 1,
+          "bindings": {
+            "image_size": "(333, 444)",
+            "crop_attr_names": "('t', 'b')"
+          }
+        }
+      ],
+      "status": "adjacent-placeholder-model-gap",
+      "reason": "Replacing an existing image occurrence does not implement rich placeholder insertion, returned handles or invalidation semantics.",
+      "evidence": [],
+      "wholeRowParity": false
+    },
+    {
+      "id": "presentation-unit-4067852f14a6",
+      "kind": "unit",
+      "source": "upstream-test-inventory.json#/unit_cases/1974",
+      "identity": "tests/shapes/test_placeholder.py::DescribePicturePlaceholder::it_adds_an_image_to_help",
+      "selectedParameters": {},
+      "status": "adjacent-placeholder-model-gap",
+      "reason": "Replacing an existing image occurrence does not implement rich placeholder insertion, returned handles or invalidation semantics.",
+      "evidence": [],
+      "wholeRowParity": false
+    }
+  ],
+  "supplementalReplacementEvidence": {
+    "upstreamParity": false,
+    "tests": [
+      {
+        "file": "packages/pptx/src/image-replacement.test.ts",
+        "expandedCases": 28,
+        "status": "passed-maintained-pptx-workspace-tests"
+      },
+      {
+        "file": "packages/pptx/src/command-images-replace.test.ts",
+        "status": "passed-maintained-pptx-workspace-tests",
+        "expandedCases": 10
+      }
+    ],
+    "corpus": {
+      "status": "passed-sdk-local-and-shared",
+      "receipt": "image-replacement-evidence.md#executed-disposable-qa",
+      "inputSha256": "85cc7b338a11b9d1a9dfcaaaa504bf21ab643e4c30004a478152f390ee9f5f1d",
+      "localAffected": 1,
+      "sharedAffected": 2,
+      "sharedAffectedSlides": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "semanticValidation": "ten-rules-pass",
+      "schemaValidation": "not-checked",
+      "persistedOutputs": 0
+    },
+    "checks": {
+      "workspaceTests": {
+        "files": 110,
+        "tests": 3140,
+        "status": "passed"
+      },
+      "workspaceLint": "passed",
+      "workspaceBuild": "passed",
+      "safeBashCommandTests": {
+        "tests": 1,
+        "status": "passed"
+      },
+      "integrationRegistrationTests": {
+        "tests": 107,
+        "status": "passed"
+      },
+      "rootGuardedLint": {
+        "status": "incomplete-subject-cap",
+        "exitCode": 2,
+        "subjects": 12000,
+        "errorCount": 0,
+        "warningCount": 0
+      },
+      "localCommits": "blocked-until-required-lint-completes"
+    }
+  }
+}

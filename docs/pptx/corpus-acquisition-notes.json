@@ -1,0 +1,18 @@
+{
+  "failed_sources": [
+    {
+      "page": "https://beams.web.cern.ch/content/be-department-heads-presentations",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "page": "https://www.cdc.gov/training-publichealth101/php/training/introduction-to-public-health-surveillance.html",
+      "error": "HTTP Error 403: Forbidden"
+    },
+    {
+      "page": "https://stacks.cdc.gov/view/cdc/146383",
+      "error": "HTTP Error 403: Forbidden"
+    }
+  ],
+  "bypass_attempted": false,
+  "large_download": "Earth-system file explicitly admitted under 512 MiB acquisition ceiling; total corpus below 1 GiB"
+}

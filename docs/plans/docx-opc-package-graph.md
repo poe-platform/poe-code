@@ -183,3 +183,48 @@ No shared codec, root, adapter, dependency manifest, README or downloaded fixtur
 changes are owned. One atomic Conventional Commit will contain the graph, URI
 handling, admission integration, original regressions and this receipt. Stage
 only those explicit paths, with normal hooks. No push or release.
+
+## Verification follow-up: empty relationship targets
+
+Verified baseline `c76682de5` on main against this bounded task on 2026-09-14.
+Inspected the source, original tests, the four historical red logs and subsequent
+green logs listed above. The initial maintained rerun passed all 156 tests and
+scoped lint. Those historical logs are retained, not replaced by this review.
+
+Found one admission defect: `Target=""` was treated as a missing attribute.
+ECMA-376 Part 2 §6.5.3.2 permits relative references, and
+[RFC 3986 §§4.4 and 5.2.2](https://www.rfc-editor.org/rfc/rfc3986.html#section-4.4)
+defines the empty reference relative to its base. An internal part relationship
+therefore refers to its owner; an external target remains the exact empty string
+without acquisition. An empty internal package-root target identifies no part
+and continues to reject. A missing Target attribute also continues to reject.
+
+Added four original cases in the existing memfs package tests before changing
+product code. `/tmp/docx-opc-verify-empty-red.log` records 2 failures and 158 passes:
+both valid empty-target cases failed at the required-attribute check. The fix
+permits an empty value only when reading the Target attribute; all existing ID,
+content-type, mode and graph validations retain their behavior. The self-cycle
+case independently verifies owner identity and one traversal visit.
+
+Verification after the correction:
+
+- `npm test --workspace=docx`: 160 tests pass across six files, including 66
+  package/URI tests; `/tmp/docx-opc-verify-empty-green.log`.
+- `npm run lint --workspace=docx`: ESLint and source/test TypeScript checks pass.
+- `npm run build:workspaces -- --workspace=docx`: declared office-package and
+  docx build closure passes.
+- Built public `docx` import smoke check: original four-member ZIP written to
+  memfs and re-admitted; `mainPart` is `review/main.xml`, owner relationships
+  retain internal/external empty targets, self traversal visits once, allocation
+  yields `rId3`, all three URI exports match expected values, and all four
+  uncompressed payloads remain byte-identical. Inspected the emitted JSON.
+
+The existing exact JS/security mappings and later public API dispositions above
+remain applicable. This correction adds no API spelling or command. CLI/SDK
+operation parity, schema/capabilities, live public model coverage, corpus edits
+and renderer QA remain later work; no unavailable QA or whole-spec conformance
+is counted as passed. No visual CLI changed, so no screenshot check applies.
+No reference runtime build, downloaded fixture mutation, product networking,
+ambient product I/O, README edit, push or release was performed. Only this receipt
+and the two package files belong to the correction; unrelated plans and index
+entries are preserved.

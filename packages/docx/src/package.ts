@@ -47,9 +47,9 @@ function attributes(tag: SaxesTagNS, allowed: readonly string[]): void {
     if (attribute.uri || !allowed.includes(attribute.local)) invalidPackage();
   }
 }
-function required(tag: SaxesTagNS, name: string): string {
+function required(tag: SaxesTagNS, name: string, allowEmpty = false): string {
   const value = tag.attributes[name];
-  if (!value || value.uri || !value.value) return invalidPackage();
+  if (!value || value.uri || (!allowEmpty && !value.value)) return invalidPackage();
   return value.value;
 }
 function relationshipOwner(name: string): string | null {
@@ -231,7 +231,7 @@ export class DocumentPackage {
           attributes(tag, ["Id", "Type", "Target", "TargetMode"]);
           const rId = required(tag, "Id");
           const reltype = required(tag, "Type");
-          const target_ref = required(tag, "Target");
+          const target_ref = required(tag, "Target", true);
           if (!validId(rId) || ids.has(rId)) invalidPackage();
           ids.add(rId);
           const mode = tag.attributes.TargetMode?.value ?? "Internal";

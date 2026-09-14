@@ -138,6 +138,7 @@ describe("ordered document package graph", () => {
   });
 
   it.each([
+    "",
     "https://outside.invalid/a?token=opaque#x",
     "file:///private/item",
     "../outside",
@@ -156,6 +157,7 @@ describe("ordered document package graph", () => {
   });
 
   it.each([
+    ["missing target", relationships('<Relationship Id="rId1" Type="urn:original:resource"/>')],
     ["duplicate IDs", relationships(rel("rId1", "side.xml") + rel("rId1", "../assets/shared.dat"))],
     ["dangling targets", relationships(rel("rId1", "absent.xml"))],
     ["invalid mode", relationships(rel("rId1", "side.xml", 'TargetMode="Remote"'))],
@@ -213,6 +215,26 @@ describe("ordered document package graph", () => {
     const edge = graph.relationships(`/${main}`)[0]!;
     expect(edge.fragment).toBe("section./item%2Fdetail?view");
     expect(edge.target_part).toBe(graph.getPart("/assets/shared.dat"));
+  });
+
+  it("resolves an empty internal target to its owner and visits the self-cycle once", async () => {
+    const parts = fixture();
+    parts.set("reports/_rels/main%20notes.xml.rels", relationships(rel("rId1", "")));
+    const result = await readDocumentArchive(await serialize(parts), context);
+    const owner = result.package.getPart(`/${main}`);
+    const edge = result.package.relationships(`/${main}`)[0]!;
+    expect(edge.target_ref).toBe("");
+    expect(edge.fragment).toBeNull();
+    expect(edge.target_part).toBe(owner);
+    expect([...result.package.iterParts()]).toEqual([owner]);
+  });
+
+  it("rejects an empty internal package-root target because it identifies no part", async () => {
+    const parts = fixture();
+    parts.set("_rels/.rels", relationships(rel("rId1", "")));
+    await expect(readDocumentArchive(await serialize(parts), context)).rejects.toMatchObject({
+      code: "invalid-package"
+    });
   });
 
   it.each(["[Content_Types].xml", "reports/_rels/side.xml.rels"])(

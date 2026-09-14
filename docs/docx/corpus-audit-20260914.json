@@ -1,0 +1,1161 @@
+{
+  "schema_version": 1,
+  "task": "audit-downloaded-qa-fixtures",
+  "observed_at": "2026-09-14T05:34:02.759753+00:00",
+  "baseline_commit": "e594e5ff7924868e12693ee5991e174888cefce9",
+  "manifest_before_sha256": "6f044ed7ea327bef04fe71d07e3c79f2bb4f8e5fbfaa603154009c76f6348f81",
+  "status": "research-census-complete-product-qa-not-run",
+  "method": {
+    "reader": "Python zipfile and namespace-aware streaming Expat; 65536-byte chunks; DTD/entities refused; all entries read through CRC verification",
+    "bounds": {
+      "compressed_bytes": 67108864,
+      "zip_entries": 10000,
+      "xml_part_bytes": 134217728,
+      "expanded_bytes": 536870912,
+      "xml_nodes": 5000000,
+      "xml_depth": 256
+    },
+    "scope": "All outer-package XML/rels elements including auxiliary stories and all MCE branches. Embedded packages remain opaque. Targeted notes/settings/annotation parts inspected separately after bounded streaming validation. No renderer, external target dereference, office runtime, document mutation or product code.",
+    "not_proven": [
+      "OOXML schema conformance",
+      "complete OPC/reference graph validity",
+      "logical field nesting",
+      "rendered page count",
+      "RSS/output/operation budgets",
+      "product admission or edits"
+    ],
+    "count_definitions": {
+      "paragraphs_tables_sections": "Expanded-name w:p, w:tbl, w:sectPr across every outer XML part; not rendered/logical body-only counts.",
+      "fields": "w:fldSimple and w:fldChar counted separately; begin/separate/end and instruction nodes retained. Marker count is not a field count.",
+      "math": "m:oMath expressions, m:oMathPara containers, and all OMML nodes separately.",
+      "annotations": "Classic body/anchor nodes, revision content/property/range nodes and modern metadata separately; absent values explicitly zero.",
+      "notes": "Actual note bodies and typed separators only under the footnotes/endnotes part root. Historical census footnotes/endnotes also counted settings references.",
+      "charts": "Chart definitions are c:chartSpace roots; chart-directory XML includes styles/colors, not nine charts.",
+      "images": "Stored media, per-file payload uniqueness, and owner-scoped relationship reference reuse are separate. References include unselected fallback branches; reuse is not a rendered occurrence count.",
+      "namespaces": "Declared URIs versus actually used element/attribute URIs; declarations alone do not demonstrate feature/dialect support.",
+      "script": "Only w:t character data: Unicode bidi R/AL, Han ranges 3400-4DBF/4E00-9FFF/20000-3134F, Kana 3040-30FF, Hangul 1100-11FF/AC00-D7AF; not typography or exhaustive Unicode-script validation.",
+      "notice_markers": "Case-insensitive search indicators in concatenated w:t; not legal clearance or a complete asset-level rights audit.",
+      "aggregate_unique_media": "summary.counts.unique_media_payloads sums per-file unique counts (597); summary.globally_unique_media_payloads deduplicates the entire corpus (569)."
+    }
+  },
+  "cache_artifacts": [
+    {
+      "path": ".cache/docx-corpus/census.json",
+      "bytes": 183414,
+      "sha256": "21863f4c36942106f7d0b444bf3a9d5f682d19089748a97a607ee7bbe8841cfb"
+    },
+    {
+      "path": ".cache/docx-corpus/discovered-links.json",
+      "bytes": 134322,
+      "sha256": "52ac8f0c6dda70ba28f7f9678602f20aaf0f0695697133c82e4536a47859492f"
+    },
+    {
+      "path": ".cache/docx-corpus/download-results.json",
+      "bytes": 19068,
+      "sha256": "9eb3afa98983bd184ff246dc6c670be96dc832042077c638dc19141c59ec4f0e"
+    },
+    {
+      "path": ".cache/docx-corpus/inventory-link-probes.json",
+      "bytes": 701,
+      "sha256": "5983408269c7acb176ab7916fb35ff0d0aed150be1bf2e73e53f4a79b4671cea"
+    },
+    {
+      "path": ".cache/docx-corpus/large-census.json",
+      "bytes": 12096,
+      "sha256": "8e769b00331d1d1af09d4fb284023311947046ec03d9600ff51f7cfa4da02801"
+    },
+    {
+      "path": ".cache/docx-corpus/selection.json",
+      "bytes": 7283,
+      "sha256": "e2306bab90d5bbd796c6e51d45965f7b9e68c6212217e58778ca67b3e0d73f0d"
+    }
+  ],
+  "historical_annex": {
+    "default_record": {
+      "file": "nz-ghg-inventory-2025-vol-2.docx",
+      "error": "XML size limit"
+    },
+    "default_xml_part_bytes": 33554432,
+    "raised_record": {
+      "file": "nz-ghg-inventory-2025-vol-2.docx",
+      "census_profile": {
+        "xml_part_bytes": 134217728,
+        "expanded_bytes": 536870912,
+        "xml_nodes": 5000000,
+        "xml_depth": 256
+      },
+      "census": {
+        "xml_nodes": 1226106,
+        "expanded_bytes": 47777441,
+        "relationships": 155,
+        "external_relationships": 38,
+        "paragraphs": 46916,
+        "bookmarks": 1271,
+        "runs": 50341,
+        "floating_drawings": 4,
+        "section_properties": 20,
+        "breaks": 99,
+        "tabs": 1277,
+        "field_markers": 860,
+        "hyperlinks": 290,
+        "tables": 189,
+        "rows": 4463,
+        "cells": 44985,
+        "inline_drawings": 43,
+        "numbered_paragraphs": 63,
+        "vertical_merges": 698,
+        "horizontal_spans": 325,
+        "math_expressions": 4,
+        "alternate_content": 6,
+        "footer_parts": 31,
+        "text_boxes": 4,
+        "header_parts": 12,
+        "footnotes": 20,
+        "endnotes": 6,
+        "chart_parts": 9,
+        "embedded_objects": 1,
+        "zip_entries": 131,
+        "media_parts": 41,
+        "media_bytes": 6563792,
+        "cached_page_count": 234
+      },
+      "integrity": "all entries streamed, CRC checked by zipfile, XML well-formed with DTD/entities denied; not OOXML schema validation",
+      "default_census_outcome": "Rejected by 32 MiB XML-part ceiling; not a malformed-document finding."
+    },
+    "fresh_default_refusal": {
+      "part": "word/document.xml",
+      "ceiling_bytes": 33554432,
+      "actual_part_bytes": 40415536,
+      "streamed_bytes_at_refusal": 33619968,
+      "outcome": "XML size limit"
+    },
+    "interpretation": "Historical 512 MiB expanded/5M node census profiles are not the proposed 256 MiB expanded/2M node product default. Raised census success never replaces the default rejection."
+  },
+  "publisher_reviews": [
+    {
+      "publisher": "Australian Productivity Commission",
+      "reviewed_at": "2026-09-14T05:34:02.759753+00:00",
+      "urls": ["https://www.pc.gov.au/copyright/"],
+      "method": "Web research tool parsed primary publisher pages; no hash of browser-parsed content claimed.",
+      "findings": "CC BY 4.0 for agency-owned material; attribute source and adaptations, no endorsement. Coat of arms, agency logo and third-party content excluded.",
+      "reuse_state": "restricted-assets-not-cleared"
+    },
+    {
+      "publisher": "NZ Ministry for the Environment",
+      "reviewed_at": "2026-09-14T05:34:02.759753+00:00",
+      "urls": ["https://environment.govt.nz/about-this-site/copyright/"],
+      "method": "Web research tool parsed primary publisher pages; no hash of browser-parsed content claimed.",
+      "findings": "CC BY 4.0 unless item-specific terms differ. Logos, emblems, trademarks, design elements, photography/imagery and third-party material excluded; express permission needed for imagery reuse.",
+      "reuse_state": "restricted-assets-not-cleared"
+    },
+    {
+      "publisher": "Welsh Government",
+      "reviewed_at": "2026-09-14T05:34:02.759753+00:00",
+      "urls": ["https://www.gov.wales/copyright-statement"],
+      "method": "Web research tool parsed primary publisher pages; no hash of browser-parsed content claimed.",
+      "findings": "Information under OGL; logos require formal permission. Linked OGL text returned HTTP 403; its full terms were not freshly retrieved. No blanket asset clearance inferred.",
+      "reuse_state": "restricted-assets-not-cleared"
+    },
+    {
+      "publisher": "Defra LAQM",
+      "reviewed_at": "2026-09-14T05:34:02.759753+00:00",
+      "urls": [
+        "https://laqm.defra.gov.uk/air-quality/annual-reporting/annual-progress-report-templates-scotland/",
+        "https://laqm.defra.gov.uk/terms/"
+      ],
+      "method": "Web research tool parsed primary publisher pages; no hash of browser-parsed content claimed.",
+      "findings": "Landing footer says OGL v3.0 except otherwise stated. Detailed terms restrict commercial copying/modification/redistribution without rights-holder permission and require notices on reference/noncommercial downloads. Applicability conflict unresolved for this template.",
+      "reuse_state": "read-only-reference-pending-rights-clarification"
+    }
+  ],
+  "documents": [
+    {
+      "id": "circular-economy",
+      "sha256": "485a9dcb2ff3b679d4a83f48690f86159bf015efef763a12c604993c486c154a",
+      "notice_markers": [
+        {
+          "part": "word/document.xml",
+          "markers": ["creative commons", "third party", "copyright"]
+        },
+        {
+          "part": "word/footnotes.xml",
+          "markers": ["copyright"]
+        }
+      ],
+      "external_relationship_types": {
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink": 1,
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/attachedTemplate": 1
+      },
+      "mce_choices": [
+        {
+          "part": "word/header37.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        }
+      ],
+      "mce_processing_attributes": [],
+      "chart_parts": [],
+      "verification": "All ZIP entries CRC/size checked; all original media hashes matched; prior structural counts matched under their historical definitions."
+    },
+    {
+      "id": "housing-supply-interim",
+      "sha256": "16b538367d8640c6b20eb4552aecaba036277e1ab77648eeb4c59b875d824bd1",
+      "notice_markers": [
+        {
+          "part": "word/document.xml",
+          "markers": ["creative commons", "third party", "copyright"]
+        }
+      ],
+      "external_relationship_types": {
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink": 4,
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/attachedTemplate": 1
+      },
+      "mce_choices": [
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        }
+      ],
+      "mce_processing_attributes": [],
+      "chart_parts": [],
+      "verification": "All ZIP entries CRC/size checked; all original media hashes matched; prior structural counts matched under their historical definitions."
+    },
+    {
+      "id": "gst-reforms-interim",
+      "sha256": "e76568ef85be23ddd62c6edabc392ff86d111f45cbac38b564423cbf17e84d82",
+      "notice_markers": [
+        {
+          "part": "word/document.xml",
+          "markers": ["creative commons", "third party", "copyright"]
+        }
+      ],
+      "external_relationship_types": {
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink": 5,
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/attachedTemplate": 1
+      },
+      "mce_choices": [
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        }
+      ],
+      "mce_processing_attributes": [],
+      "chart_parts": [],
+      "verification": "All ZIP entries CRC/size checked; all original media hashes matched; prior structural counts matched under their historical definitions."
+    },
+    {
+      "id": "gst-reforms-interim-appendixb",
+      "sha256": "a31019aed3f706fdbfa8a51469456f3e26e2b5e98a6a9d0623e0e2cc268912cb",
+      "notice_markers": [],
+      "external_relationship_types": {
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/attachedTemplate": 1
+      },
+      "mce_choices": [],
+      "mce_processing_attributes": [],
+      "chart_parts": [],
+      "verification": "All ZIP entries CRC/size checked; all original media hashes matched; prior structural counts matched under their historical definitions."
+    },
+    {
+      "id": "gst-reforms-interim-appendixc",
+      "sha256": "98ebf83292e34dfe2b83fd540bb89d6743da0dc93fc97d70e19d37f488dba50b",
+      "notice_markers": [],
+      "external_relationship_types": {
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/attachedTemplate": 1
+      },
+      "mce_choices": [],
+      "mce_processing_attributes": [],
+      "chart_parts": [],
+      "verification": "All ZIP entries CRC/size checked; all original media hashes matched; prior structural counts matched under their historical definitions."
+    },
+    {
+      "id": "gst-reforms-interim-appendixd",
+      "sha256": "5bb1385579a0fd2c38aaa4cd9f364cf121b94060c5a9092cf29e78e53b1ee95f",
+      "notice_markers": [],
+      "external_relationship_types": {
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/attachedTemplate": 1
+      },
+      "mce_choices": [],
+      "mce_processing_attributes": [],
+      "chart_parts": [],
+      "verification": "All ZIP entries CRC/size checked; all original media hashes matched; prior structural counts matched under their historical definitions."
+    },
+    {
+      "id": "gst-reforms-interim-appendixe",
+      "sha256": "2efba437fd7d7d82ce4f170efb5260fa53274b9c45c81dc094e051a1e67fefca",
+      "notice_markers": [],
+      "external_relationship_types": {
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/attachedTemplate": 1
+      },
+      "mce_choices": [
+        {
+          "part": "word/header3.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        },
+        {
+          "part": "word/header4.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        },
+        {
+          "part": "word/header5.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        }
+      ],
+      "mce_processing_attributes": [],
+      "chart_parts": [],
+      "verification": "All ZIP entries CRC/size checked; all original media hashes matched; prior structural counts matched under their historical definitions."
+    },
+    {
+      "id": "gst-reforms-interim-sp1",
+      "sha256": "b892b2cdc0d5085c1d515d7231415585b0689eefdbfe5ac83d5e98610632e964",
+      "notice_markers": [],
+      "external_relationship_types": {
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/attachedTemplate": 1
+      },
+      "mce_choices": [],
+      "mce_processing_attributes": [],
+      "chart_parts": [],
+      "verification": "All ZIP entries CRC/size checked; all original media hashes matched; prior structural counts matched under their historical definitions."
+    },
+    {
+      "id": "ministry-for-the-environment-annual-report-2024-2025",
+      "sha256": "38ada5fb0c2292569f77b33147934075e6e63e3c0a09d537597dc18d921331ec",
+      "notice_markers": [
+        {
+          "part": "word/document.xml",
+          "markers": [
+            "creative commons",
+            "crown copyright",
+            "third party",
+            "third-party",
+            "copyright"
+          ]
+        }
+      ],
+      "external_relationship_types": {
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink": 80
+      },
+      "mce_choices": [
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        }
+      ],
+      "mce_processing_attributes": [],
+      "chart_parts": [],
+      "verification": "All ZIP entries CRC/size checked; all original media hashes matched; prior structural counts matched under their historical definitions."
+    },
+    {
+      "id": "our-atmosphere-and-climate-2023",
+      "sha256": "82cdd2b8c196156e93d28695baac8c588ab5eddc9d045c12703594e642046764",
+      "notice_markers": [
+        {
+          "part": "word/document.xml",
+          "markers": ["creative commons", "crown copyright", "photograph", "copyright"]
+        }
+      ],
+      "external_relationship_types": {
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink": 302,
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/attachedTemplate": 1
+      },
+      "mce_choices": [],
+      "mce_processing_attributes": [],
+      "chart_parts": [],
+      "verification": "All ZIP entries CRC/size checked; all original media hashes matched; prior structural counts matched under their historical definitions."
+    },
+    {
+      "id": "scotland-annual-progress-report-2026-template-v1",
+      "sha256": "9820a6945569043bf7c6cd51855e88cf68e5af1a29019677051fec09a9eb07ad",
+      "notice_markers": [],
+      "external_relationship_types": {
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink": 41,
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/attachedTemplate": 1
+      },
+      "mce_choices": [],
+      "mce_processing_attributes": [],
+      "chart_parts": [],
+      "verification": "All ZIP entries CRC/size checked; all original media hashes matched; prior structural counts matched under their historical definitions."
+    },
+    {
+      "id": "our-future-rm-system-developing-the-npf",
+      "sha256": "7e4029e0b9ffc027c2773fa4e98fab489fc8d2ad1e8e89d6e8a21e6fbdb42646",
+      "notice_markers": [
+        {
+          "part": "word/document.xml",
+          "markers": ["crown copyright", "copyright"]
+        }
+      ],
+      "external_relationship_types": {
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink": 32,
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/attachedTemplate": 1
+      },
+      "mce_choices": [],
+      "mce_processing_attributes": [],
+      "chart_parts": [],
+      "verification": "All ZIP entries CRC/size checked; all original media hashes matched; prior structural counts matched under their historical definitions."
+    },
+    {
+      "id": "new-zealands-second-emissions-reduction-plan-discussion-document",
+      "sha256": "95463f5bb15f790ab3279cc89ab34fa36026041e2c4984d70d3e87ede5d32ba8",
+      "notice_markers": [
+        {
+          "part": "word/document.xml",
+          "markers": ["crown copyright", "copyright"]
+        }
+      ],
+      "external_relationship_types": {
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink": 49
+      },
+      "mce_choices": [
+        {
+          "part": "word/header8.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        }
+      ],
+      "mce_processing_attributes": [],
+      "chart_parts": [],
+      "verification": "All ZIP entries CRC/size checked; all original media hashes matched; prior structural counts matched under their historical definitions."
+    },
+    {
+      "id": "national-climate-change-risk-assessment-main-report",
+      "sha256": "3192775a32f659061d48dda1c81005ffbbe526ca1b6b3a026c5a5dacccfbd417",
+      "notice_markers": [
+        {
+          "part": "word/document.xml",
+          "markers": ["crown copyright", "copyright"]
+        }
+      ],
+      "external_relationship_types": {
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink": 92
+      },
+      "mce_choices": [
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        }
+      ],
+      "mce_processing_attributes": [],
+      "chart_parts": [],
+      "verification": "All ZIP entries CRC/size checked; all original media hashes matched; prior structural counts matched under their historical definitions."
+    },
+    {
+      "id": "mental-health-review",
+      "sha256": "746e8e9ed023341d41c8d8ad1506f4320e519729063b0dbb43eb9d8c604cb961",
+      "notice_markers": [
+        {
+          "part": "word/document.xml",
+          "markers": ["creative commons", "third party", "copyright"]
+        }
+      ],
+      "external_relationship_types": {
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink": 1,
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/attachedTemplate": 1
+      },
+      "mce_choices": [],
+      "mce_processing_attributes": [],
+      "chart_parts": [],
+      "verification": "All ZIP entries CRC/size checked; all original media hashes matched; prior structural counts matched under their historical definitions."
+    },
+    {
+      "id": "nz-ghg-inventory-2025-vol-1",
+      "sha256": "b2470c666193fe39e2f308ed7cd63a9be15da5fd2e7cceb0d8451baf6106148e",
+      "notice_markers": [
+        {
+          "part": "word/document.xml",
+          "markers": ["crown copyright", "photograph", "copyright"]
+        }
+      ],
+      "external_relationship_types": {
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink": 164
+      },
+      "mce_choices": [
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        }
+      ],
+      "mce_processing_attributes": [],
+      "chart_parts": [],
+      "verification": "All ZIP entries CRC/size checked; all original media hashes matched; prior structural counts matched under their historical definitions."
+    },
+    {
+      "id": "nz-ghg-inventory-2025-vol-2",
+      "sha256": "21b3adeb1df3b3c03e722c7c5efd01aab5a26aafe4659305ca8ed146515d3c8e",
+      "notice_markers": [
+        {
+          "part": "word/document.xml",
+          "markers": ["crown copyright", "photograph", "copyright"]
+        }
+      ],
+      "external_relationship_types": {
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink": 35,
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/oleObject": 2,
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/attachedTemplate": 1
+      },
+      "mce_choices": [
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        },
+        {
+          "part": "word/header9.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        },
+        {
+          "part": "word/footer26.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        },
+        {
+          "part": "word/charts/chart1.xml",
+          "requires": [
+            {
+              "prefix": "c14",
+              "uri": "http://schemas.microsoft.com/office/drawing/2007/8/2/chart"
+            }
+          ]
+        },
+        {
+          "part": "word/charts/chart2.xml",
+          "requires": [
+            {
+              "prefix": "c14",
+              "uri": "http://schemas.microsoft.com/office/drawing/2007/8/2/chart"
+            }
+          ]
+        },
+        {
+          "part": "word/charts/chart3.xml",
+          "requires": [
+            {
+              "prefix": "c14",
+              "uri": "http://schemas.microsoft.com/office/drawing/2007/8/2/chart"
+            }
+          ]
+        }
+      ],
+      "mce_processing_attributes": [],
+      "chart_parts": [
+        {
+          "part": "word/charts/chart1.xml",
+          "bytes": 29193,
+          "nodes": 1177,
+          "root": "http://schemas.openxmlformats.org/drawingml/2006/chart|chartSpace"
+        },
+        {
+          "part": "word/charts/style1.xml",
+          "bytes": 9863,
+          "nodes": 356,
+          "root": "http://schemas.microsoft.com/office/drawing/2012/chartStyle|chartStyle"
+        },
+        {
+          "part": "word/charts/colors1.xml",
+          "bytes": 878,
+          "nodes": 28,
+          "root": "http://schemas.microsoft.com/office/drawing/2012/chartStyle|colorStyle"
+        },
+        {
+          "part": "word/charts/chart2.xml",
+          "bytes": 28200,
+          "nodes": 1164,
+          "root": "http://schemas.openxmlformats.org/drawingml/2006/chart|chartSpace"
+        },
+        {
+          "part": "word/charts/style2.xml",
+          "bytes": 9863,
+          "nodes": 356,
+          "root": "http://schemas.microsoft.com/office/drawing/2012/chartStyle|chartStyle"
+        },
+        {
+          "part": "word/charts/colors2.xml",
+          "bytes": 878,
+          "nodes": 28,
+          "root": "http://schemas.microsoft.com/office/drawing/2012/chartStyle|colorStyle"
+        },
+        {
+          "part": "word/charts/chart3.xml",
+          "bytes": 16560,
+          "nodes": 588,
+          "root": "http://schemas.openxmlformats.org/drawingml/2006/chart|chartSpace"
+        },
+        {
+          "part": "word/charts/style3.xml",
+          "bytes": 9863,
+          "nodes": 356,
+          "root": "http://schemas.microsoft.com/office/drawing/2012/chartStyle|chartStyle"
+        },
+        {
+          "part": "word/charts/colors3.xml",
+          "bytes": 878,
+          "nodes": 28,
+          "root": "http://schemas.microsoft.com/office/drawing/2012/chartStyle|colorStyle"
+        }
+      ],
+      "verification": "All ZIP entries CRC/size checked; all original media hashes matched; prior structural counts matched under their historical definitions."
+    },
+    {
+      "id": "wales-race-equality-response-images",
+      "sha256": "bee94bc194b894f38c03cdf84ca4cfe5a65df580048ee2d33887171fc135b410",
+      "notice_markers": [],
+      "external_relationship_types": {
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink": 4
+      },
+      "mce_choices": [
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wpg",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        }
+      ],
+      "mce_processing_attributes": [],
+      "chart_parts": [],
+      "verification": "All ZIP entries CRC/size checked; all original media hashes matched; prior structural counts matched under their historical definitions."
+    },
+    {
+      "id": "wales-citizen-voice-easy-read",
+      "sha256": "6742f9af325c2ead61f49d0152a2f7ab21f78c69fbafb01f85fcea24c7e396d5",
+      "notice_markers": [],
+      "external_relationship_types": {
+        "http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink": 6
+      },
+      "mce_choices": [
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wpg",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wpg",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wpg",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wpg",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wpg",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wpg",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wpg",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wpg",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wpg",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wpg",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wpg",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wpg",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wpg",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wpg",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wpg",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wpg",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wpg",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingGroup"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        },
+        {
+          "part": "word/document.xml",
+          "requires": [
+            {
+              "prefix": "wps",
+              "uri": "http://schemas.microsoft.com/office/word/2010/wordprocessingShape"
+            }
+          ]
+        }
+      ],
+      "mce_processing_attributes": [],
+      "chart_parts": [],
+      "verification": "All ZIP entries CRC/size checked; all original media hashes matched; prior structural counts matched under their historical definitions."
+    }
+  ],
+  "summary": {
+    "files": 19,
+    "compressed_bytes": 142217570,
+    "expanded_bytes": 238710812,
+    "media_parts": 655,
+    "globally_unique_media_payloads": 569,
+    "counts": {
+      "paragraphs": 92109,
+      "tables": 1163,
+      "cells": 68172,
+      "rows": 11463,
+      "section_properties": 225,
+      "simple_fields": 146,
+      "field_markers": 5009,
+      "field_instruction_nodes": 1729,
+      "comments": 0,
+      "comment_range_starts": 0,
+      "comment_range_ends": 0,
+      "comment_references": 0,
+      "insertions": 0,
+      "deletions": 0,
+      "move_from": 0,
+      "move_to": 0,
+      "content_controls": 172,
+      "legacy_form_fields": 0,
+      "rtl_properties": 0,
+      "bidi_properties": 0,
+      "header_roots": 244,
+      "footer_roots": 219,
+      "text_boxes": 70,
+      "vertical_merges": 1668,
+      "horizontal_spans": 1363,
+      "media_parts": 655,
+      "media_bytes": 143076693,
+      "unique_media_payloads": 597,
+      "omml_expressions": 108,
+      "omml_paragraphs": 65,
+      "omml_nodes": 4873,
+      "revision_property_changes": 0,
+      "revision_range_markers": 0,
+      "inline_drawings": 797,
+      "floating_drawings": 119,
+      "alternate_content": 60,
+      "mce_choices": 60,
+      "mce_fallbacks": 60,
+      "chart_definitions": 3,
+      "chart_directory_xml_parts": 9,
+      "embedded_objects": 6,
+      "external_relationships": 831,
+      "footnote_bodies": 508,
+      "footnote_separators": 56,
+      "endnote_bodies": 0,
+      "endnote_separators": 47,
+      "modern_comment_extensible_records": 91,
+      "modern_comment_id_records": 163,
+      "other_revision_elements": 0,
+      "footnote_elements_including_settings_references": 620,
+      "endnote_elements_including_settings_references": 94
+    },
+    "source_downloads": 0,
+    "product_runs": 0,
+    "render_runs": 0,
+    "authored_regressions": 0,
+    "deleted_fixtures": 0
+  },
+  "contract_review": {
+    "authorities": {
+      "docs/specs/docx.md": "22f9ee5339048b9a368256c1516a1e4cf302cc1ccc82fd3f1b81dc3c46b38ee8",
+      "docs/specs/office-cli.md": "cb5614e03c841f31d98efe4bcf2aabdb419926aa26775d17b401598d9a2d74ce",
+      "docs/specs/office-sdk.md": "a73354b0e643eef159f9bda0cb9b096234fb34f0d224c3fbead5a92f38e673b9",
+      "docs/docx/upstream-api-audit.md": "45d96a1bff39d66994194d1c8d66572b0869438d514bd7735465e79d733b9e8a",
+      "docs/docx/upstream-api-inventory.json": "10955a17b17ac1b334c5854ce7048970f9033ddb0408322bef3e3586d19e44ac",
+      "docs/docx/public-api-map.json": "b5d04eb79f7b24f00fee4abffef9f0a78998a02dfbadb0b2d009b68051dd87b1",
+      "docs/docx/test-case-map.json": "777a9ad8baffbaeb83db45dda6af7e16a0924585620e9a424a019c0c31e18e4f"
+    },
+    "mapping_authority": "public-api-map.json mapping_rules M-VALUES through M-CLI and per-row targets; docx.md section 9.2. No new API implementation or exclusions.",
+    "accounting": "920 inventoried IDs; 1337 proposed API rows; 2259 source cases mapped but no original tests implemented. Historical unmapped labels are acquisition state, superseded for mapping only by test-case-map.json.",
+    "documentation_drift": "Retain comment_id/timestamp; do not add id/date aliases. Retain neutral snake_case model versus camelCase operation arguments, inherited and underscore-prefixed public members. Prior census chart_parts means chart-directory XML; actual definitions now separately counted.",
+    "product_status": "proposed; Implemented Through remains Not applicable"
+  }
+}

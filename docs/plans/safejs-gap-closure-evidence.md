@@ -3334,3 +3334,25 @@ This documentation repair is committed and delivered separately from a concurren
 `op` export declaration repair. Its required root/schema successors, final
 integrated snapshot checks and root publication are still pending. The approval,
 failed release, successful build and package lint receipts are retained.
+
+
+## 2026-09-14 concurrent op export release repair
+
+The same integration SHA's shell shards failed the unchanged assertion
+`published root mirrors only declared subpaths and keeps the feature isolated`.
+Direct job-log API reads supplied evidence while `gh run view --log` was still
+unavailable for the running workflow. The root manifest advertised the new `op`
+command's browser/workerd build, but `virtual-bash`'s own explicit subpath omitted
+those two conditions. The existing browser build is present; this was a manifest
+mismatch, not a snapshot or ECMAScript defect.
+
+Local reproduction on `2d2a3a83407fabddf86a075dcb9de39ac84a5aef`:
+`node --test --test-name-pattern='published root mirrors only declared subpaths' packages/safe-bash/scripts/integration-inputs.test.mjs`
+fails the same deep equality assertion. Adding `workerd` and `browser` targets
+for `./commands/op` in the workspace manifest makes it pass unchanged. The full
+maintained `npm run test:runner --workspace=virtual-bash` then passes **318/318**,
+zero failures/skips, **17,642.66525 ms**; normal build and all 17 package lint rules
+also pass. Node 22.23.2 / ICU 78.2. This configuration-only correction introduces
+no test relaxation, budget change or guest authority. It is a separate atomic
+commit after the approved README repair `da63c75eb`, which has been pushed through
+normal hooks. Required publication is still pending successor verification.

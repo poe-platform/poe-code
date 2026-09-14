@@ -1,6 +1,7 @@
 # DOCX Public API Documentation Audit
 
-Status: Pinned documentation/source reconciliation completed on 2026-09-13; SDK implementation not started.
+Status: Pinned documentation/source reconciliation completed on 2026-09-13;
+mapping status reconciled on 2026-09-14; SDK implementation not started.
 
 ## Sources and baseline
 
@@ -16,8 +17,9 @@ inherited and built-in protocols, returned interfaces, guide prose and the
 corresponding published pages. Separate source getter/setter signatures preserve
 asymmetric read/write types. It is not an exact Sphinx build or an exhaustive
 certificate: counts include explicitly identified package support and erroneous
-documented symbols. The next task still owns each concrete target signature,
-CLI route and original acceptance case. Direct documentation downloads returned
+documented symbols. The subsequent [public API map](public-api-map.json) records
+1,337 proposed member/value/protocol rows with target signatures, CLI routes and
+original acceptance contracts. None is implemented. Direct documentation downloads returned
 HTTP 403; published pages were read through the web research tool. No new
 objects.inv download, reference runtime execution or product test pass is claimed.
 
@@ -56,7 +58,16 @@ Every public member needs a row recording target signature/defaults/return/side 
 
 The pinned inventory/reconciliation task is complete within its declared research
 scope; no JavaScript API has been implemented or tested. Existing Python test
-passes establish only the pinned reference baseline. All 2,259 source-test cases
-remain unmapped. API/feature/command mapping, original user-guide equivalents,
-paired acceptance and implementation remain pending. See the
-[owned review/check record](../plans/docx-public-api-reconciliation.md).
+passes establish only the pinned reference baseline. The subsequent
+[test crosswalk](test-case-map.json) maps all 2,259 source cases to original target
+acceptance obligations; mapping is not an executed test pass. The
+[API map](public-api-map.json) includes 1,337 proposed rows and original guide
+contracts, while the [command register](command-coverage.json) records the proposed
+operation coverage. Target implementation, executed original user-guide examples,
+paired CLI/SDK acceptance and product QA remain pending.
+
+The [original review/check record](../plans/docx-public-api-reconciliation.md)
+retains the audit-time state. The [status correction record](../plans/docx-corpus-api-status-reconciliation.md)
+documents the later evidence comparison. Corpus acquisition, including the
+[gap supplement](corpus-feature-gaps.md), neither changes these mapping rules nor
+supplies product conformance evidence.

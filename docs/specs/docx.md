@@ -40,6 +40,10 @@ in [font resource evidence](../docx/font-resources.md). It adds detailed inspect
 and an explicit embedded-font mutation boundary; it does not establish whole-model
 or rendered font-selection coverage.
 
+The bounded section utility and its ownership/inheritance limits are recorded in
+[section and page-setting evidence](../docx/sections-page-settings.md). It does
+not complete the live section model, header/footer content editing or pagination.
+
 ## Normative language
 
 MUST and MUST NOT identify conformance requirements. SHOULD identifies a strong
@@ -519,7 +523,7 @@ independent text/XML/OPC/value assertions, not only to one another.
 | `styles latent defaults set` | edit | latent default fields below | StyleMutationData | F14 |
 | `styles remove`         | selectedEdit | `name!`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | MutationData     | F14                                                                                                |
 | `sections add`          | selectedEdit | `startType?`: WD_SECTION_START                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             | MutationData     | F06, F11, F16                                                                                      |
-| `sections set`          | selectedEdit | `orientation?`: WD_ORIENTATION; `pageWidth?`: Length (explicit emu/in/cm/mm/pt); `pageHeight?`: Length (explicit emu/in/cm/mm/pt); `topMargin?`: Length (explicit emu/in/cm/mm/pt); `bottomMargin?`: Length (explicit emu/in/cm/mm/pt); `leftMargin?`: Length (explicit emu/in/cm/mm/pt); `rightMargin?`: Length (explicit emu/in/cm/mm/pt); `columns?`: positive integer; `pageNumberStart?`: nonnegative integer; `differentFirstPage?`: boolean                                                                                                                                                         | MutationData     | F16                                                                                                |
+| `sections set` | selectedEdit | `orientation?`: WD_ORIENTATION; `pageWidth?`: Length (explicit emu/in/cm/mm/pt); `pageHeight?`: Length (explicit emu/in/cm/mm/pt); `topMargin?`: Length (explicit emu/in/cm/mm/pt); `bottomMargin?`: Length (explicit emu/in/cm/mm/pt); `leftMargin?`: Length (explicit emu/in/cm/mm/pt); `rightMargin?`: Length (explicit emu/in/cm/mm/pt); `columns?`: positive integer; `pageNumberStart?`: nonnegative integer; `differentFirstPage?`: boolean; `gutter?`: Length (explicit emu/in/cm/mm/pt); `headerDistance?`: Length (explicit emu/in/cm/mm/pt); `footerDistance?`: Length (explicit emu/in/cm/mm/pt); `startType?`: WD_SECTION_START; `columnGap?`: Length (explicit emu/in/cm/mm/pt); `columnSeparator?`: boolean; `pageNumberFormat?`: decimal / upperRoman / lowerRoman / upperLetter / lowerLetter; `evenAndOddHeaders?`: boolean | MutationData | F16                                                                                                |
 | `headers get`           | selectedRead | `variant?`: default / first / even                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | ResourceData     | F17                                                                                                |
 | `headers set`           | selectedEdit | `variant?`: default / first / even; `text?`: string; `linkToPrevious?`: boolean; `shared?`: boolean                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        | MutationData     | F16, F17                                                                                           |
 | `footers get`           | selectedRead | `variant?`: default / first / even                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         | ResourceData     | F17                                                                                                |
@@ -731,6 +735,19 @@ appropriate semantic error. Unsupported affected content is `unsupported-edit`.
   swap from orientation. Margins must leave positive content extent. Columns
   defaults unchanged; explicit count creates equal widths with existing gap or
   0.5in for a previously single-column section, rejecting insufficient space.
+  Explicit columnGap sets the nonnegative equal-column gap; columnSeparator sets
+  its display flag. Gutter and header/footer distances are nonnegative explicit
+  lengths. Section set additionally accepts startType and the closed page-number
+  format tokens declared above; these edit metadata without calculating pages.
+  differentFirstPage is section-local. evenAndOddHeaders is document-global and
+  MUST require all true with no local selector; toggling either policy MUST retain
+  all story definitions and bindings. Missing direct geometry MUST remain
+  distinguishable from known values; the utility MUST NOT infer blanket geometry
+  inheritance from the preceding section. Geometry-dependent edits MUST reject
+  when required effective values or isolation from continuous-section page-level
+  dependencies cannot be established. Unselected section ownership and bindings
+  MUST survive local changes. The final body sectPr and paragraph-owned breaks
+  MUST retain their respective ownership.
   Header/footer variant defaults default. Get does not create missing parts.
   Set text on a linked story requires either shared true (edit all owners) or
   linkToPrevious false (clone/materialize and rebind this section). Shared defaults

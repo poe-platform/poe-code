@@ -112,7 +112,7 @@ class DocumentLocations {
       throw new InvalidValueError("Story variants require header or footer scope.");
     if (query.section !== undefined && (kind === "part" || query.scope !== undefined && !["body", "headers", "footers", "all-stories"].includes(query.scope)))
       throw new InvalidValueError("Section selection requires body, header or footer scope.");
-    if (!["part", "story", "paragraph", "run", "table", "cell", "image", "annotation"].includes(kind))
+    if (!["section", "part", "story", "paragraph", "run", "table", "cell", "image", "annotation"].includes(kind))
       throw new InvalidValueError("Unknown location kind.");
     if (query.scope !== undefined && (!documentScopes.includes(query.scope) || kind === "part"))
       throw new InvalidValueError("Unknown or inapplicable story scope.");

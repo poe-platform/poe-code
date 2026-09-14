@@ -156,6 +156,13 @@ export class LocationIndex {
       return [node, ...(this.children.get(node) ?? []).flatMap(walk)];
     };
     const sections = walk(body).filter(n => n.namespace === w && n.localName === "sectPr");
+    const sectionNodes: XmlElement[] = [];
+    for (const child of this.named(body, "p")) {
+      const properties = this.named(child, "pPr")[0];
+      if (properties) sectionNodes.push(...this.named(properties, "sectPr"));
+    }
+    sectionNodes.push(this.named(body, "sectPr")[0] ?? body);
+    sectionNodes.forEach((node, i) => this.#add({ kind: "section", part: main, story: main + "#body#sections", path: this.#paths.get(node)!, node, scope: "body", positions: { section: i + 1 } }));
     const edges = graph.relationships(main);
     for (const kind of ["header", "footer"] as const) {
       const inherited = new Map<string, string>();

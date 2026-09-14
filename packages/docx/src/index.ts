@@ -117,3 +117,5 @@ export { Length, Emu, Inches, Cm, Mm, Pt, Twips, WD_UNDERLINE, WD_COLOR_INDEX, W
 
 export type { FontResourceData, ThemeResource, FontTableResource, ThemeReference } from "./font-resources.js";
 export { UnsupportedEmbeddedFontMutationError } from "./font-resources.js";
+
+export { editDocumentSections, inspectDocumentSections, type SectionInfo, type SectionListData, type SectionEditRequest, type SectionEditData, type SectionBinding } from "./sections.js";

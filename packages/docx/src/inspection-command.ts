@@ -1,3 +1,4 @@
+import { executeSectionsCommand } from "./sections-command.js";
 import { UnsupportedEmbeddedFontMutationError } from "./font-resources.js";
 import { resolvePath, type FileSystem } from "@poe-code/safe-fs/core";
 import { escapeTerminalText } from "toolcraft-design/escape-terminal-text";
@@ -52,7 +53,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
           output = await executeCreateCommand(invocation, request, context, io);
           budget.check("serializedOutput", output.length);
         } else {
-        if (invocation.operation !== "batch" && invocation.operation !== "inspect" && invocation.operation !== "validate" && invocation.operation !== "text.get" && invocation.operation !== "text.replace" && invocation.operation !== "runs.set" && !["paragraphs.set", "paragraphs.add", "runs.add"].includes(invocation.operation) && !["batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set"].includes(invocation.operation) && invocation.operation !== "xml.get" && invocation.operation !== "xml.set") {
+        if (invocation.operation !== "batch" && invocation.operation !== "inspect" && invocation.operation !== "validate" && invocation.operation !== "text.get" && invocation.operation !== "text.replace" && invocation.operation !== "runs.set" && !["paragraphs.set", "paragraphs.add", "runs.add"].includes(invocation.operation) && !["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set"].includes(invocation.operation) && invocation.operation !== "xml.get" && invocation.operation !== "xml.set") {
           throw Object.assign(new Error("This document operation is not implemented."), { code: "unsupported-profile" });
         }
         if (["link", "control", "revision", "shape", "field", "bookmark"].some(key => invocation.options[key] !== undefined)) {
@@ -61,7 +62,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         const input = invocation.inputs[0]!;
         acquiring = true;
         let inputIdentity: PublicationInput | undefined;
-        if (["batch", "styles.add", "styles.set", "styles.defaults.set", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.set", "xml.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add"].includes(invocation.operation) && input !== "-" && request.filesystem.lstat) {
+        if (["sections.set", "sections.add", "batch", "styles.add", "styles.set", "styles.defaults.set", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.set", "xml.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add"].includes(invocation.operation) && input !== "-" && request.filesystem.lstat) {
           const path = resolvePath(request.cwd, input);
           inputIdentity = { path, stat: await request.filesystem.lstat(path, { signal: request.signal }) };
         }
@@ -72,8 +73,9 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
           return { async *[Symbol.asyncIterator]() { yield await request.filesystem.readFile(path, { signal }); } };
         } });
         acquiring = false;
-        if (["batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set", "xml.get", "xml.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add"].includes(invocation.operation)) {
-          output = invocation.operation === "batch" ? await executeStyleModelCommand(invocation, bytes, inputIdentity, request, context)
+        if (["sections.list", "sections.set", "sections.add", "batch", "styles.list", "styles.get", "styles.add", "styles.set", "styles.defaults.get", "styles.defaults.set", "styles.latent.list", "styles.latent.get", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.get", "styles.latent.defaults.set", "xml.get", "xml.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add"].includes(invocation.operation)) {
+          output = invocation.operation.startsWith("sections.") ? await executeSectionsCommand(invocation, bytes, inputIdentity, request, context)
+            : invocation.operation === "batch" ? await executeStyleModelCommand(invocation, bytes, inputIdentity, request, context)
             : invocation.operation.startsWith("styles.") ? await executeStylesCommand(invocation, bytes, inputIdentity, request, context)
             : ["paragraphs.set", "paragraphs.add", "runs.add"].includes(invocation.operation) ? await executeParagraphEditCommand(invocation, bytes, inputIdentity, request, context)
             : invocation.operation === "runs.set" ? await executeRunFormatCommand(invocation, bytes, inputIdentity, request, context)

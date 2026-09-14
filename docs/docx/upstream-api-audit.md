@@ -23,6 +23,13 @@ accounted for, and unrelated model operations remain pending. The original pinne
 inventory is retained as research provenance rather than rewritten as execution
 results.
 
+The [section utility milestone](sections-page-settings.md) adds bounded
+list/add/set operations and preserves separate section/story ownership. Its
+[exact mapping and drift record](../plans/docx-sections-page-settings.md#exact-languagesecurity-mappings-and-documentation-drift)
+retains the Section/Sections/Settings and public _Header/_Footer obligations.
+No live section owner, inherited interface or enum is promoted by this utility
+evidence; header/footer content editing and later tasks remain pending.
+
 ## Sources and baseline
 
 The later [theme/font resource milestone](font-resources.md) adds utility

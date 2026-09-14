@@ -12848,6 +12848,14 @@
         "fields": {},
         "unknownFields": "reject",
         "commonFieldDefinitions": "#/commonOptions"
+      },
+      "boundedImplementation": {
+        "status": "implemented-utility-subset",
+        "evidence": "docs/docx/sections-page-settings.md",
+        "limitations": [
+          "Live model and batch execution remain pending.",
+          "No pagination or rendering."
+        ]
       }
     },
     "headers.list": {
@@ -14330,6 +14338,14 @@
         },
         "unknownFields": "reject",
         "commonFieldDefinitions": "#/commonOptions"
+      },
+      "boundedImplementation": {
+        "status": "implemented-utility-subset",
+        "evidence": "docs/docx/sections-page-settings.md",
+        "limitations": [
+          "Live model and batch execution remain pending.",
+          "No pagination or rendering."
+        ]
       }
     },
     "sections.set": {
@@ -14416,6 +14432,46 @@
             "type": "boolean",
             "flag": "--different-first-page",
             "required": false
+          },
+          "gutter": {
+            "type": "Length (explicit emu/in/cm/mm/pt)",
+            "required": false,
+            "flag": "--gutter"
+          },
+          "headerDistance": {
+            "type": "Length (explicit emu/in/cm/mm/pt)",
+            "required": false,
+            "flag": "--header-distance"
+          },
+          "footerDistance": {
+            "type": "Length (explicit emu/in/cm/mm/pt)",
+            "required": false,
+            "flag": "--footer-distance"
+          },
+          "startType": {
+            "type": "WD_SECTION_START",
+            "required": false,
+            "flag": "--start-type"
+          },
+          "pageNumberFormat": {
+            "type": "decimal|upperRoman|lowerRoman|upperLetter|lowerLetter",
+            "required": false,
+            "flag": "--page-number-format"
+          },
+          "evenAndOddHeaders": {
+            "type": "boolean",
+            "required": false,
+            "flag": "--even-and-odd-headers"
+          },
+          "columnGap": {
+            "type": "Length (explicit emu/in/cm/mm/pt)",
+            "required": false,
+            "flag": "--column-gap"
+          },
+          "columnSeparator": {
+            "type": "boolean",
+            "required": false,
+            "flag": "--column-separator"
           }
         },
         "unknownFields": "reject"
@@ -14468,6 +14524,38 @@
             "required": false
           },
           "differentFirstPage": {
+            "type": "boolean",
+            "required": false
+          },
+          "gutter": {
+            "type": "Length (explicit emu/in/cm/mm/pt)",
+            "required": false
+          },
+          "headerDistance": {
+            "type": "Length (explicit emu/in/cm/mm/pt)",
+            "required": false
+          },
+          "footerDistance": {
+            "type": "Length (explicit emu/in/cm/mm/pt)",
+            "required": false
+          },
+          "startType": {
+            "type": "WD_SECTION_START",
+            "required": false
+          },
+          "pageNumberFormat": {
+            "type": "decimal|upperRoman|lowerRoman|upperLetter|lowerLetter",
+            "required": false
+          },
+          "evenAndOddHeaders": {
+            "type": "boolean",
+            "required": false
+          },
+          "columnGap": {
+            "type": "Length (explicit emu/in/cm/mm/pt)",
+            "required": false
+          },
+          "columnSeparator": {
             "type": "boolean",
             "required": false
           }
@@ -14545,10 +14633,56 @@
           "differentFirstPage": {
             "type": "boolean",
             "required": false
+          },
+          "gutter": {
+            "type": "Length (explicit emu/in/cm/mm/pt)",
+            "required": false
+          },
+          "headerDistance": {
+            "type": "Length (explicit emu/in/cm/mm/pt)",
+            "required": false
+          },
+          "footerDistance": {
+            "type": "Length (explicit emu/in/cm/mm/pt)",
+            "required": false
+          },
+          "startType": {
+            "type": "WD_SECTION_START",
+            "required": false
+          },
+          "pageNumberFormat": {
+            "type": "decimal|upperRoman|lowerRoman|upperLetter|lowerLetter",
+            "required": false
+          },
+          "evenAndOddHeaders": {
+            "type": "boolean",
+            "required": false
+          },
+          "columnGap": {
+            "type": "Length (explicit emu/in/cm/mm/pt)",
+            "required": false
+          },
+          "columnSeparator": {
+            "type": "boolean",
+            "required": false
           }
         },
         "unknownFields": "reject",
         "commonFieldDefinitions": "#/commonOptions"
+      },
+      "boundedImplementation": {
+        "status": "implemented-utility-subset",
+        "operations": [
+          "inspectDocumentSections",
+          "editDocumentSections"
+        ],
+        "evidence": "docs/docx/sections-page-settings.md",
+        "limitations": [
+          "Model and batch execution remain pending.",
+          "Custom unequal columns preserve; geometry/gap edits require explicit equal-count conversion.",
+          "Unresolved continuous-section page dependencies reject isolated geometry edits.",
+          "No pagination or rendering."
+        ]
       }
     },
     "headers.get": {

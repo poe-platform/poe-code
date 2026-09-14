@@ -28,7 +28,12 @@ list/add/set operations and preserves separate section/story ownership. Its
 [exact mapping and drift record](../plans/docx-sections-page-settings.md#exact-languagesecurity-mappings-and-documentation-drift)
 retains the Section/Sections/Settings and public _Header/_Footer obligations.
 No live section owner, inherited interface or enum is promoted by this utility
-evidence; header/footer content editing and later tasks remain pending.
+evidence. The later [header/footer story milestone](../plans/docx-header-footer-stories.md)
+implements noncreating utility reads, explicit shared/local binding edits and
+removal, with resource/field retention and reused scoped text/paragraph operations.
+Its exact language/security table retains every public `_Header`/`_Footer`
+inherited member and the creating-getter obligations; full live owners and general
+table/image editors remain pending. The pinned inventory stays historical.
 
 ## Sources and baseline
 

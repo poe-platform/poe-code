@@ -135,3 +135,95 @@ test("docx sections add appends a next-page section and preserves the final body
     assert.ok(xml.stdout.includes("South coast"));
   } finally { await shell.dispose(); }
 });
+
+for (const kind of ["headers", "footers"]) {
+  test(`docx ${kind} preserves inherited owners through local, shared and removed bindings`, async () => {
+    const { shell, volume } = await fixture();
+    try {
+      const before = volume.toJSON();
+      const absent = await shell.exec(`docx ${kind} get source.docx --section 2 --variant first --json`);
+      assert.equal(absent.exitCode, 0, absent.stderr);
+      assert.equal(JSON.parse(absent.stdout).data.items[0].part, null);
+      assert.deepEqual(volume.toJSON(), before);
+      for (const variant of ["default", "first", "even"]) {
+        const created = await shell.exec(`docx ${kind} set source.docx --section 1 --variant ${variant} --link-to-previous false --text 'Coastal ledger' --in-place --json`);
+        assert.equal(created.exitCode, 0, created.stderr);
+        const link = await shell.exec(`docx ${kind} set source.docx --section 2 --variant ${variant} --link-to-previous true --in-place --json`);
+        assert.equal(link.exitCode, 0, link.stderr);
+      }
+      const inherited = await shell.exec(`docx ${kind} get source.docx --section 2 --json`);
+      assert.equal(inherited.exitCode, 0, inherited.stderr);
+      assert.equal(JSON.parse(inherited.stdout).data.items[0].linked, true);
+      assert.equal(JSON.parse(inherited.stdout).data.items[0].text, "Coastal ledger");
+      const local = await shell.exec(`docx ${kind} set source.docx --section 2 --link-to-previous false --text 'Southern ledger' --in-place --json`);
+      assert.equal(local.exitCode, 0, local.stderr);
+      const original = await shell.exec(`docx ${kind} get source.docx --section 1 --json`);
+      assert.equal(JSON.parse(original.stdout).data.items[0].text, "Coastal ledger");
+      const linked = await shell.exec(`docx ${kind} set source.docx --section 2 --link-to-previous true --in-place --json`);
+      assert.equal(linked.exitCode, 0, linked.stderr);
+      const shared = await shell.exec(`docx ${kind} set source.docx --section 2 --shared --text 'Tidal ledger' --in-place --json`);
+      assert.equal(shared.exitCode, 0, shared.stderr);
+      assert.deepEqual(JSON.parse(shared.stdout).data.affectedSections, [1, 2]);
+      const detached = await shell.exec(`docx ${kind} set source.docx --section 2 --link-to-previous false --in-place --json`);
+      assert.equal(detached.exitCode, 0, detached.stderr);
+      const removed = await shell.exec(`docx ${kind} remove source.docx --section 2 --in-place --json`);
+      assert.equal(removed.exitCode, 0, removed.stderr);
+      const listed = await shell.exec(`docx ${kind} list source.docx --json`);
+      assert.equal(listed.exitCode, 0, listed.stderr);
+      const records = JSON.parse(listed.stdout).data.items;
+      assert.equal(records.length, 6);
+      assert.equal(records[0].text, "Tidal ledger");
+      assert.equal(records[3].text, "Tidal ledger");
+      assert.equal(records[3].linked, true);
+      assert.equal(records[3].part, records[0].part);
+      assert.equal(records[1].text, "Coastal ledger");
+      assert.equal(records[2].text, "Coastal ledger");
+      assert.equal(volume.readdirSync("/work").length, 1);
+    } finally { await shell.dispose(); }
+  });
+}
+
+test("docx story paragraphs and text replacement preserve body text", async () => {
+  const { shell } = await fixture();
+  try {
+    for (const command of [
+      "docx headers set source.docx --section 2 --link-to-previous false --text 'Morning tide' --in-place",
+      "docx paragraphs add source.docx --scope headers --section 2 --text 'Harbor notes' --in-place",
+      "docx text replace source.docx --scope headers --section 2 --find Morning --with Evening --all --in-place"
+    ]) {
+      const result = await shell.exec(command);
+      assert.equal(result.exitCode, 0, `${command}\n${result.stderr}`);
+    }
+    const header = await shell.exec("docx headers get source.docx --section 2 --json");
+    assert.equal(header.exitCode, 0, header.stderr);
+    assert.equal(JSON.parse(header.stdout).data.items[0].text, "Evening tide\nHarbor notes");
+    const readable = await shell.exec("docx headers get source.docx --section 2");
+    assert.equal(readable.exitCode, 0, readable.stderr);
+    assert.ok(readable.stdout.includes("\nEvening tide\nHarbor notes\n"), readable.stdout);
+    const body = await shell.exec("docx text source.docx");
+    assert.equal(body.exitCode, 0, body.stderr);
+    assert.equal(body.stdout, "North coast\nSouth coast");
+  } finally { await shell.dispose(); }
+});
+
+test("docx failed story edits preserve source and preexisting destination bytes", async () => {
+  const { shell, volume } = await fixture();
+  try {
+    volume.writeFileSync("/work/destination.docx", "Existing destination bytes");
+    const before = volume.toJSON();
+    for (const options of [
+      "--section 1 --link-to-previous true",
+      "--section 2 --text 'Missing explicit intent'",
+      "--section 3 --link-to-previous false --text 'Absent section'"
+    ]) {
+      for (const destination of ["--in-place", "--output destination.docx --force"]) {
+        const result = await shell.exec(`docx headers set source.docx ${options} ${destination} --json`);
+        assert.notEqual(result.exitCode, 0);
+        const envelope = JSON.parse(result.stdout);
+        assert.equal(envelope.ok, false);
+        assert.equal(envelope.affected, 0);
+        assert.deepEqual(volume.toJSON(), before);
+      }
+    }
+  } finally { await shell.dispose(); }
+});

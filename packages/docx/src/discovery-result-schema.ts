@@ -85,6 +85,8 @@ const sectionBinding = object({ linkedToPrevious: boolean, sourceSection: { oneO
 const sectionBindings = object({ default: sectionBinding, first: sectionBinding, even: sectionBinding });
 const sectionDirect = object({ ...Object.fromEntries(["pageWidth", "pageHeight", "topMargin", "bottomMargin", "leftMargin", "rightMargin", "gutter", "headerDistance", "footerDistance", "columns", "columnGap", "pageNumberStart"].map(name => [name, { oneOf: [{ type: "integer" }, { type: "null" }] }])), orientation: string, startType: string, pageNumberFormat: string, differentFirstPage: boolean, columnSeparator: boolean, equalWidth: boolean });
 const sectionListData = object({ items: array(object({ position: number, owner: { enum: ["paragraph", "body"] }, location, direct: sectionDirect, headers: sectionBindings, footers: sectionBindings })), units: { const: "twip" }, evenAndOddHeaders: boolean });
+const storyReadData = object({ items: array(object({ kind: { enum: ["headers", "footers"] }, section: number, variant: { enum: ["default", "first", "even"] }, part: nullableString, linked: boolean, sourceSection: { oneOf: [number, { type: "null" }] }, owners: array(number), text: string, location })) });
+const storyEditData = object({ ...mutationData.properties, affectedSections: array(number), changes: array(object({ kind: { enum: ["replace", "remove", "bind"] }, before: location, after: location })) });
 const styleMutationData = object({ ...mutationData.properties, changes: array(object({ kind: { const: "style" }, id: string })) });
 const styleNumber: DocxJsonSchema = { oneOf: [{ type: "number" }, { type: "null" }] };
 const styleProperties = object({
@@ -106,6 +108,14 @@ const styleInspectionData = object({
   diagnostics: array(object({ code: string, part: string, location: string, message: string }))
 });
 export const inspectionOperationMetadata: Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>> = Object.fromEntries([
+  ["headers.list", "Inspect default/first/even story bindings and cached text without creating absent definitions.", ["F16", "F17"], storyReadData],
+  ["headers.get", "Inspect default/first/even story bindings and cached text without creating absent definitions.", ["F16", "F17"], storyReadData],
+  ["headers.set", "Use --shared to edit all owners, or --link-to-previous false to clone one section locally.", ["F16", "F17"], storyEditData],
+  ["headers.remove", "Remove a local binding, including in the first section. Preserve later stories and referenced resources.", ["F16", "F17"], storyEditData],
+  ["footers.list", "Inspect default/first/even story bindings and cached text without creating absent definitions.", ["F16", "F17"], storyReadData],
+  ["footers.get", "Inspect default/first/even story bindings and cached text without creating absent definitions.", ["F16", "F17"], storyReadData],
+  ["footers.set", "Use --shared to edit all owners, or --link-to-previous false to clone one section locally.", ["F16", "F17"], storyEditData],
+  ["footers.remove", "Remove a local binding, including in the first section. Preserve later stories and referenced resources.", ["F16", "F17"], storyEditData],
   ["styles.latent.list", "Inspect latent style entries and defaults without creating definitions.", ["F14"], styleInspectionData],
   ["styles.latent.get", "Inspect latent style entries and defaults without creating definitions.", ["F14"], styleInspectionData],
   ["styles.latent.add", "Edit latent style entries or defaults with explicit inheritance resets.", ["F14"], styleMutationData],
@@ -120,7 +130,7 @@ export const inspectionOperationMetadata: Readonly<Record<string, { description:
   ["styles.set", "Edit selected style properties and relationships; null removes direct formatting and omissions preserve metadata.", ["F14"], styleMutationData],
   ["styles.defaults.set", "Edit document run and paragraph defaults; null removes direct values and omissions preserve metadata.", ["F14"], styleMutationData],
   ["sections.list", "List section owners, stored twip geometry and explicit or inherited header/footer bindings without creating parts. Missing geometry stays null; no pagination is inferred.", ["F16"], sectionListData],
-  ["sections.set", "Edit selected section geometry, columns, start and page-number metadata. Orientation never swaps dimensions. Different-first-page is local; even-and-odd-headers requires --all because it is document-wide. Header/footer content editing remains pending.", ["F02", "F04", "F16"], paragraphEditData],
+  ["sections.set", "Edit selected section geometry, columns, start and page-number metadata. Orientation never swaps dimensions. Different-first-page is local; even-and-odd-headers requires --all because it is document-wide. Header/footer content and bindings use the headers and footers commands.", ["F02", "F04", "F16"], paragraphEditData],
   ["sections.add", "Append a section with inherited geometry and header/footer bindings. Start type defaults NEW_PAGE. Preserve paragraph-owned breaks and final body properties.", ["F02", "F04", "F16"], paragraphEditData],
   ["paragraphs.set", "Set direct paragraph properties; null resets inheritance. Text replaces run content and formatting while retaining paragraph properties and annotation boundaries. Tabs, borders and shading accept --tab-stops-json, --borders-json and --shading-json. Model batches remain pending.", ["F02", "F04", "F13"], paragraphEditData],
   ["paragraphs.add", "Append a block to a story or cell; a paragraph anchor inserts after, or --before. A collapsed paragraph range splits at its Unicode scalar caret and retains the suffix and section properties. Level 0 creates Title; levels 1-9 create headings while preserving conflicting user style definitions. An explicit style and level cannot be combined.", ["F02", "F04", "F13", "F15"], paragraphEditData],
@@ -135,5 +145,5 @@ export const inspectionOperationMetadata: Readonly<Record<string, { description:
   ["xml.set", "Replace one complete XML part with validated bytes; preserve opaque content and unrelated parts.", ["F04", "F07"], mutationData]
 ].map(([id, description, featureIds, data]) => [id, { description, featureIds, result: { oneOf: [object({
   version: { const: 1 }, operation: { const: id }, ok: { const: true }, data: data as DocxJsonSchema,
-  warnings: array(diagnostic), errors: empty, affected: ["sections.set", "sections.add", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.set", "styles.add", "styles.set", "styles.defaults.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add"].includes(id as string) ? number : id === "create" ? { const: 1 } : id === "xml.set" ? { type: "integer", minimum: 0, maximum: 1 } : { const: 0 }, locations: array(location)
+  warnings: array(diagnostic), errors: empty, affected: ["headers.set", "headers.remove", "footers.set", "footers.remove", "sections.set", "sections.add", "styles.latent.add", "styles.latent.set", "styles.latent.remove", "styles.latent.defaults.set", "styles.add", "styles.set", "styles.defaults.set", "text.replace", "runs.set", "paragraphs.set", "paragraphs.add", "runs.add"].includes(id as string) ? number : id === "create" ? { const: 1 } : id === "xml.set" ? { type: "integer", minimum: 0, maximum: 1 } : { const: 0 }, locations: array(location)
 }), object({ version: { const: 1 }, operation: { const: id }, ok: { const: false }, data: { type: "null" }, warnings: array(diagnostic), errors: { type: "array", minItems: 1, items: { type: "object" } }, affected: { const: 0 }, locations: empty })] } }])) as Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>>;

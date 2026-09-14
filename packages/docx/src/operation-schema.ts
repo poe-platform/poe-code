@@ -273,6 +273,8 @@ export type DocxOperationId =
   | "sections.add"
   | "sections.set"
   | "headers.get"
+  | "headers.remove"
+  | "footers.remove"
   | "headers.set"
   | "footers.get"
   | "footers.set"

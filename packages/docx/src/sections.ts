@@ -58,7 +58,7 @@ function sectionOwners(body: XmlElement, bodyPath: readonly number[], budget: Do
   visit(body);
   return result;
 }
-function state(document: DocumentLocations, archive: DocumentArchive, settings: ReturnType<typeof archiveSettings>) {
+export function sectionState(document: DocumentLocations, archive: DocumentArchive, settings: ReturnType<typeof archiveSettings>) {
   const bodyLocation = document.list("story", { scope: "body" })[0]!;
   const main = bodyLocation.value.part.slice(1);
   const editor = new DocumentArchiveEditor(archive, {}, undefined, settings.budget);
@@ -120,7 +120,7 @@ export async function inspectDocumentSections(input: Uint8Array, options: DocxOp
   const opts = invocation.options as DocxOperationArguments<"sections.list">;
   const budget = settings.budget.lower(Object.fromEntries((opts.limit ?? []).map(item => [item.name, item.value])));
   const document = await openDocumentLocations(input, { ...settings, budget });
-  const current = state(document, document.snapshot(), { ...settings, budget });
+  const current = sectionState(document, document.snapshot(), { ...settings, budget });
   const data: SectionListData = { items: select(current.items, opts), evenAndOddHeaders: current.evenAndOddHeaders, units: "twip" };
   budget.check("serializedOutput", new TextEncoder().encode(JSON.stringify(data)).length);
   return data;
@@ -139,7 +139,7 @@ export async function editDocumentSections(input: Uint8Array, request: SectionEd
   const document = await openDocumentLocations(input, { ...settings, budget });
   let archive = document.snapshot();
   assertDocumentEditable(archive, { ...settings, budget });
-  const current = state(document, archive, { ...settings, budget });
+  const current = sectionState(document, archive, { ...settings, budget });
   const { xml, owners, items, main, body, editor } = current;
   const selected = request.operation === "sections.add" ? [items.at(-1)!] : select(items, opts, true);
   const changes: { kind: "format" | "insert"; before: Location; after: Location }[] = [];

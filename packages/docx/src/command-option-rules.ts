@@ -70,6 +70,10 @@ export function validateDocxOptionRules(operation: string, options: Readonly<Rec
   checkLengths(options);
   const has = (name: string) => options[name] !== undefined;
   const reject = (message: string): never => { throw new DocxUsageError(message); };
+  if (["headers.set", "footers.set"].includes(operation)) {
+    if (!has("text") && !has("linkToPrevious")) reject("Story set requires text or link-to-previous intent.");
+    if (options.shared === true && has("linkToPrevious")) reject("Shared editing and binding changes conflict.");
+  }
   if (operation.startsWith("styles.")) {
     for (const key of ["name", "base", "next", "linkedStyle"]) {
       const value = options[key];

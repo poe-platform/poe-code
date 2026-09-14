@@ -32,7 +32,7 @@ export function validateDocxSelection(operation: string, options: Readonly<Recor
   if (all && operation !== "text.replace" && operation !== "lorem.set" &&
     !["set", "remove", "accept", "reject"].includes(action)) reject("All is not applicable to this operation.");
 
-  if (["headers", "footers"].includes(resource) && ["get", "set"].includes(action) && !has("section") && !token)
+  if (["headers", "footers"].includes(resource) && ["get", "set", "remove"].includes(action) && !has("section") && !token)
     reject("Header and footer access requires a section.");
   if (target && ["get", "set", "remove", "replace", "accept", "reject", "repeat", "bind", "merge", "split"].includes(action) &&
     !has(target) && !token && !all) reject("A resource selection is required.");

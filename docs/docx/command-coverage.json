@@ -944,6 +944,11 @@
         "id": "C11",
         "evidence": "Grammar readback: revisions list default final hid deletions; scope body was attached to package-global resources; implicit pixels were not an accepted shared unit.",
         "resolution": "Revision inventory defaults all; resource inventories use own owners; direct geometry uses shared explicit units only. Model APIs retain documented native sizing and spellings."
+      },
+      {
+        "id": "header-footer-removal",
+        "evidence": "Initial-section link-to-previous true is invalid; the direct register lacked initial definition deletion.",
+        "resolution": "Explicit headers.remove/footers.remove with section/variant selection; bounded read/edit result schemas and local/shared ownership semantics are recorded in the authoritative spec and task plan."
       }
     ]
   },
@@ -7611,7 +7616,11 @@
         "model.section.Sections.index.call",
         "model.section.Sections.__contains__.call",
         "model.section.Sections.__reversed__.call",
-        "model.section.Sections.__getitem__.slice"
+        "model.section.Sections.__getitem__.slice",
+        "headers.list",
+        "footers.list",
+        "headers.remove",
+        "footers.remove"
       ],
       "tests": ["feature.F17"],
       "implemented": false,
@@ -7661,7 +7670,17 @@
         "docx.section.Sections.index",
         "docx.section.Sections.__contains__",
         "docx.section.Sections.__reversed__"
-      ]
+      ],
+      "boundedImplementation": {
+        "status": "implemented-bounded-utility",
+        "record": "docs/plans/docx-header-footer-stories.md",
+        "tests": [
+          "packages/docx/src/stories.test.ts",
+          "packages/docx/src/stories-command.test.ts",
+          "packages/safe-bash/tests/commands/docx/sections.test.ts"
+        ],
+        "limits": "Utility story lifecycle and existing scoped text/paragraph/table-cell and image-location primitives only; general table/image editors and live model/batch remain pending."
+      }
     },
     {
       "id": "F18",
@@ -12866,26 +12885,7 @@
       "transport": "direct-and-batch",
       "inputArity": 1,
       "commonProfile": "selectedRead",
-      "commonOptions": [
-        "json",
-        "limit",
-        "select",
-        "scope",
-        "paragraph",
-        "run",
-        "table",
-        "cell",
-        "image",
-        "section",
-        "comment",
-        "note",
-        "link",
-        "control",
-        "revision",
-        "shape",
-        "field",
-        "bookmark"
-      ],
+      "commonOptions": ["json", "limit", "select", "scope", "section"],
       "arguments": {
         "fields": {},
         "unknownFields": "reject"
@@ -12931,13 +12931,22 @@
       "grammarContract": "docs/specs/docx.md#61-lexical-grammar",
       "semanticsContract": "docs/specs/docx.md#65-format-operation-semantics-and-defaults",
       "resultData": {
-        "type": "ResourceListData",
-        "resource": "headers"
+        "type": "StoryReadData"
       },
       "sdkArguments": {
         "fields": {},
         "unknownFields": "reject",
         "commonFieldDefinitions": "#/commonOptions"
+      },
+      "boundedImplementation": {
+        "status": "implemented-bounded-utility",
+        "record": "docs/plans/docx-header-footer-stories.md",
+        "tests": [
+          "packages/docx/src/stories.test.ts",
+          "packages/docx/src/stories-command.test.ts",
+          "packages/safe-bash/tests/commands/docx/sections.test.ts"
+        ],
+        "limits": "Utility story lifecycle and existing scoped text/paragraph/table-cell and image-location primitives only; general table/image editors and live model/batch remain pending."
       }
     },
     "footers.list": {
@@ -12948,26 +12957,7 @@
       "transport": "direct-and-batch",
       "inputArity": 1,
       "commonProfile": "selectedRead",
-      "commonOptions": [
-        "json",
-        "limit",
-        "select",
-        "scope",
-        "paragraph",
-        "run",
-        "table",
-        "cell",
-        "image",
-        "section",
-        "comment",
-        "note",
-        "link",
-        "control",
-        "revision",
-        "shape",
-        "field",
-        "bookmark"
-      ],
+      "commonOptions": ["json", "limit", "select", "scope", "section"],
       "arguments": {
         "fields": {},
         "unknownFields": "reject"
@@ -13013,13 +13003,22 @@
       "grammarContract": "docs/specs/docx.md#61-lexical-grammar",
       "semanticsContract": "docs/specs/docx.md#65-format-operation-semantics-and-defaults",
       "resultData": {
-        "type": "ResourceListData",
-        "resource": "footers"
+        "type": "StoryReadData"
       },
       "sdkArguments": {
         "fields": {},
         "unknownFields": "reject",
         "commonFieldDefinitions": "#/commonOptions"
+      },
+      "boundedImplementation": {
+        "status": "implemented-bounded-utility",
+        "record": "docs/plans/docx-header-footer-stories.md",
+        "tests": [
+          "packages/docx/src/stories.test.ts",
+          "packages/docx/src/stories-command.test.ts",
+          "packages/safe-bash/tests/commands/docx/sections.test.ts"
+        ],
+        "limits": "Utility story lifecycle and existing scoped text/paragraph/table-cell and image-location primitives only; general table/image editors and live model/batch remain pending."
       }
     },
     "tables.list": {
@@ -14693,26 +14692,7 @@
       "transport": "direct-and-batch",
       "inputArity": 1,
       "commonProfile": "selectedRead",
-      "commonOptions": [
-        "json",
-        "limit",
-        "select",
-        "scope",
-        "paragraph",
-        "run",
-        "table",
-        "cell",
-        "image",
-        "section",
-        "comment",
-        "note",
-        "link",
-        "control",
-        "revision",
-        "shape",
-        "field",
-        "bookmark"
-      ],
+      "commonOptions": ["json", "limit", "select", "scope", "section"],
       "arguments": {
         "fields": {
           "variant": {
@@ -14778,8 +14758,7 @@
       "grammarContract": "docs/specs/docx.md#61-lexical-grammar",
       "semanticsContract": "docs/specs/docx.md#65-format-operation-semantics-and-defaults",
       "resultData": {
-        "type": "ResourceData",
-        "resource": "headers"
+        "type": "StoryReadData"
       },
       "sdkArguments": {
         "fields": {
@@ -14794,6 +14773,16 @@
         },
         "unknownFields": "reject",
         "commonFieldDefinitions": "#/commonOptions"
+      },
+      "boundedImplementation": {
+        "status": "implemented-bounded-utility",
+        "record": "docs/plans/docx-header-footer-stories.md",
+        "tests": [
+          "packages/docx/src/stories.test.ts",
+          "packages/docx/src/stories-command.test.ts",
+          "packages/safe-bash/tests/commands/docx/sections.test.ts"
+        ],
+        "limits": "Utility story lifecycle and existing scoped text/paragraph/table-cell and image-location primitives only; general table/image editors and live model/batch remain pending."
       }
     },
     "headers.set": {
@@ -14814,21 +14803,7 @@
         "allowEmpty",
         "select",
         "scope",
-        "paragraph",
-        "run",
-        "table",
-        "cell",
-        "image",
-        "section",
-        "comment",
-        "note",
-        "link",
-        "control",
-        "revision",
-        "shape",
-        "field",
-        "bookmark",
-        "all"
+        "section"
       ],
       "arguments": {
         "fields": {
@@ -14933,7 +14908,7 @@
       "grammarContract": "docs/specs/docx.md#61-lexical-grammar",
       "semanticsContract": "docs/specs/docx.md#65-format-operation-semantics-and-defaults",
       "resultData": {
-        "type": "MutationData"
+        "type": "StoryEditData"
       },
       "sdkArguments": {
         "fields": {
@@ -14964,6 +14939,16 @@
         },
         "unknownFields": "reject",
         "commonFieldDefinitions": "#/commonOptions"
+      },
+      "boundedImplementation": {
+        "status": "implemented-bounded-utility",
+        "record": "docs/plans/docx-header-footer-stories.md",
+        "tests": [
+          "packages/docx/src/stories.test.ts",
+          "packages/docx/src/stories-command.test.ts",
+          "packages/safe-bash/tests/commands/docx/sections.test.ts"
+        ],
+        "limits": "Utility story lifecycle and existing scoped text/paragraph/table-cell and image-location primitives only; general table/image editors and live model/batch remain pending."
       }
     },
     "footers.get": {
@@ -14974,26 +14959,7 @@
       "transport": "direct-and-batch",
       "inputArity": 1,
       "commonProfile": "selectedRead",
-      "commonOptions": [
-        "json",
-        "limit",
-        "select",
-        "scope",
-        "paragraph",
-        "run",
-        "table",
-        "cell",
-        "image",
-        "section",
-        "comment",
-        "note",
-        "link",
-        "control",
-        "revision",
-        "shape",
-        "field",
-        "bookmark"
-      ],
+      "commonOptions": ["json", "limit", "select", "scope", "section"],
       "arguments": {
         "fields": {
           "variant": {
@@ -15059,8 +15025,7 @@
       "grammarContract": "docs/specs/docx.md#61-lexical-grammar",
       "semanticsContract": "docs/specs/docx.md#65-format-operation-semantics-and-defaults",
       "resultData": {
-        "type": "ResourceData",
-        "resource": "footers"
+        "type": "StoryReadData"
       },
       "sdkArguments": {
         "fields": {
@@ -15075,6 +15040,16 @@
         },
         "unknownFields": "reject",
         "commonFieldDefinitions": "#/commonOptions"
+      },
+      "boundedImplementation": {
+        "status": "implemented-bounded-utility",
+        "record": "docs/plans/docx-header-footer-stories.md",
+        "tests": [
+          "packages/docx/src/stories.test.ts",
+          "packages/docx/src/stories-command.test.ts",
+          "packages/safe-bash/tests/commands/docx/sections.test.ts"
+        ],
+        "limits": "Utility story lifecycle and existing scoped text/paragraph/table-cell and image-location primitives only; general table/image editors and live model/batch remain pending."
       }
     },
     "footers.set": {
@@ -15095,21 +15070,7 @@
         "allowEmpty",
         "select",
         "scope",
-        "paragraph",
-        "run",
-        "table",
-        "cell",
-        "image",
-        "section",
-        "comment",
-        "note",
-        "link",
-        "control",
-        "revision",
-        "shape",
-        "field",
-        "bookmark",
-        "all"
+        "section"
       ],
       "arguments": {
         "fields": {
@@ -15214,7 +15175,7 @@
       "grammarContract": "docs/specs/docx.md#61-lexical-grammar",
       "semanticsContract": "docs/specs/docx.md#65-format-operation-semantics-and-defaults",
       "resultData": {
-        "type": "MutationData"
+        "type": "StoryEditData"
       },
       "sdkArguments": {
         "fields": {
@@ -15245,6 +15206,16 @@
         },
         "unknownFields": "reject",
         "commonFieldDefinitions": "#/commonOptions"
+      },
+      "boundedImplementation": {
+        "status": "implemented-bounded-utility",
+        "record": "docs/plans/docx-header-footer-stories.md",
+        "tests": [
+          "packages/docx/src/stories.test.ts",
+          "packages/docx/src/stories-command.test.ts",
+          "packages/safe-bash/tests/commands/docx/sections.test.ts"
+        ],
+        "limits": "Utility story lifecycle and existing scoped text/paragraph/table-cell and image-location primitives only; general table/image editors and live model/batch remain pending."
       }
     },
     "lists.add": {
@@ -103107,6 +103078,164 @@
         "valueType": "void",
         "contract": "docs/specs/docx.md#5-feature-and-format-coverage"
       }
+    },
+    "headers.remove": {
+      "path": ["headers", "remove"],
+      "sdkOperationId": "headers.remove",
+      "version": 1,
+      "status": "implemented-bounded-utility",
+      "transport": "direct",
+      "inputArity": 1,
+      "commonProfile": "selectedEdit",
+      "commonOptions": [
+        "json",
+        "limit",
+        "output",
+        "inPlace",
+        "force",
+        "dryRun",
+        "allowEmpty",
+        "select",
+        "scope",
+        "section"
+      ],
+      "arguments": {
+        "fields": {
+          "variant": {
+            "type": "default|first|even",
+            "flag": "--variant",
+            "required": false,
+            "default": {
+              "kind": "value",
+              "value": "default"
+            }
+          }
+        },
+        "unknownFields": "reject"
+      },
+      "description": "Remove one local section/variant binding, including an initial definition; preserve downstream effective stories and still-referenced resources.",
+      "featureIds": ["F16", "F17"],
+      "help": ["docx", "help", "headers", "remove"],
+      "schema": ["docx", "schema", "headers", "remove"],
+      "result": "OfficeResultV1",
+      "exitProfile": "ordinary",
+      "tests": ["command.headers.remove"],
+      "inputSyntax": ["INPUT"],
+      "cli": ["docx", "headers", "remove", "INPUT"],
+      "defaults": {
+        "controlFlags": false,
+        "optionalEdits": "unchanged",
+        "scope": "headers",
+        "variant": "default"
+      },
+      "grammarContract": "docs/specs/docx.md#61-lexical-grammar",
+      "semanticsContract": "docs/specs/docx.md#65-format-operation-semantics-and-defaults",
+      "resultData": {
+        "type": "StoryEditData"
+      },
+      "sdkArguments": {
+        "fields": {
+          "variant": {
+            "type": "default|first|even",
+            "required": false,
+            "default": {
+              "kind": "value",
+              "value": "default"
+            }
+          }
+        },
+        "unknownFields": "reject",
+        "commonFieldDefinitions": "#/commonOptions"
+      },
+      "boundedImplementation": {
+        "status": "implemented-bounded-utility",
+        "record": "docs/plans/docx-header-footer-stories.md",
+        "tests": [
+          "packages/docx/src/stories.test.ts",
+          "packages/docx/src/stories-command.test.ts",
+          "packages/safe-bash/tests/commands/docx/sections.test.ts"
+        ],
+        "limits": "Utility story lifecycle and existing scoped text/paragraph/table-cell and image-location primitives only; general table/image editors and live model/batch remain pending."
+      }
+    },
+    "footers.remove": {
+      "path": ["footers", "remove"],
+      "sdkOperationId": "footers.remove",
+      "version": 1,
+      "status": "implemented-bounded-utility",
+      "transport": "direct",
+      "inputArity": 1,
+      "commonProfile": "selectedEdit",
+      "commonOptions": [
+        "json",
+        "limit",
+        "output",
+        "inPlace",
+        "force",
+        "dryRun",
+        "allowEmpty",
+        "select",
+        "scope",
+        "section"
+      ],
+      "arguments": {
+        "fields": {
+          "variant": {
+            "type": "default|first|even",
+            "flag": "--variant",
+            "required": false,
+            "default": {
+              "kind": "value",
+              "value": "default"
+            }
+          }
+        },
+        "unknownFields": "reject"
+      },
+      "description": "Remove one local section/variant binding, including an initial definition; preserve downstream effective stories and still-referenced resources.",
+      "featureIds": ["F17"],
+      "help": ["docx", "help", "footers", "remove"],
+      "schema": ["docx", "schema", "footers", "remove"],
+      "result": "OfficeResultV1",
+      "exitProfile": "ordinary",
+      "tests": ["command.footers.remove"],
+      "inputSyntax": ["INPUT"],
+      "cli": ["docx", "footers", "remove", "INPUT"],
+      "defaults": {
+        "controlFlags": false,
+        "optionalEdits": "unchanged",
+        "scope": "footers",
+        "variant": "default"
+      },
+      "grammarContract": "docs/specs/docx.md#61-lexical-grammar",
+      "semanticsContract": "docs/specs/docx.md#65-format-operation-semantics-and-defaults",
+      "resultData": {
+        "type": "StoryEditData"
+      },
+      "sdkArguments": {
+        "fields": {
+          "variant": {
+            "type": "default|first|even",
+            "required": false,
+            "default": {
+              "kind": "value",
+              "value": "default"
+            }
+          }
+        },
+        "unknownFields": "reject",
+        "commonFieldDefinitions": "#/commonOptions"
+      },
+      "boundedImplementation": {
+        "status": "implemented-bounded-utility",
+        "record": "docs/plans/docx-header-footer-stories.md",
+        "tests": [
+          "packages/docx/src/stories.test.ts",
+          "packages/docx/src/stories-command.test.ts",
+          "packages/safe-bash/tests/commands/docx/sections.test.ts"
+        ],
+        "limits": "Utility story lifecycle and existing scoped text/paragraph/table-cell and image-location primitives only; general table/image editors and live model/batch remain pending."
+      }
     }
   },
   "sdk": [
@@ -129976,7 +130105,17 @@
         "Generated help/schema expose exact accepted fields; reject unknown/inapplicable/repeated flags; verify option profile and publication rules.",
         "Noncreating scoped inventory with fingerprinted locations; images default to occurrences.",
         "Use docs/specs/docx.md sections 6.1–6.7: independently assert exact defaults, absence/null/empty behavior, result data type, stable error/exit, owner scope and prepublication file preservation; do not derive the expected result from the operation implementation."
-      ]
+      ],
+      "boundedImplementation": {
+        "status": "implemented-bounded-utility",
+        "record": "docs/plans/docx-header-footer-stories.md",
+        "tests": [
+          "packages/docx/src/stories.test.ts",
+          "packages/docx/src/stories-command.test.ts",
+          "packages/safe-bash/tests/commands/docx/sections.test.ts"
+        ],
+        "limits": "Utility story lifecycle and existing scoped text/paragraph/table-cell and image-location primitives only; general table/image editors and live model/batch remain pending."
+      }
     },
     "command.footers.list": {
       "status": "planned-not-written",
@@ -129986,7 +130125,17 @@
         "Generated help/schema expose exact accepted fields; reject unknown/inapplicable/repeated flags; verify option profile and publication rules.",
         "Noncreating scoped inventory with fingerprinted locations; images default to occurrences.",
         "Use docs/specs/docx.md sections 6.1–6.7: independently assert exact defaults, absence/null/empty behavior, result data type, stable error/exit, owner scope and prepublication file preservation; do not derive the expected result from the operation implementation."
-      ]
+      ],
+      "boundedImplementation": {
+        "status": "implemented-bounded-utility",
+        "record": "docs/plans/docx-header-footer-stories.md",
+        "tests": [
+          "packages/docx/src/stories.test.ts",
+          "packages/docx/src/stories-command.test.ts",
+          "packages/safe-bash/tests/commands/docx/sections.test.ts"
+        ],
+        "limits": "Utility story lifecycle and existing scoped text/paragraph/table-cell and image-location primitives only; general table/image editors and live model/batch remain pending."
+      }
     },
     "command.tables.list": {
       "status": "planned-not-written",
@@ -130136,7 +130285,17 @@
         "Generated help/schema expose exact accepted fields; reject unknown/inapplicable/repeated flags; verify option profile and publication rules.",
         "Selected section story, report inheritance without creating part.",
         "Use docs/specs/docx.md sections 6.1–6.7: independently assert exact defaults, absence/null/empty behavior, result data type, stable error/exit, owner scope and prepublication file preservation; do not derive the expected result from the operation implementation."
-      ]
+      ],
+      "boundedImplementation": {
+        "status": "implemented-bounded-utility",
+        "record": "docs/plans/docx-header-footer-stories.md",
+        "tests": [
+          "packages/docx/src/stories.test.ts",
+          "packages/docx/src/stories-command.test.ts",
+          "packages/safe-bash/tests/commands/docx/sections.test.ts"
+        ],
+        "limits": "Utility story lifecycle and existing scoped text/paragraph/table-cell and image-location primitives only; general table/image editors and live model/batch remain pending."
+      }
     },
     "command.headers.set": {
       "status": "planned-not-written",
@@ -130146,7 +130305,17 @@
         "Generated help/schema expose exact accepted fields; reject unknown/inapplicable/repeated flags; verify option profile and publication rules.",
         "At least one field. Unlink creates independent story; shared requires explicit shared-part intent; retain required paragraph.",
         "Use docs/specs/docx.md sections 6.1–6.7: independently assert exact defaults, absence/null/empty behavior, result data type, stable error/exit, owner scope and prepublication file preservation; do not derive the expected result from the operation implementation."
-      ]
+      ],
+      "boundedImplementation": {
+        "status": "implemented-bounded-utility",
+        "record": "docs/plans/docx-header-footer-stories.md",
+        "tests": [
+          "packages/docx/src/stories.test.ts",
+          "packages/docx/src/stories-command.test.ts",
+          "packages/safe-bash/tests/commands/docx/sections.test.ts"
+        ],
+        "limits": "Utility story lifecycle and existing scoped text/paragraph/table-cell and image-location primitives only; general table/image editors and live model/batch remain pending."
+      }
     },
     "command.footers.get": {
       "status": "planned-not-written",
@@ -130156,7 +130325,17 @@
         "Generated help/schema expose exact accepted fields; reject unknown/inapplicable/repeated flags; verify option profile and publication rules.",
         "Selected section story, report inheritance without creating part.",
         "Use docs/specs/docx.md sections 6.1–6.7: independently assert exact defaults, absence/null/empty behavior, result data type, stable error/exit, owner scope and prepublication file preservation; do not derive the expected result from the operation implementation."
-      ]
+      ],
+      "boundedImplementation": {
+        "status": "implemented-bounded-utility",
+        "record": "docs/plans/docx-header-footer-stories.md",
+        "tests": [
+          "packages/docx/src/stories.test.ts",
+          "packages/docx/src/stories-command.test.ts",
+          "packages/safe-bash/tests/commands/docx/sections.test.ts"
+        ],
+        "limits": "Utility story lifecycle and existing scoped text/paragraph/table-cell and image-location primitives only; general table/image editors and live model/batch remain pending."
+      }
     },
     "command.footers.set": {
       "status": "planned-not-written",
@@ -130166,7 +130345,17 @@
         "Generated help/schema expose exact accepted fields; reject unknown/inapplicable/repeated flags; verify option profile and publication rules.",
         "At least one field. Unlink creates independent story; shared requires explicit shared-part intent; retain required paragraph.",
         "Use docs/specs/docx.md sections 6.1–6.7: independently assert exact defaults, absence/null/empty behavior, result data type, stable error/exit, owner scope and prepublication file preservation; do not derive the expected result from the operation implementation."
-      ]
+      ],
+      "boundedImplementation": {
+        "status": "implemented-bounded-utility",
+        "record": "docs/plans/docx-header-footer-stories.md",
+        "tests": [
+          "packages/docx/src/stories.test.ts",
+          "packages/docx/src/stories-command.test.ts",
+          "packages/safe-bash/tests/commands/docx/sections.test.ts"
+        ],
+        "limits": "Utility story lifecycle and existing scoped text/paragraph/table-cell and image-location primitives only; general table/image editors and live model/batch remain pending."
+      }
     },
     "command.lists.add": {
       "status": "planned-not-written",
@@ -153767,6 +153956,34 @@
         "Apply two distinct values and explicit null reset where allowed; absence leaves values unchanged. Reject wrong owner/type, unknown fields and empty changes before publication.",
         "Pair CLI typed batch and SDK operation, then independently assert exact affected XML and untouched payload hashes."
       ]
+    },
+    "command.headers.remove": {
+      "status": "implemented-bounded-utility",
+      "implementationTest": [
+        "packages/docx/src/stories.test.ts",
+        "packages/docx/src/stories-command.test.ts",
+        "packages/safe-bash/tests/commands/docx/sections.test.ts"
+      ],
+      "assertions": [
+        "Delete selected direct binding without changing downstream effective content.",
+        "Reject missing inherited binding unless allowEmpty; first-section removal is valid.",
+        "Retain parts with incoming relationships and outgoing resources used elsewhere.",
+        "Verify CLI/SDK publication failures leave source and destinations unchanged."
+      ]
+    },
+    "command.footers.remove": {
+      "status": "implemented-bounded-utility",
+      "implementationTest": [
+        "packages/docx/src/stories.test.ts",
+        "packages/docx/src/stories-command.test.ts",
+        "packages/safe-bash/tests/commands/docx/sections.test.ts"
+      ],
+      "assertions": [
+        "Delete selected direct binding without changing downstream effective content.",
+        "Reject missing inherited binding unless allowEmpty; first-section removal is valid.",
+        "Retain parts with incoming relationships and outgoing resources used elsewhere.",
+        "Verify CLI/SDK publication failures leave source and destinations unchanged."
+      ]
     }
   },
   "sdkBehaviors": [
@@ -153959,8 +154176,8 @@
     "apiRows": 1337,
     "inventoryRecords": 920,
     "enumValues": 262,
-    "operationCount": 1506,
-    "directOperations": 113,
+    "operationCount": 1508,
+    "directOperations": 115,
     "typedBatchOperations": 1393,
     "implemented": 0,
     "passingTargetTests": 0

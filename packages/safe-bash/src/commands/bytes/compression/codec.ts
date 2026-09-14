@@ -5,7 +5,7 @@ import { yieldTurn } from "../../../contracts/yield.js";
 import { compressionDiagnostic } from "./errors.js";
 
 export type { CodecInput } from "@poe-code/office-package/compression";
-export const { codec, CodecReader } = createCompressionCodec({
+const compression = createCompressionCodec({
   yieldTurn,
   readBytes,
   diagnostic(error) {
@@ -13,3 +13,6 @@ export const { codec, CodecReader } = createCompressionCodec({
     return compressionDiagnostic(error);
   },
 });
+
+export const codec: ReturnType<typeof createCompressionCodec>["codec"] = compression.codec;
+export const CodecReader: ReturnType<typeof createCompressionCodec>["CodecReader"] = compression.CodecReader;

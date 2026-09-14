@@ -35,6 +35,14 @@ Its exact language/security table retains every public `_Header`/`_Footer`
 inherited member and the creating-getter obligations; full live owners and general
 table/image editors remain pending. The pinned inventory stays historical.
 
+The [bounded list utility milestone](../plans/docx-multilevel-lists.md) implements
+lists.add/set with scoped numbering graphs, nested levels, style-link resolution
+and isolated start/restart overrides. Its exact language/security and drift table
+retains every public NumberingPart and `_NumberingStyle` obligation, including
+inherited members and returned collections. Advanced level-definition setters
+and live numbering owners remain pending; this utility evidence does not promote
+the historical model inventory to complete coverage.
+
 ## Sources and baseline
 
 The later [theme/font resource milestone](font-resources.md) adds utility

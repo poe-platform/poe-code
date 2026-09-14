@@ -120,3 +120,5 @@ export { UnsupportedEmbeddedFontMutationError } from "./font-resources.js";
 
 export { editDocumentSections, inspectDocumentSections, type SectionInfo, type SectionListData, type SectionEditRequest, type SectionEditData, type SectionBinding } from "./sections.js";
 export { editDocumentStories, inspectDocumentStories, type StoryInfo, type StoryReadRequest, type StoryReadData, type StoryEditRequest, type StoryEditData } from "./stories.js";
+
+export { editDocumentLists, type ListEditRequest, type ListEditOperation, type ListEditData } from "./lists.js";

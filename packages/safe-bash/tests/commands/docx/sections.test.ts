@@ -227,3 +227,53 @@ test("docx failed story edits preserve source and preexisting destination bytes"
     }
   } finally { await shell.dispose(); }
 });
+
+test("docx list creation and restarts publish through the optional Shell with intact scoped definitions", async () => {
+  const { shell, volume } = await fixture();
+  try {
+    const before = volume.toJSON();
+    const dry = await shell.exec('docx lists add source.docx --kind decimal --text "First item" --dry-run --json');
+    assert.equal(dry.exitCode, 0, dry.stderr);
+    assert.equal(JSON.parse(dry.stdout).affected, 1);
+    assert.deepEqual(volume.toJSON(), before);
+    const add = await shell.exec('docx lists add source.docx --kind decimal --text "First item" --in-place --json');
+    assert.equal(add.exitCode, 0, add.stderr);
+    const append = await shell.exec('docx lists add source.docx --kind decimal --paragraph 3 --level 1 --text "Nested item" --in-place --json');
+    assert.equal(append.exitCode, 0, append.stderr);
+    const restart = await shell.exec('docx lists set source.docx --paragraph 4 --restart true --start 4 --output restarted.docx --json');
+    assert.equal(restart.exitCode, 0, restart.stderr);
+    const { readDocumentArchive } = await import("../../../../docx/src/index.js");
+    const archive = await readDocumentArchive(new Uint8Array(volume.readFileSync("/work/restarted.docx") as Uint8Array), context);
+    const edge = archive.package.relationships("/" + archive.mainPart).find(e => e.reltype.endsWith("/numbering"))!;
+    const numbering = parseDocumentXml(edge.target_part.bytes).root;
+    const body = child(parseDocumentXml(archive.members.find(m => m.name === archive.mainPart)!.bytes).root, "body");
+    const list = body.children.filter(n => n.localName === "p").slice(2);
+    const ids = list.map(p => attribute(child(child(child(p, "pPr"), "numPr"), "numId"), "val"));
+    assert.notEqual(ids[0], ids[1]);
+    const nums = ids.map(id => numbering.children.find(n => n.localName === "num" && attribute(n, "numId") === id)!);
+    assert.equal(attribute(child(nums[0]!, "abstractNumId"), "val"), attribute(child(nums[1]!, "abstractNumId"), "val"));
+    assert.equal(attribute(child(child(nums[1]!, "lvlOverride"), "startOverride"), "val"), "4");
+    const saved = new Uint8Array(volume.readFileSync("/work/restarted.docx") as Uint8Array);
+    const failed = await shell.exec('docx lists set restarted.docx --paragraph 4 --level 9 --in-place --json');
+    assert.equal(failed.exitCode, 2);
+    assert.deepEqual(new Uint8Array(volume.readFileSync("/work/restarted.docx") as Uint8Array), saved);
+  } finally { await shell.dispose(); }
+});
+
+test("docx list failures retain an existing forced destination and report no effects", async () => {
+  const { shell, volume } = await fixture();
+  volume.writeFileSync("/work/existing.docx", "unchanged destination");
+  const before = volume.toJSON();
+  try {
+    const result = await shell.exec('docx lists set source.docx --paragraph 2 --restart true --output existing.docx --force --json');
+    assert.equal(result.exitCode, 1, result.stderr);
+    const failure = JSON.parse(result.stdout);
+    assert.equal(failure.affected, 0);
+    assert.equal(failure.data, null);
+    assert.equal(failure.errors[0].code, "unsupported-edit");
+    assert.deepEqual(volume.toJSON(), before);
+    const ambiguous = await shell.exec('docx lists set source.docx --all --paragraph 1 --level 1 --in-place --json');
+    assert.equal(ambiguous.exitCode, 2, ambiguous.stderr);
+    assert.deepEqual(volume.toJSON(), before);
+  } finally { await shell.dispose(); }
+});

@@ -118,7 +118,7 @@ function cliValue(type: string, raw: string, name: string, budget: DocumentBudge
     if (variants.includes("finite number") || variants.includes("number")) return decimal(raw);
     usage("Lengths require explicit units.");
   }
-  if (type.includes("integer") || type === "number" || type.startsWith("number ") || type.startsWith("finite ") || type.includes("fraction") || type.includes("decimal")) return decimal(raw);
+  if (type.includes("integer") || type === "number" || type.startsWith("number ") || type.startsWith("finite ") || type.includes("fraction") || type.includes("decimal multiple")) return decimal(raw);
   if (name === "remove") return raw.split(",");
   if (name === "levels") {
     const ends = raw.split("-");

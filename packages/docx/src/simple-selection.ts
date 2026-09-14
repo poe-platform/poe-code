@@ -7,7 +7,7 @@ import type { DocumentLocations, LocationQuery } from "./locations.js";
 import type { DocumentScope } from "./location-index.js";
 
 const resourceKinds: Readonly<Record<string, LocationKind>> = {
-  paragraphs: "paragraph", runs: "run", tables: "table", images: "image",
+  lists: "paragraph", paragraphs: "paragraph", runs: "run", tables: "table", images: "image",
   headers: "story", footers: "story", text: "paragraph"
 };
 
@@ -19,7 +19,7 @@ export function resolveDocxSelection(document: DocumentLocations, value: DocxInv
   const resource = operation.split(".")[0]!;
   const inserting = operation.endsWith(".add");
   const targetKind = inserting && ["images", "runs"].includes(resource) ? "paragraph"
-    : inserting && ["paragraphs", "tables"].includes(resource) ? "story"
+    : inserting && ["paragraphs", "tables", "lists"].includes(resource) ? "story"
     : operation === "text.get" && options.section === undefined ? "story" : resourceKinds[resource];
   if (!targetKind || ["link", "control", "revision", "shape", "field", "bookmark"].some(key => options[key] !== undefined))
     throw new UnsupportedEditError("This resource selector is not implemented.");
@@ -34,7 +34,7 @@ export function resolveDocxSelection(document: DocumentLocations, value: DocxInv
   if (typeof options.select === "string") {
     const location = document.resolve(options.select);
     const acceptable = text ? ["story", "paragraph", "run", "table", "cell"]
-      : inserting && ["paragraphs", "tables"].includes(resource) ? ["story", "cell", "paragraph"]
+      : inserting && ["paragraphs", "tables", "lists"].includes(resource) ? ["story", "cell", "paragraph"]
       : operation === "runs.set" && location.value.range !== null ? ["run", "paragraph"]
       : resource === "tables" ? ["table", "cell"] : [targetKind];
     if (!text && !["runs.set", "runs.add", "paragraphs.add"].includes(operation) && location.value.range !== null) throw new InvalidValueError("Whole resource operations require a resource token, not a text range.");

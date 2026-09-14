@@ -37,7 +37,7 @@ it("discovers table read/edit schemas and documents structural indexing", () => 
   expect(help).not.toContain("--image ");
   expect(help).not.toContain("--all ");
   expect(docx.getDocxDiscovery(parse(["tables", "rows", "remove", "--help"]))!.human).not.toContain("--all ");
-  expect(docx.getDocxDiscovery(parse(["capabilities"]))!.data).toHaveProperty("features", expect.arrayContaining([expect.objectContaining({ id: "F20", level: "read" })]));
+  expect(docx.getDocxDiscovery(parse(["capabilities"]))!.data).toHaveProperty("features", expect.arrayContaining([expect.objectContaining({ id: "F20", level: "edit" })]));
 });
 
 it("reads header table coordinates and cached fields without crossing into body tables", async () => {

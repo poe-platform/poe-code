@@ -261,3 +261,27 @@ test("docx invalid table edits reject before publication to source or existing o
     }
   } finally { await shell.dispose(); }
 });
+
+test("docx merge and split preserve cell data with explicit policies through shell publication", async () => {
+  const { shell, volume } = await fixture();
+  try {
+    const content = { version: 1, blocks: [{ kind: "table", rows: [
+      [{ blocks: [{ kind: "paragraph", text: "Harbor" }] }, { blocks: [{ kind: "paragraph", text: "0012" }] }],
+      [{ blocks: [{ kind: "paragraph", text: "Island" }] }, { blocks: [{ kind: "paragraph", text: "12.00" }] }]
+    ] }] };
+    const added = await shell.exec(`docx tables add source.docx --rows 2 --cols 2 --content-json '${JSON.stringify(content)}' --in-place --json`);
+    assert.equal(added.exitCode, 0, added.stderr);
+    const merged = await shell.exec("docx tables merge source.docx --table 1 --from A1 --to B2 --join paragraphs --in-place --json");
+    assert.equal(merged.exitCode, 0, merged.stderr);
+    assert.equal(JSON.parse(merged.stdout).affected, 1);
+    const before = volume.toJSON();
+    const denied = await shell.exec("docx tables set source.docx --table 1 --cell B2 --text changed --in-place --json");
+    assert.equal(denied.exitCode, 1, denied.stderr);
+    assert.equal(JSON.parse(denied.stdout).errors[0].code, "ambiguous-selection");
+    assert.deepEqual(volume.toJSON(), before);
+    const split = await shell.exec("docx tables split source.docx --table 1 --cell B2 --rows 2 --cols 2 --distribute paragraphs --in-place --json");
+    assert.equal(split.exitCode, 0, split.stderr);
+    const restored = await shell.exec("docx tables get source.docx --table 1 --json");
+    assert.deepEqual(JSON.parse(restored.stdout).data.item.details.cells.map((cell: { text: string }) => cell.text), ["Harbor", "0012", "Island", "12.00"]);
+  } finally { await shell.dispose(); }
+});

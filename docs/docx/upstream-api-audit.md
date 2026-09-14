@@ -55,8 +55,12 @@ logical anchor/span/omission inspection, cell value/formatting changes and expli
 rectangular row/column insertion/deletion. Its exact mapping table retains all
 public and inherited table members, zero-based live collections versus 1-based
 utility coordinates, nullable properties, enum/helper obligations and D03. Live
-owners, merge/split operations and full property inventory remain pending; no
-historical inventory row is promoted merely by utility execution.
+owners and full property inventory remain pending; no historical inventory row
+is promoted merely by utility execution. The later
+[merged-cell milestone](../plans/docx-merged-cells.md) adds explicit utility
+merge/split, covered-coordinate write intent and row deletion through spans.
+Its exact JS/security mappings preserve all live table, inherited, enum,
+collection and public underscore-prefixed obligations as separately pending.
 
 ## Sources and baseline
 

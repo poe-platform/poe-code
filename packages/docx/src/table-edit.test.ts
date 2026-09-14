@@ -85,7 +85,7 @@ it("rejects deleting cross-cell bookmarks and merged structural edits", async ()
   await expect(edit(marked, "tables.columns.remove", { index: 1 })).rejects.toThrow("range markers");
   const merged = table(row("A", "B")).replace(cell("A") + cell("B"), '<w:tc><w:tcPr><w:gridSpan w:val="2"/></w:tcPr>' + paragraph("joined") + '</w:tc>');
   await expect(edit(merged, "tables.rows.add", {})).rejects.toThrow("unmerged");
-  const result = await edit(merged, "tables.set", { cell: "B1", text: "anchor" });
+  const result = await edit(merged, "tables.set", { cell: "B1", text: "anchor", covered: "owner" });
   expect(result.xml).toContain('<w:gridSpan w:val="2"/>');
   expect(result.xml).toContain('>anchor<');
 });

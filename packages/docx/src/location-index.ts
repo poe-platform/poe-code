@@ -267,6 +267,10 @@ export class LocationIndex {
       this.#budget.table(rows.length, columns);
       let above = new Map<number, { node: XmlElement; start: number; span: number }>();
       rows.forEach((tr, i) => {
+        for (const owner of [tr, ...this.named(tr, "trPr"), ...this.named(tr, "tc").flatMap(tc => [tc, ...this.named(tc, "tcPr")])]) {
+          for (const name of ["trPr", "tcPr", "gridBefore", "gridAfter", "gridSpan", "vMerge", "hMerge"])
+            if (this.named(owner, name).length > 1) throw new InvalidPackageError("Duplicate logical table property.");
+        }
         const props = this.named(tr, "trPr")[0];
         const before = props && this.named(props, "gridBefore")[0];
         const after = props && this.named(props, "gridAfter")[0];

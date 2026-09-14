@@ -15,10 +15,11 @@ import { editDocumentParagraphs } from "./paragraph-edit.js";
 import { assertDocumentEditable, publishDocumentArchive, type PublicationContext, type PublicationInput } from "./publication.js";
 import { runElementOpen } from "./run-properties.js";
 import { tableContainerWidth } from "./table-insertion.js";
+import { editMergedTable, mergedTableGrid } from "./table-merge.js";
 import { resolveDocxSelection } from "./simple-selection.js";
 import { UnsupportedEditError, type DocumentXmlEditor } from "./xml-write.js";
 
-export type TableEditOperation = "tables.add" | "tables.set" | "tables.rows.add" | "tables.rows.remove" | "tables.columns.add" | "tables.columns.remove";
+export type TableEditOperation = "tables.add" | "tables.set" | "tables.rows.add" | "tables.rows.remove" | "tables.columns.add" | "tables.columns.remove" | "tables.merge" | "tables.split";
 export type TableEditRequest = { [K in TableEditOperation]: { readonly operation: K; readonly options: DocxOperationArguments<K>; readonly input?: PublicationInput } }[TableEditOperation];
 export interface TableEditData {
   readonly changed: boolean;
@@ -89,10 +90,10 @@ function validateHeaders(flags: readonly boolean[]): void {
 export async function editDocumentTables(input: Uint8Array, request: TableEditRequest, context: PublicationContext): Promise<TableEditData> {
   closedRecord(request, ["operation", "options", "input"]);
   if (request.operation === "tables.add") return editDocumentParagraphs(input, request, context);
-  if (!["tables.set", "tables.rows.add", "tables.rows.remove", "tables.columns.add", "tables.columns.remove"].includes(request.operation)) throw new DocxUsageError("Expected a table editing operation.");
+  if (!["tables.set", "tables.rows.add", "tables.rows.remove", "tables.columns.add", "tables.columns.remove", "tables.merge", "tables.split"].includes(request.operation)) throw new DocxUsageError("Expected a table editing operation.");
   const settings = archiveSettings(context);
   const invocation = validateDocxInvocation({ operation: request.operation, inputs: [request.input?.path ?? "document"], options: request.options }, settings.budget);
-  const opts = invocation.options as DocxOperationArguments<"tables.set"> & DocxOperationArguments<"tables.rows.add">;
+  const opts = invocation.options as DocxOperationArguments<"tables.set"> & DocxOperationArguments<"tables.rows.add"> & Partial<DocxOperationArguments<"tables.merge"> & DocxOperationArguments<"tables.split">>;
   const budget = settings.budget.lower(Object.fromEntries((opts.limit ?? []).map(item => [item.name, item.value])));
   const document = await openDocumentLocations(input, { ...settings, budget });
   const selected = resolveDocxSelection(document, invocation);
@@ -125,6 +126,8 @@ export async function editDocumentTables(input: Uint8Array, request: TableEditRe
     if (edited.has(key)) throw new InvalidValueError("Overlapping table edits require separate transactions."); edited.add(key);
     const rows = children(table, "tr"), selectedRow = before.kind === "cell" ? [...ancestors].reverse().find(n => n.namespace === w && n.localName === "tr") : undefined;
     const patches = new Map<XmlElement, string>(); let replacement: string;
+    const logical = mergedTableGrid(table, budget);
+    if (request.operation === "tables.set" && opts.cell !== undefined && opts.cell !== before.positions.cell && opts.covered !== "owner") throw new SelectionError("ambiguous-selection", [before.token]);
     if (request.operation === "tables.set") {
       if (opts.text !== undefined && before.kind !== "cell") throw new InvalidValueError("Scalar table text requires a logical cell selection.");
       if (before.kind === "cell" && [opts.style, opts.autofit, opts.alignment, opts.direction].some(v => v !== undefined)) throw new InvalidValueError("Table style, layout, alignment and direction require a table selection.");
@@ -183,6 +186,11 @@ export async function editDocumentTables(input: Uint8Array, request: TableEditRe
         const rowPatches = new Map([...patches].filter(([n]) => n !== table));
         replacement = withProperties(xml, table, "tblPr", properties(xml, table, "tblPr", values, nested), rowPatches);
       } else replacement = xml.sourceXml(table, patches);
+    } else if (request.operation === "tables.merge" || request.operation === "tables.split" || request.operation === "tables.rows.remove" && logical.owners.some(o => o.rowSpan > 1 || o.columnSpan > 1)) {
+      if (request.operation !== "tables.rows.remove" && descendants(table).some(c => c.namespace === w && ["fldChar", "bookmarkStart", "bookmarkEnd", "commentRangeStart", "commentRangeEnd", "permStart", "permEnd"].includes(c.localName))) throw new UnsupportedEditError("Merge and split cannot move range markers or complex fields.");
+      if (request.operation === "tables.rows.remove" && before.kind !== "table") throw new InvalidValueError("Row removal requires a table anchor.");
+      if (request.operation === "tables.rows.remove" && descendants(rows[(opts.index ?? 0) - 1] ?? table).some(c => c.namespace === w && ["bookmarkStart", "bookmarkEnd", "commentRangeStart", "commentRangeEnd", "permStart", "permEnd", "fldChar"].includes(c.localName))) throw new UnsupportedEditError("Structural deletion cannot remove range markers or complex fields.");
+      replacement = editMergedTable(xml, table, node, request.operation, opts, budget);
     } else {
       if (before.kind !== "table") throw new InvalidValueError("Row and column operations require a table anchor.");
       const grid = one(table, "tblGrid"), columns = grid ? children(grid, "gridCol") : [];
@@ -240,6 +248,8 @@ export async function editDocumentTables(input: Uint8Array, request: TableEditRe
       }
     }
     if (replacement === xml.sourceXml(table)) continue;
+    const resultingTable = parseDocumentXml(new TextEncoder().encode(runElementOpen(table) + replacement + `</${table.name}>`), {}, budget).root.children[0]!;
+    mergedTableGrid(resultingTable, budget);
     xml.replaceElement(table, replacement);
     let resultPath = tablePath;
     if (request.operation === "tables.set" && before.kind === "cell") {
@@ -248,7 +258,7 @@ export async function editDocumentTables(input: Uint8Array, request: TableEditRe
       const cell = children(row, "tc")[children(selectedRow!, "tc").indexOf(node)]!;
       resultPath = [...tablePath, replaced.children.indexOf(row), row.children.indexOf(cell)];
     }
-    updates.push({ before, path: resultPath, kind: request.operation === "tables.set" ? opts.text === undefined ? "format" : "replace" : request.operation.endsWith(".add") ? "insert" : "delete", resultKind: request.operation === "tables.set" && before.kind === "cell" ? "cell" : "table" });
+    updates.push({ before, path: resultPath, kind: request.operation === "tables.set" ? opts.text === undefined ? "format" : "replace" : ["tables.merge", "tables.split"].includes(request.operation) ? "replace" : request.operation.endsWith(".add") ? "insert" : "delete", resultKind: request.operation === "tables.set" && before.kind === "cell" ? "cell" : "table" });
   }
   const candidate = editor.snapshot(), index = new LocationIndex(candidate, settings.limits, main, dialect, budget);
   budget.check("matches", updates.length);

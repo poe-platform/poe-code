@@ -415,7 +415,7 @@ export function resolveTools() {
   return { packages, identities, npmCli, pack: npmRequire.resolve("libnpmpack"), tar: npmRequire("tar"), dependencyArtifactPath: integrity => contentPath(dependencyCache, integrity) };
 }
 
-export function copyRegularTree(source, destination, fileSystem = { lstatSync, readdirSync, readFileSync, mkdirSync, writeFileSync }) {
+export function copyRegularTree(source, destination, fileSystem = { lstatSync, readdirSync, readFileSync, mkdirSync, writeFileSync }, hardlinkedInputs = []) {
   const inventory = [];
   const pending = [];
   const folded = new Set();
@@ -483,7 +483,10 @@ export function copyRegularTree(source, destination, fileSystem = { lstatSync, r
       const stat = fileSystem.lstatSync(join(source, path));
       if (stat.isDirectory()) visit(path);
       else {
-        assert.ok(stat.isFile() && stat.nlink === 1, `copy input must be regular single-link: ${path}`);
+        // npm's esbuild installer links its launcher to the native package binary.
+        // Explicitly admitted pairs are copied to fresh files, with the same
+        // before/after identity checks as every other input.
+        assert.ok(stat.isFile() && (stat.nlink === 1 || (stat.nlink === 2 && hardlinkedInputs.includes(path))), `copy input must be regular single-link: ${path}`);
         assert.ok(Number.isSafeInteger(stat.size) && stat.size >= 0 && stat.size <= 32 * 1024 * 1024, `copy input byte budget: ${path}`);
         pending.push({ path, identity: identity(stat) });
       }

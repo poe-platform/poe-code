@@ -642,6 +642,33 @@ test("copy admission rejects root traversal, spelling and case aliases before pa
   }
 }));
 
+test("explicit native tool hardlink admission copies independent bytes and still rejects other links", () => {
+  const volume = Volume.fromJSON({ "/source/bin/esbuild": "binary", "/source/package.json": "{}" });
+  const fileSystem = createFsFromVolume(volume);
+  fileSystem.linkSync("/source/bin/esbuild", "/npm-esbuild");
+  const files = distChecks.copyRegularTree("/source", "/destination", fileSystem, ["bin/esbuild"]);
+  assert.equal(files.length, 2);
+  assert.equal(fileSystem.lstatSync("/destination/bin/esbuild").nlink, 1);
+  fileSystem.writeFileSync("/npm-esbuild", "changed");
+  assert.equal(fileSystem.readFileSync("/destination/bin/esbuild", "utf8"), "binary");
+  fileSystem.linkSync("/source/package.json", "/shared-manifest");
+  assert.throws(() => distChecks.copyRegularTree("/source", "/another", fileSystem, ["bin/esbuild"]), /single-link/);
+});
+
+test("admitted native tool hardlinks retain copy identity checks", () => {
+  const volume = Volume.fromJSON({ "/source/bin/esbuild": "binary" });
+  const fileSystem = createFsFromVolume(volume);
+  fileSystem.linkSync("/source/bin/esbuild", "/npm-esbuild");
+  const read = fileSystem.readFileSync.bind(fileSystem);
+  fileSystem.readFileSync = path => {
+    const bytes = read(path);
+    fileSystem.writeFileSync("/npm-esbuild", "changed binary");
+    return bytes;
+  };
+  assert.throws(() => distChecks.copyRegularTree("/source", "/destination", fileSystem, ["bin/esbuild"]), /identity changed/);
+  assert.equal(fileSystem.existsSync("/destination/bin/esbuild"), false);
+});
+
 test("copy admission rejects hardlinked leaves before every payload read", () => withCopyRoot(({ source, destination, directory, fileSystem, reads, writes }) => {
   linkSync(join(source, "payload.ts"), join(directory, "outside-link.ts"));
   assert.throws(() => distChecks.copyRegularTree(source, destination, fileSystem), /single-link/);

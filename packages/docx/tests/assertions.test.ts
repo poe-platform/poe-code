@@ -279,4 +279,23 @@ describe("independent document assertions", () => {
     ).toThrow();
     expect(() => assertJsonOutput("null", expected)).toThrow();
   });
+
+  it.each(["canopy\nsurvey", 'canopy"survey', "canopy\\survey"])(
+    "rejects forbidden decoded keys and nested values containing %j",
+    (forbidden) => {
+      const volume = Volume.fromJSON({ "/result.json": "null" });
+      for (const expected of [
+        { data: [{ text: forbidden }] },
+        { locations: [{ [forbidden]: null }] }
+      ]) {
+        volume.writeFileSync("/result.json", JSON.stringify(expected));
+        const output = volume.readFileSync("/result.json", "utf8") as string;
+        expect(output).not.toContain(forbidden);
+        expect
+          .soft(() => assertJsonOutput(output, expected, [forbidden]))
+          .toThrow("forbidden decoded output");
+        assertJsonOutput(output, expected, ["absent orchard"]);
+      }
+    }
+  );
 });

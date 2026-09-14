@@ -460,6 +460,14 @@ export function assertJsonOutput(
   assert.deepEqual(parsed, expected, "complete JSON result");
   for (const forbidden of absent) {
     assert(!output.includes(forbidden), `forbidden raw output: ${forbidden}`);
-    assert(!JSON.stringify(parsed).includes(forbidden), `forbidden decoded output: ${forbidden}`);
+    const pending: unknown[] = [parsed];
+    while (pending.length > 0) {
+      const value = pending.pop();
+      if (typeof value === "string")
+        assert(!value.includes(forbidden), `forbidden decoded output: ${forbidden}`);
+      else if (Array.isArray(value)) pending.push(...value);
+      else if (value !== null && typeof value === "object")
+        for (const [key, child] of Object.entries(value)) pending.push(key, child);
+    }
   }
 }

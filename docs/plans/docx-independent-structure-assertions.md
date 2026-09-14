@@ -121,3 +121,47 @@ assertions as a later task remain historical; this record supplies the new state
 
 One atomic Conventional Commit on main containing only the two owned test files
 and this record. Local hash is reported after commit. No push or release.
+
+## Verification follow-up — 2026-09-14
+
+Reviewed committed task `639229901`, its recorded red/green sequence above,
+the actual assertion/fixture sources and fresh maintained runtime outputs.
+The historical red runs are documented evidence, not newly replayed runs.
+At 01:03:15 local the unchanged baseline passed all 43 tests. The helpers check
+actual in-memory ZIP payloads and original XML/media/table data independently
+of the product read path. The classifications and bounded profiles above remain
+applicable; this review does not expand them into full schema validation.
+Direct in-memory inspection of the museum output found a 3,133-byte ZIP with
+eight method-8 (deflated) parts and a 62-byte BMP. The passing suite compares
+all decoded payloads exactly to the authored part map and separately checks
+the bitmap's original header/pixel values. No renderer was involved.
+
+Found one concrete false pass in complete JSON absence checking: reserializing
+parsed JSON escapes newlines, quotes and backslashes again, concealing forbidden
+decoded strings. Added three original memfs cases, each checking a nested value
+and a nested property key. At 01:03:26, before changing the helper, all six soft
+negative controls failed with “expected [Function] to throw an error”; the
+original 20 assertion tests still passed. Each case also checks that the raw
+output lacks the decoded spelling and permits a truly absent phrase.
+
+The correction walks parsed string values and object keys directly, preserving
+whole-value equality and raw-output checking. No second document editor or
+product behavior was added. At 01:03:41 the maintained focused suite passed
+46 tests (23 assertions and all 23 unchanged original fixture tests), with
+every individual test below 700 ms. Strict NodeNext typechecking of both assertion
+files and their source imports passed. Prettier initially flagged the new test;
+after formatting that owned file, the check passed for both files.
+`npm run lint:eslint` completed with exit 0, 12,364 configured subjects linted,
+zero errors and 12 unrelated unused-variable warnings in
+`.cache/pptx-usage-review/example.mts`. The maintained guarded route has no
+file-scope argument; no lint bypass or warning suppression was used.
+Owned whitespace checks passed. No full workspace test/build pass is claimed.
+
+Parsed all 920 API inventory records: 410 planned, 378 security-mapped,
+124 language-mapped and eight documentation-error records. None is implemented
+by these helper tests. The exact shared language/security decisions and resolved
+documentation drift linked above remain unchanged. CLI/SDK consumers, schema
+generation, capabilities, corpus edits and whole-public-API coverage remain
+pending. No native reference build, downloads, networking, renderer, repair-warning
+checks or visual QA ran; no CLI visuals changed. Only test helpers, original
+regressions and this additive evidence record are owned by this correction.

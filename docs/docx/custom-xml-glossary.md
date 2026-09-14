@@ -52,6 +52,8 @@ compiler/header discovery in that mode. Default full/direct/unit native events
 remain unchanged. Broader maintained uncached npm test (including root posttest) and repository
 lint both pass. Safe-bash runtime records 38,141 passes and 823 skips; safe-js
 records 28,932 passes and 47 skips. Skips and no-declared-test workspaces do not
-qualify missing behavior. Atomic local delivery/status verification follows. Exact chronological evidence and limitations are retained
+qualify missing behavior. Local atomic delivery: 5d79b7bd3 (portable assets), 1fdd6d4c4 (declared build
+events), 26642f011 (resource inventory). Task65 status verification is recorded
+in the ordered plan. These are local commits; no push or release occurred. Exact chronological evidence and limitations are retained
 in the linked procedure and docs/plans/docx-portable-dependency-build.md.
 No README edits, downloaded inputs, cache cleanup, push or release are authorized.

@@ -57,3 +57,9 @@ export { validateDocumentArchive, documentValidationProfile, SemanticValidationE
 export { writeDocumentArchive } from "./document-write.js";
 
 export { DocumentIo, type DocumentByteSource, type DocumentIoContext } from "./io.js";
+
+export {
+  publishDocumentArchive, publishDocumentFiles, PublicationError,
+  type PublicationInput, type PublicationOptions, type PublicationContext,
+  type PublicationResult, type PublishedFile, type PublicationFile, type ExtractionPublicationOptions
+} from "./publication.js";

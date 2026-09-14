@@ -28,3 +28,12 @@ passes nor acquisition establish product parity. Accept/reject, complex review
 edits, live owners and batches remain later ordered work. No README, native
 product dependency, ambient I/O, implicit network or shipped corpus asset was
 introduced.
+
+During task 62, a tracked-edit bypass inside an enclosing complex body field was
+reproduced with an original failing memfs regression. The guard now traverses
+the nearest admitted Word story with its actual path. Independent review approved
+the correction. Scoped requalification passed 43 tracking/replacement tests,
+maintained DOCX lint and selected build closure; actual Shell dry-run returned
+unsupported-edit, status 1 and affected zero, with a separately inspected terminal
+screenshot. The task plan retains original and corrected evidence. Earlier checks
+remain historical rather than proof that this formerly missed case was safe.

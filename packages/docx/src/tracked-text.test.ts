@@ -119,3 +119,8 @@ it("appends into an empty paragraph and deletes tabs and breaks reversibly", asy
   expect((await extractDocumentText(output, textContext, { view: "original" })).text).toBe("Bay\tCoast\nPier");
   expect((await extractDocumentText(output, textContext)).text).toBe("");
 });
+
+it("refuses tracked replacement in an enclosing complex body field", async () => {
+  const input = await textFixture('<w:p><w:r><w:fldChar w:fldCharType="begin"/></w:r><w:r><w:instrText>QUOTE</w:instrText><w:fldChar w:fldCharType="separate"/></w:r><w:r><w:t>Bay</w:t></w:r><w:r><w:fldChar w:fldCharType="end"/></w:r></w:p>');
+  await expect(replaceDocumentText(input, { find: "Bay", with: "Shore", all: true, trackChanges: true, ...metadata, dryRun: true }, { ...textContext, encoding: { order: "input", compression: "store" } })).rejects.toMatchObject({ code: "unsupported-edit" });
+});

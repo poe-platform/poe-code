@@ -101,7 +101,10 @@ export function stageTrackedText(editor: DocumentArchiveEditor, edits: readonly 
       budget.charge("retainedBytes", text.length * 4);
       const length = [...text].length; runs.push({ node, text, start: offset, end: offset + length, unsafe }); offset += length;
     }
-    const fields = parseFields(xml.root, [], budget, xml.compatibility.content);
+    const story = ancestors.map((node, depth) => ({ node, path: location.value.path.slice(0, depth) })).reverse().find(owner => owner.node.namespace === w &&
+      ["body", "hdr", "ftr", "footnote", "endnote", "comment", "txbxContent"].includes(owner.node.localName));
+    if (!story) throw new UnsupportedEditError("Tracked text requires an admitted story owner.");
+    const fields = parseFields(story.node, story.path, budget, xml.compatibility.content);
     group.sort((a, b) => a.start - b.start);
     let last = -1;
     const affected = new Map<Run, { start: number; end: number; text: string; source: Run; edit: TrackedTextEdit }[]>();

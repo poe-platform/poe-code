@@ -1,6 +1,7 @@
 # Tracked text creation
 
-Status: verified. Task 61 is ready for its owned local commit; task 62 remains pending until that commit.
+Status: original milestone committed; scoped field-boundary correction requalified.
+Implementation commit `76bb5dcd9` and isolated status commit `2f7c47cae` are local.
 
 ## Setup and owned paths
 
@@ -95,3 +96,26 @@ results and the error were captured at `/tmp/docx-tracked-visual.ansi`, rendered
 with terminal-png and inspected at `/tmp/docx-tracked-visual.png`. The current
 wide help layout is legible in the full-resolution artifact; no Word rendering
 or corpus qualification is implied.
+
+## Field-boundary requalification
+
+Task 62 investigation reproduced a task 61 tracked replacement inside the cached
+result of an enclosing complex body field. The guard parsed the document root,
+whose field traversal skips the body, rather than its admitted story. Root assigned
+only `tracked-text.ts` and `tracked-text.test.ts` back to the domain leaf for a
+failing original memfs regression before correction. No unvalidated unrelated
+editor is changed. This invalidates the affected earlier field-boundary evidence;
+the historical passing checks above are retained, and a separate correction and
+scoped requalification are required before task 62 closes.
+
+The valid original field regression failed before code at
+`/tmp/docx-decisions-prerequisite-structural-red.log` (one prerequisite failure;
+two separate task 62 paragraph-mark failures). Corrected combined checks passed
+35 tests; these are not all prerequisite tests. Independent review approved the
+exact nearest-story/path field guard. Root requalification passed 43 tracked and
+existing replacement tests, maintained DOCX lint and selected build closure at
+`/tmp/docx-tracked-field-final-focused.log`, `-lint.log` and `-build.log`.
+Actual tracked replacement of the cached field returned unsupported-edit,
+status 1 and affected zero with dry-run. The terminal capture and inspected PNG
+are `/tmp/docx-tracked-field-visual.ansi` and `.png`. Historical screenshots are
+retained. No complete corpus/renderer/whole-API gate or remote delivery is claimed.

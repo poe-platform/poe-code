@@ -13,3 +13,5 @@ Overall acceptance incomplete: prior commits must reconcile, Promise-symbol acco
 A report launcher used the wrong working directory and failed before writing/staging evidence or creating a commit; corrected paths below preserve that tooling failure, not a test pass.
 
 Descriptor continuation: before the known local f9c51fc21 guard was applied to remote-base delivery source, the five-case regression reproduced two failures / three passes. Applying its exact runtime guard makes all five pass; no callback authority or accounting charge is omitted. Exact adopted patch and red/green logs are retained. This revalidates the existing local fix against the reconciled source rather than claiming a newly discovered defect.
+
+Promise-symbol continuation: a single identity-aware visit charges the symbol and its UTF-16 description in the existing Promise property traversal. The two red regressions now pass, together with 23 data/property controls (25 total / zero failures/skips). Exact-limit, duplicate-root and failed-charge current/peak rollback assertions remain unchanged. This independently adopts the prior candidate repair for remote-main delivery.

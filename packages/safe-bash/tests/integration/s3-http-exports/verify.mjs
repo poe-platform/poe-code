@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { isBuiltin } from "node:module";
 import { dirname, join, relative, resolve } from "node:path";
@@ -13,7 +13,7 @@ import { assertArchiveDependencies, assertArchiveDependencyArtifacts, assertCano
 const fixtureRoot = dirname(fileURLToPath(import.meta.url));
 const actualRepository = resolve(authority, "../..");
 
-export function assertSnapshotInputs(snapshotRoot, committedFiles, { peer, fileSystem = { readdirSync, lstatSync, readFileSync } } = {}) {
+export function assertSnapshotInputs(snapshotRoot, committedFiles, { peer, generated = [], fileSystem = { readdirSync, lstatSync, readFileSync } } = {}) {
   const expected = new Map([...committedFiles].map(([path, bytes]) => [path, digest(bytes)]));
   for (const { path, sha256 } of peer?.files ?? []) {
     assertLiteralInputPath(path);
@@ -21,6 +21,12 @@ export function assertSnapshotInputs(snapshotRoot, committedFiles, { peer, fileS
       if (expected.has(destination)) assert.equal(expected.get(destination), sha256, `snapshot authority conflict: ${destination}`);
       expected.set(destination, sha256);
     }
+  }
+  for (const { path, sha256 } of generated) {
+    assertLiteralInputPath(path);
+    assert.ok(path.startsWith("packages/op/dist/"), "generated prerequisite must remain inside op dist");
+    assert.ok(!expected.has(path), `generated prerequisite conflicts with source: ${path}`);
+    expected.set(path, sha256);
   }
   const paths = [];
   const visit = local => {
@@ -40,6 +46,28 @@ export function assertSnapshotInputs(snapshotRoot, committedFiles, { peer, fileS
     if (committedFiles.has(path)) assert.deepEqual(bytes, committedFiles.get(path), `snapshot input changed: ${path}`);
     assert.equal(digest(bytes), sha256, `snapshot input changed: ${path}`);
   }
+}
+
+export function assertOpBuildDependency(root, expected, fileSystem = { readdirSync, lstatSync, readFileSync }) {
+  assertCanonicalRoot(root, fileSystem);
+  const paths = [];
+  let visited = 0;
+  const visit = directory => {
+    assert.ok(++visited <= 10000, "op build dependency directory budget");
+    for (const entry of fileSystem.readdirSync(join(root, directory), { withFileTypes: true })) {
+      const path = directory ? `${directory}/${entry.name}` : entry.name;
+      assertLiteralInputPath(path);
+      assert.ok(!entry.isSymbolicLink(), `op build dependency symlink: ${path}`);
+      if (entry.isDirectory()) visit(path);
+      else {
+        paths.push(path);
+        assert.ok(paths.length <= expected.length, "op build dependency inventory drift");
+      }
+    }
+  };
+  visit("");
+  assert.deepEqual(paths.sort(), expected.map(entry => entry.path).sort(), "op build dependency inventory drift");
+  for (const { path, sha256 } of expected) assert.equal(digest(readRegularInput(root, path, 32 * 1024 * 1024, fileSystem)), sha256, `op build dependency bytes changed: ${path}`);
 }
 
 export function committedPeerImports(committedFiles, compiler) {
@@ -194,8 +222,12 @@ export async function verifyCommittedExports({ repository = actualRepository, re
       writeFileSync(join(snapshotRoot, path), bytes);
     }
     stageArchiveDependencies(dependencies, snapshotRoot);
+    let opGenerated = [];
+    const opTools = new Map();
+    const opToolTrees = [];
     const assertSnapshot = stagedPeer => {
-      assertSnapshotInputs(snapshotRoot, candidate.files, { peer: stagedPeer });
+      assertSnapshotInputs(snapshotRoot, candidate.files, { peer: stagedPeer, generated: opGenerated });
+      for (const { root, files } of opToolTrees) assertOpBuildDependency(root, files);
       assertArchiveDependencies(dependencies, snapshotRoot);
       assert.equal(digest(readRegularInput(tempRoot, "committed-source.tar", 128 * 1024 * 1024)), report.archive.sha256);
     };
@@ -212,11 +244,53 @@ export async function verifyCommittedExports({ repository = actualRepository, re
         else { mkdirSync(dirname(join(snapshotRoot, path)), { recursive: true }); writeFileSync(join(snapshotRoot, path), bytes, { flag: "wx" }); }
       }
     }
+    const bundleOp = candidate.files.has(`${packagePrefix}/src/commands/op/index.ts`);
+    if (candidate.opManifest) {
+      const dependencies = candidate.opManifest.dependencies ?? {};
+      const nativeTool = `@esbuild/${process.platform}-${process.arch}`;
+      for (const name of [...Object.keys(dependencies), ...(bundleOp ? [nativeTool] : [])]) {
+        assertLiteralInputPath(name);
+        const root = join(actualRepository, "node_modules", name);
+        const metadata = JSON.parse(readRegularInput(root, "package.json", 300000));
+        const locked = candidate.lock.packages[`node_modules/${name}`];
+        assert.equal(metadata.name, name);
+        assert.equal(metadata.version, locked?.version, `committed op build dependency version: ${name}`);
+        assert.deepEqual(metadata.dependencies ?? {}, {}, "op build dependency requires explicit transitive closure");
+        if (name === nativeTool) assert.equal(candidate.lock.packages["node_modules/esbuild"]?.optionalDependencies?.[name], metadata.version, "native bundler must match committed esbuild");
+        const destination = join(snapshotRoot, "node_modules", name);
+        const files = copyRegularTree(root, destination);
+        opToolTrees.push({ root: destination, files });
+        for (const { path, sha256 } of files) opTools.set(`node_modules/${name}/${path}`, sha256);
+      }
+      report.op = { inputs: [...candidate.files.keys()].filter(path => path.startsWith("packages/op/")), tools: Object.fromEntries(opTools) };
+    }
     run("TypeScript version", process.execPath, [compiler, "--version"], snapshot);
+    if (candidate.opManifest) {
+      run("isolated committed op compiler build", process.execPath, [compiler, "-p", "tsconfig.json"], join(snapshotRoot, "packages/op"));
+      opGenerated = readDistInventory(join(snapshotRoot, "packages/op")).map(({ path, sha256 }) => ({ path: `packages/op/${path}`, sha256 }));
+      report.op.emitted = opGenerated;
+    }
     run("committed output guard", process.execPath, [join(snapshotRoot, "scripts/guard-package-dist.mjs")], snapshot);
     run("committed boundary owner authentication", process.execPath, ["--input-type=module", "-e", "const {loadBoundaries}=await import(process.argv[1]); loadBoundaries(process.cwd());", pathToFileURL(join(snapshot, "scripts/integration-inputs.mjs")).href], snapshot);
     report.build = { command: manifest.scripts.build, execution: "committed output guard + committed owner authentication + committed guarded compiler entrypoint + committed codec asset copier; held filename census authenticated from Git tree metadata, never materialized" };
     run("isolated committed compiler build", process.execPath, ["scripts/build.mjs"], snapshot);
+    if (bundleOp) {
+      assert.ok(candidate.opManifest, "private op bundle requires committed source prerequisite");
+      const binary = join(snapshotRoot, "node_modules", `@esbuild/${process.platform}-${process.arch}/bin/esbuild`);
+      chmodSync(binary, 0o755);
+      const metafile = join(tempRoot, "op-bundle.json");
+      run("isolated committed op runtime bundle", binary, [join(snapshot, "src/commands/op/index.ts"), "--bundle", "--platform=node", "--target=es2022", "--format=esm", "--sourcemap", "--external:poe-code/*",
+        `--alias:@poe-platform/op=${join(snapshotRoot, "packages/op/src/index.ts")}`, `--outfile=${join(snapshot, "dist/commands/op/index.js")}`, `--metafile=${metafile}`], snapshot);
+      const metadata = JSON.parse(readRegularInput(tempRoot, "op-bundle.json", 1024 * 1024));
+      for (const input of Object.keys(metadata.inputs)) {
+        const path = relative(snapshotRoot, resolve(snapshot, input));
+        assertLiteralInputPath(path);
+        const expected = candidate.files.has(path) ? digest(candidate.files.get(path)) : opTools.get(path);
+        assert.ok(expected, `unbound op bundle input: ${path}`);
+        assert.equal(digest(readRegularInput(snapshotRoot, path, 32 * 1024 * 1024)), expected);
+      }
+      report.op.bundleInputs = metadata.inputs;
+    }
     assertSnapshot(peer);
     run("isolated committed codec asset copy", process.execPath, ["scripts/copy-compression-assets.mjs"], snapshot);
     const distIdentity = Object.freeze({ sourceCommit: candidate.sourceCommit, archiveSha256: report.archive.sha256 });

@@ -792,6 +792,36 @@ test("peer snapshot accepts unchanged committed inputs without a peer", () => {
   assert.deepEqual(fixture.reads, ["package.json"]);
 });
 
+test("op build dependency capture rejects added files and symlinks before payload reads", () => {
+  const io = createFsFromVolume(Volume.fromJSON({ "/dependency/package.json": "{}", "/dependency/lib/index.js": "export {};" }));
+  const expected = [{ path: "package.json", sha256: digest("{}") }, { path: "lib/index.js", sha256: digest("export {};") }];
+  const fileSystem = { readdirSync: io.readdirSync.bind(io), lstatSync: io.lstatSync.bind(io), readFileSync: io.readFileSync.bind(io) };
+  verifier.assertOpBuildDependency("/dependency", expected, fileSystem);
+  let reads = 0;
+  fileSystem.readFileSync = () => { reads++; assert.fail("unadmitted payload read"); };
+  io.writeFileSync("/dependency/lib/extra.js", "unbound");
+  assert.throws(() => verifier.assertOpBuildDependency("/dependency", expected, fileSystem), /inventory drift/);
+  assert.equal(reads, 0);
+  io.unlinkSync("/dependency/lib/extra.js");
+  io.symlinkSync("index.js", "/dependency/lib/alias.js");
+  assert.throws(() => verifier.assertOpBuildDependency("/dependency", expected, fileSystem), /dependency symlink/);
+  assert.equal(reads, 0);
+});
+
+test("snapshot binds generated op output without excluding its directory or accepting drift", () => {
+  const path = "packages/op/dist/index.d.ts";
+  const fixture = syntheticDist([["package.json", "committed"], [path, "built"]]);
+  const committed = new Map([["package.json", Buffer.from("committed")]]);
+  const generated = [{ path, sha256: digest("built") }];
+  const check = () => assertSnapshotInputs("/synthetic-package", committed, { generated, fileSystem: fixture.fileSystem });
+  check();
+  fixture.records.get(path).bytes = Buffer.from("drift");
+  assert.throws(check, /snapshot input changed/);
+  fixture.records.get(path).bytes = Buffer.from("built");
+  fixture.records.set("packages/op/dist/unbound.js", { kind: "file", bytes: Buffer.from("extra") });
+  assert.throws(check, /snapshot contains missing or new committed inputs/);
+});
+
 test("peer snapshot accepts the exact authenticated union at both destinations without rebasing committed inputs", () => {
   const fixture = peerSnapshot();
   const original = [...fixture.committed].map(([path, bytes]) => [path, Buffer.from(bytes)]);
@@ -1095,6 +1125,12 @@ async function withRepository(change, run, { localTypes = false } = {}) {
       "node_modules/virtual-bash": { resolved: packagePrefix, link: true },
       "node_modules/poe-code": { resolved: "", link: true },
     } };
+    const op = { name: "@poe-platform/op", private: true, type: "module", exports: { ".": { types: "./dist/index.d.ts", import: "./dist/index.js" } } };
+    put("packages/op/package.json", JSON.stringify(op));
+    put("packages/op/tsconfig.json", readRegularInput(resolve(authority, "../op"), "tsconfig.json", 300000));
+    put("packages/op/src/index.ts", "export interface SyntheticOpBackend { name: string }\n");
+    lock.packages["packages/op"] = { name: op.name };
+    lock.packages["node_modules/@poe-platform/op"] = { resolved: "packages/op", link: true };
     const sourceLock = JSON.parse(readRegularInput(resolve(authority, "../.."), "package-lock.json", 16 * 1024 * 1024));
     for (const name of ["@noble/hashes", "pako"]) lock.packages[`node_modules/${name}`] = structuredClone(sourceLock.packages[`node_modules/${name}`]);
     for (const identity of Object.values(resolveTools().identities)) lock.packages[relative(resolve(authority, "../.."), identity.root)] = { version: identity.version };
@@ -1447,6 +1483,10 @@ for (const [profile, localTypes] of [["packed-root", false], ["checkout-root", f
     assert.ok(build);
     assert.deepEqual(build.args, ["scripts/build.mjs"]);
     assert.ok(report.blobReads.includes(`${packagePrefix}/scripts/build.mjs`));
+    assert.ok(report.blobReads.includes("packages/op/src/index.ts"));
+    assert.ok(report.archivePaths.includes("packages/op/tsconfig.json"));
+    assert.ok(report.steps.find(step => step.label === "isolated committed op compiler build"));
+    assert.ok(report.op.emitted.some(entry => entry.path === "packages/op/dist/index.d.ts"));
     assert.ok(report.archivePaths.includes(`${packagePrefix}/scripts/build.mjs`));
     const copy = report.steps.find(step => step.label === "isolated committed codec asset copy");
     assert.ok(copy);
@@ -1472,6 +1512,45 @@ for (const [profile, localTypes] of [["packed-root", false], ["checkout-root", f
     assert.equal(existsSync(fixture.marker), false);
     assert.deepEqual(readFileSync(join(fixture.repository, ".git/config")), before);
   }, { localTypes });
+});
+
+for (const defect of ["config", "source-symlink", "source-case-alias", "workspace-link"]) test(`committed op prerequisite rejects ${defect} before build`, async () => {
+  await withRepository(fixture => {
+    if (defect === "config") fixture.put("packages/op/tsconfig.json", '{"extends":"../../outside.json"}');
+    if (defect === "source-case-alias") fixture.indexEntries.push({ path: "packages/op/src/Index.ts", bytes: "export {};\n" });
+    if (defect === "workspace-link") fixture.lock.packages["node_modules/@poe-platform/op"].resolved = "packages/other";
+    if (defect === "source-symlink") {
+      rmSync(join(fixture.repository, "packages/op/src/index.ts"));
+      symlinkSync("../../other.ts", join(fixture.repository, "packages/op/src/index.ts"));
+    }
+  }, fixture => {
+    assert.throws(() => inspectCommittedCandidate(fixture.repository, "HEAD", fixture.output), defect === "config" ? /op compiler config/ : defect === "workspace-link" ? /op workspace link/ : defect === "source-case-alias" ? /case alias of committed op source/ : /not a regular committed input/);
+    assert.equal(existsSync(fixture.marker), false);
+  });
+});
+
+test("committed private op source is built and bundled into the packed runtime", { timeout: 180000 }, async () => {
+  await withRepository(fixture => {
+    fixture.put("packages/op/src/index.ts", 'import { createTextEncoder } from "@kayahr/text-encoding/no-encodings"; export const opMarker = createTextEncoder("utf-8").encode("captured");\n');
+    fixture.put(`${packagePrefix}/src/commands/op/index.ts`, 'export { opMarker } from "@poe-platform/op";\n');
+    const index = `${packagePrefix}/src/index.ts`;
+    fixture.put(index, readFileSync(join(fixture.repository, index), "utf8") + 'export { opMarker } from "./commands/op/index.js";\n');
+    const sourceLock = JSON.parse(readRegularInput(resolve(authority, "../.."), "package-lock.json", 16 * 1024 * 1024));
+    const op = JSON.parse(readFileSync(join(fixture.repository, "packages/op/package.json"), "utf8"));
+    op.dependencies = structuredClone(sourceLock.packages["packages/op"].dependencies);
+    fixture.put("packages/op/package.json", JSON.stringify(op));
+    fixture.lock.packages["packages/op"].dependencies = structuredClone(op.dependencies);
+    for (const name of [...Object.keys(op.dependencies), "esbuild", `@esbuild/${process.platform}-${process.arch}`]) fixture.lock.packages[`node_modules/${name}`] = structuredClone(sourceLock.packages[`node_modules/${name}`]);
+  }, async fixture => {
+    const report = await verifyCommittedExports({ repository: fixture.repository });
+    assert.equal(report.status, "pass", JSON.stringify(report.error));
+    assert.ok(report.steps.some(step => step.label === "isolated committed op runtime bundle"));
+    assert.ok(Object.keys(report.op.bundleInputs).some(path => path.endsWith("op/src/index.ts")));
+    assert.ok(Object.keys(report.op.tools).some(path => path.startsWith("node_modules/@kayahr/text-encoding/")));
+    assert.ok(report.package.files.includes("dist/commands/op/index.js"));
+    assert.ok(report.package.files.includes("dist/internal/op/index.d.ts"));
+    assert.equal(report.runtime.requests, 0);
+  });
 });
 
 test("canonical public declarations cannot drop an exported HTTP type", { timeout: 180000 }, async () => {

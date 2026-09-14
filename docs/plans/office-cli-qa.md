@@ -11,6 +11,11 @@ names, options, JSON, statuses and SDK parity. The
 [PPTX command register](../pptx/command-coverage.json) supplies proposed detailed
 PPTX arguments; it is not a released schema. See
 [review evidence](../pptx/office-cli-qa-review.md) for input accounting and drift.
+The [DOCX command register](../docx/command-coverage.json) supplies the counterpart
+proposals; [DOCX review evidence](../docx/office-cli-qa-review.md) records the
+current inventory, exact JS/security mappings and unresolved schema boundaries.
+Neither register is implementation evidence. This DOCX documentation task does
+not execute the recipes or advance later implementation tasks.
 
 ## Execution boundary and preparation
 
@@ -25,6 +30,11 @@ host paths. No implicit network, native runtime, host fonts/time/identity or
 external-link resolution is permitted. Use caller-supplied timestamps where needed.
 No reference-project names belong in product code, comments, tests, fixtures or
 CLI output; research and required standalone notices retain provenance.
+Supply the fixed context timestamp `2026-01-02T03:04:05Z` for fixture creation
+where required by the model contract. Bare Q01 must either create without
+inventing time metadata or report a missing explicit capability; it must never
+read the host clock. Record any mismatch with its expected successful creation
+as a contract/implementation gap, not a passed case.
 
 Author these tiny independent inputs through the public SDK once available:
 
@@ -108,6 +118,9 @@ For PPTX Q17, the register's proposed binding payload is
 `--data-json` with that exact payload, subject to the authored template binding.
 DOCX uses its own declared binding schema; do not infer identical payloads from
 the shared command path. Both reject simultaneous file/inline data sources.
+The current DOCX register names `DeclaredTemplateRecord` but does not define its
+record fields. Q17 setup and its ambiguity/expansion variants remain blocked on
+a concrete binding schema; no fabricated DOCX JSON example is supplied here.
 
 ## Shell, streams, selectors and publication
 
@@ -216,13 +229,45 @@ null versus false/zero, unit rounding, dates, image metadata, creating getters
 and bounded XML/package views according to the exact mappings in the review.
 CLI reads must not invoke creating model getters. Advanced operations use closed
 typed batch schemas, never arbitrary method evaluation.
+Use the [DOCX mapping table](../docx/office-cli-qa-review.md#exact-js-and-security-mappings)
+for DOCX and the linked PPTX review for PPTX. A format-specific value/helper does
+not create an equivalent in the other SDK. Conflicting shared language mappings
+remain visible gaps until reconciled and tested; neither recipe count nor a
+reference test pass establishes whole-public-API coverage.
+
+## Additional paired recovery recipes
+
+These Q42–Q49 cases are `proposed_not_run` for both tools. `INPUT` denotes the
+fresh corresponding admitted fixture; `TOKEN` is a returned location. Use the
+Q18 file's exact JSON for inline operations, and declared format-specific binding
+JSON for templates. Do not run these on the ambient host shell.
+
+| ID / purpose                   | DOCX recipe                                                                                | PPTX recipe                                                                                  | Required observation                                                                                                                                     |
+| ------------------------------ | ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Q42 help for cells             | `docx tables set --help`                                                                   | `pptx tables set --help`                                                                     | B2 logical addressing, owner selectors, destructive text assignment and output rules agree with schema                                                   |
+| Q43 missing resource selection | `docx images replace INPUT --file 'new emblem.png' --dry-run --json`                       | `pptx images replace INPUT --file 'new emblem.png' --dry-run --json`                         | Reject without writes; inspect images and retry Q31 with one fresh location                                                                              |
+| Q44 template stdin owner       | `docx template apply Letter.dotx --data-file - -o stdin-bound.docx < 'docx bindings.json'` | `pptx template apply Briefing.potx --data-file - -o stdin-bound.pptx < 'pptx bindings.json'` | One JSON stdin owner; same result as Q17, subject to binding-schema setup gate                                                                           |
+| Q45 competing template stdin   | `docx template apply - --data-file - -o invalid.docx`                                      | `pptx template apply - --data-file - -o invalid.pptx`                                        | Usage 2 before consuming stdin; retry Q44 with a VFS template                                                                                            |
+| Q46 output alias               | `docx properties set INPUT --name title --value Final --output INPUT --force --json`       | `pptx properties set INPUT --name title --value Final --output INPUT --force --json`         | Reject alias before writes, including a second VFS path to the same object; retry with explicit in-place intent after inspecting current input           |
+| Q47 unknown scope              | `docx text INPUT --scope unknown --json`                                                   | `pptx text INPUT --scope unknown --json`                                                     | Usage 2; discover scopes in help/schema and retry an applicable scope                                                                                    |
+| Q48 lowered limit              | `docx inspect INPUT --limit xmlDepth=1 --json`                                             | `pptx inspect INPUT --limit xmlDepth=1 --json`                                               | On fixture deeper than one, limit exit 4; duplicate limit names/unknown names/raising host ceiling reject before work; confirm spelling with each schema |
+| Q49 discovery recovery         | `docx schema tables set`                                                                   | `pptx schema tables set`                                                                     | Compare with Q42 and actual capabilities; unsupported behavior stays read/preserve/reject with reason, never silently succeeds                           |
+
+For Q28/Q29, repeat with an invalid proposed destination and a sentinel output:
+destination validation still runs, and sentinel/input hashes remain unchanged.
+For Q32, record the token's original fingerprint, the intervening committed
+revision, the rejected attempt, and the fresh selection used for retry. For
+Q35, retain both the unmerged success and unresolved merged failure; a successful
+alternative coordinate must not substitute for B2. These are ordered recovery
+observations, not permission to repair or force an ambiguous user's intent.
 
 ## Evidence, reduction and completion
 
 For each execution, record case ID, implementation revision, schema version,
 adapter/capabilities/limits, original input hash, exact arguments, expected and
 actual exit/JSON/bytes, changed and retained parts, screenshot reference and
-status (`passed`, `failed`, `blocked`, `not_run`). Keep evidence under `docs/pptx`;
+status (`passed`, `failed`, `blocked`, `not_run`). Keep DOCX evidence under
+`docs/docx` and PPTX evidence under `docs/pptx`; link paired receipts by case ID;
 keep procedures and outstanding QA work here. Separate semantic checks from
 independent rendering/playback; no runtime/native rendering is authorized by
 this documentation task.
@@ -234,7 +279,7 @@ reproduce a failure before fixing product code. Keep provenance and reduction
 links, then delete only enumerated owned artifacts no active campaign needs.
 Never commit ignored inputs, downloaded wording/images or cloned binary fixtures.
 
-Documentation verification for this change: parse both PPTX inventories, review
+Historical PPTX documentation verification: parse both PPTX inventories, review
 these recipes against shared contracts and the command register, validate the
 literal batch/binding examples against their proposed schemas, check local links,
 run installed scoped Prettier and `git diff --check`, then inspect staged paths.
@@ -295,3 +340,31 @@ help with the explicit in-memory adapter; its output was visually inspected.
 Scoped Prettier, local-link checks, complete inventory destination checks,
 recorded JSON envelope checks and `git diff --check` passed. No product unit
 suite, counterpart run, native rendering or release verification is claimed.
+
+## DOCX documentation review procedure and result
+
+This task owns only this plan and `docs/docx/office-cli-qa-review.md`. Preserve
+the existing PPTX receipts and unrelated plan edits/moves. No product code,
+README, inventory, shared specification or disposable binary is changed.
+
+1. Read root/scoped instructions, all three specifications and the four complete
+   DOCX audit/inventory inputs. Parse both inventories; compare the later API and
+   command maps without treating their planned tests as executed evidence.
+2. Before editing, assert the plan has DOCX register/evidence links and does not
+   route all receipts to PPTX. The assertion failed with `DOCX QA lacks its
+evidence/register links and routes all receipts to PPTX`. This is documentary
+   defect evidence; failing original memfs tests before product code remain the
+   responsibility of later implementation tasks.
+3. Review Q01–Q49 against shared grammar, flags, selectors, publication, JSON and
+   statuses. Check literal Q18 fields against both documentary contracts; do
+   not claim runtime schema validation for DOCX or invent template fields.
+4. Verify input hashes/counts, local links, unique case IDs and unchanged test
+   adaptation statuses. Run installed scoped Prettier and `git diff --check`.
+   Product tests/builds and CLI screenshots are inapplicable to Markdown-only
+   edits; no recipe execution is claimed.
+5. Inspect the diff/index, stage only the two owned paths, and make one atomic
+   Conventional Commit on main without bypass/coauthor flags. Verify its files
+   and report the local hash. Do not push or release; keep later tasks pending.
+
+Review/check results are recorded in the linked DOCX evidence. All DOCX recipes
+remain proposed and unexecuted, including the newly added recovery cases.

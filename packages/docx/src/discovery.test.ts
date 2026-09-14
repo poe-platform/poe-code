@@ -28,7 +28,7 @@ describe("document discovery", () => {
   it("lists only implemented discovery paths and generates options from declarations", () => {
     const root = discover("help")!;
     expect(root.data).toMatchObject({ name: "docx", paths: [
-      { path: ["help"] }, { path: ["schema"] }, { path: ["capabilities"] }, { path: ["version"] }
+      { path: ["inspect"] }, { path: ["validate"] }, { path: ["help"] }, { path: ["schema"] }, { path: ["capabilities"] }, { path: ["version"] }
     ] });
     expect(root.human).toContain("Implemented commands");
     expect(root.human).not.toContain("docx create");
@@ -52,7 +52,7 @@ describe("document discovery", () => {
       result: { properties: { ok: { const: false }, data: { type: "null" } } }, support: "reject"
     }] });
     const root = discover("schema")!.data as { operations: readonly { id: string; result: unknown }[] };
-    expect(root.operations.map(item => item.id)).toEqual(["help", "schema", "capabilities", "version"]);
+    expect(root.operations.map(item => item.id)).toEqual(["inspect", "validate", "help", "schema", "capabilities", "version"]);
     expect(root.operations.find(item => item.id === "version")!.result).toMatchObject({ oneOf: [
       { properties: { version: { const: 1 }, operation: { const: "version" }, data: { properties: { version: { type: "string" } } } } },
       { properties: { ok: { const: false }, data: { type: "null" }, errors: { minItems: 1 } } }
@@ -71,10 +71,16 @@ describe("document discovery", () => {
   it("reports conservative host support and effective limits without document claims", () => {
     const budget = new DocumentBudget({ compressedInput: 1234 });
     const result = getDocxDiscovery({ operation: "capabilities", inputs: [], options: {} }, budget)!;
-    expect(result.data).toMatchObject({ features: [], host: { read: false, atomicReplace: false, transactions: false, binaryStdout: true } });
+    expect(result.data).toMatchObject({ features: [{ id: "F06", level: "read" }, { id: "F49", level: "read" }], host: { read: false, atomicReplace: false, transactions: false, binaryStdout: true } });
     expect((result.data as { limits: readonly unknown[] }).limits).toContainEqual({ name: "compressedInput", ceiling: 1234 });
-    expect(result.human).toContain("No document feature operations are implemented");
+    expect(result.human).toContain("Inspection and partial core-v1 validation are implemented");
     expect(discover("capabilities", "report.docx")).toBeUndefined();
     expect(discover("text", "report.docx")).toBeUndefined();
   });
+});
+it("advertises inspection and validation as read-only implemented operations", () => {
+  for (const id of ["inspect", "validate"]) {
+    expect(discover("schema", id)?.data).toMatchObject({ operations: [{ id, support: "read" }] });
+    expect(discover("help", id)?.human).not.toContain("not implemented");
+  }
 });

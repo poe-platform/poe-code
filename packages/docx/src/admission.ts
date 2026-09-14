@@ -23,7 +23,7 @@ const documentTypes = {
   docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml",
   dotx: "application/vnd.openxmlformats-officedocument.wordprocessingml.template.main+xml"
 };
-const macroTypes = new Set([
+export const macroTypes: ReadonlySet<string> = new Set([
   "application/vnd.ms-word.document.macroenabled.main+xml",
   "application/vnd.ms-word.template.macroenabledtemplate.main+xml",
   "application/vnd.ms-office.vbaproject",

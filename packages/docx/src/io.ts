@@ -67,6 +67,10 @@ export class DocumentIo {
   }
 
   read(source: DocumentByteSource): Promise<AdmittedDocumentArchive> {
+    return this.#run(async () => readDocumentArchive(await this.readBytes(source), this.#context));
+  }
+
+  readBytes(source: DocumentByteSource): Promise<Uint8Array> {
     return this.#run(async () => {
       if (!source || typeof source.open !== "function") throw new InputTypeError("Expected a document byte source.");
       const { limits, signal, budget } = archiveSettings(this.#context);
@@ -106,7 +110,7 @@ export class DocumentIo {
       const bytes = new Uint8Array(size);
       let offset = 0;
       for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
-      return readDocumentArchive(bytes, { limits, signal, budget });
+      return bytes;
     });
   }
 

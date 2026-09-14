@@ -1,6 +1,6 @@
 import { escapeTerminalText } from "toolcraft-design/escape-terminal-text";
 import { getDocxDiscovery } from "./discovery.js";
-import { DocumentBudget } from "./budget.js";
+import { DocumentBudget, type DocumentLimits } from "./budget.js";
 import { ResourceLimitError } from "./archive.js";
 import { validateDocxSelection } from "./command-selection.js";
 import { validateDocxOptionRules } from "./command-option-rules.js";
@@ -440,12 +440,12 @@ export interface DocxCommandRequest {
 export function createDocxCommandEngine<Request extends DocxCommandRequest>(handler: {
   execute(invocation: DocxInvocation, request: Request): Promise<{ readonly exitCode: number }>;
   readSource?(source: DocxArgumentSource, request: Request, budget: DocumentBudget): Promise<Uint8Array>;
-}) {
+}, hostLimits: Partial<DocumentLimits> = {}) {
   return {
     async execute(request: Request): Promise<{ readonly exitCode: number }> {
       request.signal.throwIfAborted();
       let invocation: DocxInvocation | undefined;
-      let budget = new DocumentBudget({}, request.signal);
+      let budget = new DocumentBudget(hostLimits, request.signal);
       let discoveryOutput: Uint8Array | undefined;
       try {
         invocation = parseDocxArguments(request.args, budget);

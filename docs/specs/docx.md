@@ -9,7 +9,9 @@ Purpose: Define the intended document-format coverage and observable behavior of
 This remains the full proposed contract. Scoped package-engine evidence is in
 [the validation profile](../docx/validation-profile.md), and the bounded command
 discovery milestone is recorded in [help/output evidence](../docx/help-errors-output.md).
-Neither establishes complete document-operation or model API conformance. The
+The bounded inspect/validate implementation and additive result fields are recorded
+in [inspection evidence](../docx/inspection-profile.md). None of these milestones
+establishes complete document-operation or model API conformance. The
 accompanying pipeline sequences implementation; downloaded corpus availability
 does not establish product conformance.
 
@@ -963,11 +965,28 @@ type InspectionData = {
   parts: { name: string; contentType: string; bytes: number; sha256: string }[];
   relationships: Reference[];
   stories: ResourceRecord[];
-  properties: PropertyValue[];
+  properties: (PropertyValue & { part: string; group: "core" | "extended" | "custom" })[];
   features: FeatureSupport[];
-  counts: { paragraphs: number; tables: number; images: number; cachedPages: number | null };
+  counts: {
+    paragraphs: number; runs: number; tables: number; rows: number; cells: number;
+    images: number; sections: number; comments: number; footnotes: number;
+    endnotes: number; fields: number; controls: number; equations: number;
+    cachedPages: number | null;
+  };
+  sizes: { archiveBytes: number; expandedBytes: number; mediaBytes: number };
+  contentTypes: {
+    defaults: { extension: string; contentType: string }[];
+    overrides: { name: string; contentType: string }[];
+  };
   signed: boolean;
   protected: boolean;
+  pages: { rendered: null; cachedBreaks: number };
+  fonts: { references: string[]; themeReferences: string[]; embedded: string[]; installed: null };
+  signatures: { parts: string[]; verified: null };
+  media: { name: string; contentType: string; bytes: number; sha256: string }[];
+  annotations: { part: string; kind: string; id: string | null; author: string | null; date: string | null }[];
+  protection: { part: string; kind: string; enforced: boolean | null; edit: string | null }[];
+  warnings: { code: string; message: string }[];
 };
 type ValidationData = {
   valid: boolean;

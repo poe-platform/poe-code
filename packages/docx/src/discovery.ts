@@ -1,10 +1,11 @@
 import metadata from "../package.json" with { type: "json" };
 import { escapeTerminalText } from "toolcraft-design/escape-terminal-text";
+import { documentValidationProfile } from "./validation.js";
 import { DocumentBudget } from "./budget.js";
 import { docxInvocationBudgets, validateDocxInvocation, type DocxInvocation } from "./command.js";
 import { docxCommonOptions, docxOperationSchemas, type DocxOperationSchema } from "./operation-schema.js";
 import { getDocxOperationSchema, type DocxJsonSchema } from "./operation-json-schema.js";
-import { discoveryFailureSchema } from "./discovery-result-schema.js";
+import { discoveryFailureSchema, inspectionOperationMetadata } from "./discovery-result-schema.js";
 
 export interface DocxHelpData {
   readonly name: "docx";
@@ -12,13 +13,15 @@ export interface DocxHelpData {
 }
 export interface DocxSchemaData {
   readonly schemaVersion: 1;
+  readonly validationProfiles: readonly (typeof documentValidationProfile)[];
   readonly operations: readonly { readonly id: string; readonly path: readonly string[]; readonly input: DocxJsonSchema;
     readonly result: DocxJsonSchema; readonly featureIds: readonly string[]; readonly support: "read" | "reject" }[];
 }
 export interface DocxCapabilitiesData {
-  readonly features: readonly never[];
+  readonly features: readonly { readonly id: string; readonly level: "read"; readonly subsets: readonly { readonly name: string; readonly level: "read"; readonly reason: string }[]; readonly detected: null }[];
   readonly host: { readonly read: false; readonly atomicReplace: false; readonly transactions: false; readonly binaryStdout: true };
   readonly limits: readonly { readonly name: string; readonly ceiling: number }[];
+  readonly validationProfiles: readonly (typeof documentValidationProfile)[];
 }
 export interface DocxVersionData { readonly name: "docx"; readonly version: string; readonly schemaVersion: 1 }
 export interface DocxDiscovery {
@@ -37,7 +40,8 @@ function usage(id: string, declaration: DocxOperationSchema): string {
   return `docx ${path}${input} [OPTIONS]`;
 }
 function description(declaration: DocxOperationSchema): string {
-  return declaration.discovery?.description ?? "Declared contract; document operation not implemented by this engine.";
+  const id = Object.keys(docxOperationSchemas).find(key => docxOperationSchemas[key] === declaration)!;
+  return inspectionOperationMetadata[id]?.description ?? declaration.discovery?.description ?? "Declared contract; document operation not implemented by this engine.";
 }
 function details(id: string, declaration: DocxOperationSchema): string {
   const lines = [usage(id, declaration), "", description(declaration)];
@@ -83,24 +87,24 @@ export function getDocxDiscovery(invocation: DocxInvocation, budget = new Docume
   });
   if (invocation.operation === "capabilities") {
     const limits = Object.entries(budget.limits).map(([name, ceiling]) => ({ name, ceiling }));
-    return bounded({ data: { features: [], host: { read: false, atomicReplace: false, transactions: false, binaryStdout: true }, limits },
-      human: "docx capabilities\n\nNo document feature operations are implemented by this engine.\nDocument-specific capabilities require an injected handler.\n\nLimits:\n" + limits.map(item => `  ${item.name}: ${item.ceiling}`).join("\n") + "\n" });
+    return bounded({ data: { features: [{ id: "F06", level: "read", subsets: [{ name: "inventory", level: "read", reason: "No rendering, linked-resource access or signature verification." }], detected: null }, { id: "F49", level: "read", subsets: [{ name: "core-v1", level: "read", reason: "Partial core-v1 validation only." }], detected: null }], host: { read: false, atomicReplace: false, transactions: false, binaryStdout: true }, limits, validationProfiles: [documentValidationProfile] },
+      human: "docx capabilities\n\nInspection and partial core-v1 validation are implemented.\nDocument reads require explicit filesystem or stdin authority.\n\nLimits:\n" + limits.map(item => `  ${item.name}: ${item.ceiling}`).join("\n") + "\n" });
   }
   const selected = invocation.options.operation as string | undefined;
   const declarations = selected ? [[selected, docxOperationSchemas[selected]!] as const] :
-    Object.entries(docxOperationSchemas).filter(([, declaration]) => declaration.discovery !== undefined);
+    Object.entries(docxOperationSchemas).filter(([id, declaration]) => declaration.discovery !== undefined || inspectionOperationMetadata[id] !== undefined);
   if (invocation.operation === "help") {
     const data: DocxHelpData = { name: "docx", paths: declarations.map(([id, declaration]) => ({
       path: commandPath(id, declaration), usage: usage(id, declaration), description: description(declaration), operationIds: [id]
     })) };
     return bounded({ data, human: selected ? details(selected, declarations[0]![1]) :
       "docx — document utility\n\nImplemented commands:\n" + data.paths.map(item => `  ${item.usage}\n    ${item.description}`).join("\n") +
-      "\n\nUse docx help COMMAND PATH for a declared contract.\nDocument feature operations remain unavailable in this engine.\nAliases: --help, -h; --version.\n" });
+      "\n\nUse docx help COMMAND PATH for a declared contract.\nInspection and validation are read-only; other document operations remain pending.\nAliases: --help, -h; --version.\n" });
   }
-  const data: DocxSchemaData = { schemaVersion: 1, operations: declarations.map(([id, declaration]) => ({
+  const data: DocxSchemaData = { schemaVersion: 1, validationProfiles: [documentValidationProfile], operations: declarations.map(([id, declaration]) => ({
     id, path: commandPath(id, declaration), input: getDocxOperationSchema(id, declaration.transport === "typed-batch" ? "batch" : "sdk"),
-    result: declaration.discovery?.result ?? { ...discoveryFailureSchema(id), description: "Only failures are specified here; operation not implemented." },
-    featureIds: declaration.discovery?.featureIds ?? [], support: declaration.discovery ? "read" : "reject"
+    result: inspectionOperationMetadata[id]?.result ?? declaration.discovery?.result ?? { ...discoveryFailureSchema(id), description: "Only failures are specified here; operation not implemented." },
+    featureIds: inspectionOperationMetadata[id]?.featureIds ?? declaration.discovery?.featureIds ?? [], support: declaration.discovery || inspectionOperationMetadata[id] ? "read" : "reject"
   })) };
   return bounded({ data, human: JSON.stringify(data) + "\n" });
 }

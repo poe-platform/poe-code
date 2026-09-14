@@ -1,3 +1,4 @@
+import { macroTypes } from "./admission.js";
 import { InputTypeError, InvalidValueError, ResourceLimitError, type DocumentArchive } from "./archive.js";
 import { DocumentBudget } from "./budget.js";
 import { DocumentPackage } from "./package.js";
@@ -121,6 +122,8 @@ export function validateDocumentArchive(archive: DocumentArchive, options: Valid
     add(e instanceof InvalidPackageError ? e.diagnosticCode : "invalid-xml", e instanceof InvalidPackageError ? e.part ?? "/" : "/", e instanceof InvalidPackageError ? e.location : "/", e.message, "relationships");
     return result();
   }
+  if ([...graph.defaults, ...graph.overrides].some(declaration => macroTypes.has(declaration.content_type.toLowerCase())))
+    throw new UnsupportedProfileError("Macro-enabled document containers are unsupported.");
   for (const part of graph.parts) {
     if (!roots.has(part.partname) && (part.content_type.toLowerCase().endsWith("+xml") || part.content_type.toLowerCase() === "application/xml" || part.content_type.toLowerCase() === "text/xml")) {
       try { parse(part.partname, part.bytes); }

@@ -1,5 +1,9 @@
 # DOCX discovery and diagnostic evidence
 
+Current follow-up: [inspection/validation evidence](inspection-profile.md) adds
+inspect and validate to root help/schema and exposes the core-v1 profile. The
+record below preserves the earlier four-command discovery milestone.
+
 This milestone implements help, schema, version and input-free capabilities in
 the injected command engine. It does not implement document feature operations
 or the documented object model. Later feature and exhaustive discovery tasks

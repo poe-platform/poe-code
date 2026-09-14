@@ -245,3 +245,28 @@ test("docx human source diagnostics escape terminal controls while JSON remains 
     assert.ok(encoder.encode(JSON.stringify(envelope.errors)).length <= 96);
   } finally { await shell.dispose(); }
 });
+
+test("docx read-only engine inspects stdin through Shell without filesystem mutation", async () => {
+  const { createDocxInspectionCommandEngine } = await import("../../../docx/src/inspection-command.js");
+  const { inspectDocument } = await import("../../../docx/src/inspection.js");
+  const signal = new AbortController().signal;
+  const context = { limits, signal };
+  const archive = await createDocumentArchive({}, context);
+  const chunks: Uint8Array[] = [];
+  await writeDocumentArchive(archive, { async write(bytes) { chunks.push(new Uint8Array(bytes)); } }, { order: "name", compression: "store" }, context);
+  const bytes = new Uint8Array(Buffer.concat(chunks));
+  const fs = new MemoryFileSystem();
+  fs.readFile = async () => { assert.fail("unexpected filesystem read"); };
+  fs.writeFile = async () => { assert.fail("unexpected filesystem mutation"); };
+  const shell = new Shell({ fs }).use(docxCommands({ engine: createDocxInspectionCommandEngine({ limits }) }));
+  try {
+    const result = await shell.exec("docx inspect - --json", { stdin: bytes });
+    assert.equal(result.exitCode, 0, result.stderr);
+    const envelope = JSON.parse(result.stdout) as { data: unknown; affected: number };
+    assert.deepEqual(envelope.data, await inspectDocument(bytes, context));
+    assert.equal(envelope.affected, 0);
+    const invalid = await shell.exec("docx validate - --json", { stdin: encoder.encode("broken container") });
+    assert.equal(invalid.exitCode, 1);
+    assert.equal(JSON.parse(invalid.stdout).ok, false);
+  } finally { await shell.dispose(); }
+});

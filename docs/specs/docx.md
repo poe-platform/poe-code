@@ -1697,6 +1697,100 @@ compatible paragraph/character types and cannot introduce cycles or multiple
 default styles for a type. No extra fields beyond the five register schemas
 are accepted.
 
+### 6.5.1 Bounded shapes and text-box stories
+
+F36 inventories native shape and group carriers without rendering, flattening or
+converting them. `shapes.list` returns active logical occurrences in selected story
+order. Each record MUST identify its revision-bound `shape` location, native
+representation, shape/group kind, containing group location or null, associated
+text-box story locations, edit support and bounded refusal reasons. The record
+MUST retain physical owner-part identity and all header/footer section references.
+Labels and native IDs are metadata, not unique selectors. A header occurrence or
+stored WordArt/text-path declaration MAY be reported as watermark-like evidence;
+the utility MUST NOT infer visibility, rendered appearance or watermark activation.
+
+Native recognition MUST use expanded names and exact carrier ancestry. The
+bounded carrier vocabulary comprises Word drawing/pict owners; native `wp:wsp`,
+`wp:wgp` and nested `wp:grpSp`; Office 2010 `wps:wsp`, `wpg:wgp` and nested
+`wpg:grpSp`; and VML `shape`, `arc`, `curve`, `line`, `oval`, `polyline`, `rect`,
+`roundrect` and `group`. Native canvas `wp:wpc` is a preserve-only compound owner;
+its native contained shape/group inventory MUST retain that opaque ancestry.
+VML `shapetype` is a definition, not an occurrence; background/image and pictures
+or other graphic payloads remain governed by their own resource contracts. A
+text-box tag beneath an arbitrary foreign wrapper MUST NOT establish native shape
+edit authority. Native Strict and Transitional
+`wp:wsp/wp:txbx/wp:txbxContent` have owner-dialect WML block children. It is distinct from legacy VML
+`v:shape/v:textbox/w:txbxContent` and Office
+`wps:wsp/wps:txbx/w12:txbxContent`, whose body is Transitional WML independently of
+the drawing owner's dialect. The bounded Office/VML editable profile requires a
+Transitional owner and body; a Strict owner with extension or legacy body remains
+preserve-only and MUST reject affected edits without relaxing mixed-dialect guards.
+Office `wne:txbxContent` and simultaneous multiple text-body variants MUST be
+inventoried as opaque text-body evidence, with no admitted associated story
+locations, and MUST reject affected text edits;
+recognition MUST NOT equate them with owner-WML or native Strict `wp` content.
+
+Recognition MUST NOT expand the core-v1 MCE understood-namespace set. Only the
+selected branch contributes logical shape occurrences and story text. Inactive
+alternatives remain physical preservation evidence, not additional active shapes
+or duplicate text. Equal text, labels or default IDs MUST NOT be used to merge
+independent objects or assert equivalence across alternatives. Nested groups and
+boxes MUST retain their hierarchy; text-box stories use recursive owning-story XML
+order and visited-node guards. Native content in either dialect MUST NOT leak its
+paragraphs into the enclosing body/header story. Historical read-only text-box discovery
+outside admitted shape carriers conveys no editing permission.
+
+A shape carrier location belongs to its enclosing story; its associated text-box
+story is a separate owner. `shapes.list --scope text-boxes` selects shapes nested
+inside those stories, not the outer carriers whose text boxes define them. Scope
+MUST NOT silently expand to outer owners or change ordinal ownership.
+
+A shape ordinal is positive, one-based and resets within each resolved story or
+selected owner. Valid shape owner chains are section/story, table/cell and
+paragraph/run followed by shape; unrelated image/link/control/revision/field/
+bookmark selectors are inapplicable to shape operations. `shapes.list` allows no
+selector and lists the matching occurrences; `shapes.set` requires an explicit
+shape/token or `all`. A shape token carries the common fingerprint/path guards
+and MUST NOT be an image token or text-range token. Missing selector intent is a
+usage failure; ambiguous shape ordinal across stories is ambiguous-selection.
+Text operations MAY select an admitted shape as the owner of its unique text-box
+story; a shape without one unambiguous text body fails missing-selection or
+unsupported-edit as appropriate. `all` never grants unsupported edit authority.
+
+`shapes.set --text` explicitly replaces the whole text of one admitted simple
+text-box body. The bounded setter profile requires one direct WML paragraph with
+plain runs and supported paragraph/run properties, with no fields, hyperlinks,
+controls, annotation/permission ranges, note markers, review markup, tables,
+nested boxes, foreign content or other compound payload. It MUST preserve the
+paragraph's properties and required empty paragraph, while intentionally replacing
+its runs and their formatting. Tabs and line breaks use the existing plain-text
+assignment semantics; empty text clears the runs without deleting the paragraph.
+This setter is distinct from preserving literal `text.replace`, which retains
+unaffected runs and uses the existing bounded matching/cardinality semantics.
+
+Supported existing text/paragraph/run operations within a box MUST reuse the
+same admitted story and bounded editors. Every affected box edit, including edits
+selected through text-box scope, paragraph/run tokens or another ancestor, MUST
+validate native carrier authority before publication. Group-contained boxes,
+nested boxes and their affected containing boxes, linked text flows, multiple-body
+carriers and opaque/unsupported text-body variants MUST reject affected edits with
+unsupported-edit while retaining read inventory and safe unrelated edits. Native
+linked-flow evidence MUST be censused owner-locally, including inactive and opaque
+candidates when resolving affected flow; repeated independent default IDs alone
+MUST NOT be treated as a linked flow. A selected physical header/footer box with
+multiple section references MUST fail ambiguous-selection rather than silently
+mutating every reference. F36 introduces no implicit shared edit or geometry flag.
+
+Admitted text edits MUST preserve shape geometry, group membership, transforms,
+wrapping, anchoring, drawing properties, owner-local relationships and inactive
+alternate bytes. No affected geometry/compound edit, renderer, conversion or
+network acquisition is implied. Refusals MUST occur before output publication and
+leave input/preexisting destinations unchanged. Tests MUST independently cover
+native Strict, Office and VML carriers; groups/nested bodies; foreign wrappers;
+linked/opaque/multiple bodies; active fallback deduplication; shared headers;
+setter versus preserving replacement; and exact unaffected geometry/alternate
+retention through public CLI, typed operations and the SDK.
+
 ### 6.6 Closed JSON input types
 
 These are documentary type declarations for schema generation, not product code.

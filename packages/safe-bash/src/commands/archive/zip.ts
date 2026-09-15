@@ -20,6 +20,7 @@ interface ZipOptions {
   readonly omitDirectories: boolean;
   readonly storeLinks: boolean;
   readonly test: boolean;
+  readonly descriptors: boolean;
   readonly zip64: boolean | undefined;
   readonly metadata: "default" | "strip" | "all";
   readonly includes: readonly string[];
@@ -60,6 +61,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
   let omitDirectories = false;
   let storeLinks = false;
   let test = false;
+  let descriptors = false;
   let zip64: boolean | undefined;
   let metadata: ZipOptions["metadata"] = "default";
   let level = 6;
@@ -82,6 +84,11 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
       for (let offset = 1; offset < argument.length; offset++) {
         const flag = argument[offset];
         if (flag === "r") recursive = true;
+        else if (flag === "f" && argument[offset + 1] === "d") {
+          if (argument[offset + 2] === "-") throw new ZipFailure(16, "Invalid command arguments", "option fd is not negatable");
+          descriptors = true;
+          offset++;
+        }
         else if (flag === "f" && argument[offset + 1] === "z") {
           zip64 = argument[offset + 2] !== "-";
           offset += zip64 ? 1 : 2;
@@ -186,7 +193,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
       start = end + 1;
     }
   }
-  return { action, archive, recursive, quiet, junkPaths, omitDirectories, storeLinks, test, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
+  return { action, archive, recursive, quiet, junkPaths, omitDirectories, storeLinks, test, descriptors, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
 }
 
 function memberName(path: string, limits: ArchiveLimits): string {
@@ -273,7 +280,8 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     const store = parsed.method === "store" || parsed.level !== 9 && parsed.suffixes.some(suffix => name.endsWith(suffix));
     if (!store && parsed.level === 0 && bytes.length && !attributes.directory && !attributes.symlink) throw new ZipFailure(5, "Internal logic error", "bad pack level");
     const level = store ? 0 : parsed.level;
-    let entry = await makeZipEntry(name, bytes, attributes, limits, context.signal, level, parsed.archive === "-" && !store);
+    let entry = await makeZipEntry(name, bytes, attributes, limits, context.signal, level, !store && (parsed.archive === "-" || parsed.descriptors && bytes.length > 0));
+    if (parsed.descriptors) entry.descriptors = true;
     if (parsed.zip64 === true || parsed.zip64 === undefined && source === "-") entry.zip64 = true;
     const prior = old.get(name);
     if (prior?.comment) entry = { ...entry, comment: prior.comment };

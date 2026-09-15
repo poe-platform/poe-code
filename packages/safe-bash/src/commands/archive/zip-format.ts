@@ -15,6 +15,7 @@ export interface ZipEntry {
   directory: boolean;
   symlink: boolean;
   zip64?: boolean;
+  descriptors?: boolean;
   rawName?: Uint8Array;
   localName?: Uint8Array;
   comment?: Uint8Array;
@@ -434,7 +435,7 @@ export async function* streamZipArchive(archive: ZipArchive, limits: ArchiveLimi
     total += entry.size;
     number(total, limits.maxTotalBytes, "total byte");
     const rawName = entry.rawName ?? pathBytes(entry.name, limits);
-    const descriptor = descriptors && !entry.directory;
+    const descriptor = (descriptors || entry.descriptors === true) && !entry.directory;
     const flags = ((entry.flags ?? 0x800) & ~8) | (descriptor ? 8 : 0);
     const comment = entry.comment ?? new Uint8Array();
     number(comment.length, Math.min(limits.maxTextBytes, 65535), "entry comment");

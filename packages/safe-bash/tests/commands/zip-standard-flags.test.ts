@@ -362,7 +362,7 @@ test("zip update skips unchanged payload reads and freshen does not create missi
   await assert.rejects(fs.stat("/work/missing.zip"), { code: "ENOENT" });
 });
 
-for (const flags of ["-uf", "-du", "-fd"]) {
+for (const flags of ["-uf", "-du", "-df"]) {
   test(`zip ${flags} rejects conflicting actions`, async () => {
     const result = await execute("zip", await fixture(), [flags, "sample.zip", "binary"]);
     assert.equal(result.exitCode, 16);
@@ -1089,3 +1089,61 @@ for (const destination of ["new.zip", "-"]) {
     assert.equal(entry.centralExtra!.length, 28);
   });
 }
+
+for (const option of ["-fd", "--force-descriptors"]) {
+  test(`zip ${option} writes verifiable file descriptors and forces nonempty deflate`, async () => {
+    const fs = await fixture();
+    await fs.writeFile("/work/tiny", Buffer.from("a"));
+    await fs.writeFile("/work/empty", Buffer.alloc(0));
+    const result = await execute("zip", fs, ["-q", option, "descriptors.zip", "tiny", "empty", "folder"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const archive = await readZipArchive(await fs.readFile("/work/descriptors.zip"), settings({}), new AbortController().signal);
+    assert.deepEqual(archive.entries.map(entry => [entry.name, entry.flags! & 8, entry.method]), [["tiny", 8, 8], ["empty", 8, 0], ["folder/", 0, 0]]);
+    assert.deepEqual((await execute("unzip", fs, ["-p", "descriptors.zip", "tiny"])).stdout, Buffer.from("a"));
+  });
+}
+for (const options of [["-fd", "-0"], ["-0fd"], ["-fd", "-Zstore"], ["-fd", "-nbin"]]) {
+  test(`zip descriptor storage selection ${options.join(" ")}`, async () => {
+    const fs = await fixture();
+    const result = await execute("zip", fs, ["-q", ...options, "descriptors.zip", "binary"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const archive = await readZipArchive(await fs.readFile("/work/descriptors.zip"), settings({}), new AbortController().signal);
+    assert.equal(archive.entries[0]!.flags! & 8, 8);
+    // The suffix 'bin' does not match 'binary'; forced DEFLATE should survive expansion.
+    assert.equal(archive.entries[0]!.method, options.includes("-nbin") ? 8 : 0);
+  });
+}
+test("zip forced descriptors support ZIP64, integrity testing and binary stdin", async () => {
+  const fs = await fixture();
+  const result = await execute("zip", fs, ["-qfdXfzT", "descriptors.zip", "-"], {}, { stdin: toByteSource(binary) });
+  assert.equal(result.exitCode, 0, result.stderr);
+  const bytes = await fs.readFile("/work/descriptors.zip");
+  const archive = await readZipArchive(bytes, settings({}), new AbortController().signal);
+  assert.equal(archive.entries[0]!.flags! & 8, 8);
+  assert.equal(Buffer.from(bytes).readUInt16LE(4), 45);
+  assert.deepEqual((await execute("unzip", fs, ["-p", "descriptors.zip"])).stdout, binary);
+});
+for (const option of ["-fd-", "--force-descriptors-"]) {
+  test(`zip rejects nonnegatable descriptor switch ${option}`, async () => {
+    const result = await execute("zip", await fixture(), ["-q", option, "descriptors.zip", "binary"]);
+    assert.equal(result.exitCode, 16);
+  });
+}
+
+test("zip -fd updates preserve descriptor absence on untouched members", async () => {
+  const fs = await fixture();
+  const result = await execute("zip", fs, ["-qfd", "sample.zip", "binary"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  const archive = await readZipArchive(await fs.readFile("/work/sample.zip"), settings({}), new AbortController().signal);
+  assert.equal(archive.entries.find(entry => entry.name === "binary")!.flags! & 8, 8);
+  assert.equal(archive.entries.find(entry => entry.name === "folder/data")!.flags! & 8, 0);
+});
+
+test("zip updates normalize existing descriptors on untouched members", async () => {
+  const fs = await fixture(await archiveBytes(members, entries => { for (const entry of entries) entry.descriptors = true; }));
+  const result = await execute("zip", fs, ["-q", "sample.zip", "binary"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  const archive = await readZipArchive(await fs.readFile("/work/sample.zip"), settings({}), new AbortController().signal);
+  assert.equal(archive.entries.find(entry => entry.name === "binary")!.flags! & 8, 0);
+  assert.equal(archive.entries.find(entry => entry.name === "folder/data")!.flags! & 8, 0);
+});

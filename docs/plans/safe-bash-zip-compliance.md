@@ -246,3 +246,20 @@ ordering, regenerated timestamp uniqueness, extra budgets, odd-second DOS time,
 file/stdout ZIP64 essentials and switch ordering. Scoped ESLint passed. Native
 UnZip and Python verify exact payload and only the essential ZIP64 central tag
 in actual stripped stdout output. Remaining option and format areas stay open.
+
+## Forced descriptors and update preservation
+
+Native Zip confirms -fd/--force-descriptors is one nonnegatable option, not
+freshen plus delete. It forces DEFLATE for nonempty regular files, keeps empty
+files stored, omits directory descriptors and respects storage selection.
+Forcing descriptors applies only to rewritten members; untouched members
+do not receive forced descriptors. Native updates normalize existing copied
+descriptors to ordinary headers; kept that reader/writer behavior and added
+per-entry forced selection. Invalid native forced-ZIP64 variants are not reproduced;
+output retains valid end records and locators.
+441 focused ZIP/unzip tests pass, covering aliases, nonnegation, tiny/empty/dir
+members, storage precedence, ZIP64+stdin+integrity+stripping and untouched
+normalization. Scoped lint passed. Native UnZip integrity and Python exact
+payload/descriptor/DEFLATE checks pass for actual one-byte file output.
+The X metadata release (35009959837) succeeded; remaining compliance work is
+still active.

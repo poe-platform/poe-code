@@ -218,6 +218,13 @@ from rewritten members and regenerates their timestamps. Repeated switches use
 the last value. Without extended timestamps, modification time is represented
 at DOS two-second resolution.
 
+`-fd` / `--force-descriptors` uses signed data descriptors for added or rewritten
+files. Nonempty regular files retain DEFLATE even when compression expands
+them; storage selection still applies. Empty files stay stored and directories
+omit descriptors. The option is not negatable. Untouched members do not receive forced descriptors; existing descriptors
+are normalized to ordinary file headers during archive updates. Forced ZIP64 descriptors use 64-bit
+sizes and valid ZIP64 end records.
+
 ## Supported format and safety
 
 The bounded format profile supports ordinary single-disk ZIP records with stored

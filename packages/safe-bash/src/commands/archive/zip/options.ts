@@ -8,7 +8,7 @@ const longOptions: Readonly<Record<string, string>> = {
   delete: "d", include: "i", exclude: "x", suffixes: "n", store: "0", "compression-method": "Z",
   "compress-1": "1", "compress-2": "2", "compress-3": "3", "compress-4": "4",
   "compress-5": "5", "compress-6": "6", "compress-7": "7", "compress-8": "8",
-  "compress-9": "9", "force-zip64": "fz", "strip-extra": "X",
+  "compress-9": "9", "force-zip64": "fz", "strip-extra": "X", "force-descriptors": "fd",
 };
 
 // Include unimplemented Unix options when resolving abbreviations: a partial
@@ -17,7 +17,7 @@ const reservedOptions = [
   "adjust-sfx", "temp-path", "entry-comments", "display-bytes", "display-counts",
   "display-dots", "display-globaldots", "dot-size", "display-usize", "display-volume",
   "difference-archive", "encrypt", "fix", "fixfix", "fifo", "filesync",
-  "force-descriptors", "grow", "help", "more-help", "junk-sfx",
+  "grow", "help", "more-help", "junk-sfx",
   "DOS-names", "to-crlf", "from-crlf", "logfile-path", "log-append", "log-info",
   "license", "move", "must-match", "no-wild", "latest-time", "output-file",
   "paths", "password", "recurse-patterns", "regex", "split-size", "split-pause",

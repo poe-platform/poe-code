@@ -437,6 +437,7 @@ async function inventory(
   for (const part of graph.parts)
     if (
       !inventoried.has(part.partname) &&
+      !part.content_type.toLowerCase().endsWith("relationships+xml") &&
       (part.content_type.toLowerCase().includes("oleobject") ||
         part.partname.toLowerCase().startsWith("/word/embeddings/"))
     )

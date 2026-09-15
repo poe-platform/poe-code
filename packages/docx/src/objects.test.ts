@@ -11,6 +11,14 @@ import { validateDocxInvocation } from "./command.js";
 const oleMime = "application/vnd.openxmlformats-officedocument.oleObject";
 const payload = Uint8Array.of(208, 207, 17, 224, 161, 177, 26, 225, 0, 255, 5);
 const preview = Uint8Array.of(137, 80, 78, 71, 13, 10, 26, 10, 255);
+it("keeps embedded relationship parts out of the object candidate inventory", async () => {
+  const input = await chartFixture({ definitions: [], body: paragraph("Retained"), resources: [
+    { name: "word/embeddings/item.bin", type: oleMime, bytes: payload },
+    { name: "word/embeddings/_rels/item.bin.rels", type: "application/vnd.openxmlformats-package.relationships+xml", bytes: new TextEncoder().encode('<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"/>') }
+  ] });
+  const result = await inspectDocumentObjects(input, {}, chartContext);
+  expect(result.items.map(item => item.name)).toEqual(["/word/embeddings/item.bin"]);
+});
 const carrier = (id: string, shape: string, image = "preview") =>
   `<w:p><w:r><w:object xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:v="urn:schemas-microsoft-com:vml"><v:shape id="${shape}"><v:imagedata r:id="${image}"/></v:shape><o:OLEObject Type="Embed" ShapeID="${shape}" r:id="${id}"/></w:object></w:r></w:p>`;
 async function fixture(

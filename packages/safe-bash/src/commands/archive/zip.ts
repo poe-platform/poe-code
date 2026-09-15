@@ -400,6 +400,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
       if (previous || !await filterName(name, selection, parsed.includes.length)) return;
       const prior = old.get(name);
       const modified = new Date();
+      if (parsed.entryComments && prior) commentNames.add(name);
       if (!zipDateMatches(modified, parsed.fromDate, parsed.beforeDate)) return;
       if (parsed.filesync) {
         if (synchronized.has(name) && synchronized.get(name) !== source) throw new ZipFailure(16, "Invalid command arguments", "cannot repeat names in zip file");
@@ -449,11 +450,13 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     if ((existing || publication?.existing) && !hasIdentity(stat)) fail("cannot exclude archive aliases when source backing identity is unknown");
     const directory = stat.type === "directory";
     if (directory && name && !name.endsWith("/")) name += "/";
-    const included = zipDateMatches(new Date(stat.mtimeMs), parsed.fromDate, parsed.beforeDate) && await filterName(name, selection, parsed.includes.length) && (!recursiveSelection || await recursiveSelection.matches(name, true));
+    const dateIncluded = zipDateMatches(new Date(stat.mtimeMs), parsed.fromDate, parsed.beforeDate);
+    const nameIncluded = (dateIncluded || parsed.entryComments) && await filterName(name, selection, parsed.includes.length) && (!recursiveSelection || await recursiveSelection.matches(name, true));
+    const included = dateIncluded && nameIncluded;
     const sourceName = name;
     if (parsed.junkPaths) name = directory ? "" : name.slice(name.lastIndexOf("/") + 1);
     const prior = old.get(name);
-    if (parsed.entryComments && prior && included && !(directory && parsed.omitDirectories)) commentNames.add(name);
+    if (parsed.entryComments && prior && nameIncluded) commentNames.add(name);
     if (parsed.filesync && name && included && !(directory && parsed.omitDirectories)) {
       if (synchronized.has(name) && synchronized.get(name) !== source) throw new ZipFailure(16, "Invalid command arguments", "cannot repeat names in zip file");
       synchronized.set(name, source);

@@ -352,3 +352,19 @@ unreadable inspection/iteration, archive-only patterns and junk-path fallback.
 Independent native/actual virtual commands agree on status 18 and unchanged
 input bytes after a missing-name failure. Release 35014811868 remains live;
 remaining grammar, metadata, streaming and format work stays active.
+
+## File synchronization
+
+Native Unix Zip captures and public Info-ZIP zip.c current/mark logic establish
+FS/filesync replaces members when DOS time or size differs (including older
+sources), deletes all entries outside the selected source set, and skips reading
+current source payloads. A wholly current archive succeeds without publication;
+empty source selection returns 12 without deleting anything. Different archive
+actions are incompatible. Added bounded selected-name tracking and reused owned
+publication, member copying and normal traversal. Eighteen memory cases cover
+aliases, current/quiet status, older and size-only replacements, empty/missing
+and excluded operands, action conflicts, separate output, no current-source reads,
+recursive omitted directories, flattened collisions, resource rejection and
+DOS two-second boundaries. Manual native captures were isolated from unit tests.
+Reference: https://github.com/LuaDist/zip/blob/master/zip.c
+Remaining line conversion, comments, formats, streaming and grammar stay open.

@@ -28,6 +28,7 @@ interface ZipOptions {
   readonly storeLinks: boolean;
   readonly test: boolean;
   readonly mustMatch: boolean;
+  readonly filesync: boolean;
   readonly fromDate: number | undefined;
   readonly beforeDate: number | undefined;
   readonly descriptors: boolean;
@@ -77,6 +78,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
   let storeLinks = false;
   let test = false;
   let mustMatch = false;
+  let filesync = false;
   let fromDate: number | undefined;
   let beforeDate: number | undefined;
   let descriptors = false;
@@ -129,6 +131,11 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
         else if (flag === "M" && argument[offset + 1] === "M") {
           if (argument[offset + 2] === "-") throw new ZipFailure(16, "Invalid command arguments", "option MM is not negatable");
           mustMatch = true;
+          offset++;
+        }
+        else if (flag === "F" && argument[offset + 1] === "S") {
+          if (argument[offset + 2] === "-") throw new ZipFailure(16, "Invalid command arguments", "option FS is not negatable");
+          filesync = true;
           offset++;
         }
         else if (flag === "q") quiet = true;
@@ -252,7 +259,8 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
     }
   }
   if (recursivePatterns && !names.length && !operands.length) throw new ZipFailure(16, "Invalid command arguments", "nothing to select from");
-  return { args, action, archive, output, recursive, recursivePatterns, noWild, stopAtDirectories, quiet, junkPaths, omitDirectories, storeLinks, test, mustMatch, fromDate, beforeDate, descriptors, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
+  if (filesync && action !== "add") throw new ZipFailure(16, "Invalid command arguments", "can't use -d, -f, -u, -U, or -g with filesync -FS\n");
+  return { args, action, archive, output, recursive, recursivePatterns, noWild, stopAtDirectories, quiet, junkPaths, omitDirectories, storeLinks, test, mustMatch, filesync, fromDate, beforeDate, descriptors, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
 }
 
 function memberName(path: string, limits: ArchiveLimits): string {
@@ -349,6 +357,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   if (!archive.entries.length && !parsed.quiet && (parsed.action === "update" || parsed.action === "freshen")) await budget.output(`\tzip warning: ${parsed.archive} not found or empty\n`);
   const selected = new Map<string, { entry: ZipEntry; source: string }>();
   const deleted = new Set<string>();
+  const synchronized = new Map<string, string>();
   const selection = new Selection([...parsed.includes, ...parsed.excludes], limits, context.signal, { noWild: parsed.noWild, stopAtDirectories: parsed.stopAtDirectories });
   const recursiveSelection = parsed.recursivePatterns ? new Selection(parsed.operands, limits, context.signal, { noWild: parsed.noWild, stopAtDirectories: parsed.stopAtDirectories, trailingComponents: true }) : undefined;
   let archiveOperandMatches: Set<string> | undefined;
@@ -383,6 +392,10 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
       const prior = old.get(name);
       const modified = new Date();
       if (!zipDateMatches(modified, parsed.fromDate, parsed.beforeDate)) return;
+      if (parsed.filesync) {
+        if (synchronized.has(name) && synchronized.get(name) !== source) throw new ZipFailure(16, "Invalid command arguments", "cannot repeat names in zip file");
+        synchronized.set(name, source);
+      }
       if (parsed.action === "freshen" && !prior || prior && (parsed.action === "update" || parsed.action === "freshen") && Math.floor(modified.getTime() / 1000) <= Math.floor(prior.modified.getTime() / 1000)) return;
       const bytes = await collectBytes(scope.stdin, { maxBytes: Math.min(limits.maxEntryBytes, limits.maxTotalBytes - budget.totalBytes), signal: context.signal });
       await budget.member(bytes.length);
@@ -430,9 +443,15 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     const sourceName = name;
     if (parsed.junkPaths) name = directory ? "" : name.slice(name.lastIndexOf("/") + 1);
     const prior = old.get(name);
+    if (parsed.filesync && name && included && !(directory && parsed.omitDirectories)) {
+      if (synchronized.has(name) && synchronized.get(name) !== source) throw new ZipFailure(16, "Invalid command arguments", "cannot repeat names in zip file");
+      synchronized.set(name, source);
+    }
+    const current = parsed.filesync && prior && prior.size === (directory ? 0 : stat.size)
+      && Math.ceil(Math.floor(stat.mtimeMs / 1000) / 2) === Math.ceil(Math.floor(prior.modified.getTime() / 1000) / 2);
     const eligible = parsed.action !== "update" && parsed.action !== "freshen"
       || (prior ? Math.floor(stat.mtimeMs / 1000) > Math.floor(prior.modified.getTime() / 1000) : parsed.action === "update");
-    if (name && included && eligible && !(directory && parsed.omitDirectories)) {
+    if (name && included && eligible && !current && !(directory && parsed.omitDirectories)) {
       checkPath(name, limits);
       const previous = selected.get(name);
       if (previous && previous.source !== source) {
@@ -508,6 +527,14 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     if (parsed.recursivePatterns) await visit(".", "", 0);
     else for (const operand of operands) await visit(operand, memberName(operand, limits), 0);
   }
+  if (parsed.filesync) {
+    if (!synchronized.size) throw new ZipFailure(12, "Nothing to do!", parsed.archive);
+    for (const entry of archive.entries) if (!synchronized.has(entry.name)) deleted.add(entry.name);
+    if (!selected.size && !deleted.size) {
+      if (!parsed.quiet) await budget.output("Archive is current\n");
+      return { kind: "current" as const };
+    }
+  }
   if (!selected.size && (parsed.action === "freshen" || parsed.action === "update" && (existing || !parsed.includes.length))) return undefined;
   if (!selected.size && !deleted.size && (parsed.action === "delete" || parsed.action === "copy" || parsed.recursivePatterns || parsed.fromDate !== undefined || parsed.beforeDate !== undefined || !parsed.includes.length)) {
     const detail = parsed.action !== "delete" && parsed.recursive && parsed.firstOperand >= 0
@@ -582,6 +609,7 @@ export function createZipCommand(options: ArchiveCommandsOptions = {}): CommandD
       if (parsed.archive === "-") budget = new Budget({ ...context, stdout: context.stderr }, limits);
       const prepared = await prepare(scope, parsed, budget);
       if (!prepared) return { exitCode: 12 };
+      if (prepared.kind === "current") return { exitCode: 0 };
       if (prepared.kind === "file") {
         const publication = prepared.publication;
         if (!publication) fail("ZIP missing file publication");

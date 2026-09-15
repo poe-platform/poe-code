@@ -90,6 +90,15 @@ without the fatal `Nothing to do!` diagnostic or archive publication. Freshening
 does not create a missing archive. Different action flags (`-u`, `-f`, `-d`) cannot
 be combined; repeated instances of the same action are accepted.
 
+`-FS` / `--filesync` makes the archive match the selected source set: members
+outside that set are deleted, new files are added, and existing members are
+replaced when their DOS two-second modification time or size differs, including
+older source files. Current payloads are copied without reading source data.
+An entirely current archive returns 0 without publication and prints `Archive is
+current` unless quiet. Empty source selection returns 12 and preserves the archive.
+Filesync cannot be combined with update, freshen, delete or copy actions. Separate
+output, recursion, filters and omitted directory entries apply to synchronization.
+
 `zip -d ARCHIVE PATTERNS...` deletes matching archive members without looking for
 their source files. Inclusion and exclusion lists apply to those archive paths.
 Unmatched operand patterns warn unless quiet; no selected members returns status

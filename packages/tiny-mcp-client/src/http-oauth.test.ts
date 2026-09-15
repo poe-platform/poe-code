@@ -163,11 +163,11 @@ describe("discoverOAuthMetadata", () => {
     );
   });
 
-  it("normalizes a trailing slash on the authorization server issuer before RFC 8414 lookup", async () => {
+  it("preserves a trailing slash on the authorization server issuer during RFC 8414 lookup", async () => {
     const resourceUrl = "https://resource.example.com/tenant/mcp";
-    const normalizedAuthorizationServer = "https://auth.example.com/issuer-a";
+    const authorizationServer = "https://auth.example.com/issuer-a/";
     const authorizationServerMetadataUrl =
-      "https://auth.example.com/.well-known/oauth-authorization-server/issuer-a";
+      "https://auth.example.com/.well-known/oauth-authorization-server/issuer-a/";
 
     const fetchMock = vi.fn(async (input: string | URL): Promise<Response> => {
       const url = input.toString();
@@ -175,15 +175,15 @@ describe("discoverOAuthMetadata", () => {
       if (url.includes("oauth-protected-resource")) {
         return jsonResponse({
           resource: resourceUrl,
-          authorization_servers: [`${normalizedAuthorizationServer}/`]
+          authorization_servers: [authorizationServer]
         });
       }
 
       if (url === authorizationServerMetadataUrl) {
         return jsonResponse({
-          issuer: normalizedAuthorizationServer,
-          authorization_endpoint: `${normalizedAuthorizationServer}/authorize`,
-          token_endpoint: `${normalizedAuthorizationServer}/token`,
+          issuer: authorizationServer,
+          authorization_endpoint: `${authorizationServer}authorize`,
+          token_endpoint: `${authorizationServer}token`,
           response_types_supported: ["code"],
           code_challenge_methods_supported: ["S256"]
         });
@@ -194,7 +194,7 @@ describe("discoverOAuthMetadata", () => {
 
     const discovery = await discoverOAuthMetadata(resourceUrl, { fetch: fetchMock });
 
-    expect(discovery.authorizationServer).toBe(normalizedAuthorizationServer);
+    expect(discovery.authorizationServer).toBe(authorizationServer);
     expect(discovery.authorizationServerMetadataUrl).toBe(authorizationServerMetadataUrl);
     expect(fetchMock.mock.calls.map(([input]) => input.toString())).toEqual([
       "https://resource.example.com/.well-known/oauth-protected-resource/tenant/mcp",
@@ -530,7 +530,7 @@ describe("resolveAuthorizationServerMetadataUrl", () => {
       "https://auth.example.com/.well-known/oauth-authorization-server"
     );
     expect(resolveAuthorizationServerMetadataUrl("https://auth.example.com/issuer-a/")).toBe(
-      "https://auth.example.com/.well-known/oauth-authorization-server/issuer-a"
+      "https://auth.example.com/.well-known/oauth-authorization-server/issuer-a/"
     );
   });
 });

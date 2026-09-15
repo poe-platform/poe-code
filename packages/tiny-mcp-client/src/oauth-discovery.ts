@@ -194,7 +194,7 @@ export function resolveProtectedResourceMetadataUrl(
   return resolvedResourceMetadataUrl.toString();
 }
 
-function normalizeAuthorizationServerIssuer(issuer: string | URL): string {
+function validateAuthorizationServerIssuer(issuer: string | URL): string {
   const input = typeof issuer === "string" ? issuer : issuer.toString();
   const url = new URL(input);
   if (url.search.length > 0 || url.hash.length > 0) {
@@ -203,16 +203,12 @@ function normalizeAuthorizationServerIssuer(issuer: string | URL): string {
 
   assertSecureUrl(url, "Authorization server issuer");
 
-  if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
-    url.pathname = url.pathname.slice(0, -1);
-  }
-
-  return url.pathname === "/" ? url.origin : url.toString();
+  return input;
 }
 
 export function resolveAuthorizationServerMetadataUrl(issuer: string | URL): string {
   return resolveWellKnownMetadataUrl(
-    normalizeAuthorizationServerIssuer(issuer),
+    validateAuthorizationServerIssuer(issuer),
     "oauth-authorization-server"
   );
 }
@@ -298,7 +294,7 @@ export class OAuthMetadataDiscovery {
     const authorizationServerErrors: string[] = [];
 
     for (const authorizationServer of resourceMetadata.authorization_servers) {
-      const normalizedAuthorizationServer = normalizeAuthorizationServerIssuer(authorizationServer);
+      const normalizedAuthorizationServer = validateAuthorizationServerIssuer(authorizationServer);
       const metadataLocations = authorizationServerMetadataLocations(normalizedAuthorizationServer);
 
       for (const authorizationServerMetadataUrl of metadataLocations) {

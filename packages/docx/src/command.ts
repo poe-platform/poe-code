@@ -164,7 +164,13 @@ export function parseDocxArguments(args: readonly Uint8Array[], budget = new Doc
     if (words[count]?.startsWith("-")) break;
   }
   if (words[0] === "text" && consumed === 0) { operation = "text.get"; consumed = 1; }
-  if (!operation) usage("Unknown document command path.");
+  if (!operation) {
+    const replacement = new Map([
+      ["image", "images"], ["table", "tables"],
+      ["metadata", "properties"], ["replace", "text replace"]
+    ]).get(words[0]!);
+    usage(replacement ? `Unknown document command path. Use docx ${replacement}; see docx help for commands.` : "Unknown document command path. Use docx help to discover commands.");
+  }
   const schema = schemaFor(operation);
   const fields = optionFields(schema, true);
   const names = new Map(Object.keys(fields).map(key => ["--" + kebab(key), key]));

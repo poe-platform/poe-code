@@ -1,6 +1,40 @@
 import { expect, it, vi } from "vitest";
 import { readBoundedResponseText } from "./http-response.js";
 
+it.each(["pre-aborted", "declared size", "stream size", "UTF-8", "mid-read abort"])(
+  "settles %s failure without awaiting stalled body cancellation", async (mode) => {
+    let finishCancellation!: () => void;
+    const cancellation = new Promise<void>((resolve) => { finishCancellation = resolve; });
+    const cancel = vi.fn(() => cancellation);
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        if (mode === "stream size") controller.enqueue(new Uint8Array(9));
+        if (mode === "UTF-8") controller.enqueue(new Uint8Array([0xff]));
+      },
+      cancel
+    });
+    const response = new Response(body, mode === "declared size"
+      ? { headers: { "Content-Length": "9" } } : {});
+    const controller = new AbortController();
+    if (mode === "pre-aborted") controller.abort(new Error("cancelled"));
+    const readers = new Set<ReadableStreamDefaultReader<Uint8Array>>();
+    let failure: unknown;
+    const operation = readBoundedResponseText(response, 8, readers, controller.signal)
+      .catch((error) => { failure = error; });
+    if (mode === "mid-read abort") controller.abort(new Error("cancelled"));
+    try {
+      await new Promise((resolve) => setImmediate(resolve));
+      expect(cancel).toHaveBeenCalledOnce();
+      expect(failure).toBeInstanceOf(Error);
+      expect(readers.size).toBe(0);
+      expect(body.locked).toBe(false);
+    } finally {
+      finishCancellation();
+      await operation;
+    }
+  }
+);
+
 it("counts UTF-8 bytes across chunks and cancels an oversized open body", async () => {
   const cancel = vi.fn();
   const bytes = new TextEncoder().encode("😃");

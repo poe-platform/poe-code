@@ -102,3 +102,45 @@ describe("OAuth authorization-server credential binding", () => {
     }
   );
 });
+
+it.each(["http://127.attacker.example", "http://127.0.0.1.attacker.example"])(
+  "rejects OAuth flow endpoints on HTTP DNS hosts resembling loopback: %s", async (issuer) => {
+    const openBrowser = vi.fn(async () => { throw new Error("browser reached"); });
+    const provider = createDefaultOAuthClientProvider({
+      client: { mode: "static", clientId: "client" }, browser: { openBrowser },
+      sessionStore: { load: async () => null, save: async () => {}, clear: async () => {} }
+    });
+    const result = await provider.handleUnauthorized({ requestUrl: new URL(resource),
+      response: new Response(null, { status: 401 }), challenge: null,
+      discovery: discovery(issuer), fetch: vi.fn() });
+    expect(result).toMatchObject({ action: "fail", error: { message: expect.stringContaining("https") } });
+    expect(openBrowser).not.toHaveBeenCalled();
+  }
+);
+
+it("allows IPv6 loopback OAuth flow endpoints", async () => {
+  const openBrowser = vi.fn(async () => { throw new Error("browser reached"); });
+  const provider = createDefaultOAuthClientProvider({
+    client: { mode: "static", clientId: "client" }, browser: { openBrowser },
+      sessionStore: { load: async () => null, save: async () => {}, clear: async () => {} }
+  });
+  const result = await provider.handleUnauthorized({ requestUrl: new URL(resource),
+    response: new Response(null, { status: 401 }), challenge: null,
+    discovery: discovery("http://[::1]"), fetch: vi.fn() });
+  expect(result).toMatchObject({ action: "fail", error: { message: "browser reached" } });
+  expect(openBrowser).toHaveBeenCalledOnce();
+});
+
+it.each(["https://user:secret@auth.example", "https://auth.example/authorize#fragment"])(
+  "rejects credentials or fragments in OAuth authorization endpoints: %s", async (endpoint) => {
+    const openBrowser = vi.fn(async () => { throw new Error("browser reached"); });
+    const provider = createDefaultOAuthClientProvider({ client: { mode: "static", clientId: "client" },
+      browser: { openBrowser }, sessionStore: { load: async () => null, save: async () => {}, clear: async () => {} } });
+    const metadata = discovery("https://auth.example");
+    metadata.authorizationServerMetadata.authorization_endpoint = endpoint;
+    const result = await provider.handleUnauthorized({ requestUrl: new URL(resource), response: new Response(null, { status: 401 }),
+      challenge: null, discovery: metadata, fetch: vi.fn() });
+    expect(result).toMatchObject({ action: "fail", error: { message: expect.stringContaining("credentials or fragment") } });
+    expect(openBrowser).not.toHaveBeenCalled();
+  }
+);

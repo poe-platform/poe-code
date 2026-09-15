@@ -1,3 +1,5 @@
+import { readBoundedResponseText } from "../http-response.js";
+import { fetchMcpResponse } from "../http-fetch.js";
 import {
   decodeProtectedHeader,
   errors,
@@ -257,18 +259,20 @@ async function loadJwks(
   timeoutMs: number
 ): Promise<JSONWebKeySet> {
   try {
-    const response = await fetchImplementation(jwksUrl, {
+    const signal = AbortSignal.timeout(timeoutMs);
+    const response = await fetchMcpResponse(fetchImplementation, jwksUrl, {
       headers: {
         Accept: "application/json"
       },
-      signal: AbortSignal.timeout(timeoutMs)
+      signal
     });
 
     if (!response.ok) {
+      await response.body?.cancel().catch(() => undefined);
       throw createTemporarilyUnavailableError();
     }
 
-    const payload = (await response.json()) as unknown;
+    const payload: unknown = JSON.parse(await readBoundedResponseText(response, 1024 * 1024, undefined, signal));
     const keys = isObjectRecord(payload) ? getOwnEntry(payload, "keys") : undefined;
     if (!isObjectRecord(payload) || !Array.isArray(keys) || !keys.every(isObjectRecord)) {
       throw createTemporarilyUnavailableError();
@@ -417,6 +421,9 @@ function isLoopbackHostname(hostname: string): boolean {
 
 export function createJwksTokenVerifier(options: JwksTokenVerifierOptions): JwksTokenVerifier {
   const jwksUrl = toUrl(options.jwksUrl, "jwksUrl");
+  if ((jwksUrl.protocol !== "http:" && jwksUrl.protocol !== "https:") || jwksUrl.username !== "" || jwksUrl.password !== "") {
+    throw new Error("jwksUrl must be an HTTP or HTTPS URL without credentials");
+  }
   const clockSkewSeconds = options.clockSkewSeconds ?? 30;
   const allowedAlgorithms = options.allowedAlgorithms ?? DEFAULT_ALLOWED_ALGORITHMS;
   const jwksCacheTtlMs = options.jwksCacheTtlMs ?? 300_000;
@@ -424,6 +431,16 @@ export function createJwksTokenVerifier(options: JwksTokenVerifierOptions): Jwks
   const jwksRefreshCooldownMs = options.jwksRefreshCooldownMs ?? 30_000;
   const requireAccessTokenType = options.requireAccessTokenType ?? false;
   const fetchImplementation = options.fetch ?? globalThis.fetch;
+  if (!Number.isFinite(clockSkewSeconds) || clockSkewSeconds < 0) {
+    throw new Error("clockSkewSeconds must be a finite non-negative number");
+  }
+  for (const key of ["jwksCacheTtlMs", "jwksRefreshCooldownMs"] as const) {
+    const value = key === "jwksCacheTtlMs" ? jwksCacheTtlMs : jwksRefreshCooldownMs;
+    if (!Number.isSafeInteger(value) || value < 0) throw new Error(`${key} must be a non-negative safe integer`);
+  }
+  if (!Number.isInteger(jwksFetchTimeoutMs) || jwksFetchTimeoutMs <= 0 || jwksFetchTimeoutMs > 2_147_483_647) {
+    throw new Error("jwksFetchTimeoutMs must be a positive integer no greater than 2147483647");
+  }
   let cachedJwks: { value: JSONWebKeySet; expiresAt: number } | undefined;
   let pendingJwks: Promise<JSONWebKeySet> | undefined;
   let pendingForcedRefresh: Promise<JSONWebKeySet> | undefined;

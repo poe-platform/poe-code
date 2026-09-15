@@ -1,5 +1,7 @@
 import type { OAuthMetadataFetch, StoredOAuthTokens } from "./types.js";
 import { canonicalizeResourceIndicator } from "../resource-indicator.js";
+import { readBoundedResponseText } from "../http-response.js";
+import { fetchMcpResponse } from "../http-fetch.js";
 
 const MAX_JS_DATE_MS = 8_640_000_000_000_000;
 
@@ -113,14 +115,16 @@ async function requestTokens(input: {
     body.set("client_secret", input.clientSecret);
   }
 
-  const response = await input.fetch(input.tokenEndpoint, {
+  const signal = AbortSignal.timeout(30_000);
+  const response = await fetchMcpResponse(input.fetch, input.tokenEndpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded"
     },
-    body: body.toString()
+    body: body.toString(),
+    signal
   });
-  const payload = await readOAuthJsonObjectResponse(response);
+  const payload = await readOAuthJsonObjectResponse(response, signal);
   const accessToken = getOwnEntry(payload, "access_token");
 
   if (typeof accessToken !== "string" || accessToken.trim().length === 0) {
@@ -173,14 +177,17 @@ async function requestTokens(input: {
 }
 
 export async function readOAuthJsonObjectResponse(
-  response: Response
+  response: Response,
+  signal?: AbortSignal
 ): Promise<Record<string, unknown>> {
   const fallbackError = createFallbackOAuthError(response.status);
   let payload: unknown;
 
   try {
-    payload = await response.json();
-  } catch {
+    payload = JSON.parse(await readBoundedResponseText(response, 1024 * 1024, undefined, signal));
+  } catch (error) {
+    if (signal?.aborted) throw signal.reason;
+    if (error instanceof Error && error.message.startsWith("HTTP response exceeds ")) throw error;
     if (!response.ok) {
       throw fallbackError;
     }

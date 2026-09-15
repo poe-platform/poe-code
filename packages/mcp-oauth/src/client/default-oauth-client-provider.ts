@@ -1,3 +1,5 @@
+import { isIP } from "node:net";
+import { fetchMcpResponse } from "../http-fetch.js";
 import { URL } from "node:url";
 import type {
   DefaultOAuthClientProviderOptions,
@@ -418,14 +420,16 @@ export function createDefaultOAuthClientProvider(
       getClientMetadata(options.client),
       redirectUri
     );
-    const response = await fetch(registrationEndpoint, {
+    const signal = AbortSignal.timeout(30_000);
+    const response = await fetchMcpResponse(fetch, registrationEndpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify(registrationBody)
+      body: JSON.stringify(registrationBody),
+      signal
     });
-    const payload = await readOAuthJsonObjectResponse(response);
+    const payload = await readOAuthJsonObjectResponse(response, signal);
     const clientId = getOwnString(payload, "client_id");
 
     if (clientId === undefined || clientId.trim().length === 0) {
@@ -773,12 +777,16 @@ function isLoopbackHostname(hostname: string): boolean {
   return (
     normalizedHostname === "localhost" ||
     normalizedHostname === "::1" ||
-    normalizedHostname.startsWith("127.")
+    normalizedHostname === "[::1]" ||
+    (isIP(normalizedHostname) === 4 && normalizedHostname.startsWith("127."))
   );
 }
 
 function assertSecureUrl(value: string, label: string): void {
   const url = new URL(value);
+  if (url.username !== "" || url.password !== "" || url.hash !== "") {
+    throw new Error(`${label} must not include credentials or fragment`);
+  }
   if (url.protocol === "https:") {
     return;
   }

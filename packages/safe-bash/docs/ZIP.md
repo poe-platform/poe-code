@@ -13,7 +13,7 @@ unzip -o -d extracted project.zip 'project/*.txt'
 unzip -p project.zip 'project/*.txt' | cat
 ```
 
-`zip [-r] [-q] ARCHIVE FILES...` creates an archive or updates selected entries while
+`zip [-r] [-q] [-j] ARCHIVE FILES...` creates an archive or updates selected entries while
 retaining other members. An archive basename without a dot gains `.zip`.
 `unzip [-l] [-p] [-o] [-d DIR] ARCHIVE [FILES...]` lists, streams or extracts selected members;
 selection patterns are matched inside the archive. Existing regular files prompt
@@ -22,6 +22,11 @@ status. Commands use only the supplied virtual filesystem: no native executable,
 implicit filesystem access or network fallback.
 
 ## Quiet creation and byte streaming
+
+`zip -j` stores files by basename, discarding their directory paths and omitting
+directory entries. Combine it with `-r` to flatten a directory tree or `-q` for
+quiet output. Distinct sources with the same basename return status 16 without
+publishing changes to the archive.
 
 `zip -q` suppresses adding/updating progress and the advisory warnings that native
 Info-ZIP suppresses in quiet mode, including missing-source and repeated-name

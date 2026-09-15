@@ -9,9 +9,9 @@ import { InvalidToolNameError } from "./tool-names.js";
 
 const stdioTransportConstructorMock = vi.hoisted(() => vi.fn());
 const mcpClientConstructorMock = vi.hoisted(() => vi.fn());
-const mcpClientConnectMock = vi.hoisted(() => vi.fn<(transport: unknown) => Promise<void>>());
+const mcpClientConnectMock = vi.hoisted(() => vi.fn<(transport: unknown, options?: { signal?: AbortSignal }) => Promise<void>>());
 const mcpClientListToolsMock = vi.hoisted(
-  () => vi.fn<(params?: { cursor?: string }) => Promise<{ tools: Array<Record<string, unknown>>; nextCursor?: string }>>(),
+  () => vi.fn<(params?: { cursor?: string }, options?: { signal?: AbortSignal }) => Promise<{ tools: Array<Record<string, unknown>>; nextCursor?: string }>>(),
 );
 const mcpClientCallToolMock = vi.hoisted(
   () =>
@@ -35,12 +35,12 @@ vi.mock("tiny-mcp-client", () => ({
       mcpClientConstructorMock(options);
     }
 
-    async connect(transport: unknown): Promise<void> {
-      await mcpClientConnectMock(transport);
+    async connect(transport: unknown, options?: { signal?: AbortSignal }): Promise<void> {
+      await mcpClientConnectMock(transport, options);
     }
 
-    async listTools(params?: { cursor?: string }): Promise<{ tools: Array<Record<string, unknown>>; nextCursor?: string }> {
-      return mcpClientListToolsMock(params);
+    async listTools(params?: { cursor?: string }, options?: { signal?: AbortSignal }): Promise<{ tools: Array<Record<string, unknown>>; nextCursor?: string }> {
+      return mcpClientListToolsMock(params, options);
     }
 
     async callTool(
@@ -97,6 +97,16 @@ describe("PluginApiImpl", () => {
     }
   });
 
+  it("does not construct MCP transports when setup was already aborted", async () => {
+    const context = createRunContext();
+    context.abortController.abort(new Error("stop setup"));
+    const api = new PluginApiImpl(context);
+    api.addMcp({ name: "cancelled", command: "node" });
+    await expect(api.flushSetup()).rejects.toThrow("Run aborted");
+    expect(stdioTransportConstructorMock).not.toHaveBeenCalled();
+    expect(mcpClientConstructorMock).not.toHaveBeenCalled();
+  });
+
   it("adds regular tools through the run context registry", () => {
     const context = createRunContext();
     const api = new PluginApiImpl(context);
@@ -125,6 +135,44 @@ describe("PluginApiImpl", () => {
         call: () => "ok",
       }),
     ).toThrow("plugin: files-plugin");
+  });
+
+  it("rejects repeated MCP pagination cursors without making another request", async () => {
+    const context = createRunContext();
+    const api = new PluginApiImpl(context);
+    mcpClientListToolsMock.mockResolvedValueOnce({ tools: [], nextCursor: "repeat" })
+      .mockResolvedValueOnce({ tools: [], nextCursor: "repeat" })
+      .mockRejectedValue(new Error("fixture escape"));
+    api.addMcp({ name: "repo", command: "node" });
+    await expect(api.flushSetup()).rejects.toThrow("repeated pagination cursor");
+    expect(mcpClientListToolsMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("bounds advancing MCP pagination during setup", async () => {
+    const context = createRunContext();
+    const api = new PluginApiImpl(context);
+    let pages = 0;
+    mcpClientListToolsMock.mockImplementation(async () => {
+      pages++;
+      if (pages > 128) throw new Error("fixture escape");
+      return { tools: [], nextCursor: String(pages) };
+    });
+    api.addMcp({ name: "repo", command: "node" });
+    await expect(api.flushSetup()).rejects.toThrow("tool pagination limit");
+    expect(mcpClientListToolsMock).toHaveBeenCalledTimes(128);
+  });
+
+  it("accepts a final MCP tool page at the pagination bound", async () => {
+    const context = createRunContext();
+    const api = new PluginApiImpl(context);
+    let pages = 0;
+    mcpClientListToolsMock.mockImplementation(async () => {
+      pages++;
+      return { tools: [], ...(pages < 128 ? { nextCursor: String(pages) } : {}) };
+    });
+    api.addMcp({ name: "bounded", command: "test" });
+    await expect(api.flushSetup()).resolves.toBeUndefined();
+    expect(mcpClientListToolsMock).toHaveBeenCalledTimes(128);
   });
 
   it("creates stdio MCP transport, discovers tools during setup, and namespaces them", async () => {
@@ -197,8 +245,9 @@ describe("PluginApiImpl", () => {
       requestTimeoutMs: 3_600_000,
     });
     expect(mcpClientConnectMock).toHaveBeenCalledTimes(1);
-    expect(mcpClientListToolsMock).toHaveBeenNthCalledWith(1, undefined);
-    expect(mcpClientListToolsMock).toHaveBeenNthCalledWith(2, { cursor: "page-2" });
+    expect(mcpClientConnectMock).toHaveBeenCalledWith(expect.anything(), { signal: context.abortController.signal });
+    expect(mcpClientListToolsMock).toHaveBeenNthCalledWith(1, undefined, { signal: context.abortController.signal });
+    expect(mcpClientListToolsMock).toHaveBeenNthCalledWith(2, { cursor: "page-2" }, { signal: context.abortController.signal });
 
     const repoSearchToolName = ["repo", "search"].join("_");
     const repoStatusToolName = ["repo", "status"].join("_");
@@ -331,6 +380,7 @@ describe("PluginApiImpl", () => {
         content: [
           { type: "text", text: "Screenshot captured" },
           { type: "image", mimeType: "image/png", data: "YmFzZTY0LWltYWdl" },
+          { type: "resource_link", name: "report", title: "Review report", uri: "file:///report" },
         ],
       })
       .mockResolvedValueOnce({
@@ -354,6 +404,7 @@ describe("PluginApiImpl", () => {
       value: [
         { type: "text", text: "Screenshot captured" },
         { type: "image", mimeType: "image/png", data: "YmFzZTY0LWltYWdl" },
+        { type: "text", text: "Review report: file:///report" },
       ],
     });
 

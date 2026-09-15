@@ -5,7 +5,7 @@ import { yieldTurn } from "../../contracts/yield.js";
 import { publicDiagnosticMessage } from "../../diagnostics.js";
 import { escapeText } from "../../escaping.js";
 import { Budget, checkPath, display, fail, hasIdentity, sameIdentity, settings, text, vfsPath, type ArchiveCommandsOptions, type ArchiveLimits } from "./internal.js";
-import { makeZipEntry, readZipArchive, writeZipArchive, type ZipArchive, type ZipEntry } from "./zip-format.js";
+import { decodeZipEntry, makeZipEntry, readZipArchive, writeZipArchive, type ZipArchive, type ZipEntry } from "./zip-format.js";
 import { publishZip, ZipScope } from "./zip/safety.js";
 import { Selection } from "./unzip/arguments.js";
 
@@ -16,6 +16,7 @@ interface ZipOptions {
   readonly junkPaths: boolean;
   readonly omitDirectories: boolean;
   readonly storeLinks: boolean;
+  readonly test: boolean;
   readonly includes: readonly string[];
   readonly excludes: readonly string[];
   readonly level: number;
@@ -52,6 +53,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
   let junkPaths = false;
   let omitDirectories = false;
   let storeLinks = false;
+  let test = false;
   let level = 6;
   let stdinNames = false;
   let literal = false;
@@ -73,6 +75,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
         else if (flag === "j") junkPaths = true;
         else if (flag === "D") omitDirectories = true;
         else if (flag === "y") storeLinks = true;
+        else if (flag === "T") test = true;
         else if (flag === "@") stdinNames = true;
         else if (flag !== undefined && flag >= "0" && flag <= "9") level = Number(flag);
         else if (flag === "i" || flag === "x") {
@@ -128,7 +131,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
       start = end + 1;
     }
   }
-  return { archive, recursive, quiet, junkPaths, omitDirectories, storeLinks, includes, excludes, level, operands: [...names, ...operands], firstOperand };
+  return { archive, recursive, quiet, junkPaths, omitDirectories, storeLinks, test, includes, excludes, level, operands: [...names, ...operands], firstOperand };
 }
 
 function memberName(path: string, limits: ArchiveLimits): string {
@@ -299,6 +302,28 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   for (const { entry } of selected.values()) { entries.push(entry); append(entry, false); }
   if (!entries.length && !parsed.quiet) await budget.output("\tzip warning: zip file empty\n");
   const bytes = await writeZipArchive({ entries, comment: archive.comment }, limits, context.signal);
+  if (parsed.test) {
+    try {
+      const tested = await readZipArchive(bytes, limits, context.signal);
+      if (!tested.entries.length) fail("empty ZIP archive");
+      let decoded = 0;
+      for (const entry of tested.entries) {
+        for await (const chunk of decodeZipEntry(entry, limits, context.signal)) {
+          if (chunk.length > limits.maxTotalBytes - decoded) fail("actual decompressed byte limit exceeded");
+          decoded += chunk.length;
+        }
+      }
+    } catch {
+      context.signal.throwIfAborted();
+      if (!parsed.quiet) await budget.output(`test of ${parsed.archive} FAILED\n`);
+      throw new ZipFailure(8, "Zip file invalid, could not spawn unzip, or wrong unzip", "original files unmodified");
+    }
+    if (!parsed.quiet) {
+      const message = `test of ${parsed.archive} OK\n`;
+      if (Buffer.byteLength(message) > limits.maxTextBytes - budget.textBytes - progressBytes) fail("text output limit exceeded");
+      progress.push(message);
+    }
+  }
   return { output, parentName, parent, parentStat, existing, bytes, progress };
 }
 

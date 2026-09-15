@@ -13,7 +13,7 @@ unzip -o -d extracted project.zip 'project/*.txt'
 unzip -p project.zip 'project/*.txt' | cat
 ```
 
-`zip [-r] [-q] [-j] [-D] [-y] [-@] [-0..-9] ARCHIVE FILES... [-i PATTERNS...] [-x PATTERNS...]`
+`zip [-r] [-q] [-j] [-D] [-y] [-T] [-@] [-0..-9] ARCHIVE FILES... [-i PATTERNS...] [-x PATTERNS...]`
 creates an archive or updates selected entries while
 retaining other members. An archive basename without a dot gains `.zip`.
 `unzip [-l] [-p] [-o] [-d DIR] ARCHIVE [FILES...]` lists, streams or extracts selected members;
@@ -54,6 +54,15 @@ targets, so recursive cycles through links are preserved as links. Without `-y`,
 sources are dereferenced. Link reads require the filesystem's `readlink` operation
 and are checked for source replacement before publication. Storing an escaping
 target does not authorize its extraction; extraction path checks remain enabled.
+
+`-T` rereads the prepared archive and verifies every member's decompression,
+length and CRC before publication, including retained old members. It does not
+extract files or invoke a host executable. Invalid payloads and an empty result
+return status 8 without publishing the update. Successful nonquiet tests print
+`test of ARCHIVE OK`; `-q` suppresses this message. Decoded bytes are discarded
+under the archive limits rather than written or charged as stdout. Corruption
+uses the native ZIP failure status and final diagnostic; embedded UnZip diagnostic
+text and temporary filenames are not reproduced by this implementation.
 
 `-i` includes matching source paths and `-x` excludes them. Patterns support `*`,
 `?`, bracket classes and backslash escapes; `*` can span directories. Quote

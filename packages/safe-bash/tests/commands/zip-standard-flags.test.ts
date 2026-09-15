@@ -12,6 +12,52 @@ import { settings } from "../../src/commands/archive/internal.js";
 import { deflateRawSync } from "node:zlib";
 import { toByteSource } from "../../src/contracts/index.js";
 
+test("zip -T validates created binary data and reports success after progress", async () => {
+  const fs = await fixture();
+  const result = await execute("zip", fs, ["-T", "output.zip", "binary", "folder/data"]);
+  assert.equal(result.exitCode, 0, result.stdout.toString() + result.stderr);
+  assert.ok(result.stdout.toString().endsWith("test of output.zip OK\n"));
+  assert.deepEqual((await execute("unzip", fs, ["-p", "output.zip"])).stdout, Buffer.concat([binary, compressed]));
+  const quiet = await execute("zip", fs, ["-qT", "quiet.zip", "binary"]);
+  assert.deepEqual(quiet, { exitCode: 0, stdout: Buffer.alloc(0), stderr: "" });
+});
+
+for (const corruption of ["CRC", "invalid deflate", "trailing deflate"] as const) {
+  test(`zip -T detects retained ${corruption} before publishing updates`, async () => {
+    const bytes = await archiveBytes([{ name: "stale", body: compressed }], entries => {
+      const entry = entries[0]!;
+      if (corruption === "CRC") entries[0] = { ...entry, crc32: 0 };
+      else entries[0] = { ...entry, data: corruption === "invalid deflate" ? Uint8Array.of(7) : Buffer.concat([entry.data, Uint8Array.of(0)]) };
+    });
+    const fs = await fixture(bytes);
+    const result = await execute("zip", fs, ["-qT", "sample.zip", "binary"]);
+    assert.equal(result.exitCode, 8);
+    assert.match(result.stdout.toString(), /Zip file invalid/u);
+    assert.deepEqual(await fs.readFile("/work/sample.zip"), bytes);
+  });
+}
+
+test("zip -T refuses an empty result without publishing it", async () => {
+  const fs = await fixture();
+  const result = await execute("zip", fs, ["-qT", "output.zip", "binary", "-i", "none"]);
+  assert.equal(result.exitCode, 8);
+  await assert.rejects(fs.stat("/work/output.zip"), { code: "ENOENT" });
+});
+
+test("zip -qT tests escaping link payloads without extraction or stdout charging", async () => {
+  const fs = await fixture();
+  await fs.symlink!("/outside", "/work/link");
+  const registerCleanup = () => {};
+  let charged = 0;
+  bindFileOutputBudget({ registerCleanup }, sink => ({ async write(bytes) {
+    charged += bytes.length;
+    await sink.write(bytes);
+  } }));
+  const result = await execute("zip", fs, ["-qyT", "output.zip", "link"], { limits: { maxTextBytes: 1 } }, { registerCleanup });
+  assert.deepEqual(result, { exitCode: 0, stdout: Buffer.alloc(0), stderr: "" });
+  assert.equal(charged, (await fs.stat("/work/output.zip")).size);
+});
+
 test("zip -y stores live and broken links as target bytes and Unix symlink modes", async () => {
   const fs = await fixture();
   await fs.symlink!("binary", "/work/link");

@@ -78,3 +78,14 @@ and broken targets, stored mode/payload, recursion with cycles and escaping targ
 `-j` flattening and replacement detection preserving an old archive. Manual Zip 3.0
 captures confirm symlink storage and recursion effects. Default dereferencing and
 extraction confinement remain part of regression acceptance.
+
+## Integrity testing
+
+`-T` reads the serialized candidate, then streams and discards decoded payloads
+with actual aggregate accounting before publication. Tests cover successful
+stored/deflated binary output, quiet suppression, retained CRC and malformed or
+trailing DEFLATE, rejected empty results and symlink payloads with file-only
+accounting. Manual Zip 3.0 captures establish OK output, quiet suppression and
+empty-result status 8 with no published archive. Embedded native UnZip diagnostics
+and temporary-name formatting remain a CLI fidelity gap; integrity-test support
+does not close the overall compliance goal.

@@ -60,3 +60,11 @@ combined operand/path/work admission. Nine memory tests cover those behaviors,
 fragmented UTF-8, repeated flags, rejection without publication, empty input and
 draining a held input read before cancellation settles. Native captures are manual
 observations, not a complete CLI compliance gate.
+
+## Directory-entry omission
+
+`-D` now prevents selection of new directory entries while preserving recursion
+and existing archive directory members. Three memory cases cover recursive
+selection through unmatched parents, retained old directories and the nonrecursive
+directory-only status 12. Manual native Zip 3.0 observations confirm those effects
+and the empty-inclusion behavior when the included directory is omitted.

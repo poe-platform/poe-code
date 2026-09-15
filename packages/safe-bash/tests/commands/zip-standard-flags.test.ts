@@ -12,6 +12,29 @@ import { settings } from "../../src/commands/archive/internal.js";
 import { deflateRawSync } from "node:zlib";
 import { toByteSource } from "../../src/contracts/index.js";
 
+test("zip -rD omits directory entries while traversing unmatched parents", async () => {
+  const fs = await fixture();
+  await fs.mkdir("/work/folder/empty");
+  const result = await execute("zip", fs, ["-qrD", "output.zip", "folder", "-i", "folder/data"]);
+  assert.equal(result.exitCode, 0, result.stdout.toString() + result.stderr);
+  const archive = await readZipArchive(await fs.readFile("/work/output.zip"), settings({}), new AbortController().signal);
+  assert.deepEqual(archive.entries.map(entry => entry.name), ["folder/data"]);
+});
+
+test("zip -D leaves existing directory members intact", async () => {
+  const fs = await fixture();
+  const result = await execute("zip", fs, ["-qrD", "sample.zip", "folder"]);
+  assert.equal(result.exitCode, 0, result.stdout.toString() + result.stderr);
+  const archive = await readZipArchive(await fs.readFile("/work/sample.zip"), settings({}), new AbortController().signal);
+  assert.equal(archive.entries.some(entry => entry.name === "folder/"), true);
+});
+
+test("zip -D with only a directory and no recursion returns Nothing to do", async () => {
+  const result = await execute("zip", await fixture(), ["-qD", "output.zip", "folder"]);
+  assert.equal(result.exitCode, 12);
+  assert.match(result.stdout.toString(), /Nothing to do/u);
+});
+
 test("zip -@ reads stdin names before operands and preserves whitespace", async () => {
   const fs = await fixture();
   await fs.writeFile("/work/ spaced ", binary);

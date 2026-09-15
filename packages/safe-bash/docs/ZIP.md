@@ -13,7 +13,7 @@ unzip -o -d extracted project.zip 'project/*.txt'
 unzip -p project.zip 'project/*.txt' | cat
 ```
 
-`zip [-r] [-q] [-j] [-@] [-0..-9] ARCHIVE FILES... [-i PATTERNS...] [-x PATTERNS...]`
+`zip [-r] [-q] [-j] [-D] [-@] [-0..-9] ARCHIVE FILES... [-i PATTERNS...] [-x PATTERNS...]`
 creates an archive or updates selected entries while
 retaining other members. An archive basename without a dot gains `.zip`.
 `unzip [-l] [-p] [-o] [-d DIR] ARCHIVE [FILES...]` lists, streams or extracts selected members;
@@ -43,6 +43,10 @@ streaming work.
 directory entries. Combine it with `-r` to flatten a directory tree or `-q` for
 quiet output. Distinct sources with the same basename return status 16 without
 publishing changes to the archive.
+
+`-D` omits newly selected directory entries while still traversing directories
+with `-r`. Existing directory members remain in an updated archive. Selecting
+only a directory without recursion produces `Nothing to do!` and status 12.
 
 `-i` includes matching source paths and `-x` excludes them. Patterns support `*`,
 `?`, bracket classes and backslash escapes; `*` can span directories. Quote

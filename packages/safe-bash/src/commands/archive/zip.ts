@@ -14,6 +14,7 @@ interface ZipOptions {
   readonly recursive: boolean;
   readonly quiet: boolean;
   readonly junkPaths: boolean;
+  readonly omitDirectories: boolean;
   readonly includes: readonly string[];
   readonly excludes: readonly string[];
   readonly level: number;
@@ -48,6 +49,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
   let recursive = false;
   let quiet = false;
   let junkPaths = false;
+  let omitDirectories = false;
   let level = 6;
   let stdinNames = false;
   let literal = false;
@@ -67,6 +69,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
         if (flag === "r") recursive = true;
         else if (flag === "q") quiet = true;
         else if (flag === "j") junkPaths = true;
+        else if (flag === "D") omitDirectories = true;
         else if (flag === "@") stdinNames = true;
         else if (flag !== undefined && flag >= "0" && flag <= "9") level = Number(flag);
         else if (flag === "i" || flag === "x") {
@@ -122,7 +125,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
       start = end + 1;
     }
   }
-  return { archive, recursive, quiet, junkPaths, includes, excludes, level, operands: [...names, ...operands], firstOperand };
+  return { archive, recursive, quiet, junkPaths, omitDirectories, includes, excludes, level, operands: [...names, ...operands], firstOperand };
 }
 
 function memberName(path: string, limits: ArchiveLimits): string {
@@ -207,7 +210,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     }
     const sourceName = name;
     if (parsed.junkPaths) name = directory ? "" : name.slice(name.lastIndexOf("/") + 1);
-    if (name && included && !excluded) {
+    if (name && included && !excluded && !(directory && parsed.omitDirectories)) {
       checkPath(name, limits);
       const previous = selected.get(name);
       if (previous && previous.source !== source) {

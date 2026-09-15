@@ -100,7 +100,7 @@ export function createDocxInspectionCommandEngine(options: { readonly limits: Ar
         }
         return { exitCode: 3, extraction };
       };
-      const controlTemplateOperation = ["controls.repeat", "controls.bind"].includes(invocation.operation);
+      const controlTemplateOperation = ["controls.repeat", "controls.bind", "template.apply"].includes(invocation.operation);
       const controlOperation = controlTemplateOperation || ["controls.list", "controls.set"].includes(invocation.operation);
       const fieldOperation = ["fields.add", "fields.set", "toc.add", "toc.set", "captions.add", "captions.set"].includes(invocation.operation);
       const commentOperation = ["comments.list", "comments.get", "comments.add", "comments.set", "comments.remove"].includes(invocation.operation);

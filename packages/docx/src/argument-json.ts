@@ -235,15 +235,16 @@ export function validateOriginalDocumentContent(value: unknown): boolean {
     optional(value, "page", page) && optional(value, "styles", v => array(v) && v.every(style)) && optional(value, "theme", theme);
 }
 
-export function validateTemplateData(value: unknown): boolean {
-  const entry = (value: unknown): boolean => {
+export function validateTemplateData(value: unknown, nested = false): boolean {
+  const entry = (value: unknown, depth = 0): boolean => {
+    if (depth > 4) return false;
     if (!record(value, ["values"], ["values"]) || !array(value.values)) return false;
     const seen = new Set<string>();
     return value.values.every(item => {
       if (!record(item, ["binding", "value"], ["binding", "value"]) || !identifier(item.binding) || seen.has(item.binding)) return false;
       seen.add(item.binding);
-      return text(item.value) || typeof item.value === "boolean" || finite(item.value);
+      return text(item.value) || typeof item.value === "boolean" || finite(item.value) || nested && array(item.value) && item.value.every(value => entry(value, depth + 1));
     });
   };
-  return array(value) ? value.every(entry) : entry(value);
+  return array(value) ? value.every(value => entry(value, nested ? 1 : 0)) : entry(value);
 }

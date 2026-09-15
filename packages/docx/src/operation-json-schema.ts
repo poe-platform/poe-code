@@ -84,6 +84,7 @@ function valueSchema(type: string, definitions: Record<string, DocxJsonSchema>):
   if (type === "ImageWrapPolygon") return { ...objectSchema({ start: "ImageWrapPoint", lineTo: "ReadonlyArray<ImageWrapPoint>" }, definitions), properties: { start: valueSchema("ImageWrapPoint", definitions), lineTo: { type: "array", minItems: 2, items: valueSchema("ImageWrapPoint", definitions) } } };
   if (type === "OwnedBinaryInput") return { ...valueSchema("BinaryInput", definitions).oneOf![0], description: "SDK owned Uint8Array; JSON carries canonical base64 bytes." };
   if (type === "nonempty unique list: properties|comments|revisions|links|objects") return { type: "array", minItems: 1, uniqueItems: true, items: { enum: ["properties", "comments", "revisions", "links", "objects"] } };
+  if (type === "DeclaredTemplateRecord | ReadonlyArray<DeclaredTemplateRecord>") return valueSchema("TemplateData", definitions);
   const variants = splitDocxType(type);
   if (variants.length > 1) return isDocxLiteralUnion(type) ? { enum: variants } : { anyOf: variants.map(item => valueSchema(item, definitions)) };
   if (["string", "boolean", "null"].includes(type)) return { type };
@@ -99,7 +100,8 @@ function valueSchema(type: string, definitions: Record<string, DocxJsonSchema>):
   if (["identifier", "VfsInput", "VfsDestination", "VfsDirectory", "declared binding ID", "PackURI"].includes(type)) return identifier;
   if (type === "UTC date") return { type: "string", format: "date", pattern: "^[0-9]{4}-[0-9]{2}-[0-9]{2}$" };
   if (type === "UTC instant" || type === "Date") return { type: "string", format: "date-time", pattern: "Z$", description: type === "Date" ? "The SDK accepts a valid Date; JSON carries its UTC serialization." : "A UTC instant ending in Z." };
-  if (type === "typed scalar" || type === "DeclaredBindingValue") return { anyOf: [{ type: "string" }, { type: "boolean" }, number] };
+  if (type === "DeclaredBindingValue") return { anyOf: [{ type: "string" }, { type: "boolean" }, { type: "number" }] };
+  if (type === "typed scalar") return { anyOf: [{ type: "string" }, { type: "boolean" }, number] };
   if (type === "declared understood-namespace profile") return { const: "core-v1" };
   if (type === "closed operation ID") return { enum: Object.keys(docxOperationSchemas) };
   if (type === "Length" || type.startsWith("Length (explicit")) return { type: "object", properties: { value: number, unit: { enum: ["emu", "in", "cm", "mm", "pt", ...(type === "Length" ? ["twip"] : [])] } }, required: ["value", "unit"], additionalProperties: false };
@@ -128,8 +130,17 @@ function valueSchema(type: string, definitions: Record<string, DocxJsonSchema>):
       theme: { type: "object", properties: { name: identifier, majorFont: identifier, minorFont: identifier, colors }, required: ["name", "majorFont", "minorFont"], additionalProperties: false }
     }, required: ["version", "blocks"], additionalProperties: false };
   }
-  if (type === "DeclaredControlRecord" || type === "DeclaredTemplateRecord") return { type: "object", properties: { values: { type: "array", items: objectSchema({ binding: "identifier", value: "DeclaredBindingValue" }, definitions), description: "Binding identifiers must be unique within each record." } }, required: ["values"], additionalProperties: false };
-  if (type === "TemplateData") return valueSchema("DeclaredTemplateRecord | ReadonlyArray<DeclaredTemplateRecord>", definitions);
+  if (type === "DeclaredTemplateRecord" || type === "TemplateData") {
+    for (let depth = 4; depth >= 0; depth--) {
+      const name = depth === 0 ? "DeclaredTemplateRecord" : `DeclaredTemplateRecord${depth}`;
+      definitions[name] ??= { type: "object", properties: { values: { type: "array", items: { type: "object", properties: {
+        binding: identifier,
+        value: depth === 4 ? valueSchema("DeclaredBindingValue", definitions) : { oneOf: [valueSchema("DeclaredBindingValue", definitions), { type: "array", maxItems: 1000, items: { $ref: `#/$defs/DeclaredTemplateRecord${depth + 1}` } }] }
+      }, required: ["binding", "value"], additionalProperties: false }, description: "Unique exact declared keys; maximum four repeat levels." } }, required: ["values"], additionalProperties: false };
+    }
+    return type === "DeclaredTemplateRecord" ? { $ref: "#/$defs/DeclaredTemplateRecord" } : { oneOf: [{ $ref: "#/$defs/DeclaredTemplateRecord" }, { type: "array", maxItems: 1000, items: { $ref: "#/$defs/DeclaredTemplateRecord1" } }] };
+  }
+  if (type === "DeclaredControlRecord") return { type: "object", properties: { values: { type: "array", items: objectSchema({ binding: "identifier", value: "DeclaredBindingValue" }, definitions), description: "Binding identifiers must be unique within each record." } }, required: ["values"], additionalProperties: false };
   if (type.startsWith("ReadonlyArray<") && type.endsWith(">")) return { type: "array", items: valueSchema(type.slice(14, -1), definitions) };
   if (type === "bounded range 1..9") return { type: "object", properties: { start: { type: "integer", minimum: 1, maximum: 9 }, end: { type: "integer", minimum: 1, maximum: 9 } }, required: ["start", "end"], additionalProperties: false, description: "start must not exceed end." };
   if (type === "Baseline") return { enum: ["baseline", "superscript", "subscript"] };

@@ -48,6 +48,7 @@ it("closes the document runtime over portable ZIP and XML implementations", asyn
   expect(runtime.inspectDocumentControls).toBeTypeOf("function");
   expect(runtime.editDocumentControls).toBeTypeOf("function");
   expect.soft(runtime.editDocumentControlRepeats).toBeTypeOf("function");
+  expect.soft(runtime.applyDocumentTemplate).toBeTypeOf("function");
   expect.soft(runtime.editDocumentControlBindings).toBeTypeOf("function");
   expect.soft(runtime.inspectDocumentPackageResources).toBeTypeOf("function");
   expect.soft(runtime.inspectDocumentProperties).toBeTypeOf("function");

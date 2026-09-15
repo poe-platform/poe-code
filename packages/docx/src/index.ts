@@ -170,3 +170,6 @@ export { inspectDocumentObjects, extractDocumentObjects, ObjectExtractionPublica
 export { inspectDocumentSignatures, stripDocumentSignatures, type SignatureListData, type SignatureMutationData, type SignatureMutationContext } from "./signatures.js";
 
 export { removeDocumentContent, type ContentRemovalOperation, type ContentRemovalRequest, type ContentRemovalData } from "./removal.js";
+
+export { applyDocumentTemplate } from "./template.js";
+export type { DocxTemplateRecord } from "./operation-types.js";

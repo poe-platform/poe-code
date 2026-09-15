@@ -36,8 +36,11 @@ typed utility inspection/filling and existing PNG picture-control replacement.
 The later [bounded repeat/binding evidence](../docx/repeat-controls-bindings.md)
 qualifies native row/block expansion, contained classic-comment/bookmark/inline
 PNG graph remapping and explicit singleton custom-XML synchronization. Live
-owners, ordered batches, template apply and corpus/renderer qualification remain
-pending; neither milestone promotes the complete format contract.
+owners, ordered control batches and corpus/renderer qualification remain
+pending; neither milestone promotes the complete format contract. The later
+[bounded record-template evidence](../docx/record-template-filling.md) qualifies
+explicit tagged body filling and nested native row/section records only; template
+utility batches and whole model coverage remain pending.
 
 The bounded paragraph operations are described in
 [paragraph editing evidence](../docx/paragraph-editing.md). They add paragraph
@@ -1101,6 +1104,22 @@ appropriate semantic error. Unsupported affected content is `unsupported-edit`.
   removes repetitions while retaining a valid prototype/container. Bind requires
   exact binding ID and a typed scalar value. Template apply matches explicit
   content-control tags only, not arbitrary brace text or executable expressions.
+  Literal `{{tag}}` placeholders inside tagged text controls, including split-run
+  placeholders, use that control's scalar display-fill semantics; untagged brace
+  text MUST remain unchanged. A record scalar MUST match its declared control
+  type without implicit coercion. A tagged native repeat binding MUST receive
+  an array of records with their own exact field schemas. Template apply MUST
+  admit at most four repeat levels and 1,000 requested items per region, alongside
+  cumulative host/operation budgets. A top-level record MAY bind several explicit
+  repeats and singleton fields; an array MUST target one tagged body repeat with
+  no singleton fields. An empty array MUST recursively clear child repeats while
+  retaining reusable native placeholder items. All prior nested item schemas
+  MUST be validated before replacement. Nested template boundaries MUST have
+  admitted unlocked, unbound native repeat ancestors; undeclared enclosing controls
+  MUST NOT implicitly become repeat owners. Template apply edits body scope only
+  and preserves unrelated stories. Template block items MAY interleave admitted
+  native repeat declarations with their paragraph/table blocks. The original controls.repeat operation retains
+  its single-level boundary policy.
   Repetition is bounded, data records cannot introduce bindings, and missing/
   extra/duplicate keys fail. A template data array uses exactly one declared
   repeating region; ambiguous regions fail. No implicit concatenation of docs.
@@ -1148,7 +1167,7 @@ appropriate semantic error. Unsupported affected content is `unsupported-edit`.
   outer SDT; each item contains nonempty paragraph/table blocks without sectPr.
   Outer content contains only item SDTs; exactly one first structural prototype
   is used and prior items must share its admitted schema/layout independently of
-  filled values/remapped IDs. Nested repeats, bound repeat owners/items/fields,
+  filled values/remapped IDs. Nested repeats in controls.repeat, bound repeat owners/items/fields,
   section/header-boundary changes, merge fragments, crossing annotations and
   affected opaque/review/modern-comment structures reject before cloning.
   Each record supplies exactly the prototype's distinct tagged scalar keys.
@@ -2501,7 +2520,8 @@ type RunInput = {
 type DeclaredBindingValue = string | boolean | number;
 type BindingEntry = { binding: string; value: DeclaredBindingValue };
 type DeclaredControlRecord = { values: BindingEntry[] };
-type DeclaredTemplateRecord = { values: BindingEntry[] };
+type TemplateBindingEntry = { binding: string; value: DeclaredBindingValue | DeclaredTemplateRecord[] };
+type DeclaredTemplateRecord = { values: TemplateBindingEntry[] };
 type TemplateData = DeclaredTemplateRecord | DeclaredTemplateRecord[];
 type Receiver =
   | { id: string; type: string; owner: string; revision: number }

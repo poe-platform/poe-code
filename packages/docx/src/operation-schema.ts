@@ -192,8 +192,8 @@ function valid(type: string, value: unknown): boolean {
   if (type === "Input") return value instanceof Uint8Array || valid("BinaryInput", value) || valid("VfsPath", value);
   if (type === "Receiver") return receiver(value);
   if (type === "OriginalDocumentContentV1") return validateOriginalDocumentContent(value);
-  if (type === "DeclaredControlRecord" || type === "DeclaredTemplateRecord") return object(value) && validateTemplateData(value);
-  if (type === "TemplateData") return validateTemplateData(value);
+  if (type === "DeclaredControlRecord" || type === "DeclaredTemplateRecord") return object(value) && validateTemplateData(value, type === "DeclaredTemplateRecord");
+  if (type === "TemplateData") return validateTemplateData(value, true);
   if (type.startsWith("ReadonlyArray<") && type.endsWith(">")) return Array.isArray(value) && value.every(item => valid(type.slice(14, -1), item));
   if (type === "bounded range 1..9") return closed(value, { start: "positive integer", end: "positive integer" }) && Number(value.start) <= Number(value.end) && Number(value.end) <= 9;
   if (type === "ThemeFont") return typeof value === "string" && ["majorAscii", "majorHAnsi", "majorEastAsia", "majorBidi", "minorAscii", "minorHAnsi", "minorEastAsia", "minorBidi"].includes(value);

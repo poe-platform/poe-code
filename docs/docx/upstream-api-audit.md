@@ -252,3 +252,16 @@ listed utility registry. Live Document/Part/XmlPart owners, inherited members,
 enums, collections, helpers, prose-only APIs and public underscore-prefixed types
 retain their recorded obligations. The pinned inventory and historical evidence
 are unchanged; later tasks and complete model coverage remain pending.
+
+The bounded [record-template filling milestone](../plans/docx-record-template-filling.md)
+adds async explicit byte/VFS utility mappings and exact tagged scalar/native
+repeat schemas, with four-level nesting, conservative cumulative budgets and
+single publication. It supersedes template-apply-pending statements only for the
+body utility subset. There is no exact pinned public API/test counterpart for
+this additive F47 operation. Neutral model spellings, Document/Part/XmlPart,
+inherited members, enums, collections, helpers, prose-only APIs and publicly
+documented underscore-prefixed owners retain their historical dispositions.
+Finite numbers remain typed record values but cannot coerce to unbound text;
+strings/booleans follow their declared control kinds. No live model or whole
+public surface is promoted. The historical inventory is unchanged; later tasks,
+template utility batches and corpus/renderer qualification remain pending.

@@ -69,3 +69,27 @@ test("docx binding rejects a bounded serialized report before source or destinat
     assert.deepEqual(volume.readFileSync("/work/form.docx"), Buffer.from(input)); assert.equal(volume.readFileSync("/work/existing.docx", "utf8"), "retain");
   } finally { await shell.dispose(); }
 });
+test("docx applies tagged templates through an explicit VFS script and binary pipeline", async () => {
+  const region = '<w:sdt xmlns:v="http://schemas.microsoft.com/office/word/2012/wordml"><w:sdtPr><w:id w:val="1"/><w:tag w:val="records"/><v:repeatingSection/></w:sdtPr><w:sdtContent><w:sdt><w:sdtPr><w:id w:val="2"/><v:repeatingSectionItem/></w:sdtPr><w:sdtContent><w:p>' + scalar("bay") + '</w:p></w:sdtContent></w:sdt></w:sdtContent></w:sdt>';
+  const { shell, volume } = await setup(await textFixture(region), "docx template apply form.docx --data-file data.json --output - | docx text -\n");
+  const before = volume.readFileSync('/work/form.docx');
+  try { const result = await shell.exec("sh run.sh"); assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stdout, "One\nTwo"); assert.deepEqual(volume.readFileSync('/work/form.docx'), before); } finally { await shell.dispose(); }
+});
+test("docx applies literal tagged controls with multilingual JSON quoting and pure package stdout", async () => {
+  const { shell } = await setup(await textFixture(`<w:p>${scalar("bay")}</w:p>`), "");
+  try {
+    const result = await shell.exec(`docx template apply form.docx --data-json '{"values":[{"binding":"bay","value":"Initial"}]}' --output - | docx template apply - --data-json '{"values":[{"binding":"bay","value":"日本語 مرحبا"}]}' --output - | docx text -`);
+    assert.equal(result.exitCode, 0, result.stderr); assert.equal(result.stdout, "日本語 مرحبا");
+  } finally { await shell.dispose(); }
+});
+test("docx template schema and prepublication failures retain input and existing destinations", async () => {
+  const { shell, volume } = await setup(await textFixture(`<w:p>${scalar("bay")}</w:p>`), "");
+  const before = volume.toJSON();
+  try {
+    const invalid = await shell.exec(`docx template apply form.docx --data-json '{"values":[]}' --output existing.docx --force --json`);
+    assert.equal(invalid.exitCode, 2); assert.equal(JSON.parse(invalid.stdout).affected, 0);
+    const dry = await shell.exec(`docx template apply form.docx --data-json '{"values":[{"binding":"bay","value":"Coast"}]}' --dry-run --json`);
+    assert.equal(dry.exitCode, 0, dry.stderr); assert.equal(JSON.parse(dry.stdout).data.output, null);
+    assert.deepEqual(volume.toJSON(), before);
+  } finally { await shell.dispose(); }
+});

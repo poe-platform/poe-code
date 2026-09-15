@@ -64,8 +64,8 @@ with 120-second cancellation per operation; compressed/expanded limits remain
 Ordinary replacement found a separate concrete blocker in internal staged
 validation: snapshot used standalone validation's fixed 200,000-node default,
 despite a larger explicit host grant. The stack reaches validateDocumentArchive
-through DocumentArchiveEditor.snapshot during location acquisition. A small
-original mocked-policy regression is required before the minimal writer correction.
+through DocumentArchiveEditor.snapshot during location acquisition. The blocker
+was reduced to small original real-validator regressions before correction.
 The independently reviewed writer worker owns only package-write.ts and the new
 package-write-budget.test.ts; standalone validation defaults must remain intact.
 
@@ -99,3 +99,37 @@ qualification. After the node-budget correction, ordinary replacement refuses
 family stays pending; no validation bypass or source normalization is permitted.
 Successful corpus text-preservation qualification is therefore not claimed. Original
 fraction/matrix/subscript and ordinary-retention unit coverage remains passing.
+
+Corpus mutation QA recorded unsupported-edit for original opaque-unit replacement
+with zero poison-resolver acquisitions. Addition at the first emitted native body
+paragraph reached the XML writer's stricter host guard after fragment admission.
+This revealed a separate SDK pre-acquisition boundary mismatch, not permission to
+weaken the writer. The equation worker owns only equations.ts/equations.test.ts for
+an original small poison-resolver RED and minimal matching host preflight correction.
+The first corpus add refusal remains historical evidence; no add success is claimed.
+
+A separate small original research probe reproduces the unrelated style-next-type
+refusal with a paragraph Body style and character Accent style pointing next to
+Body. Its first construction omitted the styles relationship and was accepted;
+the corrected related-part construction rejects as recorded. No source-normalized
+corpus, copied wording/assets or style product changes were introduced.
+
+The second atomic correction aligns domain host namespace/attribute admission with
+the existing writer restriction. Four original RED cases reached poison acquisition;
+GREEN verifies located add/replace refusal and preserve support in both dialects.
+Inactive MCE siblings, allowed transparent branches and original writer guards stay
+covered. Root reviewed the minimal diff against the existing writer guard.
+
+Final verification after this correction: maintained selected build, DOCX lint/types
+(same one warning), 2,875 tests across 136 files, three actual Shell tests and two
+portable export tests all pass. The pinned report add probe now refuses with the
+emitted paragraph Location, zero fragment acquisitions, zero writes and unchanged
+source SHA-256. Accounting usage is retained in the reduced QA receipt. Actual
+Shell refusal output was captured and visually inspected.
+
+Bounded task complete. Later tasks, unrelated style changes, full math/model/layout
+coverage and successful corpus text-edit qualification remain pending. The existing
+local feature commit is fec7afeb8; the first owned correction is e30767726. The
+second correction and [reduced QA receipt](../docx/omml-completion-qa.json) are
+committed together from explicit owned files. Pre-existing working evidence and
+pipeline changes remain byte-identical. No push, remote-main delivery or release.

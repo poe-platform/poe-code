@@ -1,0 +1,188 @@
+{
+  "schemaVersion": 1,
+  "scope": "Bounded OMML utility task only; later tasks pending",
+  "fixture": {
+    "id": "nz-ghg-inventory-2025-vol-1",
+    "sha256": "b2470c666193fe39e2f308ed7cd63a9be15da5fd2e7cceb0d8451baf6106148e",
+    "bytes": 20543015,
+    "role": "disposable QA input only",
+    "binaryCommitted": false,
+    "sourceNormalized": false
+  },
+  "inventory": {
+    "fixture": "nz-ghg-inventory-2025-vol-1",
+    "sha256": "b2470c666193fe39e2f308ed7cd63a9be15da5fd2e7cceb0d8451baf6106148e",
+    "inputBytes": 20543015,
+    "units": 45,
+    "expressions": 45,
+    "inline": 1,
+    "display": 44,
+    "bounded": 0,
+    "editable": 0,
+    "propertyNodes": 5045,
+    "globalProperties": 12,
+    "issues": [
+      "opaque-equation-fragment"
+    ],
+    "usage": {
+      "compressedInput": 20543015,
+      "expandedPackage": 32484313,
+      "zipEntries": 156,
+      "xmlPartBytes": 0,
+      "xmlNodes": 3107594,
+      "xmlDepth": 0,
+      "embeddedMediaBytes": 0,
+      "retainedBytes": 1712474696,
+      "serializedOutput": 0,
+      "batchOperations": 0,
+      "matches": 45,
+      "insertedNodes": 0,
+      "tableCells": 0,
+      "tableRows": 0,
+      "tableColumns": 0,
+      "diagnosticBytes": 1311214,
+      "work": 2711078824
+    }
+  },
+  "profiles": {
+    "inventory": {
+      "work": 8589934592,
+      "retainedBytes": 4294967296,
+      "xmlNodes": 20000000,
+      "diagnosticBytes": 8388608,
+      "cancellationMs": 120000
+    },
+    "mutation": {
+      "work": 17179869184,
+      "retainedBytes": 8589934592,
+      "xmlNodes": 40000000,
+      "diagnosticBytes": 8388608,
+      "cancellationMs": 120000
+    },
+    "meaning": "Conservative cumulative accounting grants; not measured process RSS."
+  },
+  "earlierRefusals": [
+    {
+      "profile": "default work ceiling",
+      "code": "limit-exceeded",
+      "limit": "work"
+    },
+    {
+      "profile": "raised work, 1 GiB retention",
+      "code": "limit-exceeded",
+      "limit": "retainedBytes"
+    },
+    {
+      "profile": "2 GiB retention, 64 KiB diagnostics",
+      "code": "limit-exceeded",
+      "limit": "diagnosticBytes"
+    },
+    {
+      "profile": "2 GiB retention, 1 MiB diagnostics",
+      "code": "limit-exceeded",
+      "limit": "diagnosticBytes"
+    },
+    {
+      "profile": "ordinary replacement before writer correction",
+      "code": "limit-exceeded",
+      "limit": "standalone internal validation node default"
+    }
+  ],
+  "mutationQA": {
+    "originalTreeReplacement": {
+      "error": "unsupported-edit",
+      "fragmentAcquisitions": 0
+    },
+    "firstParagraphAdditionBeforePreflightCorrection": {
+      "code": "unsupported-edit",
+      "stage": "XML writer host guard after fragment admission"
+    },
+    "ordinaryTextReplacement": {
+      "code": "invalid-package",
+      "diagnostic": "style-next-type",
+      "count": 14,
+      "publicationCompleted": false,
+      "preservationQualified": false
+    },
+    "firstParagraphAdditionAfterPreflightCorrection": {
+      "operation": "equations.add",
+      "code": "unsupported-edit",
+      "located": true,
+      "fragmentAcquisitions": 0,
+      "writes": 0,
+      "sourceUnchanged": true,
+      "usage": {
+        "compressedInput": 20543015,
+        "expandedPackage": 32484313,
+        "zipEntries": 156,
+        "xmlPartBytes": 0,
+        "xmlNodes": 5406394,
+        "xmlDepth": 0,
+        "embeddedMediaBytes": 0,
+        "retainedBytes": 2657849073,
+        "serializedOutput": 0,
+        "batchOperations": 0,
+        "matches": 45,
+        "insertedNodes": 0,
+        "tableCells": 0,
+        "tableRows": 0,
+        "tableColumns": 0,
+        "diagnosticBytes": 1319224,
+        "work": 3083621314
+      }
+    }
+  },
+  "originalRegressionReduction": {
+    "nodeBudget": "Six original real-validator tests, in-memory input and memfs publication",
+    "hostPreflight": "Four original poison-resolver cases across both dialects and both add/replace. RED opened poison input; focused GREEN passes 66 equation tests.",
+    "styles": "Small original related styles probe confirms current refusal; product style changes remain outside scope"
+  },
+  "screenshots": {
+    "actualShellHelp": "/tmp/docx76-equations-help.png",
+    "inspected": true,
+    "firstCaptureConstructionFailure": "Automatically generated filename exceeded filesystem component limit",
+    "actualShellHostRefusal": "/tmp/docx76-host-refusal.png",
+    "hostRefusalInspected": true
+  },
+  "limits": [
+    "All 45 stored equation trees are preserve-only under the narrow new-fragment grammar.",
+    "No full math schema validation, expression evaluation, LaTeX conversion, native reference runtime, ambient product I/O or product networking.",
+    "No successful corpus addition or ordinary text-preservation qualification is claimed."
+  ],
+  "delivery": {
+    "push": false,
+    "release": false,
+    "localFeatureCommit": "fec7afeb8",
+    "localBudgetCorrection": "e30767726",
+    "scopeComplete": true
+  },
+  "inventoryEvidenceCandidate": "e30767726",
+  "maintainedChecks": {
+    "docxTests": {
+      "files": 136,
+      "tests": 2875,
+      "passed": true
+    },
+    "docxLintAndTypes": {
+      "passed": true,
+      "warnings": 1
+    },
+    "selectedWorkspaceBuild": {
+      "passed": true,
+      "stages": 5,
+      "uncached": true
+    },
+    "actualShell": {
+      "tests": 3,
+      "passed": true
+    },
+    "portableExports": {
+      "tests": 2,
+      "passed": true
+    },
+    "integrationRegistration": {
+      "tests": 108,
+      "passed": true
+    }
+  }
+}

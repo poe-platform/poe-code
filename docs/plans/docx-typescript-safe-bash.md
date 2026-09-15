@@ -3178,7 +3178,7 @@ tasks:
       Validate PNG/JPEG/GIF/BMP/TIFF signatures and bounded dimension/DPI headers under F32 and the complete public API map; reject
       extension/type mismatch and oversized/overflow dimensions. Insert inline
       DrawingML with correct media/content type/relationship/drawing IDs. Accept
-      checked unit values and explicit aspect-ratio policy. CLI pixel inputs use its documented 96-DPI convention; the model API preserves documented native DPI/fallback sizing. Require/allow alt text and decorative intent according to schema.
+      checked unit values and explicit aspect-ratio policy. CLI dimensions accept shared physical units only; implicit pixels/px are rejected. Omitted CLI/model dimensions use native per-axis DPI with independent 72-DPI fallback. Require/allow alt text and decorative intent according to schema.
       Test original authored images, alpha PNG, portrait/landscape JPEG and placement
       in body/table/header/note without rasterization dependencies.
 

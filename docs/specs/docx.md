@@ -651,7 +651,7 @@ independent text/XML/OPC/value assertions, not only to one another.
 | `properties set`        | edit         | `name!`: string; `value!`: typed scalar; `type?`: string / boolean / integer / number / date                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | MutationData     | F30                                                                                                |
 | `properties remove`     | edit         | `name!`: string                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            | MutationData     | F30                                                                                                |
 | `images get`            | selectedRead | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ResourceData     | F31, F33                                                                                           |
-| `images add`            | selectedEdit | `file!`: VfsInput; `width?`: Length (explicit emu/in/cm/mm/pt); `height?`: Length (explicit emu/in/cm/mm/pt); `fit?`: contain / cover / stretch; `placement?`: inline / floating; `fallback?`: VfsInput; `alt?`: string                                                                                                                                                                                                                                                                                                                                                                                    | MutationData     | F06, F08, F11, F12, F31, F32, F35                                                                  |
+| `images add`            | selectedEdit | `file!`: VfsInput; `width?`: Length (explicit emu/in/cm/mm/pt); `height?`: Length (explicit emu/in/cm/mm/pt); `fit?`: contain / cover / stretch; `placement?`: inline / floating; `fallback?`: VfsInput; `alt?`: string; `decorative?`: boolean                                                                                                                                                                                                                                                                                                                                                                                    | MutationData     | F06, F08, F11, F12, F31, F32, F35                                                                  |
 | `images replace`        | selectedEdit | `file!`: VfsInput; `shared?`: boolean; `width?`: Length (explicit emu/in/cm/mm/pt); `height?`: Length (explicit emu/in/cm/mm/pt); `fit?`: contain / cover / stretch; `fallback?`: VfsInput                                                                                                                                                                                                                                                                                                                                                                                                                 | MutationData     | F32, F35                                                                                           |
 | `images set`            | selectedEdit | `x?`: Length (explicit emu/in/cm/mm/pt); `y?`: Length (explicit emu/in/cm/mm/pt); `relativeTo?`: page / margin / column / paragraph / character; `wrap?`: none / square / tight / through / top-bottom; `zOrder?`: safe integer; `cropLeft?`: fraction 0..1; `cropRight?`: fraction 0..1; `cropTop?`: fraction 0..1; `cropBottom?`: fraction 0..1; `rotation?`: finite degrees; `flipHorizontal?`: boolean; `flipVertical?`: boolean; `alt?`: string; `decorative?`: boolean; `width?`: Length (explicit emu/in/cm/mm/pt); `height?`: Length (explicit emu/in/cm/mm/pt); `fit?`: contain / cover / stretch | MutationData     | F33                                                                                                |
 | `images extract`        | extract      | none                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | ExtractionData   | F31, F34                                                                                           |
@@ -2305,6 +2305,38 @@ Dimensions, crop fractions, rotation and coordinates are range-checked according
 to their declared schema, without silently clamping admitted values. Unsupported
 vector/native formats MUST remain inert and preserve fallback relationships.
 Alt text is distinct from filenames and optional decorative status.
+
+For `images add`, `decorative` is an optional boolean, default false; true
+conflicts with nonempty alt text. Inline insertion appends a drawing run to a
+selected whole paragraph. A selected admitted block container, or the unique
+unselected body, instead receives a new trailing paragraph containing that run
+(before terminal body section properties). Header/footer and note containers
+require an explicit owning selection; the command MUST NOT choose a first
+paragraph or one of multiple owners. Run, caret and range targets are rejected;
+`--all` is not an image-add option.
+
+Recognized source-path suffixes png, jpg/jpeg, gif, bmp and tif/tiff assert the
+corresponding raster type and MUST match byte characterization before mutation.
+An absent or unrecognized suffix does not assert a type. Bytes remain the format
+authority; caller-declared media types, where admitted, MUST match them too.
+
+Characterization MUST check every header interval, segment length and metadata
+offset before traversal, under existing media, entry, work and retained-byte
+limits. Duplicate or cyclic metadata directories and conflicting duplicate
+metadata are rejected. Pixel dimensions MUST be positive integers within the
+format's encoded domain: PNG at most 2^31-1 per axis, JPEG/GIF unsigned 16-bit,
+BMP positive signed 32-bit width and absolute nonzero signed 32-bit height, and
+TIFF SHORT/LONG dimensions. Computed drawing extents MUST be positive safe
+integer EMUs after shared rounding. Header characterization does not allocate
+pixel arrays or introduce an implicit decoded-area limit.
+
+Absent density, aspect-only density units and legally unspecified zero density
+axes remain null; native sizing independently uses 72 DPI for each null axis.
+Positive pixels-per-metre values convert with factor 0.0254; physical inch/cm
+densities convert per axis. TIFF/Exif physical resolution requires positive
+finite rational values and nonzero denominators. Unsafe offsets, invalid units
+and invalid physical resolution are rejected before mutation. Characterization
+does not imply full pixel decoding or successful rendering.
 
 Read-only protection and locked controls MUST NOT be silently bypassed. Signed
 documents require explicit signature removal before mutation. Field result

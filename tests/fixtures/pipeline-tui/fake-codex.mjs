@@ -17,7 +17,18 @@ emit({
   }
 });
 let count = 0;
-const timer = setInterval(() => {
+let timer;
+if (scenario === "finite-burst") {
+  timer = setTimeout(() => {
+    for (let index = 0; index < 60_000; index++) {
+      emit({ type: "item.completed", item: { id: `message-${index}`, type: "agent_message", text: `Burst response ${index}\n` } });
+    }
+    emit({ type: "item.completed", item: { id: "latest", type: "agent_message", text: "LATEST BURST RESULT\n" } });
+    timer = setTimeout(() => {
+      emit({ type: "turn.completed", usage: { input_tokens: 120, output_tokens: 45, cached_input_tokens: 10 } });
+    }, 90_000);
+  }, 500);
+} else timer = setInterval(() => {
   const text = scenario === "oversized"
     ? "output word ".repeat(1000)
     : scenario === "unicode"

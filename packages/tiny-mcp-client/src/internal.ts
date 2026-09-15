@@ -3190,6 +3190,7 @@ export interface ParsedSseMessage {
 
 export class SseParser {
   private buffer = "";
+  private skipLf = false;
   private eventType: string | undefined;
   private dataLines: string[] = [];
   private eventId = "";
@@ -3211,22 +3212,28 @@ export class SseParser {
       return [];
     }
 
+    if (this.skipLf) {
+      this.skipLf = false;
+      if (chunk.startsWith("\n")) chunk = chunk.slice(1);
+    }
     this.buffer += chunk;
     const messages: ParsedSseMessage[] = [];
-
-    while (true) {
-      const newlineIndex = this.buffer.indexOf("\n");
-      if (newlineIndex === -1) {
-        break;
+    let start = 0;
+    for (let index = 0; index < this.buffer.length; index += 1) {
+      const character = this.buffer[index];
+      if (character !== "\n" && character !== "\r") continue;
+      const line = this.buffer.slice(start, index);
+      if (character === "\r") {
+        if (this.buffer[index + 1] === "\n") index += 1;
+        else if (index === this.buffer.length - 1) this.skipLf = true;
       }
-
-      const line = normalizeLine(this.buffer.slice(0, newlineIndex));
-      this.buffer = this.buffer.slice(newlineIndex + 1);
+      start = index + 1;
       if (Buffer.byteLength(line, "utf8") > this.maxEventBytes)
         throw new Error(`SSE event exceeds ${this.maxEventBytes} bytes`);
       this.consumeLine(line, messages);
       this.assertEventSize("");
     }
+    this.buffer = this.buffer.slice(start);
 
     this.assertEventSize(this.buffer);
 
@@ -3234,15 +3241,10 @@ export class SseParser {
   }
 
   flush(): ParsedSseMessage[] {
-    const messages: ParsedSseMessage[] = [];
-
-    if (this.buffer.length > 0) {
-      this.consumeLine(normalizeLine(this.buffer), messages);
-      this.buffer = "";
-    }
-
-    this.emitEvent(messages);
-    return messages;
+    this.buffer = "";
+    this.skipLf = false;
+    this.resetEvent();
+    return [];
   }
 
   private consumeLine(line: string, messages: ParsedSseMessage[]): void {

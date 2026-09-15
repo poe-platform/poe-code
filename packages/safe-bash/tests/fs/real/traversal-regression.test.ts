@@ -229,7 +229,7 @@ async function result(action: () => Promise<unknown>): Promise<unknown> {
   }
 }
 
-test("140 raw-path read operations match an independently populated native tree", async (context) => {
+test("140 raw-path read operations preserve native traversal and directory requirements", async (context) => {
   const { filesystem, root, temporary } = await fixture(context);
   const oracle = join(temporary, "oracle");
   for (const directory of [root, oracle]) {
@@ -262,7 +262,10 @@ test("140 raw-path read operations match an independently populated native tree"
       ["readdir", async () => (await filesystem.readdir(path)).map((entry) => entry.name).sort(), async () => (await native.readdir(host)).sort()],
     ];
     for (const [name, actual, expected] of operations) {
-      assert.deepEqual(await result(actual), await result(expected), `${name}(${JSON.stringify(path)})`);
+      // Darwin accepts stat of a file symlink with a trailing slash. The
+      // filesystem contract consistently requires a directory at that boundary.
+      const expectedResult = path === "/filelink/" ? { code: "ENOTDIR" } : await result(expected);
+      assert.deepEqual(await result(actual), expectedResult, `${name}(${JSON.stringify(path)})`);
     }
   }
 });

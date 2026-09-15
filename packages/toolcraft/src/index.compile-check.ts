@@ -125,11 +125,10 @@ defineCommand({
 });
 
 defineCommand({
-  name: "invalid-scalar-mapped-result",
+  name: "scalar-mapped-result",
   params: S.Object({}),
-  result: S.Object({ data: S.Array(S.String()) }),
-  // @ts-expect-error MCP structured results must have an object root
-  mcpResult: () => "invalid",
+  result: S.String(),
+  mcpResult: () => "ready",
   handler: async (): Promise<string[]> => [],
 });
 

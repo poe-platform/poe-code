@@ -1,6 +1,6 @@
 import "./node-require-shim.js";
-import type { AnySchema, ObjectSchema, Static } from "toolcraft-schema";
-import { isPlainRecord, unicodeLength, validate as validateSchema } from "toolcraft-schema";
+import type { AnySchema, NativeSchema, ObjectSchema, Static } from "toolcraft-schema";
+import { cloneDefaultValue, formatIssues, isJsonValue, isPlainRecord, nativeJsonSchema, unicodeLength, validate as validateSchema } from "toolcraft-schema";
 import type { Command, Group, HandlerFs, LogLevel, RuntimeLoggerInput, Scope } from "./index.js";
 import {
   ToolcraftBugError,
@@ -344,6 +344,104 @@ function describeReceived(value: unknown): string {
   return String(value);
 }
 
+function nativeSDKFields(schema: AnySchema): Map<string, readonly [string, AnySchema]> {
+  const shapes = schema.kind === "object" ? [schema.shape]
+    : schema.kind === "union" ? schema.branches.map((branch) => branch.shape)
+    : schema.kind === "oneOf" ? Object.values(schema.branches).map((branch) => branch.shape) : [];
+  return new Map(shapes.flatMap((shape) => Object.entries(shape).map(([key, child]) =>
+    [formatSegment(key), [key, child as AnySchema] as const] as const)));
+}
+
+function omitNativeOptionalUndefined(
+  schema: AnySchema,
+  value: unknown,
+  depth = 0,
+  budget = { nodes: 10_000 }
+): unknown {
+  if (depth > 64 || --budget.nodes < 0) return value;
+  const canonical = unwrapOptional(schema);
+  if (canonical.kind === "array" && Array.isArray(value)) {
+    if (value.length > 10_000) return value;
+    const descriptors: PropertyDescriptorMap = Object.getOwnPropertyDescriptors(value as object);
+    for (let index = 0; index < value.length; index++) {
+      const property = descriptors[String(index)];
+      if (property !== undefined && "value" in property) {
+        property.value = omitNativeOptionalUndefined(canonical.item, property.value, depth + 1, budget);
+      }
+    }
+    const output = Object.defineProperties([], descriptors);
+    Object.setPrototypeOf(output, Object.getPrototypeOf(value));
+    return output;
+  }
+  if (canonical.kind === "record" && isPlainRecord(value)) {
+    const descriptors: PropertyDescriptorMap = Object.getOwnPropertyDescriptors(value as object);
+    for (const property of Object.values(descriptors)) if ("value" in property) {
+      property.value = omitNativeOptionalUndefined(canonical.value, property.value, depth + 1, budget);
+    }
+    return Object.create(Object.getPrototypeOf(value), descriptors) as unknown;
+  }
+  if (!isPlainRecord(value) || (canonical.kind !== "object" && canonical.kind !== "union" && canonical.kind !== "oneOf")) return value;
+  const descriptors: PropertyDescriptorMap = Object.getOwnPropertyDescriptors(value as object);
+  for (const [inputKey, [, field]] of nativeSDKFields(canonical)) {
+    const property = descriptors[inputKey];
+    if (property === undefined || !("value" in property)) continue;
+    if (property.value === undefined && isOptional(field)) delete descriptors[inputKey];
+    else property.value = omitNativeOptionalUndefined(field, property.value, depth + 1, budget);
+  }
+  return Object.create(Object.getPrototypeOf(value), descriptors) as unknown;
+}
+
+function normalizeNativeSDKKeys(schema: AnySchema, value: unknown): unknown {
+  const canonical = unwrapOptional(schema);
+  if (canonical.kind === "array" && Array.isArray(value)) {
+    return value.map((item) => normalizeNativeSDKKeys(canonical.item, item));
+  }
+  if (canonical.kind === "record" && isPlainRecord(value)) {
+    return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, normalizeNativeSDKKeys(canonical.value, item)]));
+  }
+  if ((canonical.kind === "object" || canonical.kind === "union" || canonical.kind === "oneOf") && isPlainRecord(value)) {
+    const fields = nativeSDKFields(canonical);
+    const result: Record<string, unknown> = {};
+    for (const [key, item] of Object.entries(value)) {
+      const field = fields.get(key);
+      const outputKey = field?.[0] ?? key;
+      if (Object.hasOwn(result, outputKey)) throw new UserError(`Multiple parameters map to "${outputKey}".`);
+      Object.defineProperty(result, outputKey, {
+        value: field === undefined ? item : normalizeNativeSDKKeys(field[1] as AnySchema, item),
+        enumerable: true, configurable: true, writable: true
+      });
+    }
+    if (canonical.kind === "object") {
+      for (const [key, child] of Object.entries(canonical.shape)) {
+        const field = unwrapOptional(child as AnySchema);
+        if (!Object.hasOwn(result, key) && field.default !== undefined) Object.defineProperty(result, key, {
+          value: normalizeNativeSDKKeys(field, cloneDefaultValue(field.default)),
+          enumerable: true, configurable: true, writable: true
+        });
+      }
+    }
+    return result;
+  }
+  return value;
+}
+
+function validateNativeSDKValue(schema: AnySchema, value: unknown, label: string, errors: ValidationError[]): unknown {
+  value = omitNativeOptionalUndefined(schema, value);
+  if (!isJsonValue(value)) {
+    errors.push({ path: label, message: `Invalid value for "${label}". Expected a JSON value.` });
+    return value;
+  }
+  const normalized = normalizeNativeSDKKeys(schema, value);
+  const validation = validateSchema(schema, normalized);
+  if (!validation.ok) {
+    errors.push(...validation.issues.map((issue) => ({
+      path: [label, ...issue.path].filter((part) => part !== "").join("."),
+      message: formatIssues([issue])
+    })));
+  }
+  return normalized;
+}
+
 function validateSchemaValue(
   schema: AnySchema,
   value: unknown,
@@ -354,6 +452,10 @@ function validateSchemaValue(
 
   if (isOptional(schema) && value === undefined) {
     return validateAppliedDefault(unwrappedSchema, label, errors);
+  }
+
+  if ((unwrappedSchema as NativeSchema)[nativeJsonSchema] !== undefined) {
+    return validateNativeSDKValue(unwrappedSchema, value, label, errors);
   }
 
   if (value === null && unwrappedSchema.nullable === true) {
@@ -518,6 +620,9 @@ export function validateObjectSchema(
   label: string,
   errors: ValidationError[]
 ): Record<string, unknown> {
+  if ((schema as NativeSchema)[nativeJsonSchema] !== undefined) {
+    return validateNativeSDKValue(schema, value, label, errors) as Record<string, unknown>;
+  }
   if (!isPlainRecord(value)) {
     errors.push({
       path: label,
@@ -856,7 +961,10 @@ function createDeferredSDK(
     sdkPromise ??= (async () => {
       await resolveMcpProxies(root, { projectRoot: options.projectRoot });
       return createResolvedSDK(root, options);
-    })();
+    })().catch((error: unknown) => {
+      sdkPromise = undefined;
+      throw error;
+    });
 
     return sdkPromise;
   };

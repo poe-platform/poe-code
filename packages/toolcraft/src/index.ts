@@ -36,6 +36,8 @@ type HumanInLoopModeInput = HumanInLoopMode | null | undefined;
 
 export type Scope = ScopeValue;
 
+export type MCPResultValue = Record<string, unknown> | readonly unknown[] | string | number | boolean | null;
+
 type ResolveOwnHumanInLoopMode<TValue> = TValue extends {
   mode: infer TMode extends HumanInLoopMode;
 }
@@ -110,6 +112,7 @@ export type GroupCheckContext<TServices extends object = EmptyServices> = TServi
   fs: HandlerFs;
   env: HandlerEnv;
   diagnostics: RuntimeLogger;
+  signal?: AbortSignal;
   progress(message: string): void;
 };
 
@@ -178,7 +181,7 @@ export interface CommandConfig<
   positional?: string[];
   params: TParamsSchema;
   result?: AnySchema;
-  mcpResult?: (result: TResult) => Record<string, unknown>;
+  mcpResult?: (result: TResult) => MCPResultValue;
   secrets?: TSecrets;
   scope?: Scope[];
   confirm?: boolean;
@@ -236,7 +239,7 @@ export interface Command<
   positional: string[];
   params: TParamsSchema;
   result?: AnySchema;
-  mcpResult?: (result: TResult) => Record<string, unknown>;
+  mcpResult?: (result: TResult) => MCPResultValue;
   stream?: StreamDefinition<any>;
   secrets: SecretDeclarations;
   scope: Scope[];
@@ -345,7 +348,7 @@ interface InternalCommandConfig {
   hidden: boolean;
   examples: CommandExample[];
   result?: AnySchema;
-  mcpResult?: (result: unknown) => Record<string, unknown>;
+  mcpResult?: (result: unknown) => MCPResultValue;
   humanInLoop?: HumanInLoopConfig<ObjectSchema<any>> | null;
   secrets: SecretDeclarations;
   requires?: Requires<any>;
@@ -835,7 +838,7 @@ function createBaseCommand<
       examples: cloneCommandExamples(config.examples),
       result: config.result,
       mcpResult: config.mcpResult as
-        | ((result: unknown) => Record<string, unknown>)
+        | ((result: unknown) => MCPResultValue)
         | undefined,
       humanInLoop: config.humanInLoop,
       secrets: cloneSecrets(config.secrets),
@@ -918,7 +921,7 @@ function materializeCommand<
     params: command.params,
     result: internal.result,
     mcpResult: internal.mcpResult as
-      | ((result: TResult) => Record<string, unknown>)
+      | ((result: TResult) => MCPResultValue)
       | undefined,
     stream: command.stream,
     secrets: mergeSecrets(inherited.secrets, internal.secrets),

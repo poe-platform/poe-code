@@ -1,25 +1,33 @@
-import { S } from "toolcraft-schema";
+import { S, withJsonSchema, normalizeLegacyNullability } from "toolcraft-schema";
 import type { AnySchema, ObjectSchema } from "toolcraft-schema";
 
 type JsonSchemaType = "string" | "number" | "integer" | "boolean" | "array" | "object" | "null";
-type PrimitiveEnumValue = string | number | boolean;
+type PrimitiveEnumValue = string | number | boolean | null;
 type JsonValue = string | number | boolean | null | { [key: string]: JsonValue } | JsonValue[];
+type JsonSchemaNode = JsonSchema | boolean;
 
 export interface JsonSchema {
-  $defs?: Record<string, JsonSchema>;
+  [keyword: string]: unknown;
+  $defs?: Record<string, JsonSchemaNode>;
   $ref?: string;
   additionalProperties?: boolean | JsonSchema;
-  allOf?: readonly JsonSchema[];
-  anyOf?: readonly JsonSchema[];
+  allOf?: readonly JsonSchemaNode[];
+  anyOf?: readonly JsonSchemaNode[];
   const?: unknown;
   default?: unknown;
   description?: string;
   enum?: readonly unknown[];
-  items?: JsonSchema;
+  items?: JsonSchemaNode | readonly JsonSchemaNode[];
+  minLength?: number;
+  maxLength?: number;
+  minimum?: number;
+  maximum?: number;
+  minItems?: number;
+  maxItems?: number;
   nullable?: boolean;
-  oneOf?: readonly JsonSchema[];
+  oneOf?: readonly JsonSchemaNode[];
   pattern?: string;
-  properties?: Record<string, JsonSchema>;
+  properties?: Record<string, JsonSchemaNode>;
   required?: readonly string[];
   type?: JsonSchemaType | readonly JsonSchemaType[];
 }
@@ -30,16 +38,102 @@ interface NormalizedJsonSchema {
 }
 
 export function convertJsonSchema(schema: JsonSchema): AnySchema {
-  if (hasSelfReferencingRef(schema, schema)) {
-    return applyMetadata(S.Json(), schema, {
-      nullable: schema.nullable === true
-    });
+  const recursive = hasSelfReferencingRef(schema, schema);
+  if (recursive || needsNativeValidation(schema)) {
+    const resolved = resolveReferencedSchema(schema, schema, []);
+    const projection = resolved.type === "object"
+      ? createNativeObjectProjection(schema)
+      : recursive || schema.allOf !== undefined ? S.Json() : createNativeProjection(schema, schema, []);
+    return withJsonSchema(applyMetadata(projection, schema, {}), normalizeLegacyNullability(schema));
   }
 
   return convertSchema(schema, schema, []);
 }
 
-function convertSchema(schema: JsonSchema, root: JsonSchema, path: readonly string[]): AnySchema {
+function needsNativeValidation(schema: JsonSchemaNode): boolean {
+  if (typeof schema === "boolean" || Array.isArray(schema.type) ||
+      (schema.type === "array" && schema.items === undefined) ||
+      (schema.type === undefined && schema.enum === undefined && schema.const === undefined)) return true;
+  if (schema.$ref !== undefined || getComposition(schema) !== undefined) return true;
+  if (schema.type !== undefined && (schema.enum !== undefined || schema.const !== undefined)) return true;
+  if (schema.type === "object" && schema.additionalProperties !== false) return true;
+  if (Object.keys(schema).some((key) => !projectionKeywords.has(key))) return true;
+  if ((schema.enum !== undefined || schema.const !== undefined) && Object.keys(schema).some((key) => !literalProjectionKeywords.has(key))) return true;
+  return [...Object.values(schema.properties ?? {}), ...Object.values(schema.$defs ?? {}),
+    ...(schema.items === undefined ? [] : Array.isArray(schema.items) ? schema.items : [schema.items as JsonSchemaNode]),
+    ...(typeof schema.additionalProperties === "object" ? [schema.additionalProperties] : [])]
+    .some(needsNativeValidation);
+}
+
+const projectionKeywords = new Set(["type", "properties", "required", "additionalProperties", "items", "enum", "const", "default", "description", "minLength", "maxLength", "minimum", "maximum", "minItems", "maxItems", "nullable", "pattern"]);
+const literalProjectionKeywords = new Set(["type", "enum", "const", "default", "description", "nullable"]);
+
+function createNativeProjection(schema: JsonSchemaNode, root: JsonSchema, path: readonly string[]): AnySchema {
+  if (typeof schema === "boolean") return S.Json();
+  if (schema.$ref !== undefined && (resolveLocalRef(root, schema.$ref) === undefined || typeof resolveLocalRef(root, schema.$ref) === "boolean")) return applyMetadata(S.Json(), schema, {});
+  if (Array.isArray(schema.type)) {
+    const types = schema.type.filter(type => type !== "null");
+    return types.length === 1
+      ? convertSchema({ ...schema, type: types[0], nullable: schema.type.includes("null") || schema.nullable }, root, path)
+      : applyMetadata(S.Json(), schema, {});
+  }
+  if (hasSelfReferencingRef(schema, root) ||
+      (schema.type === "array" && (schema.items === undefined || Array.isArray(schema.items))) ||
+      (schema.type === undefined && schema.enum === undefined && schema.const === undefined && schema.$ref === undefined && getComposition(schema) === undefined)) {
+    return applyMetadata(S.Json(), schema, {});
+  }
+  return convertSchema(schema, root, path);
+}
+
+function createNativeObjectProjection(root: JsonSchema): ObjectSchema<any> {
+  const properties: Record<string, JsonSchemaNode> = Object.create(null);
+  const required = new Set<string>();
+  const unconditionalProperties: Record<string, JsonSchemaNode> = Object.create(null);
+  const conditionalProperties = new Map<string, JsonSchemaNode[]>();
+  const visited = new Set<JsonSchemaNode>();
+  const collect = (source: JsonSchemaNode, includeRequired = true) => {
+    if (visited.has(source)) return;
+    visited.add(source);
+    const resolved = resolveReferencedSchema(source, root, []);
+    Object.assign(properties, resolved.properties ?? {});
+    if (includeRequired) Object.assign(unconditionalProperties, resolved.properties ?? {});
+    else for (const [key, property] of Object.entries(resolved.properties ?? {})) {
+      const candidates = conditionalProperties.get(key) ?? [];
+      candidates.push(property);
+      conditionalProperties.set(key, candidates);
+    }
+    if (includeRequired) for (const key of resolved.required ?? []) required.add(key);
+    for (const branch of resolved.allOf ?? []) collect(branch, includeRequired);
+    for (const branch of [...(resolved.anyOf ?? []), ...(resolved.oneOf ?? [])]) collect(branch, false);
+  };
+  collect(root);
+  const shape: Record<string, AnySchema> = {};
+  for (const [key, property] of Object.entries(properties)) {
+    const unconditional = Object.hasOwn(unconditionalProperties, key);
+    const projected = unconditional
+      ? createNativeProjection(unconditionalProperties[key], root, ["properties", key])
+      : createConditionalPropertyProjection(root, key, conditionalProperties.get(key) ?? [property]);
+    const field = unconditional ? projected : { ...projected, default: undefined };
+    setOwnShapeProperty(shape, key, required.has(key) ? field : S.Optional(field));
+  }
+  return S.Object(shape, { additionalProperties: root.additionalProperties !== false });
+}
+
+function createConditionalPropertyProjection(root: JsonSchema, key: string, candidates: JsonSchemaNode[]): AnySchema {
+  const branches = root.oneOf ?? root.anyOf ?? [];
+  if (branches.length > 1 && branches.every((branch) =>
+    Object.hasOwn(resolveReferencedSchema(branch, root, []).properties ?? {}, key))) {
+    const projected = candidates.map((candidate) => createNativeProjection(candidate, root, ["properties", key]));
+    if (projected.every((field) => field.kind === "enum")) {
+      const values = [...new Set(projected.flatMap((field) => field.kind === "enum" ? field.values : []))];
+      if (values.length > 0) return S.Enum(values as [PrimitiveEnumValue, ...PrimitiveEnumValue[]]);
+    }
+  }
+  return S.Json();
+}
+
+function convertSchema(schema: JsonSchemaNode, root: JsonSchema, path: readonly string[]): AnySchema {
+  if (typeof schema === "boolean") return S.Json();
   const resolvedSchema = resolveReferencedSchema(schema, root, path);
   const normalizedSchema = normalizeNullability(resolvedSchema);
   const composition = getComposition(normalizedSchema.schema);
@@ -89,17 +183,21 @@ function convertSchema(schema: JsonSchema, root: JsonSchema, path: readonly stri
         ),
         ...(normalizedSchema.schema.pattern === undefined
           ? {}
-          : { pattern: normalizedSchema.schema.pattern })
+          : { pattern: normalizedSchema.schema.pattern }),
+        minLength: normalizedSchema.schema.minLength,
+        maxLength: normalizedSchema.schema.maxLength
       });
 
     case "number":
-      return S.Number(
-        createCommonOptions(
+      return S.Number({
+        ...createCommonOptions(
           normalizedSchema.schema,
           normalizedSchema.nullable,
           getNumberDefault(normalizedSchema.schema.default)
-        )
-      );
+        ),
+        minimum: normalizedSchema.schema.minimum,
+        maximum: normalizedSchema.schema.maximum
+      });
 
     case "integer":
       return S.Number({
@@ -108,7 +206,9 @@ function convertSchema(schema: JsonSchema, root: JsonSchema, path: readonly stri
           normalizedSchema.nullable,
           getIntegerDefault(normalizedSchema.schema.default)
         ),
-        jsonType: "integer"
+        jsonType: "integer",
+        minimum: normalizedSchema.schema.minimum,
+        maximum: normalizedSchema.schema.maximum
       });
 
     case "boolean":
@@ -121,6 +221,7 @@ function convertSchema(schema: JsonSchema, root: JsonSchema, path: readonly stri
       );
 
     case "array":
+      if (Array.isArray(normalizedSchema.schema.items)) return applyMetadata(S.Json(), normalizedSchema.schema, {});
       if (normalizedSchema.schema.items === undefined) {
         throw new Error(
           `JSON Schema "${formatJsonSchemaPath(
@@ -130,12 +231,16 @@ function convertSchema(schema: JsonSchema, root: JsonSchema, path: readonly stri
       }
 
       return S.Array(
-        convertSchema(normalizedSchema.schema.items, root, [...path, "items"]),
-        createCommonOptions(
-          normalizedSchema.schema,
-          normalizedSchema.nullable,
-          getArrayDefault(normalizedSchema.schema.default)
-        )
+        convertSchema(normalizedSchema.schema.items as JsonSchemaNode, root, [...path, "items"]),
+        {
+          ...createCommonOptions(
+            normalizedSchema.schema,
+            normalizedSchema.nullable,
+            getArrayDefault(normalizedSchema.schema.default)
+          ),
+          minItems: normalizedSchema.schema.minItems,
+          maxItems: normalizedSchema.schema.maxItems
+        }
       );
 
     case "object":
@@ -145,7 +250,7 @@ function convertSchema(schema: JsonSchema, root: JsonSchema, path: readonly stri
       });
 
     case "null":
-      return applyMetadata(S.Json(), normalizedSchema.schema, {
+      return applyMetadata(S.Enum([null]), normalizedSchema.schema, {
         default: getJsonDefault(normalizedSchema.schema.default) ?? null,
         nullable: true
       });
@@ -182,7 +287,7 @@ function convertConstSchema(schema: JsonSchema, nullable: boolean): AnySchema {
     });
   }
 
-  return applyMetadata(S.Json(), schema, {
+  return applyMetadata(S.Json({ const: schema.const as JsonValue }), schema, {
     default: schema.const as JsonValue,
     nullable: nullable || schema.const === null,
     description: appendDescription(
@@ -194,6 +299,9 @@ function convertConstSchema(schema: JsonSchema, nullable: boolean): AnySchema {
 
 function convertEnumSchema(schema: JsonSchema, nullable: boolean): AnySchema {
   const values = schema.enum ?? [];
+  if (values.length === 1 && values[0] === null) {
+    return S.Enum([null], createCommonOptions(schema, nullable, schema.default === null ? null : undefined));
+  }
   const nonNullValues = values.filter((value) => value !== null);
   const hasNull = nonNullValues.length !== values.length;
 
@@ -210,7 +318,7 @@ function convertEnumSchema(schema: JsonSchema, nullable: boolean): AnySchema {
     });
   }
 
-  return applyMetadata(S.Json(), schema, {
+  return applyMetadata(S.Json({ enum: values as JsonValue[] }), schema, {
     nullable: nullable || hasNull,
     description: appendDescription(
       schema.description,
@@ -231,6 +339,9 @@ function convertCompositionSchema(
   const branches = branchSchemas.map((branch, index) =>
     resolveReferencedSchema(branch, root, [...path, keyword, String(index)])
   );
+  if (branches.some((branch) => branch.type !== "object" && branch.properties === undefined)) {
+    return applyMetadata(S.Json(), schema, { nullable });
+  }
   const discriminator = findDiscriminator(branches, root, path);
 
   if (discriminator !== undefined) {
@@ -254,6 +365,11 @@ function convertCompositionSchema(
         nullable
       }
     );
+  }
+
+  const fingerprints = branches.map((branch) => JSON.stringify([...(branch.required ?? [])].sort()));
+  if (new Set(fingerprints).size !== fingerprints.length) {
+    return applyMetadata(S.Json(), schema, { nullable });
   }
 
   return applyMetadata(
@@ -418,7 +534,7 @@ function normalizeNullability(schema: JsonSchema): NormalizedJsonSchema {
 
 function getComposition(
   schema: JsonSchema
-): { keyword: "oneOf" | "anyOf" | "allOf"; branches: readonly JsonSchema[] } | undefined {
+): { keyword: "oneOf" | "anyOf" | "allOf"; branches: readonly JsonSchemaNode[] } | undefined {
   if (schema.oneOf !== undefined) {
     return { keyword: "oneOf", branches: schema.oneOf };
   }
@@ -541,25 +657,25 @@ function getDiscriminatorLiteral(
 }
 
 function resolveReferencedSchema(
-  schema: JsonSchema,
+  schema: JsonSchemaNode,
   root: JsonSchema,
-  path: readonly string[]
+  path: readonly string[],
+  activeReferences = new Set<JsonSchema>()
 ): JsonSchema {
+  if (typeof schema === "boolean") return {};
   if (schema.$ref === undefined) {
     return schema;
   }
+  if (activeReferences.has(schema)) return schema;
+  activeReferences.add(schema);
 
   const resolvedTarget = resolveLocalRef(root, schema.$ref);
 
-  if (resolvedTarget === undefined) {
-    throw new Error(
-      `JSON Schema "${formatJsonSchemaPath(path)}" uses "$ref": ${schema.$ref}. toolcraft only supports internal refs like "#/components/schemas/Foo".`
-    );
-  }
-
   const { $ref: ignoredRef, ...siblingKeywords } = schema;
   void ignoredRef;
-  const resolvedSchema = resolveReferencedSchema(resolvedTarget, root, path);
+  // The native compiler owns anchors, resource identifiers and unresolved-reference errors.
+  if (resolvedTarget === undefined || typeof resolvedTarget === "boolean") return siblingKeywords;
+  const resolvedSchema = resolveReferencedSchema(resolvedTarget, root, path, activeReferences);
 
   if (Object.keys(siblingKeywords).length === 0) {
     return resolvedSchema;
@@ -598,11 +714,12 @@ function mergeJsonSchemas(base: JsonSchema, overlay: JsonSchema): JsonSchema {
 }
 
 function hasSelfReferencingRef(
-  schema: JsonSchema,
+  schema: JsonSchemaNode,
   root: JsonSchema,
   path = "#",
   activePaths = new Set<string>()
 ): boolean {
+  if (typeof schema === "boolean") return false;
   const nextActivePaths = new Set(activePaths);
   nextActivePaths.add(path);
   const localRefPath = getLocalRefPath(schema.$ref);
@@ -624,7 +741,9 @@ function hasSelfReferencingRef(
 
   if (
     schema.items !== undefined &&
-    hasSelfReferencingRef(schema.items, root, `${path}/items`, nextActivePaths)
+    (Array.isArray(schema.items)
+      ? schema.items.some((item, index) => hasSelfReferencingRef(item, root, `${path}/items/${index}`, nextActivePaths))
+      : hasSelfReferencingRef(schema.items as JsonSchemaNode, root, `${path}/items`, nextActivePaths))
   ) {
     return true;
   }
@@ -701,7 +820,7 @@ function getLocalRefPath(ref: string | undefined): string | undefined {
   return ref.startsWith("#/") ? ref : undefined;
 }
 
-function resolveLocalRef(root: JsonSchema, ref: string): JsonSchema | undefined {
+function resolveLocalRef(root: JsonSchema, ref: string): JsonSchemaNode | undefined {
   const path = getLocalRefPath(ref);
 
   if (path === undefined) {
@@ -738,7 +857,7 @@ function resolveLocalRef(root: JsonSchema, ref: string): JsonSchema | undefined 
     current = current[segment];
   }
 
-  return isPlainObject(current) ? (current as JsonSchema) : undefined;
+  return typeof current === "boolean" || isPlainObject(current) ? (current as JsonSchemaNode) : undefined;
 }
 
 function appendDescription(
@@ -757,7 +876,7 @@ function appendDescription(
 }
 
 function isPrimitiveEnumValue(value: unknown): value is PrimitiveEnumValue {
-  return typeof value === "string" || typeof value === "number" || typeof value === "boolean";
+  return value === null || typeof value === "string" || typeof value === "number" || typeof value === "boolean";
 }
 
 function getStringDefault(value: unknown): string | undefined {

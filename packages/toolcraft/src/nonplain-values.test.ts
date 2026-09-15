@@ -205,3 +205,31 @@ it("preserves structurally valid raw MCP content blocks without a result schema"
     session.close();
   }
 });
+
+async function mcpResultCase(value: unknown) {
+  const root = defineGroup({ name: "audit", children: [defineCommand({
+    name: "check", scope: ["mcp"], params: S.Object({}), handler: () => value
+  })] });
+  const session = createMCPServer(root, { name: "audit", version: "1", errorReports: false }).createMessageSession(() => {});
+  try {
+    return await session.handleMessage("tools/call", { name: "audit__check", arguments: {}, _meta: {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28", "io.modelcontextprotocol/clientCapabilities": {}
+    } });
+  } finally { session.close(); }
+}
+
+it("flattens deeply nested untyped MCP content without overflowing", async () => {
+  let result: unknown = "ready";
+  for (let index = 0; index < 20_000; index++) result = [result];
+  expect(await mcpResultCase(result)).toMatchObject({ result: { content: [{ type: "text", text: "ready" }] } });
+});
+
+it.each(["serialization hook", "content type accessor"])("rejects an untyped MCP %s without invoking it", async (kind) => {
+  const hook = vi.fn(() => "altered");
+  const result = kind === "serialization hook"
+    ? Object.defineProperty({ label: "ready" }, "toJSON", { value: hook })
+    : Object.defineProperty({ text: "ready" }, "type", { enumerable: true, get: hook });
+  const response = await mcpResultCase(result);
+  expect(response).toHaveProperty("error.code", -32603);
+  expect(hook).not.toHaveBeenCalled();
+});

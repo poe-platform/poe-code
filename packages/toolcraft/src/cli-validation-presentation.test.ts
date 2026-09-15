@@ -1,11 +1,26 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { S, type AnySchema } from "toolcraft-schema";
+import { S, withJsonSchema, type AnySchema } from "toolcraft-schema";
 import { defineCommand, defineGroup } from "./index.js";
 import { runCLI } from "./cli.js";
+import { convertJsonSchema } from "./json-schema-converter.js";
 
 const previousExitCode = process.exitCode;
 beforeEach(() => { process.exitCode = 0; });
 afterEach(() => { process.exitCode = previousExitCode; });
+
+it("includes the usage hint once for whole native input failures", async () => {
+  const params = convertJsonSchema({ type: "object", properties: { value: { type: "integer", multipleOf: 3 } }, required: ["value"] });
+  if (params.kind !== "object") throw new Error("Expected object projection");
+  const handler = vi.fn(() => "accepted");
+  const output: string[] = [];
+  const root = defineGroup({ name: "audit", children: [defineCommand({ name: "check", params, handler })] });
+  await runCLI(root, { argv: ["node", "audit", "check", "--value", "4"], errorReports: false, outputEmitter: entry => output.push(entry) });
+  expect(process.exitCode).toBe(1);
+  expect(handler).not.toHaveBeenCalled();
+  const message = output.join("\n");
+  expect(message.endsWith("Run audit check --help for usage.")).toBe(true);
+  expect(message.split("Run audit check --help for usage.")).toHaveLength(2);
+});
 
 const scenarios = [
   { name: "number", schema: S.Number(), invalid: "oops", valid: "2", expected: 2 },
@@ -13,6 +28,7 @@ const scenarios = [
   { name: "boolean", schema: S.Boolean(), invalid: "oops", valid: "false", expected: false },
   { name: "enum", schema: S.Enum(["ready", "stopped"]), invalid: "reed", valid: "ready", expected: "ready" },
   { name: "JSON", schema: S.Json(), invalid: "[invalid", valid: '{"ready":true}', expected: { ready: true } },
+  { name: "native JSON constraint", schema: withJsonSchema(S.Json(), { anyOf: [{ type: "string", minLength: 3 }, { type: "number", minimum: 5 }] }), invalid: "false", valid: "5", expected: 5 },
   { name: "string constraint", schema: S.String({ minLength: 2 }), invalid: "x", valid: "ready", expected: "ready" }
 ];
 

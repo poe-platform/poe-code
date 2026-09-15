@@ -14,9 +14,11 @@ import type {
   EnumSchema,
   JsonValueSchema,
   ObjectSchema,
-  RecordSchema
+  NativeSchema,
+  RecordSchema,
+  ValidationIssue
 } from "toolcraft-schema";
-import { cloneDefaultValue, unicodeLength, validate as validateSchema } from "toolcraft-schema";
+import { cloneDefaultValue, nativeJsonSchema, unicodeLength, validate as validateSchema } from "toolcraft-schema";
 import {
   configureTheme,
   confirm,
@@ -894,9 +896,9 @@ function parseBooleanText(value: string, label: string): boolean {
 
 function parseEnumValue(
   value: string,
-  values: ReadonlyArray<string | number | boolean>,
+  values: ReadonlyArray<string | number | boolean | null>,
   label: string
-): string | number | boolean {
+): string | number | boolean | null {
   const match = values.find((candidate) => String(candidate) === value);
 
   if (match === undefined) {
@@ -1115,9 +1117,9 @@ function parseScalarValue(
   value: string,
   schema: ScalarSchema,
   label: string
-): string | number | boolean {
+): string | number | boolean | null {
   if (value === "null" && schema.nullable === true) {
-    return null as unknown as string | number | boolean;
+    return null;
   }
 
   switch (schema.kind) {
@@ -4731,6 +4733,11 @@ function resolveDynamicLeaf(
   }
 }
 
+function formatFieldValidationIssue(issue: ValidationIssue, displayPath: string): ValidationError {
+  const path = [displayPath, ...issue.path].filter((part) => part !== "").join(".") || "parameters";
+  return { path, message: `Invalid value for "${path}". ${issue.message}` };
+}
+
 function finalizeDynamicValue(
   schema: AnySchema,
   value: unknown,
@@ -4752,8 +4759,15 @@ function finalizeDynamicValue(
     case "number":
     case "boolean":
     case "enum":
-    case "json":
       return value;
+
+    case "json": {
+      const validation = validateSchema(unwrappedSchema, value);
+      if (!validation.ok) {
+        errors.push(...validation.issues.map((issue) => formatFieldValidationIssue(issue, displayPath)));
+      }
+      return value;
+    }
 
     case "array": {
       const itemSchema = unwrapOptional(unwrappedSchema.item);
@@ -5348,6 +5362,15 @@ async function resolveParams(
       continue;
     }
 
+    if (field.schema.kind === "json") {
+      const validation = validateSchema(field.schema, value);
+      if (!validation.ok) {
+        errors.push(...validation.issues.map((issue) => formatFieldValidationIssue(issue, field.displayPath)));
+        continue;
+      }
+      value = validation.value;
+    }
+
     resolvedFieldValues.set(field.id, value);
     if (source !== undefined && source !== "default") {
       providedFieldIds.add(field.id);
@@ -5514,6 +5537,11 @@ async function executeCommand<TServices extends object>(
         missingParameterContext,
         promptStreams
       );
+      const paramsSchema = state.command.params;
+      if (paramsSchema !== undefined && (paramsSchema as NativeSchema)[nativeJsonSchema] !== undefined) {
+        const validation = validateSchema(paramsSchema, params);
+        if (!validation.ok) throwValidationErrors(validation.issues.map((issue) => formatFieldValidationIssue(issue, "")));
+      }
       resolvedParams = params;
       runtimeSecrets = runtime.secrets;
 
@@ -6135,7 +6163,7 @@ function formatCommanderErrorMessage(error: CommanderError): string {
 function formatInvalidEnumMessage(
   label: string,
   value: string,
-  values: ReadonlyArray<string | number | boolean>,
+  values: ReadonlyArray<string | number | boolean | null>,
   opts: { candidates?: readonly string[]; threshold?: number } = {}
 ): string {
   const suggestions = suggest(

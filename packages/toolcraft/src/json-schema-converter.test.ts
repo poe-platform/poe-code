@@ -1,6 +1,6 @@
 import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it } from "vitest";
-import { S } from "toolcraft-schema";
+import { S, toJsonSchema, validate, compileJsonSchema } from "toolcraft-schema";
 import { convertJsonSchema } from "./json-schema-converter.js";
 import type { JsonSchema } from "./json-schema-converter.js";
 
@@ -18,6 +18,43 @@ async function loadSchema(schema: JsonSchema): Promise<JsonSchema> {
 }
 
 describe("convertJsonSchema", () => {
+  it.each([
+    { source: { type: "string", minLength: 2, maxLength: 4 }, accepted: "okay", rejected: ["a", "longer"] },
+    { source: { type: "number", minimum: 2, maximum: 4 }, accepted: 3, rejected: [1, 5] },
+    { source: { type: "integer", minimum: 2, maximum: 4 }, accepted: 3, rejected: [1, 5, 3.5] },
+    { source: { type: "array", items: { type: "string" }, minItems: 1, maxItems: 2 }, accepted: ["a"], rejected: [[], ["a", "b", "c"]] }
+  ])("preserves upstream size and range constraints $source", ({ source, accepted, rejected }) => {
+    const converted = convertJsonSchema(source as JsonSchema);
+    const wire = compileJsonSchema(toJsonSchema(converted));
+    expect(validate(converted, accepted).ok).toBe(true);
+    expect(wire.validate(accepted).ok).toBe(true);
+    for (const value of rejected) {
+      expect(validate(converted, value).ok).toBe(false);
+      expect(wire.validate(value).ok).toBe(false);
+    }
+  });
+  it.each([{ type: "null" as const }, { const: null }, { enum: [null] }])("preserves a null-only schema %j", (source) => {
+    const converted = convertJsonSchema(source);
+    const validator = compileJsonSchema(toJsonSchema(converted));
+    expect(validate(converted, null).ok).toBe(true);
+    expect(validator.validate(null).ok).toBe(true);
+    for (const value of [false, 0, "null", [], {}]) {
+      expect(validate(converted, value).ok).toBe(false);
+      expect(validator.validate(value).ok).toBe(false);
+    }
+  });
+  it.each([
+    { source: { const: { status: "ready", nested: [1, true] } }, accepted: { nested: [1, true], status: "ready" }, rejected: { status: "wrong", nested: [1, true] } },
+    { source: { const: [1, { ok: true }] }, accepted: [1, { ok: true }], rejected: [1, { ok: false }] },
+    { source: { enum: [{ status: "ready" }, [1, 2], null] }, accepted: [1, 2], rejected: [2, 1] }
+  ])("preserves JSON literal constraints $source", ({ source, accepted, rejected }) => {
+    const converted = convertJsonSchema(source);
+    expect(validate(converted, accepted).ok).toBe(true);
+    expect(validate(converted, rejected).ok).toBe(false);
+    const validator = compileJsonSchema(toJsonSchema(converted));
+    expect(validator.validate(accepted).ok).toBe(true);
+    expect(validator.validate(rejected).ok).toBe(false);
+  });
   it("converts object properties into an object schema and preserves required keys", async () => {
     const schema = await loadSchema({
       type: "object",
@@ -54,7 +91,10 @@ describe("convertJsonSchema", () => {
       }
     });
 
-    expect(convertJsonSchema(schema)).toEqual(
+    const converted = convertJsonSchema(schema);
+    expect(toJsonSchema(converted)).toEqual(schema);
+    expect(validate(S.Optional(converted), undefined)).toMatchObject({ ok: true, value: { name: "demo" } });
+    expect(converted).toMatchObject(
       S.Object(
         {
           name: S.String()
@@ -156,7 +196,7 @@ describe("convertJsonSchema", () => {
     expect(converted.description).toContain('{"mode":"fast"}');
   });
 
-  it("converts discriminated anyOf object branches into oneOf schemas", async () => {
+  it("projects discriminated anyOf branches while preserving native semantics", async () => {
     const schema = await loadSchema({
       anyOf: [
         {
@@ -186,7 +226,9 @@ describe("convertJsonSchema", () => {
       ]
     });
 
-    expect(convertJsonSchema(schema)).toEqual(
+    const converted = convertJsonSchema(schema);
+    expect(toJsonSchema(converted)).toEqual(schema);
+    expect(converted).toMatchObject(
       S.OneOf({
         discriminator: "kind",
         branches: {
@@ -203,7 +245,7 @@ describe("convertJsonSchema", () => {
     );
   });
 
-  it("converts undiscriminated object branches into unions", async () => {
+  it("projects undiscriminated branches while preserving native semantics", async () => {
     const schema = await loadSchema({
       oneOf: [
         {
@@ -233,7 +275,9 @@ describe("convertJsonSchema", () => {
       ]
     });
 
-    expect(convertJsonSchema(schema)).toEqual(
+    const converted = convertJsonSchema(schema);
+    expect(toJsonSchema(converted)).toEqual(schema);
+    expect(converted).toMatchObject(
       S.Union([
         S.Object({
           email: S.String(),
@@ -251,7 +295,7 @@ describe("convertJsonSchema", () => {
     );
   });
 
-  it("converts object maps into record schemas", async () => {
+  it("preserves object maps with an object projection usable as MCP input", async () => {
     const schema = await loadSchema({
       type: "object",
       properties: {},
@@ -260,7 +304,11 @@ describe("convertJsonSchema", () => {
       }
     });
 
-    expect(convertJsonSchema(schema)).toEqual(S.Record(S.Boolean()));
+    const converted = convertJsonSchema(schema);
+    expect(converted.kind).toBe("object");
+    expect(toJsonSchema(converted)).toEqual(schema);
+    expect(validate(converted, { dynamic: true }).ok).toBe(true);
+    expect(validate(converted, { dynamic: 1 }).ok).toBe(false);
   });
 
   it("converts nullable schemas without turning null into a string", async () => {
@@ -277,11 +325,16 @@ describe("convertJsonSchema", () => {
         nullable: true
       })
     );
-    expect(convertJsonSchema(jsonSchemaNullable)).toEqual(
+    const converted = convertJsonSchema(jsonSchemaNullable);
+    expect(converted).toMatchObject(
       S.String({
         nullable: true
       })
     );
+    expect(validate(converted, null).ok).toBe(true);
+    expect(validate(converted, "value").ok).toBe(true);
+    expect(validate(converted, 1).ok).toBe(false);
+    expect(toJsonSchema(converted)).toEqual(jsonSchemaNullable);
   });
 
   it("converts primitive enums with null into nullable enum schemas", async () => {
@@ -302,14 +355,18 @@ describe("convertJsonSchema", () => {
       type: "string"
     });
 
-    expect(convertJsonSchema(schema)).toEqual(
+    const converted = convertJsonSchema(schema);
+    expect(converted).toMatchObject(
       S.Enum(["assistant"] as const, {
         default: "assistant"
       })
     );
+    expect(validate(converted, "assistant").ok).toBe(true);
+    expect(validate(converted, "different").ok).toBe(false);
+    expect(toJsonSchema(converted)).toEqual(schema);
   });
 
-  it("falls back to json for recursive references", async () => {
+  it("retains an object projection and validates recursive references", async () => {
     const schema = await loadSchema({
       type: "object",
       properties: {
@@ -319,7 +376,11 @@ describe("convertJsonSchema", () => {
       }
     });
 
-    expect(convertJsonSchema(schema)).toEqual(S.Json());
+    const converted = convertJsonSchema(schema);
+    expect(converted.kind).toBe("object");
+    expect(toJsonSchema(converted)).toEqual(schema);
+    expect(validate(converted, { child: { child: {} } }).ok).toBe(true);
+    expect(validate(converted, { child: 2 }).ok).toBe(false);
   });
 
   it("resolves non-recursive local refs before converting", async () => {
@@ -338,24 +399,27 @@ describe("convertJsonSchema", () => {
       $ref: "#/$defs/payload"
     });
 
-    expect(convertJsonSchema(schema)).toEqual(
+    const converted = convertJsonSchema(schema);
+    expect(toJsonSchema(converted)).toEqual(schema);
+    expect(converted).toMatchObject(
       S.Object({
         value: S.String()
       })
     );
   });
 
-  it("throws for unsupported multi-type schemas that are not nullable wrappers", async () => {
+  it("retains valid multiple types with native validation", async () => {
     const schema = await loadSchema({
       type: ["string", "number"]
     });
 
-    expect(() => convertJsonSchema(schema)).toThrow(
-      'JSON Schema "#" has an unsupported type "["string","number"]". Supported: string, number, integer, boolean, array, object.'
-    );
+    const compiler = compileJsonSchema(schema);
+    const converted = convertJsonSchema(schema);
+    expect(toJsonSchema(converted)).toEqual(schema);
+    for (const value of ["value", 1, null, true, {}]) expect(validate(converted, value).ok).toBe(compiler.validate(value).ok);
   });
 
-  it("reports the schema path when an array is missing items", async () => {
+  it("accepts arrays without an items constraint", async () => {
     const schema = await loadSchema({
       type: "object",
       properties: {
@@ -365,12 +429,14 @@ describe("convertJsonSchema", () => {
       }
     });
 
-    expect(() => convertJsonSchema(schema)).toThrow(
-      'JSON Schema "#/properties/tags" is an array but is missing the "items" field. Add "items": { ... } to declare the element type.'
-    );
+    expect(compileJsonSchema(schema).validate({ tags: [1, "yes", null] }).ok).toBe(true);
+    const converted = convertJsonSchema(schema);
+    expect(validate(converted, { tags: [1, "yes", null] }).ok).toBe(true);
+    expect(validate(converted, { tags: "wrong" }).ok).toBe(false);
+    expect(toJsonSchema(converted)).toEqual(schema);
   });
 
-  it("reports the schema path when no schema keyword is declared", async () => {
+  it("accepts unconstrained JSON properties", async () => {
     const schema = await loadSchema({
       type: "object",
       properties: {
@@ -378,12 +444,15 @@ describe("convertJsonSchema", () => {
       }
     });
 
-    expect(() => convertJsonSchema(schema)).toThrow(
-      'JSON Schema "#/properties/payload" must declare one of: "type", "enum", "const", "oneOf", "anyOf", or "allOf".'
-    );
+    const converted = convertJsonSchema(schema);
+    for (const payload of [null, false, 1, "yes", [1], { a: true }]) {
+      expect(compileJsonSchema(schema).validate({ payload }).ok).toBe(true);
+      expect(validate(converted, { payload }).ok).toBe(true);
+    }
+    expect(toJsonSchema(converted)).toEqual(schema);
   });
 
-  it("reports the branch path when a composition branch is not an object schema", async () => {
+  it("retains scalar composition branches with native validation", async () => {
     const schema = await loadSchema({
       oneOf: [
         {
@@ -392,9 +461,10 @@ describe("convertJsonSchema", () => {
       ]
     });
 
-    expect(() => convertJsonSchema(schema)).toThrow(
-      'Expected "#/oneOf/0" to be an object schema (got "string").'
-    );
+    const converted = convertJsonSchema(schema);
+    expect(toJsonSchema(converted)).toEqual(schema);
+    expect(validate(converted, "value").ok).toBe(true);
+    expect(validate(converted, 1).ok).toBe(false);
   });
 
   it("reports the schema path when composition has no branches", async () => {
@@ -407,7 +477,7 @@ describe("convertJsonSchema", () => {
     );
   });
 
-  it("reports the schema path and ref value for unsupported refs", async () => {
+  it("rejects references unavailable to the native compiler", async () => {
     const schema = await loadSchema({
       type: "object",
       properties: {
@@ -418,7 +488,7 @@ describe("convertJsonSchema", () => {
     });
 
     expect(() => convertJsonSchema(schema)).toThrow(
-      'JSON Schema "#/properties/payload" uses "$ref": https://example.com/schema.json. toolcraft only supports internal refs like "#/components/schemas/Foo".'
+      'Unresolvable $ref: https://example.com/schema.json'
     );
   });
 
@@ -428,7 +498,7 @@ describe("convertJsonSchema", () => {
     });
 
     expect(() => convertJsonSchema(schema)).toThrow(
-      'JSON Schema "#" uses "$ref": #/__proto__. toolcraft only supports internal refs like "#/components/schemas/Foo".'
+      'Unresolvable $ref: #/__proto__'
     );
   });
 });

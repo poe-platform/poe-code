@@ -179,3 +179,9 @@ In cursor-controls, verify the tab preservation rows retain ABCDEF  X, red ABCDE
 ## Erase-line progress output
 
 In cursor-controls, verify Erase-line fixture shows progress 50% with one percent sign, CSI 1K retains the DE suffix after blanking through the cursor, and wide glyphs are cleared as complete cells at both erase boundaries. Repeat wide/narrow/short resizing, PageUp/F and q. Compare the same inputs with terminal-pilot's independent terminal model; unit cases verify default, explicit-zero and C1 controls plus retained suffix styles. Executed at 100x40 -> 100x24 -> 50x16 -> 30x10 -> 100x40 with q zero; wide /tmp/pipeline-erase-line-100x40.png inspected.
+
+## Sustained noisy-tool interaction
+
+Use the maintained external tool-burst fake with isolated executable resolution. Repeat ten cycles during five minutes of output: PageUp at 100x24, wait for 250ms terminal quiet, record output columns, wait another second plus quiet and compare; shrink to 50x16, verify rendered border width, follow, grow to 100x24, verify complete frame and current tool text. Capture held/narrow and followed/wide final screens. Press q; verify exit 130, child gone, task open, zero usage and restored terminal. Record input-to-exit separately from capture work. Executed successfully with final q-to-exit 148ms; /tmp/pipeline-tool-burst-five-minute-{history,follow}.png inspected. Quiet settling matters: earlier captures contained a transient clock fragment during incomplete redraw despite identical held tool rows.
+
+Repeat the native activity-timeout/retry steps after introducing live partial rows. Executed successfully 2026-09-15T08:16:35Z to 08:26:35Z, two children gone, done/exit zero/exact usage/restored terminal; current retry screenshot inspected.

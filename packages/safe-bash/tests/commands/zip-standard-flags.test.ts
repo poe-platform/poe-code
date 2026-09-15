@@ -1,3 +1,4 @@
+import { parseZipDate } from "../../src/commands/archive/zip/dates.js";
 import { zipEnvironmentArguments } from "../../src/commands/archive/zip/environment.js";
 import assert from "node:assert/strict";
 import test from "node:test";
@@ -1311,4 +1312,85 @@ test("zip ZIPOPT include list cannot consume archive arguments and fall back to 
   assert.equal(result.exitCode, 16);
   assert.match(result.stdout.toString(), /nothing to select from/);
   await assert.rejects(fs.stat("/work/defaults.zip"), { code: "ENOENT" });
+});
+
+for (const [options, expected] of [
+  [["-t", "2024-01-02"], ["at", "odd"]],
+  [["-tt", "2024-01-02"], ["before"]],
+  [["-t01022024"], ["at", "odd"]],
+  [["--from-date=2024-1-2"], ["at", "odd"]],
+  [["--before-date=2024-01-02junk"], ["before"]],
+  [["-t2024-01-02:00:00:02"], ["at", "odd"]],
+  [["-t2024-01-03", "-t2024-01-02"], ["at", "odd"]],
+] as const) {
+  test(`zip date selection ${options.join(" ")}`, async () => {
+    const fs = await fixture();
+    for (const [name, date] of [["before", "2024-01-01T23:59:58"], ["odd", "2024-01-01T23:59:59"], ["at", "2024-01-02T00:00:00"]]) {
+      await fs.writeFile(`/work/${name}`, Buffer.from("x"));
+      const stamp = new Date(date!).getTime();
+      await fs.utimes!(`/work/${name}`, stamp, stamp);
+    }
+    const result = await execute("zip", fs, ["-q", ...options, "dates.zip", "before", "odd", "at"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const archive = await readZipArchive(await fs.readFile("/work/dates.zip"), settings({}), new AbortController().signal);
+    assert.deepEqual(archive.entries.map(entry => entry.name).sort(), [...expected].sort());
+  });
+}
+for (const date of ["invalid", "20240102", "2024-00-01", "2024-13-01", "2024-01-00", "2024-01-32"]) {
+  test(`zip refuses invalid date ${date}`, async () => {
+    const fs = await fixture();
+    const result = await execute("zip", fs, ["-qt", date, "dates.zip", "binary"]);
+    assert.equal(result.exitCode, 16);
+    await assert.rejects(fs.stat("/work/dates.zip"), { code: "ENOENT" });
+  });
+}
+test("zip dates preserve impossible calendar day ordering and empty interval nonpublication", async () => {
+  const fs = await fixture();
+  await fs.writeFile("/work/march", Buffer.from("x"));
+  const stamp = new Date("2024-03-01T00:00:00").getTime();
+  await fs.utimes!("/work/march", stamp, stamp);
+  assert.equal((await execute("zip", fs, ["-qt2024-02-31", "dates.zip", "march"])).exitCode, 0);
+  const empty = await execute("zip", fs, ["-qt2024-03-01", "-tt2024-03-01", "empty.zip", "march", "-i*"]);
+  assert.equal(empty.exitCode, 12);
+  await assert.rejects(fs.stat("/work/empty.zip"), { code: "ENOENT" });
+});
+
+
+for (const input of ["2024-01-02", "2024-1-2", "01022024", "2024-01-02junk", "01022024junk", "2024-+1-+2", "2024-01-02:20:00:00"]) {
+  test(`zip date parser accepts native field grammar ${input}`, () => {
+    assert.equal(parseZipDate(input, "t"), parseZipDate("2024-01-02", "t"));
+  });
+}
+for (const input of ["1979-01-01", "0000-01-01", "1-1-1", "010224"]) {
+  test(`zip date parser clamps pre-DOS year ${input}`, () => {
+    assert.equal(parseZipDate(input, "t"), parseZipDate("1980-01-01", "t"));
+  });
+}
+test("zip date parser retains high-year magnitude and impossible calendar day order", () => {
+  assert.ok(parseZipDate("2108-01-01", "t") > parseZipDate("2107-12-31", "t"));
+  assert.ok(parseZipDate("2024-02-31", "t") < parseZipDate("2024-03-01", "t"));
+  assert.throws(() => parseZipDate("2024-01-32", "tt"), /-tt option/);
+});
+for (const [options, remaining] of [
+  [["-t2024-01-02"], ["before"]],
+  [["-tt2024-01-02"], ["at"]],
+] as const) {
+  test(`zip deletion date interval ${options.join(" ")}`, async () => {
+    const input = [{ name: "before", body: binary }, { name: "at", body: binary }];
+    const initial = await archiveBytes(input, entries => {
+      entries[0]!.modified = new Date("2024-01-01T23:59:58");
+      entries[1]!.modified = new Date("2024-01-02T00:00:00");
+    });
+    const fs = await fixture(initial);
+    const result = await execute("zip", fs, ["-qd", ...options, "sample.zip", "*"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const archive = await readZipArchive(await fs.readFile("/work/sample.zip"), settings({}), new AbortController().signal);
+    assert.deepEqual(archive.entries.map(entry => entry.name), [...remaining]);
+  });
+}
+test("zip deletion date exclusion does not misreport an existing name as unmatched", async () => {
+  const fs = await fixture();
+  const result = await execute("zip", fs, ["-dt2030-01-01", "sample.zip", "binary"]);
+  assert.equal(result.exitCode, 12);
+  assert.equal(result.stdout.toString().includes("name not matched"), false);
 });

@@ -307,3 +307,17 @@ quote/escape boundaries, Unicode, empty patterns, shell-looking literals, NUL,
 raw syntax budgets, unknown options and missing-archive diagnostics. Scoped lint
 passed. Native/actual virtual archives agree on quoted include selection/payload.
 Remaining grammar, streaming, metadata and format requirements remain open.
+
+## Date selection and DOS boundaries
+
+Native captures and public Info-ZIP zip.c date cases/fileio.c dostime establish
+inclusive -t/from-date and exclusive -tt/before-date. Numeric field widths,
+signed and short fields, trailing text, pre-1980 clamping and day<=31 validation
+are retained without calendar normalization. Local file times round upward to
+DOS two-second boundaries, including crossing midnight. Date-filtered deletion
+uses archive modified metadata and does not misreport existing names as absent.
+525 focused ZIP/unzip tests and scoped lint pass, including compact/ISO formats,
+invalid month/day, repeats, odd/even midnight, impossible-day ordering, high
+years, empty intervals, deletion and unmatched diagnostics. Actual native and
+virtual archives select identical midnight members and payloads. Remaining
+argument/output, streaming, metadata and format requirements remain active.

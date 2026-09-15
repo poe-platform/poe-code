@@ -8,7 +8,7 @@ const longOptions: Readonly<Record<string, string>> = {
   delete: "d", include: "i", exclude: "x", suffixes: "n", store: "0", "compression-method": "Z",
   "compress-1": "1", "compress-2": "2", "compress-3": "3", "compress-4": "4",
   "compress-5": "5", "compress-6": "6", "compress-7": "7", "compress-8": "8",
-  "compress-9": "9", "force-zip64": "fz", "strip-extra": "X", "force-descriptors": "fd", "no-wild": "nw", "wild-stop-dirs": "ws", "recurse-patterns": "R",
+  "compress-9": "9", "force-zip64": "fz", "strip-extra": "X", "force-descriptors": "fd", "no-wild": "nw", "wild-stop-dirs": "ws", "recurse-patterns": "R", "from-date": "t", "before-date": "tt",
 };
 
 // Include unimplemented Unix options when resolving abbreviations: a partial
@@ -22,7 +22,7 @@ const reservedOptions = [
   "license", "move", "must-match", "latest-time", "output-file",
   "paths", "password", "regex", "split-size", "split-pause",
   "split-verbose", "split-bell", "show-command", "show-debug", "show-files",
-  "show-options", "from-date", "before-date", "unzip-command", "copy-entries",
+  "show-options", "unzip-command", "copy-entries",
   "verbose", "version", "archive-comment",
 ];
 
@@ -39,7 +39,7 @@ export function normalizeZipOption(argument: string): string {
   const short = matched === undefined ? undefined : longOptions[matched];
   if (!short) throw new ZipFailure(16, "Invalid command arguments", `unsupported option: ${argument}`);
   if (negate && short !== "fz" && short !== "X") throw new ZipFailure(16, "Invalid command arguments", `option ${matched} is not negatable`);
-  if (equal >= 0 && short !== "i" && short !== "x" && short !== "n" && short !== "Z") {
+  if (equal >= 0 && short !== "i" && short !== "x" && short !== "n" && short !== "Z" && short !== "t" && short !== "tt") {
     throw new ZipFailure(16, "Invalid command arguments", `option '${matched}' does not allow a value`);
   }
   return `-${short}${negate ? "-" : ""}${equal < 0 ? "" : argument.slice(equal)}`;

@@ -247,6 +247,13 @@ unquoted backslashes are literal. Command-line options follow these defaults
 and retain normal precedence. Raw defaults and command arguments share the
 argument byte budget; defaults are never evaluated as shell code.
 
+`-t DATE` / `--from-date=DATE` selects modification dates at or after the
+start date. `-tt DATE` / `--before-date=DATE` selects dates strictly before the
+end date. Dates accept `yyyy-mm-dd` or `mmddyyyy` with native numeric-field
+parsing, and comparisons use local DOS time rounded up to two seconds.
+Repeated bounds use the last value. Date ranges apply to source selection and
+archive deletion; an empty interval does not publish a new archive.
+
 ## Supported format and safety
 
 The bounded format profile supports ordinary single-disk ZIP records with stored

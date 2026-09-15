@@ -1,3 +1,4 @@
+import { parseZipDate, zipDateMatches } from "./zip/dates.js";
 import { zipEnvironmentArguments } from "./zip/environment.js";
 import { collectBytes, dirname, getCommandArguments, writeBytes, type CommandDefinition, type FileStat } from "../../contracts/index.js";
 import { shellValueByteLength, shellValueBytes } from "../../contracts/value.js";
@@ -25,6 +26,8 @@ interface ZipOptions {
   readonly omitDirectories: boolean;
   readonly storeLinks: boolean;
   readonly test: boolean;
+  readonly fromDate: number | undefined;
+  readonly beforeDate: number | undefined;
   readonly descriptors: boolean;
   readonly zip64: boolean | undefined;
   readonly metadata: "default" | "strip" | "all";
@@ -70,6 +73,8 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
   let omitDirectories = false;
   let storeLinks = false;
   let test = false;
+  let fromDate: number | undefined;
+  let beforeDate: number | undefined;
   let descriptors = false;
   let zip64: boolean | undefined;
   let metadata: ZipOptions["metadata"] = "default";
@@ -130,6 +135,17 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
         else if (flag !== undefined && flag >= "0" && flag <= "9") {
           level = Number(flag);
           if (level === 0) method = "store";
+        }
+        else if (flag === "t") {
+          const option = argument[offset + 1] === "t" ? "tt" : "t";
+          if (option === "tt") offset++;
+          let value = argument.slice(offset + 1);
+          if (!value) value = args[++index] ?? "";
+          if (value.startsWith("=")) value = value.slice(1);
+          const date = parseZipDate(value, option);
+          if (option === "t") fromDate = date;
+          else beforeDate = date;
+          break;
         }
         else if (flag === "n" || flag === "Z") {
           let value = argument.slice(offset + 1);
@@ -214,7 +230,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
     }
   }
   if (recursivePatterns && !names.length && !operands.length) throw new ZipFailure(16, "Invalid command arguments", "nothing to select from");
-  return { args, action, archive, recursive, recursivePatterns, noWild, stopAtDirectories, quiet, junkPaths, omitDirectories, storeLinks, test, descriptors, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
+  return { args, action, archive, recursive, recursivePatterns, noWild, stopAtDirectories, quiet, junkPaths, omitDirectories, storeLinks, test, fromDate, beforeDate, descriptors, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
 }
 
 function memberName(path: string, limits: ArchiveLimits): string {
@@ -324,6 +340,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
       if (previous || !await filterName(name, selection, parsed.includes.length)) return;
       const prior = old.get(name);
       const modified = new Date();
+      if (!zipDateMatches(modified, parsed.fromDate, parsed.beforeDate)) return;
       if (parsed.action === "freshen" && !prior || prior && (parsed.action === "update" || parsed.action === "freshen") && Math.floor(modified.getTime() / 1000) <= Math.floor(prior.modified.getTime() / 1000)) return;
       const bytes = await collectBytes(scope.stdin, { maxBytes: Math.min(limits.maxEntryBytes, limits.maxTotalBytes - budget.totalBytes), signal: context.signal });
       await budget.member(bytes.length);
@@ -352,7 +369,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     if (existing && !hasIdentity(stat)) fail("cannot exclude archive aliases when source backing identity is unknown");
     const directory = stat.type === "directory";
     if (directory && name && !name.endsWith("/")) name += "/";
-    const included = await filterName(name, selection, parsed.includes.length) && (!recursiveSelection || await recursiveSelection.matches(name, true));
+    const included = zipDateMatches(new Date(stat.mtimeMs), parsed.fromDate, parsed.beforeDate) && await filterName(name, selection, parsed.includes.length) && (!recursiveSelection || await recursiveSelection.matches(name, true));
     const sourceName = name;
     if (parsed.junkPaths) name = directory ? "" : name.slice(name.lastIndexOf("/") + 1);
     const prior = old.get(name);
@@ -401,7 +418,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     const operands = new Selection(parsed.recursivePatterns ? [] : parsed.operands, limits, context.signal, { noWild: parsed.noWild, stopAtDirectories: parsed.stopAtDirectories });
     if (parsed.operands.length && !parsed.recursivePatterns) {
       for (const entry of archive.entries) {
-        if (await operands.matches(entry.name) && await filterName(entry.name, selection, parsed.includes.length)) deleted.add(entry.name);
+        if (await operands.matches(entry.name) && await filterName(entry.name, selection, parsed.includes.length) && zipDateMatches(entry.modified, parsed.fromDate, parsed.beforeDate)) deleted.add(entry.name);
       }
     }
     if (!parsed.quiet) {
@@ -415,7 +432,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     else for (const operand of operands) await visit(operand, memberName(operand, limits), 0);
   }
   if (!selected.size && (parsed.action === "freshen" || parsed.action === "update" && (existing || !parsed.includes.length))) return undefined;
-  if (!selected.size && !deleted.size && (parsed.action === "delete" || parsed.recursivePatterns || !parsed.includes.length)) {
+  if (!selected.size && !deleted.size && (parsed.action === "delete" || parsed.recursivePatterns || parsed.fromDate !== undefined || parsed.beforeDate !== undefined || !parsed.includes.length)) {
     const detail = parsed.action !== "delete" && parsed.recursive && parsed.firstOperand >= 0
       ? `try: zip ${parsed.args.slice(0, parsed.firstOperand).join(" ")} . -i ${parsed.args.slice(parsed.firstOperand).join(" ")}`
       : parsed.archive;

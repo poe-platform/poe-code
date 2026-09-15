@@ -92,3 +92,120 @@ obligations; acquisition and these probes do not promote them. No README edit,
 native product dependency or implicit network has been introduced. Root will
 commit this documentation reconciliation before authorizing product edits; no
 push or release is authorized.
+
+## Original implementation regressions
+
+Root committed the approved reconciliation locally as
+6247e6bd9fdea03708191dcc4380d2a11f4d3c1c before authorizing disjoint product
+work. The original portable browser-bundle public insertion regression failed
+at the existing PNG/JPEG-only refusal: one passing and one failing test.
+/tmp/docx72-root-public-red.log retains the raw first outcome (6458140 bytes,
+SHA256 c1a2502ee3ba087ddfcc250d1e6375d1e5164c77a39034ffd3be2df4890d2a0b).
+Its data-URL stack is large; summaries do not reproduce bundled source text.
+The original exact literal Shell-registration assertion failed before the new
+file existed: 107 passing and one failing test out of 108, specifically the new
+svg-fallback.test.ts membership, in /tmp/docx72-root-registration-initial.log.
+All prior registration content remains byte-exact after removing that one
+literal assertion.
+
+The adapter owner established two failing and two passing original bounded
+acquisition tests before source changes, followed by four passing tests after
+the focused fix. Paths now require explicit streaming capability and normalize
+against command cwd. Only explicit CLI binary-source reservation consumes stdin;
+literal SDK/VFS '-' reads the named virtual file. These focused outcomes do not
+qualify the new SVG operation. Domain reds separately establish omitted SVG
+insertion and lost Strict alternate association. The domain baseline invocation
+overlapped test collection changes and is not a clean predecessor pass; preserve
+its original outcome alongside the subsequent explicit red receipt.
+
+## Maintained integration checkpoint
+
+The selected maintained build passed five derived dependency stages; portable
+safe-fs native targets were empty. The maintained DOCX package command passed
+2603 tests across 116 files. Maintained DOCX lint/source/test types passed, and
+guarded safe-bash typecheck passed one build and 26 current consumer groups with
+expected negative compile results. Type checks are not runtime acceptance.
+Final public browser/workerd-bundle tests passed two tests, including actual
+SVG/fallback insertion, inventory and extraction with exact original bytes and
+fallback-based dimensions. The portable bundle had no external imports. Exact
+literal registration passed 108 tests after the original 107/1 red.
+
+Root authenticated the 17 changed product/integration paths and found no
+reference identities; manifests and lockfiles are unchanged. Independent source
+review approved the final admission, graph, acquisition, dialect and association
+behavior without a concrete blocker. Both eight/18-path ownership seals match;
+the independent append-aware before-cohort contains exactly 275 actual paths.
+Independent runtime checks, corpus outcomes, final guarded lint and verified
+local product/status delivery remain pending.
+
+Seven interim authored-fixture CLI screenshots were inspected by root. The
+workflow, two stdin variants, replacement refusal, help, schema and F35
+capabilities were readable and complete; the existing metadata-null warning was
+retained. Their exact output inventory is in
+/tmp/docx72-schema-evidence-identity-v1.json. The worker selected that temporary
+capture prefix without a prior explicit prefix entry and informed root afterward;
+record this limitation rather than infer retroactive ownership. These captures
+are not the independently owned future eight-case campaign or rendering parity.
+
+## Independent bounded product outcomes
+
+Independent frozen focused/public checks passed 252 tests across 10 files;
+actual current DOCX Shell checks passed 123 tests across 18 derived files.
+The real-input campaign used two authenticated manifest documents and fresh
+fixed budgets, with separate external 120-second supervision per operation.
+Default circular-report inventory refused the work budget; fixed-profile SDK
+inventory succeeded. Product-selected active images numbered 92 and nine in the
+two inputs. The report's 54 active SVG associations matched the 54 independently
+observed native extension elements. Stored WDP resources had no selected active
+occurrence: exact preservation is proven, extraction is unqualified.
+
+Both public SDK title edits read back the requested title and changed only
+docProps/core.xml. All other members, every media/relationship/alternate byte
+and the exact 193/50 member orders remained unchanged. The smaller actual Shell
+inventory/extraction/title-edit commands succeeded; its 2070999-byte edited DOCX
+was byte-identical to the SDK output and its 39608-byte extracted EMF was exact.
+The larger Shell default inventory refused the work limit with exit 4; no
+larger-report Shell output parity is claimed. Three selected active extraction
+cases succeeded: circular EMF, circular SVG plus fallback and appendix EMF.
+
+An original technical SVG XML probe plus original tiny PNG inserted successfully
+into the circular report under the same fixed profile. Exactly two new media
+parts, two owner-local image edges and associated content types were added;
+only document.xml, its relationships and content types changed. Removing the
+new drawing run from the raw document restored the exact original bytes, including
+inactive alternates. No rendering or full-format parity claim follows.
+
+Initial QA property-call shape, wrong memory-route screenshot redirection and
+reopened stale-generation token attempts are preserved as harness failures;
+they did not establish a product issue or authorize source changes. Corrected
+public call shapes and memory route succeeded. Eight wrapped/projected screenshot
+displays were independently inspected, with raw wide/tall attempts and exact
+diagnostics retained; projections remain explicitly distinguished from full raw
+schema output. Root independently inspected all eight final displays and found
+them readable and complete. Final QA receipt is frozen at 262752 bytes, SHA256
+480391e270e1299e46b7445864a4654ca059f46c380569d4b7cc24a11447d0c1.
+The exclusive ignored cache contains 86 regular files, no subdirectories and
+44815338 bytes; its root identity is dev 16777234 / ino 366709943. The retained
+campaign artifacts are a sparse owned output inventory, not a census of other
+caches or mounted tools. No cleanup or native mount change was performed.
+Product operations and initial Shell/render operations had external 120-second
+supervision; display-only wrapped/projection rendering completed without a
+separate external per-display timer, as explicitly qualified in the receipt.
+The 275-path append-aware after-cohort matches membership/content/hashes.
+Final guarded root lint passed 12640/12640 configured inputs, all 25 receipts,
+zero gaps/unprocessed descendants and zero blocking errors. Twelve warnings
+belong only to the unrelated cached PPTX draft. Supervision from original launch
+settled at 478.99 seconds within the total 600-second/64-MiB ceilings. Raw log
+SHA256 is 5faa1cb98c02316a440777a03c215e3b08f593cf1908f169aa84aedd351cfb7e.
+Historical policies and seals remain unchanged. Local product/status delivery
+is the remaining task 72 step; no push or publication is authorized.
+
+The bounded task 72 product implementation is verified locally on main at
+f6a117e79229d9c0582dd0c8e292d99a0faf2ea5, an atomic 18-path product/plan commit.
+This qualifies the documented utility subset and measured corpus outcomes only;
+SVG rendering, WDP extraction, floating insertion, alternate replacement, batch
+execution and live drawing models remain unqualified or unsupported as recorded.
+The broader sole specification remains Proposed / Implemented Through Not
+applicable. Final task 72 implement/test scalars are isolated from the preserved
+unrelated task 48–59 working diff for local documentation delivery. No remote
+main delivery, release, README edit or cache cleanup occurred.

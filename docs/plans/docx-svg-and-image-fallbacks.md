@@ -224,3 +224,14 @@ at 478.99 seconds within the total 600-second/64-MiB ceilings. Raw log
 /tmp/docx72-root-guarded-eslint-final.log is 5955703 bytes, SHA256
 5faa1cb98c02316a440777a03c215e3b08f593cf1908f169aa84aedd351cfb7e.
 Only verified atomic owned local commits and task 72 scalar delivery remain.
+
+Root verified local product commit
+f6a117e79229d9c0582dd0c8e292d99a0faf2ea5 contains exactly the 17 authenticated
+product/integration paths plus this relevant plan. Original main, unrelated
+pipeline changes and empty index remained preserved. Final documentation/status
+delivery isolates only task 72 implement/test scalars using parsed HEAD YAML
+ranges and a thin index blob; it includes this plan, research and frozen QA JSON.
+Authenticate the final local commit paths and unrelated diff/index before task
+73. The bounded task 72 checks and measured QA passed; broad specification,
+rendering/model parity and WDP extraction are not thereby complete. No push,
+release, README edit, native mount change or cache cleanup is part of delivery.

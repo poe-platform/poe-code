@@ -332,3 +332,10 @@ visual gates now pass. No disposable downloads acquired or cleaned in task66;
 retained corpus remains preparation. README permission remains absent. Root
 prepares one atomic typed-property feature commit of explicit owned paths; local
 delivery and isolated status update will be verified separately. No push/release.
+
+Local feature delivery verified: 6ff81ce58e2a4a49e8e7ae8460eee66011897bb0,
+feat(docx): add typed document properties, 28 explicit owned files. Native commit
+hooks complete normally, no co-author or hook bypass. Index is empty afterward;
+only the preserved unrelated pipeline status diff and untracked independent plan
+remain. Root isolates task66 implement/test done into a HEAD-based pipeline blob,
+preserving that unrelated working diff. No remote delivery/release was attempted.

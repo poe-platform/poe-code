@@ -2,29 +2,31 @@ import assert from "node:assert/strict";
 import { setTimeout as delay } from "node:timers/promises";
 import test from "node:test";
 import { CommandRegistry, type ByteSource } from "../../../src/contracts/index.js";
-import { createSafeJsCommands, safeJsCommands, type SafeJsCommandsOptions } from "../../../src/commands/safejs/index.js";
+import { createSafeJsCommands, safeJsCommands } from "../../../src/commands/safejs/index.js";
 import { contractRuntime, deferred, execute, operation } from "./helpers.js";
 
-test("plugin collision is explicit, replacement is opt-in, and no js alias is registered", async () => {
+test("JavaScript plugin collision is explicit and only node is registered", async () => {
+  const runtime = contractRuntime(async () => {});
   const commands = new CommandRegistry();
   const host = { commands, use() {}, registerFileSystem() {} };
-  await safeJsCommands().setup(host);
-  assert.equal(commands.has("safejs"), true);
+  await safeJsCommands({ runtime }).setup(host);
+  assert.equal(commands.has("node"), true);
+  assert.equal(commands.has("safejs"), false);
   assert.equal(commands.has("js"), false);
-  assert.throws(() => safeJsCommands().setup(host), /already registered/u);
-  const first = commands.get("safejs");
-  await safeJsCommands({ replace: true }).setup(host);
-  assert.notEqual(commands.get("safejs"), first);
+  assert.throws(() => safeJsCommands({ runtime }).setup(host), /already registered/u);
+  const first = commands.get("node");
+  await safeJsCommands({ runtime, replace: true }).setup(host);
+  assert.notEqual(commands.get("node"), first);
 });
 
 for (const limits of [{ timeoutMs: 0 }, { maxInputBytes: -1 }, { maxSteps: NaN }, { dataSize: 1.5 }, { timeoutMs: 2_147_483_648 }]) {
   test(`invalid host limits reject before registration: ${JSON.stringify(limits)}`, () => {
-    assert.throws(() => createSafeJsCommands({ limits }), RangeError);
+    assert.throws(() => createSafeJsCommands({ runtime: contractRuntime(async () => {}), limits }), RangeError);
   });
 }
 
 test("partially supplied runtime factories fail closed", () => {
-  assert.throws(() => createSafeJsCommands({ runtime: {} } as SafeJsCommandsOptions), /runtime.run/u);
+  assert.throws(() => createSafeJsCommands({ runtime: {} } as never), /runtime.run/u);
 });
 
 for (const mode of ["inline", "stdin"]) test(`source byte limit precedes interpreter effects: ${mode}`, async () => {

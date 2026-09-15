@@ -3,7 +3,7 @@ import test from "node:test";
 import { Budget, declareHostOperation, makeFsModule, run } from "poe-code/safe-js";
 import { createNodeCommand, createNodeCommands, nodeCommands, NODE_PROFILE } from "../../src/commands/node/index.js";
 import { standardCommands } from "../../src/commands/index.js";
-import { safeJsCommands, type SafeJsRuntime } from "../../src/commands/safejs/index.js";
+import { createSafeJsCommands, safeJsCommands, type SafeJsRuntime } from "../../src/commands/safejs/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { Shell } from "../../src/shell/index.js";
 
@@ -21,12 +21,20 @@ test("node accepts the injected public SafeJS runtime through every registration
     (shell: Shell) => shell.use(nodeCommands({ runtime })),
     (shell: Shell) => shell.register(createNodeCommand({ runtime })),
     (shell: Shell) => shell.register(createNodeCommands({ runtime })[0]!),
+    (shell: Shell) => shell.use(safeJsCommands({ runtime })),
+    (shell: Shell) => shell.register(createSafeJsCommands({ runtime })[0]!),
   ]) {
     const shell = register(new Shell({ fs: new MemoryFileSystem() }));
     try {
       const result = await shell.exec(`node -e 'console.log("hello")'`);
       assert.equal(result.exitCode, 0, result.stderr);
       assert.equal(result.stdout, "hello\n");
+      assert.equal(shell.commands.has("safejs"), false);
+      assert.equal(shell.commands.has("js"), false);
+      assert.equal((await shell.exec("safejs -e 'throw 1'")).exitCode, 127);
+      const help = await shell.exec("node --help");
+      assert.ok(help.stdout.startsWith("Usage: node "));
+      assert.equal(help.stdout.includes("Usage: safejs"), false);
     } finally { await shell.dispose(); }
   }
 });
@@ -140,18 +148,23 @@ test("node forwards cancellation to its runtime", async () => {
   finally { await shell.dispose(); }
 });
 
-test("node is opt-in, coexists with safejs and requires deliberate replacement", async () => {
+test("node is opt-in, has no safejs alias and requires deliberate replacement", async () => {
   const shell = new Shell({ fs: new MemoryFileSystem() }).use(standardCommands());
   try {
     assert.equal((await shell.exec("node -p '1'")).exitCode, 127);
-    shell.use(nodeCommands({ runtime })).use(safeJsCommands({ runtime }));
+    shell.use(nodeCommands({ runtime }));
     await shell.exec("true");
     assert.throws(() => nodeCommands({ runtime }).setup({
       commands: shell.commands, use() { assert.fail("unexpected middleware"); },
       registerFileSystem() { assert.fail("unexpected filesystem"); },
     }));
+    assert.throws(() => safeJsCommands({ runtime }).setup({
+      commands: shell.commands, use() { assert.fail("unexpected middleware"); },
+      registerFileSystem() { assert.fail("unexpected filesystem"); },
+    }));
     shell.use(nodeCommands({ runtime, replace: true }));
-    assert.equal((await shell.exec("node -p '2'; safejs -p -e 'return 3;'")).stdout, "2\n3\n");
+    assert.equal((await shell.exec("node -p '2'")).stdout, "2\n");
+    assert.equal((await shell.exec("safejs -e 'return 3;'")).exitCode, 127);
     assert.throws(() => nodeCommands({ runtime, provider: {} } as never));
     assert.throws(() => nodeCommands({ runtime, grants: {} } as never));
     assert.throws(() => nodeCommands({ runtime: undefined } as never));

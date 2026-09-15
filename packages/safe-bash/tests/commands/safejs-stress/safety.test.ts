@@ -109,7 +109,7 @@ test("fixture: captured host operations cannot be reused after command completio
 });
 
 test("fixture: registration configuration rejects unknown budgets", () => {
-  assert.throws(() => createSafeJsCommands({ limits: { actions: 1 } as never }), /Unknown SafeJS limit: actions/u);
+  assert.throws(() => createSafeJsCommands({ runtime: contractRuntime(async () => {}), limits: { actions: 1 } as never }), /Unknown SafeJS limit: actions/u);
 });
 
 test("fixture: stdout/stderr/return share an exact cumulative UTF-8 byte budget", async () => {

@@ -114,7 +114,13 @@
       "import": "./packages/safe-bash/dist/commands/network/index.js"
     },
     "./safe-bash/commands/node": {
-      "types": "./packages/safe-bash/dist/commands/node/index.d.ts",
+      "types": {
+        "workerd": "./packages/safe-bash/dist/commands/node/browser.d.ts",
+        "browser": "./packages/safe-bash/dist/commands/node/browser.d.ts",
+        "default": "./packages/safe-bash/dist/commands/node/index.d.ts"
+      },
+      "workerd": "./packages/safe-bash/dist/commands/node/index.browser.js",
+      "browser": "./packages/safe-bash/dist/commands/node/index.browser.js",
       "import": "./packages/safe-bash/dist/commands/node/index.js"
     },
     "./safe-bash/commands/metadata": {

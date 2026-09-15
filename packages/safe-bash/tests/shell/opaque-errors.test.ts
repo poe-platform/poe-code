@@ -299,9 +299,9 @@ for (const stage of ["createBudget", "makeFsModule", "run"] as const) {
     } satisfies SafeJsRuntime<object>;
     runtime[stage] = () => { throw new TypeError(secret); };
     const { shell } = fixture(context, createSafeJsCommands({ runtime }));
-    const result = await shell.exec("safejs -e '1'");
+    const result = await shell.exec("node -e '1'");
     assert.equal(result.exitCode, 1);
-    assert.equal(result.stderr, "safejs: internal error\n");
+    assert.equal(result.stderr, "node: internal error\n");
   });
 }
 
@@ -371,9 +371,9 @@ test("CONTROL optional SafeJS explicit guest error result remains guest-visible"
     async run() { return { ok: false, error: { name: "ParseError", message: "guest parse diagnostic" } }; },
   };
   const { shell } = fixture(context, createSafeJsCommands({ runtime }));
-  const result = await shell.exec("safejs -e '1'");
+  const result = await shell.exec("node -e '1'");
   assert.equal(result.exitCode, 2);
-  assert.equal(result.stderr, "safejs: guest parse diagnostic\n");
+  assert.equal(result.stderr, "node: guest parse diagnostic\n");
 });
 
 test("RED regex worker error event must not launder host text into a trusted error", async () => {
@@ -566,8 +566,8 @@ for (const stage of ["createBudget", "makeFsModule", "run"] as const) {
     const runtime = { createBudget() { return {}; }, makeFsModule() { return {}; }, declareHostOperation(operation) { return operation; }, async run() { return { ok: true }; } } satisfies SafeJsRuntime<object>;
     runtime[stage] = () => { throw failure; };
     const { shell } = fixture(context, createSafeJsCommands({ runtime }), { onInternalError(reason) { seen.push(reason); } });
-    const result = await shell.exec("safejs -e '1'");
+    const result = await shell.exec("node -e '1'");
     assert.deepEqual(seen, [failure]);
-    assert.equal(result.stderr, "safejs: internal error\n");
+    assert.equal(result.stderr, "node: internal error\n");
   });
 }

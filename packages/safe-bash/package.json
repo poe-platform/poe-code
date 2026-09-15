@@ -66,7 +66,13 @@
       "import": "./dist/commands/network/index.js"
     },
     "./commands/node": {
-      "types": "./dist/commands/node/index.d.ts",
+      "types": {
+        "workerd": "./dist/commands/node/browser.d.ts",
+        "browser": "./dist/commands/node/browser.d.ts",
+        "default": "./dist/commands/node/index.d.ts"
+      },
+      "workerd": "./dist/commands/node/index.browser.js",
+      "browser": "./dist/commands/node/index.browser.js",
       "import": "./dist/commands/node/index.js"
     },
     "./commands/metadata": {

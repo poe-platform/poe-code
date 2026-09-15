@@ -238,7 +238,7 @@ test("cross-mount moves preserve ordinary directory permissions and timestamps",
   await assert.rejects(origin.stat("/directory"), { code: "ENOENT" });
 });
 
-for (const source of ["join /input /input", "diff /input /input", "html-to-markdown /input", "rg -F a /input", "safejs /input", "curl --data-binary @/input https://example.test/"]) {
+for (const source of ["join /input /input", "diff /input /input", "html-to-markdown /input", "rg -F a /input", "node /input", "curl --data-binary @/input https://example.test/"]) {
   test(`absent optional reader retains bounded ordinary fallback: ${source}`, async context => {
     const backing = new MemoryFileSystem();
     await backing.writeFile("/input", new TextEncoder().encode("a\nb\n"));
@@ -259,7 +259,7 @@ for (const source of ["join /input /input", "diff /input /input", "html-to-markd
       },
     });
     const shell = new Shell({ fs }).use(agentCommands()).use(safeJsCommands({ runtime: contractRuntime(async value => {
-      assert.equal(value, "a\nb\n");
+      assert.equal(value, "a\nb\n\n;__safeBashSetExitCode(process.exitCode);");
     }) })).use(networkCommands({
       authorize: () => true,
       async transport(request) {

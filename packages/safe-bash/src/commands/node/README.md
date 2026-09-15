@@ -5,6 +5,13 @@ It shares the shell's virtual filesystem, stdin, stdout, stderr, cwd, exported
 environment, and cancellation signal. No engine is loaded implicitly and no
 native subprocess is started.
 
+JavaScript integration registers only `node`, never `safejs` or `js`. The legacy
+SDK names `safeJsCommands` and `createSafeJsCommands` expose the portable SafeJS
+registration factories; they use the same Node-style arguments
+and require the same explicit runtime configuration. They do not add shell aliases.
+Browser and workerd root and command-subpath exports provide the SafeJS-backed
+factories without the native provider implementation.
+
 ```ts
 import { Shell, createMemoryFileSystem, nodeCommands } from "poe-code/safe-bash";
 import { Budget, run, makeFsModule, declareHostOperation } from "poe-code/safe-js";

@@ -84,7 +84,6 @@ These plugins are separate from `agentCommands()`; pass them to `shell.use(...)`
 | --- | --- |
 | `curl` | `networkCommands({ authorize, transport?, limits?, replace? })`: required authorization on every request, redirect, and retry. Node uses the native HTTP transport; Workers can inject `createFetchTransport()`. `createOriginAuthorizer([...])` provides exact origin/hostname policy; its omitted allowlist is deliberately `*` (allow all). [Options and limits](src/commands/network/types.ts). |
 | `node` | `nodeCommands({ runtime, limits?, replace? })`: runs JavaScript with an injected SafeJS runtime, virtual files, and shell streams. [Usage and supported subset](src/commands/node/README.md). |
-| `safejs` | `safeJsCommands({ runtime, limits?, replace? })`: inject `run`, `createBudget`, `makeFsModule`, and `declareHostOperation` to execute programs. [Runtime contract](src/commands/safejs/types.ts). |
 | `llm` | `llmCommands({ providers, defaultModel?, replace? })`: opt-in model routing, sandbox attachments and streamed text/binary output. Includes injected-transport OpenAI and ElevenLabs reference providers. [Configuration and provider contract](src/commands/llm/README.md). |
 
 Storage can be in memory, a rooted host directory, S3-compatible storage, or WebDAV,
@@ -94,7 +93,7 @@ see the [filesystem guide](../safe-fs/README.md).
 ### Run JavaScript with SafeJS
 
 Plug SafeJS into `node`; nothing starts a native Node.js subprocess or loads a
-runtime automatically. The same runtime object can also power `safeJsCommands`.
+runtime automatically. SafeJS is the execution engine, not a separate shell command.
 
 ```ts
 import { Shell, agentCommands, createMemoryFileSystem, nodeCommands } from "@poe-platform/safe-bash";

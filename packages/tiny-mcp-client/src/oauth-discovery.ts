@@ -20,6 +20,7 @@ export interface OAuthDiscoveryCache {
     resourceUrl: string
   ): OAuthDiscoveryResult | null | undefined | Promise<OAuthDiscoveryResult | null | undefined>;
   set(resourceUrl: string, value: OAuthDiscoveryResult): void | Promise<void>;
+  delete?(resourceUrl: string): void | Promise<void>;
 }
 
 export interface OAuthMetadataDiscoveryOptions {
@@ -250,6 +251,52 @@ function authorizationServerMetadataLocations(issuer: string): string[] {
   return locations;
 }
 
+function validateCachedDiscovery(value: unknown, resource: string): OAuthDiscoveryResult {
+  if (!isObjectRecord(value) || value.resource !== resource) {
+    throw new Error("Cached OAuth discovery resource mismatch");
+  }
+  if (
+    typeof value.resourceMetadataUrl !== "string" ||
+    typeof value.authorizationServer !== "string" ||
+    typeof value.authorizationServerMetadataUrl !== "string"
+  ) {
+    throw new Error("Cached OAuth discovery is missing identity fields");
+  }
+  const resourceMetadata = validateProtectedResourceMetadata(value.resourceMetadata, resource);
+  const resourceMetadataLocation = new URL(value.resourceMetadataUrl);
+  if (
+    resourceMetadataLocation.username !== "" ||
+    resourceMetadataLocation.password !== "" ||
+    resourceMetadataLocation.hash !== ""
+  ) {
+    throw new Error(
+      "Cached OAuth discovery metadata location must not include credentials or fragment"
+    );
+  }
+  assertSecureUrl(resourceMetadataLocation, "Cached OAuth discovery metadata location");
+  const issuer = validateAuthorizationServerIssuer(value.authorizationServer);
+  if (!resourceMetadata.authorization_servers.includes(issuer)) {
+    throw new Error("Cached OAuth discovery issuer was not advertised by the resource");
+  }
+  if (
+    !authorizationServerMetadataLocations(issuer).includes(value.authorizationServerMetadataUrl)
+  ) {
+    throw new Error("Cached OAuth discovery metadata location does not match issuer");
+  }
+  const authorizationServerMetadata = validateAuthorizationServerMetadata(
+    value.authorizationServerMetadata,
+    issuer
+  );
+  return structuredClone({
+    resource,
+    resourceMetadataUrl: value.resourceMetadataUrl,
+    resourceMetadata,
+    authorizationServer: issuer,
+    authorizationServerMetadataUrl: value.authorizationServerMetadataUrl,
+    authorizationServerMetadata
+  });
+}
+
 export class OAuthMetadataDiscovery {
   private readonly fetchImpl: OAuthMetadataFetch;
   private readonly cache: OAuthDiscoveryCache | undefined;
@@ -296,7 +343,7 @@ export class OAuthMetadataDiscovery {
     resolveProtectedResourceMetadataUrl(cacheKey, resourceMetadataUrl);
     const memoryCachedResult = this.memoryCache.get(cacheKey);
     if (memoryCachedResult !== undefined && resourceMetadataUrl === undefined) {
-      return memoryCachedResult;
+      return structuredClone(memoryCachedResult);
     }
 
     const sharedCachedResult = await this.cache?.get(cacheKey);
@@ -305,8 +352,13 @@ export class OAuthMetadataDiscovery {
       sharedCachedResult !== undefined &&
       resourceMetadataUrl === undefined
     ) {
-      this.memoryCache.set(cacheKey, sharedCachedResult);
-      return sharedCachedResult;
+      try {
+        const result = validateCachedDiscovery(sharedCachedResult, cacheKey);
+        this.memoryCache.set(cacheKey, structuredClone(result));
+        return result;
+      } catch {
+        await this.cache?.delete?.(cacheKey);
+      }
     }
 
     const { location: resourceMetadataLocation, metadata: resourceMetadata } =
@@ -340,8 +392,8 @@ export class OAuthMetadataDiscovery {
             authorizationServerMetadata
           };
 
-          this.memoryCache.set(cacheKey, result);
-          await this.cache?.set(cacheKey, result);
+          this.memoryCache.set(cacheKey, structuredClone(result));
+          await this.cache?.set(cacheKey, structuredClone(result));
           return result;
         } catch (error) {
           authorizationServerErrors.push(

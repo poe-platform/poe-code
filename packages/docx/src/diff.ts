@@ -1,4 +1,4 @@
-import { archiveSettings, InputTypeError, type ArchiveContext } from "./archive.js";
+import { archiveSettings, InputTypeError, ResourceLimitError, type ArchiveContext } from "./archive.js";
 import { admittedXml, readDocumentArchive, type AdmittedDocumentArchive } from "./admission.js";
 import { validateDocxInvocation } from "./command.js";
 import { DocumentBudget } from "./budget.js";
@@ -80,8 +80,6 @@ function semanticXml(root: XmlElement, budget: DocumentBudget, wordNamespace?: s
 
 async function comparisonParts(input: Uint8Array, context: ArchiveContext, mode: DocumentDiffData["mode"], scope: DocumentDiffScope): Promise<Map<string, ComparisonPart>> {
   const settings = archiveSettings(context), { budget } = settings;
-  budget.charge("retainedBytes", input.length);
-  input = new Uint8Array(input);
   const archive: AdmittedDocumentArchive = await readDocumentArchive(input, { ...settings, budget: budget.document() });
   budget.charge("work", input.length);
   budget.charge("retainedBytes", input.length + 1024);
@@ -147,6 +145,13 @@ export async function compareDocument(left: Uint8Array, right: Uint8Array, conte
   const scope = invocation.options.scope as DocumentDiffScope;
   if (!(left instanceof Uint8Array) || !(right instanceof Uint8Array)) throw new InputTypeError("Expected two document byte inputs.");
   const budget = settings.budget.lower(Object.fromEntries((options.limit ?? []).map(item => [item.name, item.value])));
+  budget.check("compressedInput", left.length);
+  budget.check("compressedInput", right.length);
+  if (left.length > settings.limits.maxArchiveBytes || right.length > settings.limits.maxArchiveBytes)
+    throw new ResourceLimitError("Document input byte limit exceeded.");
+  budget.charge("retainedBytes", left.length + right.length);
+  left = new Uint8Array(left);
+  right = new Uint8Array(right);
   const a = await comparisonParts(left, { ...settings, budget }, mode, scope);
   const b = await comparisonParts(right, { ...settings, budget }, mode, scope);
   const differences: DocumentDiffData["differences"][number][] = [];

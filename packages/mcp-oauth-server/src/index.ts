@@ -1,4 +1,5 @@
 import { createHash, randomBytes, timingSafeEqual, type KeyObject } from "node:crypto";
+import { isIP } from "node:net";
 import { importJWK, jwtVerify, SignJWT, type JWK } from "jose";
 
 export interface OAuthClientRecord {
@@ -261,12 +262,16 @@ function parseAbsoluteUrl(value: string, label: string): string {
 
 function validateIssuer(value: string): string {
   const issuer = new URL(parseAbsoluteUrl(value, "issuer"));
+  const loopback = issuer.hostname === "localhost" || issuer.hostname === "[::1]" ||
+    (isIP(issuer.hostname) === 4 && issuer.hostname.startsWith("127."));
   if (
     issuer.protocol !== "https:" &&
-    issuer.hostname !== "localhost" &&
-    issuer.hostname !== "127.0.0.1"
+    !(issuer.protocol === "http:" && loopback)
   ) {
     throw new Error("issuer must use HTTPS unless it is loopback.");
+  }
+  if (issuer.username.length > 0 || issuer.password.length > 0) {
+    throw new Error("issuer must not contain credentials.");
   }
   if (issuer.pathname !== "/" || issuer.search.length > 0) {
     throw new Error("issuer must be an origin URL without a path or query.");
@@ -485,6 +490,12 @@ export function createOAuthAuthorizationServer(
   ): Promise<void> {
     if (grant !== undefined) await options.onGrantRevoked?.(grant);
   }
+  for (const key of ["accessTokenTtlSeconds", "authorizationCodeTtlSeconds", "authorizationTransactionTtlSeconds", "refreshTokenTtlSeconds"] as const) {
+    const seconds = options[key];
+    if (seconds !== undefined && (!Number.isSafeInteger(seconds) || seconds <= 0 || !Number.isSafeInteger(seconds * 1000))) {
+      throw new Error(`${key} must be a positive safe integer with a safe millisecond duration.`);
+    }
+  }
   const accessTokenTtlMs = (options.accessTokenTtlSeconds ?? 300) * 1000;
   const authorizationCodeTtlMs = (options.authorizationCodeTtlSeconds ?? 60) * 1000;
   const authorizationTransactionTtlMs = (options.authorizationTransactionTtlSeconds ?? 600) * 1000;
@@ -522,14 +533,39 @@ export function createOAuthAuthorizationServer(
     if (declaredLength !== null) {
       const parsedLength = Number(declaredLength);
       if (Number.isFinite(parsedLength) && parsedLength > maxRequestBodyBytes) {
+        await request.body?.cancel().catch(() => undefined);
         throw new OAuthProtocolError("invalid_request", "Request body is too large.", 413);
       }
     }
-    const body = new Uint8Array(await request.arrayBuffer());
-    if (body.byteLength > maxRequestBodyBytes) {
-      throw new OAuthProtocolError("invalid_request", "Request body is too large.", 413);
+    if (request.body === null) return "";
+    const reader = request.body.getReader();
+    const abort = () => { void reader.cancel().catch(() => undefined); };
+    request.signal.addEventListener("abort", abort, { once: true });
+    if (request.signal.aborted) abort();
+    const decoder = new TextDecoder("utf-8", { fatal: true });
+    let bytes = 0;
+    let text = "";
+    try {
+      while (true) {
+        const chunk = await reader.read();
+        request.signal.throwIfAborted();
+        if (chunk.done) return text + decoder.decode();
+        bytes += chunk.value.byteLength;
+        if (bytes > maxRequestBodyBytes) {
+          throw new OAuthProtocolError("invalid_request", "Request body is too large.", 413);
+        }
+        text += decoder.decode(chunk.value, { stream: true });
+      }
+    } catch (error) {
+      await reader.cancel().catch(() => undefined);
+      if (error instanceof TypeError) {
+        throw new OAuthProtocolError("invalid_request", "Request body must use valid UTF-8.");
+      }
+      throw error;
+    } finally {
+      request.signal.removeEventListener("abort", abort);
+      reader.releaseLock();
     }
-    return new TextDecoder().decode(body);
   }
 
   async function handleRegister(request: Request): Promise<Response> {

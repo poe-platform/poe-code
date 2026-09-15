@@ -378,6 +378,10 @@ function formatTaskCompleteMessage(progress: TaskCompletion): string {
     return `${progress.taskTitle} ${status} in ${duration}${usage}`;
   }
 
+  if (progress.stepName && progress.success && progress.taskCompleted === false) {
+    return `Step ${progress.stepName} for ${progress.taskId} done in ${duration}${usage}`;
+  }
+
   if (progress.stepName && !progress.success) {
     return `Task ${progress.taskId} (${progress.stepName}) failed in ${duration}${usage}`;
   }

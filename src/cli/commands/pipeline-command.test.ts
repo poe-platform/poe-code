@@ -1264,7 +1264,7 @@ describe("pipeline run command", () => {
     );
   });
 
-  it("routes pipeline progress through the dashboard when --tui is enabled", async () => {
+  it.each([false, true])("routes pipeline progress with taskCompleted=%s through the dashboard", async (taskCompleted) => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(0));
 
@@ -1302,7 +1302,7 @@ describe("pipeline run command", () => {
         totalSteps: 2,
         durationMs: 2_000,
         success: true,
-        taskCompleted: true,
+        taskCompleted,
         usage: {
           inputTokens: 120,
           outputTokens: 45
@@ -1389,14 +1389,14 @@ describe("pipeline run command", () => {
       },
       {
         kind: "success",
-        text: `${expectedTimestamp} Task auth-hardening done in 2s (tokens: 120 in / 45 out)`,
+        text: `${expectedTimestamp} ${taskCompleted ? "Task auth-hardening" : "Step implement for auth-hardening"} done in 2s (tokens: 120 in / 45 out)`,
         ts: 0
       }
     ]);
     expect(dashboardMock.updateStats).toHaveBeenCalledWith(
       expect.objectContaining({
         status: "done",
-        iterations: 1,
+        iterations: taskCompleted ? 1 : 0,
         tokensIn: 120,
         tokensOut: 45,
         currentAction: "Task 2/3 · Auth hardening · implement · step 1/2"

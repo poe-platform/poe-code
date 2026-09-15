@@ -319,7 +319,8 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
     resolveEventStreamDone = resolve;
     rejectEventStreamDone = reject;
   });
-  const eventQueue: AcpEvent[] = [];
+  const eventQueue: Array<AcpEvent | undefined> = [];
+  let eventIndex = 0;
   const waiters: Array<{
     resolve(result: IteratorResult<AcpEvent>): void;
     reject(error: unknown): void;
@@ -384,8 +385,17 @@ export function spawnStreaming(input: SpawnStreamingOptions): SpawnStreamingResu
     [Symbol.asyncIterator](): AsyncIterator<AcpEvent> {
       return {
         next(): Promise<IteratorResult<AcpEvent>> {
-          if (eventQueue.length > 0) {
-            return Promise.resolve({ done: false, value: eventQueue.shift()! });
+          if (eventIndex < eventQueue.length) {
+            const value = eventQueue[eventIndex]!;
+            eventQueue[eventIndex++] = undefined;
+            if (eventIndex === eventQueue.length) {
+              eventQueue.length = 0;
+              eventIndex = 0;
+            } else if (eventIndex >= 4096 && eventIndex * 2 >= eventQueue.length) {
+              eventQueue.splice(0, eventIndex);
+              eventIndex = 0;
+            }
+            return Promise.resolve({ done: false, value });
           }
           if (eventStreamError) {
             return Promise.reject(eventStreamError);

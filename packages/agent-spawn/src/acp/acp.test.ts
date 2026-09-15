@@ -1347,11 +1347,35 @@ describe("acp/spawnStreaming", () => {
     let received = 0;
     for await (const event of events) {
       if (event.event !== "agent_message") continue;
-      expect(event.text).toBe(String(received++));
+      if (event.text !== String(received++)) throw new Error("Native output burst lost message order");
     }
     expect((await done).exitCode).toBe(0);
     expect(received).toBe(count);
     expect(performance.now() - started).toBeLessThan(1_000);
+  });
+
+  it("drains an event backlog promptly after its consumer was held", async () => {
+    const count = 100_000;
+    const adapterSpy = vi.spyOn(adapterModule, "getAdapter").mockReturnValue(async function* (lines) {
+      for await (const ignoredLine of lines) {
+        for (let index = 0; index < count; index++) yield { event: "agent_message", text: String(index) };
+      }
+    });
+    try {
+      const mock = createMockChildProcess({ stdoutLines: ["fake burst"] });
+      vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+      const { events, done } = spawnStreaming({ agentId: "opencode", prompt: "burst", mode: "yolo" });
+      await done;
+      const started = performance.now();
+      let received = 0;
+      for await (const event of events) {
+        if (event.text !== String(received++)) throw new Error("Event backlog lost message order");
+      }
+      expect(received).toBe(count);
+      expect(performance.now() - started).toBeLessThan(500);
+    } finally {
+      adapterSpy.mockRestore();
+    }
   });
 
   it("ignores inherited streaming spawn option fields", async () => {

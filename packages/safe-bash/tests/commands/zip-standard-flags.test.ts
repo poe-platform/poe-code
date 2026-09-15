@@ -12,6 +12,55 @@ import { settings } from "../../src/commands/archive/internal.js";
 import { deflateRawSync } from "node:zlib";
 import { toByteSource } from "../../src/contracts/index.js";
 
+test("zip -d matches archive members without reading their source files", async () => {
+  const fs = await fixture();
+  await fs.rm("/work/folder", { recursive: true });
+  const before = await readZipArchive(await fs.readFile("/work/sample.zip"), settings({}), new AbortController().signal);
+  const result = await execute("zip", fs, ["-d", "sample.zip", "folder/*"]);
+  assert.deepEqual(result, { exitCode: 0, stdout: Buffer.from("deleting: folder/\ndeleting: folder/data\n"), stderr: "" });
+  const after = await readZipArchive(await fs.readFile("/work/sample.zip"), settings({}), new AbortController().signal);
+  assert.deepEqual(after.entries, before.entries.filter(entry => !entry.name.startsWith("folder/")));
+  assert.deepEqual(after.comment, before.comment);
+});
+
+test("zip -d combines archive-pattern operands with inclusion and exclusion", async () => {
+  const fs = await fixture();
+  const result = await execute("zip", fs, ["-qd", "sample.zip", "*", "-i", "folder/*", "binary", "-x", "folder/"]);
+  assert.deepEqual(result, { exitCode: 0, stdout: Buffer.alloc(0), stderr: "" });
+  const after = await readZipArchive(await fs.readFile("/work/sample.zip"), settings({}), new AbortController().signal);
+  assert.deepEqual(after.entries.map(entry => entry.name), ["folder/", "empty", "link"]);
+});
+
+test("zip -d reports unmatched operands and preserves the old bytes", async () => {
+  const fs = await fixture();
+  const before = await fs.readFile("/work/sample.zip");
+  const result = await execute("zip", fs, ["-d", "sample.zip", "none"]);
+  assert.deepEqual(result, { exitCode: 12, stdout: Buffer.from("\tzip warning: name not matched: none\n\nzip error: Nothing to do! (sample.zip)\n"), stderr: "" });
+  assert.deepEqual(await fs.readFile("/work/sample.zip"), before);
+});
+
+test("zip -d deletes all entries to an empty ZIP and -T preserves the original instead", async () => {
+  const fs = await fixture();
+  const before = await fs.readFile("/work/sample.zip");
+  const tested = await execute("zip", fs, ["-qdT", "sample.zip", "*"]);
+  assert.equal(tested.exitCode, 8);
+  assert.deepEqual(await fs.readFile("/work/sample.zip"), before);
+  const result = await execute("zip", fs, ["-qd", "sample.zip", "*"]);
+  assert.equal(result.exitCode, 0, result.stdout.toString() + result.stderr);
+  const after = await readZipArchive(await fs.readFile("/work/sample.zip"), settings({}), new AbortController().signal);
+  assert.equal(after.entries.length, 0);
+});
+
+test("zip -d warns about ignored recursion and missing archives", async () => {
+  const fs = await fixture();
+  const recursive = await execute("zip", fs, ["-rd", "sample.zip", "binary"]);
+  assert.equal(recursive.exitCode, 0, recursive.stdout.toString() + recursive.stderr);
+  assert.ok(recursive.stdout.toString().startsWith("\tzip warning: invalid option(s) used with -d; ignored.\n"));
+  const missing = await execute("zip", fs, ["-d", "missing.zip", "binary"]);
+  assert.deepEqual(missing, { exitCode: 12, stdout: Buffer.from("\tzip warning: missing.zip not found or empty\n\tzip warning: name not matched: binary\n\nzip error: Nothing to do! (missing.zip)\n"), stderr: "" });
+  await assert.rejects(fs.stat("/work/missing.zip"), { code: "ENOENT" });
+});
+
 test("zip -T validates created binary data and reports success after progress", async () => {
   const fs = await fixture();
   const result = await execute("zip", fs, ["-T", "output.zip", "binary", "folder/data"]);

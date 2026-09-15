@@ -39,6 +39,15 @@ The input stream is owned and drained before cancellation settlement. This optio
 reads filename lists; stdin file payloads and stdout archives remain separate
 streaming work.
 
+`zip -d ARCHIVE PATTERNS...` deletes matching archive members without looking for
+their source files. Inclusion and exclusion lists apply to those archive paths.
+Unmatched operand patterns warn unless quiet; no selected members returns status
+12 without replacing the archive. Retained payloads, metadata and the archive
+comment are preserved. Deleting all members produces an empty ZIP, while combining
+that operation with `-T` rejects the empty candidate and preserves the original.
+`-r` is ignored with a nonquiet advisory warning in delete mode; `-j` does not
+rename existing archive paths.
+
 `zip -j` stores files by basename, discarding their directory paths and omitting
 directory entries. Combine it with `-r` to flatten a directory tree or `-q` for
 quiet output. Distinct sources with the same basename return status 16 without

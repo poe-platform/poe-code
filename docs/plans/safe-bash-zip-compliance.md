@@ -89,3 +89,15 @@ accounting. Manual Zip 3.0 captures establish OK output, quiet suppression and
 empty-result status 8 with no published archive. Embedded native UnZip diagnostics
 and temporary-name formatting remain a CLI fidelity gap; integrity-test support
 does not close the overall compliance goal.
+
+## Archive deletion
+
+`-d` matches operands against archive names and applies inclusion/exclusion without
+source filesystem reads. Retained members are copied unchanged, deleted progress
+and empty warnings are budgeted before publication, and unmatched names have native
+warnings/status 12. Five memory cases verify absent source trees, exact retained
+entries/comments, combined filters, all-member deletion, empty integrity rejection,
+ignored recursion and missing archives. Manual Zip 3.0 captures establish those
+statuses, channels, diagnostics and member effects. Integrity-test progress is
+flushed before validation to retain progress on test failure; default creation
+still emits completed progress after publication.

@@ -10,6 +10,7 @@ import { publishZip, ZipScope } from "./zip/safety.js";
 import { Selection } from "./unzip/arguments.js";
 
 interface ZipOptions {
+  readonly action: "add" | "delete";
   readonly archive: string;
   readonly recursive: boolean;
   readonly quiet: boolean;
@@ -48,6 +49,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
     for (const value of argumentsValue.values) text(shellValueBytes(value));
   }
   let archive: string | undefined;
+  let action: ZipOptions["action"] = "add";
   let recursive = false;
   let quiet = false;
   let junkPaths = false;
@@ -71,6 +73,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
       for (let offset = 1; offset < argument.length; offset++) {
         const flag = argument[offset];
         if (flag === "r") recursive = true;
+        else if (flag === "d") action = "delete";
         else if (flag === "q") quiet = true;
         else if (flag === "j") junkPaths = true;
         else if (flag === "D") omitDirectories = true;
@@ -131,7 +134,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
       start = end + 1;
     }
   }
-  return { archive, recursive, quiet, junkPaths, omitDirectories, storeLinks, test, includes, excludes, level, operands: [...names, ...operands], firstOperand };
+  return { action, archive, recursive, quiet, junkPaths, omitDirectories, storeLinks, test, includes, excludes, level, operands: [...names, ...operands], firstOperand };
 }
 
 function memberName(path: string, limits: ArchiveLimits): string {
@@ -166,6 +169,17 @@ async function inspectSource(scope: ZipScope, path: string, storeLinks: boolean)
   return { canonical, stat };
 }
 
+async function filterName(name: string, selection: Selection, includeCount: number): Promise<boolean> {
+  selection.matched.clear();
+  await selection.matches(name);
+  let included = includeCount === 0;
+  for (const pattern of selection.matched) {
+    if (pattern >= includeCount) return false;
+    included = true;
+  }
+  return included;
+}
+
 async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   const context = scope.context;
   const limits = budget.limits;
@@ -188,6 +202,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   }
   const old = new Map(archive.entries.map(entry => [entry.name, entry]));
   const selected = new Map<string, { entry: ZipEntry; source: string }>();
+  const deleted = new Set<string>();
   const selection = new Selection([...parsed.includes, ...parsed.excludes], limits, context.signal);
   const ancestors: { path: string; stat: FileStat }[] = [];
   let visits = 0;
@@ -221,17 +236,10 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
     if (existing && !hasIdentity(stat)) fail("cannot exclude archive aliases when source backing identity is unknown");
     const directory = stat.type === "directory";
     if (directory && name && !name.endsWith("/")) name += "/";
-    selection.matched.clear();
-    await selection.matches(name);
-    let included = parsed.includes.length === 0;
-    let excluded = false;
-    for (const pattern of selection.matched) {
-      if (pattern < parsed.includes.length) included = true;
-      else excluded = true;
-    }
+    const included = await filterName(name, selection, parsed.includes.length);
     const sourceName = name;
     if (parsed.junkPaths) name = directory ? "" : name.slice(name.lastIndexOf("/") + 1);
-    if (name && included && !excluded && !(directory && parsed.omitDirectories)) {
+    if (name && included && !(directory && parsed.omitDirectories)) {
       checkPath(name, limits);
       const previous = selected.get(name);
       if (previous && previous.source !== source) {
@@ -274,9 +282,25 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
       } finally { ancestors.pop(); }
     }
   };
-  for (const operand of parsed.operands) await visit(operand, memberName(operand, limits), 0);
-  if (!selected.size && !parsed.includes.length) {
-    const detail = parsed.recursive && parsed.firstOperand >= 0
+  if (parsed.action === "delete") {
+    if (!parsed.quiet && parsed.recursive) await budget.output("\tzip warning: invalid option(s) used with -d; ignored.\n");
+    if (!parsed.quiet && !archive.entries.length) await budget.output(`\tzip warning: ${parsed.archive} not found or empty\n`);
+    const operands = new Selection(parsed.operands, limits, context.signal);
+    if (parsed.operands.length) {
+      for (const entry of archive.entries) {
+        if (await operands.matches(entry.name) && await filterName(entry.name, selection, parsed.includes.length)) deleted.add(entry.name);
+      }
+    }
+    if (!parsed.quiet) {
+      for (const [index, operand] of parsed.operands.entries()) {
+        if (!operands.matched.has(index)) await budget.output(`\tzip warning: name not matched: ${operand}\n`);
+      }
+    }
+  } else {
+    for (const operand of parsed.operands) await visit(operand, memberName(operand, limits), 0);
+  }
+  if (!selected.size && !deleted.size && (parsed.action === "delete" || !parsed.includes.length)) {
+    const detail = parsed.action !== "delete" && parsed.recursive && parsed.firstOperand >= 0
       ? `try: zip ${context.args.slice(0, parsed.firstOperand).join(" ")} . -i ${context.args.slice(parsed.firstOperand).join(" ")}`
       : parsed.archive;
     throw new ZipFailure(12, "Nothing to do!", detail);
@@ -284,25 +308,31 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   const entries: ZipEntry[] = [];
   const progress: string[] = [];
   let progressBytes = 0;
-  const append = (entry: ZipEntry, update: boolean) => {
+  const queue = (message: string) => {
     if (parsed.quiet) return;
-    const percentage = entry.size ? Math.trunc((Math.trunc(200 * (entry.size - entry.data.length) / entry.size) + 1) / 2) : 0;
-    const message = `${update ? "updating:" : "  adding:"} ${entry.name} (${entry.method === 8 ? `deflated ${percentage}%` : "stored 0%"})\n`;
     const size = Buffer.byteLength(message);
     if (size > limits.maxTextBytes - budget.textBytes - progressBytes) fail("text output limit exceeded");
     progressBytes += size;
     progress.push(message);
   };
+  const append = (entry: ZipEntry, update: boolean) => {
+    const percentage = entry.size ? Math.trunc((Math.trunc(200 * (entry.size - entry.data.length) / entry.size) + 1) / 2) : 0;
+    queue(`${update ? "updating:" : "  adding:"} ${entry.name} (${entry.method === 8 ? `deflated ${percentage}%` : "stored 0%"})\n`);
+  };
   for (const entry of archive.entries) {
     if (++work > limits.maxPatternSteps) fail("archive work limit exceeded");
+    if (deleted.has(entry.name)) { queue(`deleting: ${entry.name}\n`); continue; }
     const replacement = selected.get(entry.name);
     if (replacement) { entries.push(replacement.entry); append(replacement.entry, true); selected.delete(entry.name); }
     else { await budget.member(entry.size); entries.push(entry); }
   }
   for (const { entry } of selected.values()) { entries.push(entry); append(entry, false); }
-  if (!entries.length && !parsed.quiet) await budget.output("\tzip warning: zip file empty\n");
+  if (!entries.length) queue("\tzip warning: zip file empty\n");
   const bytes = await writeZipArchive({ entries, comment: archive.comment }, limits, context.signal);
   if (parsed.test) {
+    for (const message of progress) await budget.output(message);
+    progress.length = 0;
+    progressBytes = 0;
     try {
       const tested = await readZipArchive(bytes, limits, context.signal);
       if (!tested.entries.length) fail("empty ZIP archive");
@@ -319,9 +349,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
       throw new ZipFailure(8, "Zip file invalid, could not spawn unzip, or wrong unzip", "original files unmodified");
     }
     if (!parsed.quiet) {
-      const message = `test of ${parsed.archive} OK\n`;
-      if (Buffer.byteLength(message) > limits.maxTextBytes - budget.textBytes - progressBytes) fail("text output limit exceeded");
-      progress.push(message);
+      queue(`test of ${parsed.archive} OK\n`);
     }
   }
   return { output, parentName, parent, parentStat, existing, bytes, progress };

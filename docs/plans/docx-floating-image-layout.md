@@ -236,3 +236,20 @@ qualified profile. Historical seals, exclusions and compatibility contracts
 were preserved; this is current lint evidence, not universal runtime acceptance.
 Raw capture SHA256224d23d035304844baf1a65179345a87063abb5437c3d1d082097c5960a60021
 and external supervision receipt are retained outside the product.
+
+## Verified local delivery
+
+Product commit21fa451849bd22c51bc1b1c5f83fd9420ecc4f5d is on main with exactly
+the 30 assigned product/plan/evidence paths. Index returned empty; the exact
+unrelated pipeline diff and pyodide plan hash remain preserved. Final verification
+commit owns only the QA JSON, this plan, its evidence document and task71 status
+scalars. Build/tests/types/public/Shell/literal/lint and bounded report QA above
+qualify task71 only. The broader spec remains Proposed / Implemented Through
+Not applicable; live models, whole API/format parity and later tasks remain
+pending. README permission is not granted and no README was edited.
+
+Task71 implement/test status becomes done only in that verification commit.
+Use parsed HEAD YAML scalar ranges and a thin index blob for this change, so
+unrelated task48–59 working edits never enter staging or the commit. Verify the
+remaining exact diff body and untracked plan hash before beginning task72.
+No push, remote-main delivery or release publication occurred.

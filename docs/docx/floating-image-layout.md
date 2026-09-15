@@ -2,8 +2,8 @@
 
 Task71 read-only preparation begins at verified local main commit
 2057602218bf92be14f1a8966bdab6d808015c4e. The preparation findings below retain
-their historical scope. Original implementation checks now pass as recorded
-below; edited-report QA and final delivery remain pending.
+their historical scope. Original implementation checks and bounded edited-report
+QA now pass as recorded below. Local delivery is recorded in the task plan.
 docs/specs/docx.md remains the sole format contract.
 
 Original memfs probes confirm images.set rejects unsupported-profile before
@@ -104,9 +104,9 @@ Pinned API/test inventories and their upstream-case identities remain research
 provenance. Task71 adds original utility cases only; no historical case/model
 status is promoted by acquisition, wording approval or baseline rendering.
 See upstream-api-audit.md, upstream-test-audit.md and the existing image inventory,
-format and replacement records for the retained broader obligations. Final
-product identity scanning and native-free build closure verification remain
-pending; no complete current-scope proof follows from these mappings.
+format and replacement records for the retained broader obligations. Original
+verification below records the product identity scan and portable build closure;
+these mappings do not establish complete model or format coverage.
 
 ## Original implementation verification
 
@@ -145,7 +145,7 @@ Root authenticated 28 owned product paths, found none of the pinned reference
 identities and verified manifests/lock unchanged. The portable browser/workerd
 bundle closed without external imports; QA-only LibreOffice/Poppler and downloaded
 inputs remain outside product/build/runtime dependencies. Edited-report outcomes
-are recorded below; final guarded lint and atomic local delivery remain pending.
+and final guarded lint are recorded below; local delivery is recorded in the plan.
 
 ## Bounded edited report outcomes
 
@@ -183,4 +183,5 @@ Final guarded root lint passed after the receipt and all entries froze: 12635
 configured inputs linted, 25 receipts complete, zero gaps and zero blocking
 errors. Twelve unrelated cached usage warnings remain; no task71 diagnostics.
 The run settled within external 600s supervision. Existing historical seals and
-compatibility contracts remain unchanged. Atomic local delivery is pending.
+compatibility contracts remain unchanged. Verified local product commit:
+21fa451849bd22c51bc1b1c5f83fd9420ecc4f5d. No push or release.

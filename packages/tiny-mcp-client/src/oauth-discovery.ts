@@ -538,7 +538,7 @@ export function parseBearerWwwAuthenticateHeader(
             break;
           }
 
-          params[parsedParam.name] = parsedParam.value;
+          params[parsedParam.name.toLowerCase()] = parsedParam.value;
           index = skipOptionalWhitespace(headerValue, parsedParam.nextIndex);
 
           if (headerValue[index] !== ",") {

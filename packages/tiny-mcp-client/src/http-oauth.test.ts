@@ -471,6 +471,18 @@ describe("discoverOAuthMetadata", () => {
 });
 
 describe("parseBearerWwwAuthenticateHeader", () => {
+  it("normalizes case-insensitive authentication parameter names for OAuth recovery", () => {
+    const challenge = parseBearerWwwAuthenticateHeader(
+      'bEaReR RESOURCE_METADATA="https://resource.example.com/metadata", ScOpE="tools:read", ERROR="insufficient_scope"'
+    );
+
+    expect(challenge?.params).toEqual({
+      resource_metadata: "https://resource.example.com/metadata",
+      scope: "tools:read",
+      error: "insufficient_scope"
+    });
+  });
+
   it("selects the Bearer challenge from a combined header and preserves quoted commas", () => {
     expect(
       parseBearerWwwAuthenticateHeader(

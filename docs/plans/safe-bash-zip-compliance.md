@@ -475,3 +475,16 @@ times match native odd-second capture at 1700000002. Artifacts are preserved in
 Reference: https://github.com/LuaDist/zip/blob/master/zip.c and unix/unix.c
 Comment-selection release 35018219722 failed on published-version collision
 0.1.624. Remaining move, line conversion, streaming, formats and grammar stay open.
+
+## Integrity checks on unchanged archives
+
+Native Zip 3.0 and public zip.c finish/test paths validate standalone T,
+unchanged update/freshen T and directory-only oT behavior. Seven initially
+failing memory cases cover success status, retained bad CRCs and warning order.
+Retain original bytes for test-only validation, defer timestamp warnings until
+integrity succeeds and avoid publication when no archive changes are requested.
+Native unmatched copy T tests the input without creating output; an additional
+failing memory case validates that publication guard, with corrupt-input coverage.
+670 focused ZIP/unzip tests and scoped lint pass. Timestamp scoped release
+35019636709 succeeded; root release 35019637057 remains monitored. Full grammar,
+move, line conversion, large-byte ZIP64, streaming and other formats remain open.

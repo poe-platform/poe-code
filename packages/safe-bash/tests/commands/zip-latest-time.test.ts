@@ -141,3 +141,55 @@ test("zip latest timestamp selection is cancellation-aware", async () => {
   await assert.rejects(zipLatestTime(archive.entries, controller.signal), error => error === false);
   await assert.rejects(zipLatestTime([], controller.signal), error => error === false);
 });
+
+test("zip latest time still integrity-tests unchanged directory-only archives", async () => {
+  const fs = await fixture(await archiveBytes([{ name: "folder/", body: Buffer.alloc(0) }]));
+  const priorTime = modified.getTime() - 60000;
+  await fs.utimes!("/work/sample.zip", priorTime, priorTime);
+  const before = await fs.readFile("/work/sample.zip");
+  const result = await execute("zip", fs, ["-oT", "sample.zip"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout.toString(), "test of sample.zip OK\n\tzip warning: zip file has only directories, can't make it as old as latest entry\n");
+  assert.deepEqual(await fs.readFile("/work/sample.zip"), before);
+  assert.equal((await fs.stat("/work/sample.zip")).mtimeMs, priorTime);
+});
+
+for (const flags of [["-T"], ["-u", "-T"], ["-f", "-T"], ["-u", "-o", "-T"]]) {
+  test(`zip standalone and unchanged integrity mode ${flags} succeeds without rewriting bytes`, async () => {
+    const fs = await fixture(await archiveBytes([{ name: "binary", body: Buffer.from("old") }]));
+    await fs.utimes!("/work/binary", 0, 0);
+    const before = await fs.readFile("/work/sample.zip");
+    const result = await execute("zip", fs, ["-q", ...flags, "sample.zip"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(await fs.readFile("/work/sample.zip"), before);
+  });
+}
+
+test("zip standalone integrity mode rejects bad retained CRC without publishing", async () => {
+  const fs = await fixture(await archiveBytes([{ name: "binary", body: Buffer.from("old") }], entries => { entries[0]!.crc32 = 1; }));
+  const before = await fs.readFile("/work/sample.zip");
+  const result = await execute("zip", fs, ["-qT", "sample.zip"]);
+  assert.equal(result.exitCode, 8, result.stderr);
+  assert.deepEqual(await fs.readFile("/work/sample.zip"), before);
+});
+
+test("zip latest time rejects bad directory CRC under -T before publication", async () => {
+  const fs = await fixture(await archiveBytes([{ name: "folder/", body: Buffer.alloc(0) }], entries => { entries[0]!.crc32 = 1; }));
+  const before = await fs.readFile("/work/sample.zip");
+  const prior = await fs.stat("/work/sample.zip");
+  const result = await execute("zip", fs, ["-qoT", "sample.zip"]);
+  assert.equal(result.exitCode, 8, result.stderr);
+  assert.deepEqual(await fs.readFile("/work/sample.zip"), before);
+  assert.equal((await fs.stat("/work/sample.zip")).mtimeMs, prior.mtimeMs);
+});
+
+for (const corrupt of [false, true]) {
+  test(`zip unmatched copy integrity mode tests input without creating output (corrupt=${corrupt})`, async () => {
+    const fs = await fixture(await archiveBytes([{ name: "binary", body: Buffer.from("old") }], entries => { if (corrupt) entries[0]!.crc32 = 1; }));
+    const before = await fs.readFile("/work/sample.zip");
+    const result = await execute("zip", fs, ["-qTU", "sample.zip", "missing", "-O", "out.zip"]);
+    assert.equal(result.exitCode, corrupt ? 8 : 0, result.stderr);
+    assert.deepEqual(await fs.readFile("/work/sample.zip"), before);
+    assert.equal((await fs.readdir("/work")).some(entry => entry.name === "out.zip"), false);
+  });
+}

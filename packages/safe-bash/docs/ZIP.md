@@ -160,7 +160,10 @@ target does not authorize its extraction; extraction path checks remain enabled.
 
 `-T` rereads the prepared archive and verifies every member's decompression,
 length and CRC before publication, including retained old members. It does not
-extract files or invoke a host executable. Invalid payloads and an empty result
+extract files or invoke a host executable. Standalone and unchanged update/freshen
+tests succeed without rewriting the archive. An unmatched copy tests the input
+without creating a separate output. Directory-only timestamp warnings follow a
+successful test; a failed test preserves the archive and its timestamps. Invalid payloads and an empty result
 return status 8 without publishing the update. Successful nonquiet tests print
 `test of ARCHIVE OK`; `-q` suppresses this message. Decoded bytes are discarded
 under the archive limits rather than written or charged as stdout. Corruption

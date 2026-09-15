@@ -10,7 +10,12 @@ import {
   type OAuthClientProviderOptions,
 } from "mcp-oauth";
 import type { Server as TinyStdioMcpServer } from "tiny-stdio-mcp-server";
-import { encodeHeaderValue } from "tiny-stdio-mcp-server/headers";
+import {
+  encodeHeaderValue,
+  getParameterHeaders,
+  createParameterHeaders,
+  type ParameterHeader
+} from "tiny-stdio-mcp-server/headers";
 import {
   OAuthMetadataDiscovery,
   parseBearerWwwAuthenticateHeader,
@@ -423,7 +428,11 @@ export class McpClient {
       throw new McpError(ERROR_INVALID_REQUEST, "Invalid tools/list result");
     }
 
-    return result;
+    return {
+      ...result,
+      tools:
+        this.transport?.filterTools?.(result.tools, params.cursor === undefined) ?? result.tools
+    };
   }
 
   async callTool(params: CallToolParams, options: CallToolOptions = {}): Promise<CallToolResult> {
@@ -928,6 +937,7 @@ export interface McpTransport {
   writable: Writable;
   closed: Promise<McpTransportClosedEvent>;
   dispose(reason?: Error): void;
+  filterTools?(tools: Tool[], reset?: boolean): Tool[];
 }
 
 export interface InMemoryServerTransport {
@@ -2340,6 +2350,7 @@ export interface HttpTransportOptions {
   fetch?: HttpTransportFetch;
   oauth?: OAuthClientProviderOptions;
   oauthDiscoveryCache?: OAuthDiscoveryCache;
+  onWarning?: (message: string) => void;
 }
 
 function defaultStdioSpawn(
@@ -2490,6 +2501,8 @@ export class HttpTransport implements McpTransport {
   private readonly oauthMetadataDiscovery: OAuthMetadataDiscovery | undefined;
   private readonly inFlightFetchAbortControllers = new Set<AbortController>();
   private readonly openSseReaders = new Set<ReadableStreamDefaultReader<Uint8Array>>();
+  private readonly toolParameterHeaders = new Map<string, ParameterHeader[]>();
+  private readonly onWarning: ((message: string) => void) | undefined;
 
   constructor({
     url,
@@ -2497,10 +2510,12 @@ export class HttpTransport implements McpTransport {
     fetch: fetchImpl = defaultHttpTransportFetch,
     oauth,
     oauthDiscoveryCache,
+    onWarning,
   }: HttpTransportOptions) {
     this.url = url;
     this.headers = headers;
     this.fetchImpl = fetchImpl;
+    this.onWarning = onWarning;
     this.oauthProvider = oauth === undefined
       ? undefined
       : createOAuthClientProvider(oauth);
@@ -2528,12 +2543,30 @@ export class HttpTransport implements McpTransport {
     });
   }
 
+  filterTools(tools: Tool[], reset = true): Tool[] {
+    if (reset) this.toolParameterHeaders.clear();
+    const accepted: Tool[] = [];
+    for (const tool of tools) {
+      try {
+        this.toolParameterHeaders.set(tool.name, getParameterHeaders(tool.inputSchema));
+        accepted.push(tool);
+      } catch (error) {
+        this.toolParameterHeaders.delete(tool.name);
+        this.onWarning?.(
+          `Rejected MCP tool ${tool.name}: ${error instanceof Error ? error.message : String(error)}`
+        );
+      }
+    }
+    return accepted;
+  }
+
   dispose(reason = new Error("HTTP transport disposed")): void {
     if (this.disposed) {
       return;
     }
 
     this.disposed = true;
+    this.toolParameterHeaders.clear();
     this.abortInFlightFetches();
     this.cancelOpenSseReaders();
 
@@ -2696,6 +2729,14 @@ export class HttpTransport implements McpTransport {
         )
           headers.set("Mcp-Name", encodeHeaderValue(name));
         else headers.delete("Mcp-Name");
+        if (message.method === "tools/call" && typeof message.params.name === "string") {
+          const definitions = this.toolParameterHeaders.get(message.params.name) ?? [];
+          for (const definition of definitions) headers.delete(definition.name);
+          for (const [name, value] of Object.entries(
+            createParameterHeaders(definitions, message.params.arguments)
+          ))
+            headers.set(name, value);
+        }
       }
     } else if (this.sessionId !== undefined) {
       headers.set("Mcp-Session-Id", this.sessionId);
@@ -3702,9 +3743,18 @@ function isCallToolResult(value: unknown): value is CallToolResult {
 }
 
 function isToolsListResult(value: unknown): value is { tools: Tool[]; nextCursor?: string } {
-  return isObjectRecord(value)
-    && Array.isArray(value.tools)
-    && (value.nextCursor === undefined || typeof value.nextCursor === "string");
+  return (
+    isObjectRecord(value) &&
+    Array.isArray(value.tools) &&
+    value.tools.every(
+      (tool) =>
+        isObjectRecord(tool) &&
+        typeof tool.name === "string" &&
+        isObjectRecord(tool.inputSchema) &&
+        tool.inputSchema.type === "object"
+    ) &&
+    (value.nextCursor === undefined || typeof value.nextCursor === "string")
+  );
 }
 
 function isResourcesListResult(value: unknown): value is { resources: Resource[]; nextCursor?: string } {

@@ -1,3 +1,4 @@
+import { packUriBatchActions } from "./pack-uri-batch-operations.js";
 import { docxOperationSchemas } from "./operation-schema.js";
 import { imageBatchActions } from "./image-batch-operations.js";
 import { Length, Emu, Inches, Cm, Mm, Pt, Twips, isLength, enumMembers, enumString, enumValue, enumFromValue, enumFromXml, enumXml } from "./formatting-values.js";
@@ -7,7 +8,7 @@ import { Font, ParagraphFormat, TabStops, TabStop, ColorFormat, RGBColor } from 
 import type { DocxEnumValue, DocxLength } from "./operation-types.js";
 
 type Action = (receiver: unknown, args: Readonly<Record<string, unknown>>) => unknown;
-export const styleModelBatchActions = new Map<string, Action>();
+export const styleModelBatchActions = new Map<string, Action>(packUriBatchActions);
 type ModelClass = abstract new (...args: never[]) => object;
 function properties(prefix: string, owner: ModelClass, names: readonly string[], writable: readonly string[] = names): void {
   for (const name of names) {

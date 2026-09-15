@@ -26,6 +26,7 @@ export {
   type AdmittedDocumentArchive
 } from "./admission.js";
 export { normalizePartName, resolvePartTarget, relativePartTarget } from "./part-uri.js";
+export { PackURI } from "./pack-uri.js";
 export type {
   DocumentPackage,
   PackagePart,

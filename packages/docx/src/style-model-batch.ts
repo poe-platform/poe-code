@@ -1,3 +1,4 @@
+import { PackURI } from "./pack-uri.js";
 import { isLength, plainLength } from "./formatting-values.js";
 import { Image, type ImageModelContext } from "./image-model.js";
 import { imageBatchActions } from "./image-batch-operations.js";
@@ -26,6 +27,7 @@ export async function applyStyleModelBatch(input: Uint8Array, operations: unknow
   const type = (value: object): string => xmlHandles.has(value) ? "XmlElementView" : value instanceof StylePartView ? "XmlPartView" : value instanceof TableStyle ? "_TableStyle" : value instanceof ParagraphStyle ? "ParagraphStyle" : value instanceof CharacterStyle ? "CharacterStyle" : value instanceof BaseStyle ? "BaseStyle" : value instanceof LatentStyle ? "_LatentStyle" : value.constructor.name;
   function encode(value: unknown): unknown {
     if (isLength(value)) return plainLength(value);
+    if (value instanceof PackURI) return value.toString();
     if (value instanceof Uint8Array) {
       const encodedLength = Math.ceil(value.length / 3) * 4;
       settings.budget.charge("retainedBytes", value.length + encodedLength * 2);

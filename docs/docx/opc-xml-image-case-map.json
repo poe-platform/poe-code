@@ -1,0 +1,5071 @@
+{
+  "schema_version": 1,
+  "task": "adapt-upstream-opc-xml-images",
+  "status": "in-progress-not-complete",
+  "crosswalk": {
+    "path": "test-case-map.json",
+    "sha256": "777a9ad8baffbaeb83db45dda6af7e16a0924585620e9a424a019c0c31e18e4f"
+  },
+  "counts": {
+    "rows": 369,
+    "passing": 9,
+    "pending": 360
+  },
+  "scope_note": "369 selected source rows; this commit closes 9 URI rows. XML sequence tests are a separately reviewable tested working increment, not delivered in this commit. All remaining cases and whole API/CLI coverage stay pending.",
+  "plan": "../plans/docx-opc-xml-image-adaptation.md",
+  "legal_notice": "upstream-license-notice.txt",
+  "checks": {
+    "workspace_unit": {
+      "command": "npm test --workspace=docx",
+      "result": "3226 passed; 161 files; zero failures or skips",
+      "duration_seconds": 157.93
+    },
+    "workspace_lint": {
+      "command": "npm run lint --workspace=docx",
+      "result": "passed ESLint and source/test TypeScript; zero errors; one existing operation-types.test.ts unused-variable warning"
+    },
+    "workspace_build": {
+      "command": "npm run build:workspaces -- --workspace=docx",
+      "result": "passed declared dependency closure and DOCX build"
+    },
+    "focused": "111 passed in 7 files, including 36 URI + 22 XML + 13 URI batch/CLI/schema cases",
+    "screenshot": "passed maintained screenshot command; inspected final detailed URI help PNG: operation, receiver none and required string argument readable; no clipped content"
+  },
+  "sdk_api_rows": [
+    {
+      "source_id": "docx.opc.packuri.PackURI",
+      "neutral_name": "PackURI",
+      "sdk_status": "implemented-synchronous-immutable-value",
+      "cli_status": "implemented-fixed-typed-batch-operation",
+      "test": "packages/docx/src/pack-uri.test.ts",
+      "mapping_record": "../plans/docx-opc-xml-image-adaptation.md#language-security-and-drift-decisions",
+      "paired_test": "packages/docx/src/pack-uri-batch.test.ts"
+    },
+    {
+      "source_id": "docx.opc.packuri.PackURI.from_rel_ref",
+      "neutral_name": "from_rel_ref",
+      "sdk_status": "implemented-synchronous-immutable-value",
+      "cli_status": "implemented-fixed-typed-batch-operation",
+      "test": "packages/docx/src/pack-uri.test.ts",
+      "mapping_record": "../plans/docx-opc-xml-image-adaptation.md#language-security-and-drift-decisions",
+      "paired_test": "packages/docx/src/pack-uri-batch.test.ts"
+    },
+    {
+      "source_id": "docx.opc.packuri.PackURI.baseURI",
+      "neutral_name": "baseURI",
+      "sdk_status": "implemented-synchronous-immutable-value",
+      "cli_status": "implemented-fixed-typed-batch-operation",
+      "test": "packages/docx/src/pack-uri.test.ts",
+      "mapping_record": "../plans/docx-opc-xml-image-adaptation.md#language-security-and-drift-decisions",
+      "paired_test": "packages/docx/src/pack-uri-batch.test.ts"
+    },
+    {
+      "source_id": "docx.opc.packuri.PackURI.ext",
+      "neutral_name": "ext",
+      "sdk_status": "implemented-synchronous-immutable-value",
+      "cli_status": "implemented-fixed-typed-batch-operation",
+      "test": "packages/docx/src/pack-uri.test.ts",
+      "mapping_record": "../plans/docx-opc-xml-image-adaptation.md#language-security-and-drift-decisions",
+      "paired_test": "packages/docx/src/pack-uri-batch.test.ts"
+    },
+    {
+      "source_id": "docx.opc.packuri.PackURI.filename",
+      "neutral_name": "filename",
+      "sdk_status": "implemented-synchronous-immutable-value",
+      "cli_status": "implemented-fixed-typed-batch-operation",
+      "test": "packages/docx/src/pack-uri.test.ts",
+      "mapping_record": "../plans/docx-opc-xml-image-adaptation.md#language-security-and-drift-decisions",
+      "paired_test": "packages/docx/src/pack-uri-batch.test.ts"
+    },
+    {
+      "source_id": "docx.opc.packuri.PackURI.idx",
+      "neutral_name": "idx",
+      "sdk_status": "implemented-synchronous-immutable-value",
+      "cli_status": "implemented-fixed-typed-batch-operation",
+      "test": "packages/docx/src/pack-uri.test.ts",
+      "mapping_record": "../plans/docx-opc-xml-image-adaptation.md#language-security-and-drift-decisions",
+      "paired_test": "packages/docx/src/pack-uri-batch.test.ts"
+    },
+    {
+      "source_id": "docx.opc.packuri.PackURI.membername",
+      "neutral_name": "membername",
+      "sdk_status": "implemented-synchronous-immutable-value",
+      "cli_status": "implemented-fixed-typed-batch-operation",
+      "test": "packages/docx/src/pack-uri.test.ts",
+      "mapping_record": "../plans/docx-opc-xml-image-adaptation.md#language-security-and-drift-decisions",
+      "paired_test": "packages/docx/src/pack-uri-batch.test.ts"
+    },
+    {
+      "source_id": "docx.opc.packuri.PackURI.relative_ref",
+      "neutral_name": "relative_ref",
+      "sdk_status": "implemented-synchronous-immutable-value",
+      "cli_status": "implemented-fixed-typed-batch-operation",
+      "test": "packages/docx/src/pack-uri.test.ts",
+      "mapping_record": "../plans/docx-opc-xml-image-adaptation.md#language-security-and-drift-decisions",
+      "paired_test": "packages/docx/src/pack-uri-batch.test.ts"
+    },
+    {
+      "source_id": "docx.opc.packuri.PackURI.rels_uri",
+      "neutral_name": "rels_uri",
+      "sdk_status": "implemented-synchronous-immutable-value",
+      "cli_status": "implemented-fixed-typed-batch-operation",
+      "test": "packages/docx/src/pack-uri.test.ts",
+      "mapping_record": "../plans/docx-opc-xml-image-adaptation.md#language-security-and-drift-decisions",
+      "paired_test": "packages/docx/src/pack-uri-batch.test.ts"
+    },
+    {
+      "source_id": "docx.opc.packuri.PackURI.string_protocol",
+      "neutral_name": "string_protocol",
+      "sdk_status": "implemented-synchronous-immutable-value",
+      "cli_status": "implemented-fixed-typed-batch-operation",
+      "test": "packages/docx/src/pack-uri.test.ts",
+      "mapping_record": "../plans/docx-opc-xml-image-adaptation.md#language-security-and-drift-decisions",
+      "paired_test": "packages/docx/src/pack-uri-batch.test.ts"
+    }
+  ],
+  "rows": [
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_bmp.py",
+        "line": 14,
+        "node_id": "tests/image/test_bmp.py::DescribeBmp::it_can_construct_from_a_bmp_stream"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_bmp.py",
+        "line": 27,
+        "node_id": "tests/image/test_bmp.py::DescribeBmp::it_knows_its_content_type"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_bmp.py",
+        "line": 31,
+        "node_id": "tests/image/test_bmp.py::DescribeBmp::it_knows_its_default_ext"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_gif.py",
+        "line": 14,
+        "node_id": "tests/image/test_gif.py::DescribeGif::it_can_construct_from_a_gif_stream"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_gif.py",
+        "line": 24,
+        "node_id": "tests/image/test_gif.py::DescribeGif::it_knows_its_content_type"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_gif.py",
+        "line": 28,
+        "node_id": "tests/image/test_gif.py::DescribeGif::it_knows_its_default_ext"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_helpers.py",
+        "line": 12,
+        "node_id": "tests/image/test_helpers.py::DescribeStreamReader::it_can_read_a_string_of_specified_len_at_offset"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_helpers.py",
+        "line": 17,
+        "node_id": "tests/image/test_helpers.py::DescribeStreamReader::it_raises_on_unexpected_EOF"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_helpers.py",
+        "line": 22,
+        "node_id": "tests/image/test_helpers.py::DescribeStreamReader::it_can_read_a_long[read_long_fixture0]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_helpers.py",
+        "line": 22,
+        "node_id": "tests/image/test_helpers.py::DescribeStreamReader::it_can_read_a_long[read_long_fixture1]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 30,
+        "node_id": "tests/image/test_image.py::DescribeImage::it_can_construct_from_an_image_blob"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 37,
+        "node_id": "tests/image/test_image.py::DescribeImage::it_can_construct_from_an_image_path"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 43,
+        "node_id": "tests/image/test_image.py::DescribeImage::it_can_construct_from_an_image_file_like"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 49,
+        "node_id": "tests/image/test_image.py::DescribeImage::it_can_construct_from_an_image_stream[foobar.png]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 49,
+        "node_id": "tests/image/test_image.py::DescribeImage::it_can_construct_from_an_image_stream[None]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 60,
+        "node_id": "tests/image/test_image.py::DescribeImage::it_provides_access_to_the_image_blob"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 65,
+        "node_id": "tests/image/test_image.py::DescribeImage::it_knows_the_image_content_type"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 70,
+        "node_id": "tests/image/test_image.py::DescribeImage::it_knows_the_image_px_dimensions"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 76,
+        "node_id": "tests/image/test_image.py::DescribeImage::it_knows_the_horz_and_vert_dpi_of_the_image"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 82,
+        "node_id": "tests/image/test_image.py::DescribeImage::it_knows_the_image_native_size"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 88,
+        "node_id": "tests/image/test_image.py::DescribeImage::it_can_scale_its_dimensions[scale_fixture0]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 88,
+        "node_id": "tests/image/test_image.py::DescribeImage::it_can_scale_its_dimensions[scale_fixture1]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 88,
+        "node_id": "tests/image/test_image.py::DescribeImage::it_can_scale_its_dimensions[scale_fixture2]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 88,
+        "node_id": "tests/image/test_image.py::DescribeImage::it_can_scale_its_dimensions[scale_fixture3]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 97,
+        "node_id": "tests/image/test_image.py::DescribeImage::it_knows_the_image_filename"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 102,
+        "node_id": "tests/image/test_image.py::DescribeImage::it_knows_the_image_filename_extension"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 106,
+        "node_id": "tests/image/test_image.py::DescribeImage::it_knows_the_sha1_of_its_image"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 111,
+        "node_id": "tests/image/test_image.py::DescribeImage::it_correctly_characterizes_known_images[0]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 111,
+        "node_id": "tests/image/test_image.py::DescribeImage::it_correctly_characterizes_known_images[1]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 111,
+        "node_id": "tests/image/test_image.py::DescribeImage::it_correctly_characterizes_known_images[2]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 111,
+        "node_id": "tests/image/test_image.py::DescribeImage::it_correctly_characterizes_known_images[3]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 111,
+        "node_id": "tests/image/test_image.py::DescribeImage::it_correctly_characterizes_known_images[4]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 111,
+        "node_id": "tests/image/test_image.py::DescribeImage::it_correctly_characterizes_known_images[5]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 111,
+        "node_id": "tests/image/test_image.py::DescribeImage::it_correctly_characterizes_known_images[6]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 111,
+        "node_id": "tests/image/test_image.py::DescribeImage::it_correctly_characterizes_known_images[7]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 111,
+        "node_id": "tests/image/test_image.py::DescribeImage::it_correctly_characterizes_known_images[8]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 266,
+        "node_id": "tests/image/test_image.py::Describe_ImageHeaderFactory::it_constructs_the_right_class_for_a_given_image_stream[call_fixture0]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 266,
+        "node_id": "tests/image/test_image.py::Describe_ImageHeaderFactory::it_constructs_the_right_class_for_a_given_image_stream[call_fixture1]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 266,
+        "node_id": "tests/image/test_image.py::Describe_ImageHeaderFactory::it_constructs_the_right_class_for_a_given_image_stream[call_fixture2]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 266,
+        "node_id": "tests/image/test_image.py::Describe_ImageHeaderFactory::it_constructs_the_right_class_for_a_given_image_stream[call_fixture3]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 266,
+        "node_id": "tests/image/test_image.py::Describe_ImageHeaderFactory::it_constructs_the_right_class_for_a_given_image_stream[call_fixture4]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 266,
+        "node_id": "tests/image/test_image.py::Describe_ImageHeaderFactory::it_constructs_the_right_class_for_a_given_image_stream[call_fixture5]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 266,
+        "node_id": "tests/image/test_image.py::Describe_ImageHeaderFactory::it_constructs_the_right_class_for_a_given_image_stream[call_fixture6]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 271,
+        "node_id": "tests/image/test_image.py::Describe_ImageHeaderFactory::it_raises_on_unrecognized_image_stream"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 300,
+        "node_id": "tests/image/test_image.py::DescribeBaseImageHeader::it_defines_content_type_as_an_abstract_property"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 305,
+        "node_id": "tests/image/test_image.py::DescribeBaseImageHeader::it_defines_default_ext_as_an_abstract_property"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 310,
+        "node_id": "tests/image/test_image.py::DescribeBaseImageHeader::it_knows_the_image_dimensions"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_image.py",
+        "line": 316,
+        "node_id": "tests/image/test_image.py::DescribeBaseImageHeader::it_knows_the_horz_and_vert_dpi_of_the_image"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 35,
+        "node_id": "tests/image/test_jpeg.py::DescribeJpeg::it_knows_its_content_type"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 39,
+        "node_id": "tests/image/test_jpeg.py::DescribeJpeg::it_knows_its_default_ext"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 44,
+        "node_id": "tests/image/test_jpeg.py::DescribeJpeg::DescribeExif::it_can_construct_from_an_exif_stream"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 58,
+        "node_id": "tests/image/test_jpeg.py::DescribeJpeg::DescribeJfif::it_can_construct_from_a_jfif_stream"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 106,
+        "node_id": "tests/image/test_jpeg.py::Describe_JfifMarkers::it_can_construct_from_a_jfif_stream"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 117,
+        "node_id": "tests/image/test_jpeg.py::Describe_JfifMarkers::it_can_find_the_APP0_marker"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 122,
+        "node_id": "tests/image/test_jpeg.py::Describe_JfifMarkers::it_can_find_the_APP1_marker"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 127,
+        "node_id": "tests/image/test_jpeg.py::Describe_JfifMarkers::it_raises_if_it_cant_find_the_APP0_marker"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 132,
+        "node_id": "tests/image/test_jpeg.py::Describe_JfifMarkers::it_raises_if_it_cant_find_the_APP1_marker"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 137,
+        "node_id": "tests/image/test_jpeg.py::Describe_JfifMarkers::it_can_find_the_SOF_marker"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 142,
+        "node_id": "tests/image/test_jpeg.py::Describe_JfifMarkers::it_raises_if_it_cant_find_the_SOF_marker"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 232,
+        "node_id": "tests/image/test_jpeg.py::Describe_Marker::it_can_construct_from_a_stream_and_offset[from_stream_fixture0]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 232,
+        "node_id": "tests/image/test_jpeg.py::Describe_Marker::it_can_construct_from_a_stream_and_offset[from_stream_fixture1]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 260,
+        "node_id": "tests/image/test_jpeg.py::Describe_App0Marker::it_can_construct_from_a_stream_and_offset"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 273,
+        "node_id": "tests/image/test_jpeg.py::Describe_App0Marker::it_knows_the_image_dpi[dpi_fixture0]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 273,
+        "node_id": "tests/image/test_jpeg.py::Describe_App0Marker::it_knows_the_image_dpi[dpi_fixture1]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 273,
+        "node_id": "tests/image/test_jpeg.py::Describe_App0Marker::it_knows_the_image_dpi[dpi_fixture2]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 298,
+        "node_id": "tests/image/test_jpeg.py::Describe_App1Marker::it_can_construct_from_a_stream_and_offset"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 314,
+        "node_id": "tests/image/test_jpeg.py::Describe_App1Marker::it_can_construct_from_non_Exif_APP1_segment"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 324,
+        "node_id": "tests/image/test_jpeg.py::Describe_App1Marker::it_gets_a_tiff_from_its_Exif_segment_to_help_construct"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 333,
+        "node_id": "tests/image/test_jpeg.py::Describe_App1Marker::it_knows_the_image_dpi"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 388,
+        "node_id": "tests/image/test_jpeg.py::Describe_SofMarker::it_can_construct_from_a_stream_and_offset"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 401,
+        "node_id": "tests/image/test_jpeg.py::Describe_SofMarker::it_knows_the_image_width_and_height"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 414,
+        "node_id": "tests/image/test_jpeg.py::Describe_MarkerFactory::it_constructs_the_appropriate_marker_object[\\xe0]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 414,
+        "node_id": "tests/image/test_jpeg.py::Describe_MarkerFactory::it_constructs_the_appropriate_marker_object[\\xe1]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 414,
+        "node_id": "tests/image/test_jpeg.py::Describe_MarkerFactory::it_constructs_the_appropriate_marker_object[\\xc0]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 414,
+        "node_id": "tests/image/test_jpeg.py::Describe_MarkerFactory::it_constructs_the_appropriate_marker_object[\\xc7]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 414,
+        "node_id": "tests/image/test_jpeg.py::Describe_MarkerFactory::it_constructs_the_appropriate_marker_object[\\xda]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 478,
+        "node_id": "tests/image/test_jpeg.py::Describe_MarkerFinder::it_can_construct_from_a_stream"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 484,
+        "node_id": "tests/image/test_jpeg.py::Describe_MarkerFinder::it_can_find_the_next_marker_after_a_given_offset[next_fixture0]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 484,
+        "node_id": "tests/image/test_jpeg.py::Describe_MarkerFinder::it_can_find_the_next_marker_after_a_given_offset[next_fixture1]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 484,
+        "node_id": "tests/image/test_jpeg.py::Describe_MarkerFinder::it_can_find_the_next_marker_after_a_given_offset[next_fixture2]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 484,
+        "node_id": "tests/image/test_jpeg.py::Describe_MarkerFinder::it_can_find_the_next_marker_after_a_given_offset[next_fixture3]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 484,
+        "node_id": "tests/image/test_jpeg.py::Describe_MarkerFinder::it_can_find_the_next_marker_after_a_given_offset[next_fixture4]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 484,
+        "node_id": "tests/image/test_jpeg.py::Describe_MarkerFinder::it_can_find_the_next_marker_after_a_given_offset[next_fixture5]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 484,
+        "node_id": "tests/image/test_jpeg.py::Describe_MarkerFinder::it_can_find_the_next_marker_after_a_given_offset[next_fixture6]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 520,
+        "node_id": "tests/image/test_jpeg.py::Describe_MarkerParser::it_can_construct_from_a_jfif_stream"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_jpeg.py",
+        "line": 529,
+        "node_id": "tests/image/test_jpeg.py::Describe_MarkerParser::it_can_iterate_over_the_jfif_markers_in_its_stream"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_png.py",
+        "line": 33,
+        "node_id": "tests/image/test_png.py::DescribePng::it_can_construct_from_a_png_stream"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_png.py",
+        "line": 46,
+        "node_id": "tests/image/test_png.py::DescribePng::it_knows_its_content_type"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_png.py",
+        "line": 50,
+        "node_id": "tests/image/test_png.py::DescribePng::it_knows_its_default_ext"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_png.py",
+        "line": 76,
+        "node_id": "tests/image/test_png.py::Describe_PngParser::it_can_parse_the_headers_of_a_PNG_stream"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_png.py",
+        "line": 85,
+        "node_id": "tests/image/test_png.py::Describe_PngParser::it_knows_the_image_width_and_height"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_png.py",
+        "line": 90,
+        "node_id": "tests/image/test_png.py::Describe_PngParser::it_knows_the_image_dpi"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_png.py",
+        "line": 95,
+        "node_id": "tests/image/test_png.py::Describe_PngParser::it_defaults_image_dpi_to_72[no_dpi_fixture0]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_png.py",
+        "line": 95,
+        "node_id": "tests/image/test_png.py::Describe_PngParser::it_defaults_image_dpi_to_72[no_dpi_fixture1]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_png.py",
+        "line": 95,
+        "node_id": "tests/image/test_png.py::Describe_PngParser::it_defaults_image_dpi_to_72[no_dpi_fixture2]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_png.py",
+        "line": 95,
+        "node_id": "tests/image/test_png.py::Describe_PngParser::it_defaults_image_dpi_to_72[no_dpi_fixture3]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_png.py",
+        "line": 95,
+        "node_id": "tests/image/test_png.py::Describe_PngParser::it_defaults_image_dpi_to_72[no_dpi_fixture4]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_png.py",
+        "line": 156,
+        "node_id": "tests/image/test_png.py::Describe_Chunks::it_can_construct_from_a_stream"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_png.py",
+        "line": 167,
+        "node_id": "tests/image/test_png.py::Describe_Chunks::it_provides_access_to_the_IHDR_chunk"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_png.py",
+        "line": 171,
+        "node_id": "tests/image/test_png.py::Describe_Chunks::it_provides_access_to_the_pHYs_chunk[True]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_png.py",
+        "line": 171,
+        "node_id": "tests/image/test_png.py::Describe_Chunks::it_provides_access_to_the_pHYs_chunk[False]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_png.py",
+        "line": 175,
+        "node_id": "tests/image/test_png.py::Describe_Chunks::it_raises_if_theres_no_IHDR_chunk"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_png.py",
+        "line": 232,
+        "node_id": "tests/image/test_png.py::Describe_ChunkParser::it_can_construct_from_a_stream"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_png.py",
+        "line": 241,
+        "node_id": "tests/image/test_png.py::Describe_ChunkParser::it_can_iterate_over_the_chunks_in_its_png_stream"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_png.py",
+        "line": 257,
+        "node_id": "tests/image/test_png.py::Describe_ChunkParser::it_iterates_over_the_chunk_offsets_to_help_parse"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_png.py",
+        "line": 322,
+        "node_id": "tests/image/test_png.py::Describe_ChunkFactory::it_constructs_the_appropriate_Chunk_subclass[IHDR]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_png.py",
+        "line": 322,
+        "node_id": "tests/image/test_png.py::Describe_ChunkFactory::it_constructs_the_appropriate_Chunk_subclass[pHYs]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_png.py",
+        "line": 322,
+        "node_id": "tests/image/test_png.py::Describe_ChunkFactory::it_constructs_the_appropriate_Chunk_subclass[IEND]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_png.py",
+        "line": 383,
+        "node_id": "tests/image/test_png.py::Describe_Chunk::it_can_construct_from_a_stream_and_offset"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_png.py",
+        "line": 391,
+        "node_id": "tests/image/test_png.py::Describe_IHDRChunk::it_can_construct_from_a_stream_and_offset"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_png.py",
+        "line": 409,
+        "node_id": "tests/image/test_png.py::Describe_pHYsChunk::it_can_construct_from_a_stream_and_offset"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_tiff.py",
+        "line": 35,
+        "node_id": "tests/image/test_tiff.py::DescribeTiff::it_can_construct_from_a_tiff_stream"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_tiff.py",
+        "line": 49,
+        "node_id": "tests/image/test_tiff.py::DescribeTiff::it_knows_its_content_type"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_tiff.py",
+        "line": 53,
+        "node_id": "tests/image/test_tiff.py::DescribeTiff::it_knows_its_default_ext"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_tiff.py",
+        "line": 79,
+        "node_id": "tests/image/test_tiff.py::Describe_TiffParser::it_can_parse_the_properties_from_a_tiff_stream"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_tiff.py",
+        "line": 96,
+        "node_id": "tests/image/test_tiff.py::Describe_TiffParser::it_makes_a_stream_reader_to_help_parse[mk_stream_rdr_fixture0]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_tiff.py",
+        "line": 96,
+        "node_id": "tests/image/test_tiff.py::Describe_TiffParser::it_makes_a_stream_reader_to_help_parse[mk_stream_rdr_fixture1]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_tiff.py",
+        "line": 102,
+        "node_id": "tests/image/test_tiff.py::Describe_TiffParser::it_knows_image_width_and_height_after_parsing"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_tiff.py",
+        "line": 113,
+        "node_id": "tests/image/test_tiff.py::Describe_TiffParser::it_knows_the_horz_and_vert_dpi_after_parsing[dpi_fixture0]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_tiff.py",
+        "line": 113,
+        "node_id": "tests/image/test_tiff.py::Describe_TiffParser::it_knows_the_horz_and_vert_dpi_after_parsing[dpi_fixture1]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_tiff.py",
+        "line": 113,
+        "node_id": "tests/image/test_tiff.py::Describe_TiffParser::it_knows_the_horz_and_vert_dpi_after_parsing[dpi_fixture2]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_tiff.py",
+        "line": 113,
+        "node_id": "tests/image/test_tiff.py::Describe_TiffParser::it_knows_the_horz_and_vert_dpi_after_parsing[dpi_fixture3]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_tiff.py",
+        "line": 113,
+        "node_id": "tests/image/test_tiff.py::Describe_TiffParser::it_knows_the_horz_and_vert_dpi_after_parsing[dpi_fixture4]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_tiff.py",
+        "line": 199,
+        "node_id": "tests/image/test_tiff.py::Describe_IfdEntries::it_can_construct_from_a_stream_and_offset"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_tiff.py",
+        "line": 218,
+        "node_id": "tests/image/test_tiff.py::Describe_IfdEntries::it_has_basic_mapping_semantics"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_tiff.py",
+        "line": 257,
+        "node_id": "tests/image/test_tiff.py::Describe_IfdParser::it_can_iterate_through_the_directory_entries_in_an_IFD"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_tiff.py",
+        "line": 300,
+        "node_id": "tests/image/test_tiff.py::Describe_IfdEntryFactory::it_constructs_the_right_class_for_a_given_ifd_entry[fixture0]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_tiff.py",
+        "line": 300,
+        "node_id": "tests/image/test_tiff.py::Describe_IfdEntryFactory::it_constructs_the_right_class_for_a_given_ifd_entry[fixture1]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_tiff.py",
+        "line": 300,
+        "node_id": "tests/image/test_tiff.py::Describe_IfdEntryFactory::it_constructs_the_right_class_for_a_given_ifd_entry[fixture2]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_tiff.py",
+        "line": 300,
+        "node_id": "tests/image/test_tiff.py::Describe_IfdEntryFactory::it_constructs_the_right_class_for_a_given_ifd_entry[fixture3]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_tiff.py",
+        "line": 300,
+        "node_id": "tests/image/test_tiff.py::Describe_IfdEntryFactory::it_constructs_the_right_class_for_a_given_ifd_entry[fixture4]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_tiff.py",
+        "line": 300,
+        "node_id": "tests/image/test_tiff.py::Describe_IfdEntryFactory::it_constructs_the_right_class_for_a_given_ifd_entry[fixture5]"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_tiff.py",
+        "line": 381,
+        "node_id": "tests/image/test_tiff.py::Describe_IfdEntry::it_can_construct_from_a_stream_and_offset"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_tiff.py",
+        "line": 393,
+        "node_id": "tests/image/test_tiff.py::Describe_IfdEntry::it_provides_read_only_access_to_the_directory_entry"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_tiff.py",
+        "line": 414,
+        "node_id": "tests/image/test_tiff.py::Describe_AsciiIfdEntry::it_can_parse_an_ascii_string_IFD_entry"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_tiff.py",
+        "line": 422,
+        "node_id": "tests/image/test_tiff.py::Describe_ShortIfdEntry::it_can_parse_a_short_int_IFD_entry"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_tiff.py",
+        "line": 430,
+        "node_id": "tests/image/test_tiff.py::Describe_LongIfdEntry::it_can_parse_a_long_int_IFD_entry"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/image/test_tiff.py",
+        "line": 438,
+        "node_id": "tests/image/test_tiff.py::Describe_RationalIfdEntry::it_can_parse_a_rational_IFD_entry"
+      },
+      "owning_task": "raster-image-insertion",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_oxml.py",
+        "line": 23,
+        "node_id": "tests/opc/test_oxml.py::DescribeCT_Default::it_provides_read_access_to_xml_values"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_oxml.py",
+        "line": 28,
+        "node_id": "tests/opc/test_oxml.py::DescribeCT_Default::it_can_construct_a_new_default_element"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_oxml.py",
+        "line": 35,
+        "node_id": "tests/opc/test_oxml.py::DescribeCT_Override::it_provides_read_access_to_xml_values"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_oxml.py",
+        "line": 40,
+        "node_id": "tests/opc/test_oxml.py::DescribeCT_Override::it_can_construct_a_new_override_element"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_oxml.py",
+        "line": 47,
+        "node_id": "tests/opc/test_oxml.py::DescribeCT_Relationship::it_provides_read_access_to_xml_values"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_oxml.py",
+        "line": 54,
+        "node_id": "tests/opc/test_oxml.py::DescribeCT_Relationship::it_can_construct_from_attribute_values"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_oxml.py",
+        "line": 73,
+        "node_id": "tests/opc/test_oxml.py::DescribeCT_Relationships::it_can_construct_a_new_relationships_element"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_oxml.py",
+        "line": 81,
+        "node_id": "tests/opc/test_oxml.py::DescribeCT_Relationships::it_can_build_rels_element_incrementally"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_oxml.py",
+        "line": 92,
+        "node_id": "tests/opc/test_oxml.py::DescribeCT_Relationships::it_can_generate_rels_file_xml"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_oxml.py",
+        "line": 102,
+        "node_id": "tests/opc/test_oxml.py::DescribeCT_Types::it_provides_access_to_default_child_elements"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_oxml.py",
+        "line": 108,
+        "node_id": "tests/opc/test_oxml.py::DescribeCT_Types::it_provides_access_to_override_child_elements"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_oxml.py",
+        "line": 114,
+        "node_id": "tests/opc/test_oxml.py::DescribeCT_Types::it_should_have_empty_list_on_no_matching_elements"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_oxml.py",
+        "line": 119,
+        "node_id": "tests/opc/test_oxml.py::DescribeCT_Types::it_can_construct_a_new_types_element"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_oxml.py",
+        "line": 124,
+        "node_id": "tests/opc/test_oxml.py::DescribeCT_Types::it_can_build_types_element_incrementally"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_package.py",
+        "line": 34,
+        "node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_open_a_pkg_file"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_package.py",
+        "line": 45,
+        "node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_initializes_its_rels_collection_on_first_reference"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_package.py",
+        "line": 51,
+        "node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_add_a_relationship_to_a_part"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_package.py",
+        "line": 59,
+        "node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_establish_a_relationship_to_another_part"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_package.py",
+        "line": 72,
+        "node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_provide_a_list_of_the_parts_it_contains"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_package.py",
+        "line": 80,
+        "node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_iterate_over_parts_by_walking_rels_graph"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_package.py",
+        "line": 102,
+        "node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_find_the_next_available_vector_partname[next_partname_fixture0]"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_package.py",
+        "line": 102,
+        "node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_find_the_next_available_vector_partname[next_partname_fixture1]"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_package.py",
+        "line": 102,
+        "node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_find_the_next_available_vector_partname[next_partname_fixture2]"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_package.py",
+        "line": 102,
+        "node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_find_the_next_available_vector_partname[next_partname_fixture3]"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_package.py",
+        "line": 102,
+        "node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_find_the_next_available_vector_partname[next_partname_fixture4]"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_package.py",
+        "line": 116,
+        "node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_find_a_part_related_by_reltype"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_package.py",
+        "line": 122,
+        "node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_can_save_to_a_pkg_file"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_package.py",
+        "line": 142,
+        "node_id": "tests/opc/test_package.py::DescribeOpcPackage::it_creates_a_default_core_props_part_if_none_present"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_package.py",
+        "line": 280,
+        "node_id": "tests/opc/test_package.py::DescribeUnmarshaller::it_can_unmarshal_from_a_pkg_reader"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_package.py",
+        "line": 298,
+        "node_id": "tests/opc/test_package.py::DescribeUnmarshaller::it_can_unmarshal_parts"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_package.py",
+        "line": 323,
+        "node_id": "tests/opc/test_package.py::DescribeUnmarshaller::it_can_unmarshal_relationships"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_packuri.py",
+        "line": 25,
+        "node_id": "tests/opc/test_packuri.py::DescribePackURI::it_can_construct_from_relative_ref"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/pack-uri.test.ts",
+        "title": "package URI values > constructs an owner-relative sibling URI"
+      },
+      "red_evidence": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts",
+        "result": "34 failed before implementation: missing exported constructor",
+        "baseline": "bfc1adc9822439d1035558380320959d964157bf"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      }
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_packuri.py",
+        "line": 31,
+        "node_id": "tests/opc/test_packuri.py::DescribePackURI::it_should_raise_on_construct_with_bad_pack_uri_str"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/pack-uri.test.ts",
+        "title": "package URI values > rejects a URI without a leading slash"
+      },
+      "red_evidence": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts",
+        "result": "34 failed before implementation: missing exported constructor",
+        "baseline": "bfc1adc9822439d1035558380320959d964157bf"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      }
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_packuri.py",
+        "line": 35,
+        "node_id": "tests/opc/test_packuri.py::DescribePackURI::it_can_calculate_baseURI"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/pack-uri.test.ts",
+        "title": "package URI values > calculates root and nested base directories"
+      },
+      "red_evidence": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts",
+        "result": "34 failed before implementation: missing exported constructor",
+        "baseline": "bfc1adc9822439d1035558380320959d964157bf"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      }
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_packuri.py",
+        "line": 40,
+        "node_id": "tests/opc/test_packuri.py::DescribePackURI::it_can_calculate_extension"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/pack-uri.test.ts",
+        "title": "package URI values > calculates empty and XML extensions"
+      },
+      "red_evidence": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts",
+        "result": "34 failed before implementation: missing exported constructor",
+        "baseline": "bfc1adc9822439d1035558380320959d964157bf"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      }
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_packuri.py",
+        "line": 45,
+        "node_id": "tests/opc/test_packuri.py::DescribePackURI::it_can_calculate_filename"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/pack-uri.test.ts",
+        "title": "package URI values > calculates root and nested filenames"
+      },
+      "red_evidence": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts",
+        "result": "34 failed before implementation: missing exported constructor",
+        "baseline": "bfc1adc9822439d1035558380320959d964157bf"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      }
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_packuri.py",
+        "line": 50,
+        "node_id": "tests/opc/test_packuri.py::DescribePackURI::it_knows_the_filename_index"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/pack-uri.test.ts",
+        "title": "package URI values > distinguishes absent filename numbers from one"
+      },
+      "red_evidence": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts",
+        "result": "34 failed before implementation: missing exported constructor",
+        "baseline": "bfc1adc9822439d1035558380320959d964157bf"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      }
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_packuri.py",
+        "line": 55,
+        "node_id": "tests/opc/test_packuri.py::DescribePackURI::it_can_calculate_membername"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/pack-uri.test.ts",
+        "title": "package URI values > calculates ZIP member names without a leading slash"
+      },
+      "red_evidence": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts",
+        "result": "34 failed before implementation: missing exported constructor",
+        "baseline": "bfc1adc9822439d1035558380320959d964157bf"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      }
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_packuri.py",
+        "line": 64,
+        "node_id": "tests/opc/test_packuri.py::DescribePackURI::it_can_calculate_relative_ref_value"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/pack-uri.test.ts",
+        "title": "package URI values > calculates relative references from root same and sibling directories"
+      },
+      "red_evidence": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts",
+        "result": "34 failed before implementation: missing exported constructor",
+        "baseline": "bfc1adc9822439d1035558380320959d964157bf"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      }
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_packuri.py",
+        "line": 82,
+        "node_id": "tests/opc/test_packuri.py::DescribePackURI::it_can_calculate_rels_uri"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "passing-original-observable-test",
+      "target": {
+        "path": "packages/docx/src/pack-uri.test.ts",
+        "title": "package URI values > calculates package and nested relationship part URIs"
+      },
+      "red_evidence": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts",
+        "result": "34 failed before implementation: missing exported constructor",
+        "baseline": "bfc1adc9822439d1035558380320959d964157bf"
+      },
+      "passing_result": {
+        "command": "npx vitest run packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+        "result": "58 passed; 36 URI and 22 XML tests"
+      }
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_part.py",
+        "line": 33,
+        "node_id": "tests/opc/test_part.py::DescribePart::it_can_be_constructed_by_PartFactory"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_part.py",
+        "line": 39,
+        "node_id": "tests/opc/test_part.py::DescribePart::it_knows_its_partname"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_part.py",
+        "line": 43,
+        "node_id": "tests/opc/test_part.py::DescribePart::it_can_change_its_partname"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_part.py",
+        "line": 48,
+        "node_id": "tests/opc/test_part.py::DescribePart::it_knows_its_content_type"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_part.py",
+        "line": 52,
+        "node_id": "tests/opc/test_part.py::DescribePart::it_knows_the_package_it_belongs_to"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_part.py",
+        "line": 56,
+        "node_id": "tests/opc/test_part.py::DescribePart::it_can_be_notified_after_unmarshalling_is_complete"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_part.py",
+        "line": 60,
+        "node_id": "tests/opc/test_part.py::DescribePart::it_can_be_notified_before_marshalling_is_started"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_part.py",
+        "line": 64,
+        "node_id": "tests/opc/test_part.py::DescribePart::it_uses_the_load_blob_as_its_blob"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_part.py",
+        "line": 83,
+        "node_id": "tests/opc/test_part.py::DescribePartRelationshipManagementInterface::it_provides_access_to_its_relationships"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_part.py",
+        "line": 94,
+        "node_id": "tests/opc/test_part.py::DescribePartRelationshipManagementInterface::it_can_load_a_relationship"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_part.py",
+        "line": 104,
+        "node_id": "tests/opc/test_part.py::DescribePartRelationshipManagementInterface::it_can_establish_a_relationship_to_another_part"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_part.py",
+        "line": 117,
+        "node_id": "tests/opc/test_part.py::DescribePartRelationshipManagementInterface::it_can_establish_an_external_relationship"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_part.py",
+        "line": 127,
+        "node_id": "tests/opc/test_part.py::DescribePartRelationshipManagementInterface::it_can_drop_a_relationship"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_part.py",
+        "line": 135,
+        "node_id": "tests/opc/test_part.py::DescribePartRelationshipManagementInterface::it_can_find_a_related_part_by_reltype"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_part.py",
+        "line": 147,
+        "node_id": "tests/opc/test_part.py::DescribePartRelationshipManagementInterface::it_can_find_a_related_part_by_rId"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_part.py",
+        "line": 154,
+        "node_id": "tests/opc/test_part.py::DescribePartRelationshipManagementInterface::it_can_find_the_uri_of_an_external_relationship"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_part.py",
+        "line": 193,
+        "node_id": "tests/opc/test_part.py::DescribePartFactory::it_constructs_part_from_selector_if_defined"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_part.py",
+        "line": 210,
+        "node_id": "tests/opc/test_part.py::DescribePartFactory::it_constructs_custom_part_type_for_registered_content_types"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_part.py",
+        "line": 222,
+        "node_id": "tests/opc/test_part.py::DescribePartFactory::it_constructs_part_using_default_class_when_no_custom_registered"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_part.py",
+        "line": 339,
+        "node_id": "tests/opc/test_part.py::DescribeXmlPart::it_can_be_constructed_by_PartFactory"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_part.py",
+        "line": 348,
+        "node_id": "tests/opc/test_part.py::DescribeXmlPart::it_can_serialize_to_xml"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_part.py",
+        "line": 354,
+        "node_id": "tests/opc/test_part.py::DescribeXmlPart::it_knows_its_the_part_for_its_child_objects"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_part.py",
+        "line": 358,
+        "node_id": "tests/opc/test_part.py::DescribeXmlPart::it_only_drops_a_relationship_with_zero_reference_count[w:p-True]"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_part.py",
+        "line": 358,
+        "node_id": "tests/opc/test_part.py::DescribeXmlPart::it_only_drops_a_relationship_with_zero_reference_count[w:p/r:a{r:id=rId42}-True]"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_part.py",
+        "line": 358,
+        "node_id": "tests/opc/test_part.py::DescribeXmlPart::it_only_drops_a_relationship_with_zero_reference_count[w:p/r:a{r:id=rId42}/r:b{r:id=rId42}-False]"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_phys_pkg.py",
+        "line": 28,
+        "node_id": "tests/opc/test_phys_pkg.py::DescribeDirPkgReader::it_is_used_by_PhysPkgReader_when_pkg_is_a_dir"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_phys_pkg.py",
+        "line": 32,
+        "node_id": "tests/opc/test_phys_pkg.py::DescribeDirPkgReader::it_doesnt_mind_being_closed_even_though_it_doesnt_need_it"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_phys_pkg.py",
+        "line": 35,
+        "node_id": "tests/opc/test_phys_pkg.py::DescribeDirPkgReader::it_can_retrieve_the_blob_for_a_pack_uri"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_phys_pkg.py",
+        "line": 41,
+        "node_id": "tests/opc/test_phys_pkg.py::DescribeDirPkgReader::it_can_get_the_content_types_xml"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_phys_pkg.py",
+        "line": 45,
+        "node_id": "tests/opc/test_phys_pkg.py::DescribeDirPkgReader::it_can_retrieve_the_rels_xml_for_a_source_uri"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_phys_pkg.py",
+        "line": 50,
+        "node_id": "tests/opc/test_phys_pkg.py::DescribeDirPkgReader::it_returns_none_when_part_has_no_rels_xml"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_phys_pkg.py",
+        "line": 67,
+        "node_id": "tests/opc/test_phys_pkg.py::DescribePhysPkgReader::it_raises_when_pkg_path_is_not_a_package"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_phys_pkg.py",
+        "line": 73,
+        "node_id": "tests/opc/test_phys_pkg.py::DescribeZipPkgReader::it_is_used_by_PhysPkgReader_when_pkg_is_a_zip"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_phys_pkg.py",
+        "line": 77,
+        "node_id": "tests/opc/test_phys_pkg.py::DescribeZipPkgReader::it_is_used_by_PhysPkgReader_when_pkg_is_a_stream"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_phys_pkg.py",
+        "line": 82,
+        "node_id": "tests/opc/test_phys_pkg.py::DescribeZipPkgReader::it_opens_pkg_file_zip_on_construction"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_phys_pkg.py",
+        "line": 86,
+        "node_id": "tests/opc/test_phys_pkg.py::DescribeZipPkgReader::it_can_be_closed"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_phys_pkg.py",
+        "line": 95,
+        "node_id": "tests/opc/test_phys_pkg.py::DescribeZipPkgReader::it_can_retrieve_the_blob_for_a_pack_uri"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_phys_pkg.py",
+        "line": 101,
+        "node_id": "tests/opc/test_phys_pkg.py::DescribeZipPkgReader::it_has_the_content_types_xml"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_phys_pkg.py",
+        "line": 105,
+        "node_id": "tests/opc/test_phys_pkg.py::DescribeZipPkgReader::it_can_retrieve_rels_xml_for_source_uri"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_phys_pkg.py",
+        "line": 110,
+        "node_id": "tests/opc/test_phys_pkg.py::DescribeZipPkgReader::it_returns_none_when_part_has_no_rels_xml"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_phys_pkg.py",
+        "line": 129,
+        "node_id": "tests/opc/test_phys_pkg.py::DescribeZipPkgWriter::it_is_used_by_PhysPkgWriter_unconditionally"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_phys_pkg.py",
+        "line": 133,
+        "node_id": "tests/opc/test_phys_pkg.py::DescribeZipPkgWriter::it_opens_pkg_file_zip_on_construction"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_phys_pkg.py",
+        "line": 138,
+        "node_id": "tests/opc/test_phys_pkg.py::DescribeZipPkgWriter::it_can_be_closed"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_phys_pkg.py",
+        "line": 147,
+        "node_id": "tests/opc/test_phys_pkg.py::DescribeZipPkgWriter::it_can_write_a_blob"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgreader.py",
+        "line": 33,
+        "node_id": "tests/opc/test_pkgreader.py::DescribePackageReader::it_can_construct_from_pkg_file"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgreader.py",
+        "line": 52,
+        "node_id": "tests/opc/test_pkgreader.py::DescribePackageReader::it_can_iterate_over_the_serialized_parts"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgreader.py",
+        "line": 57,
+        "node_id": "tests/opc/test_pkgreader.py::DescribePackageReader::it_can_iterate_over_all_the_srels"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgreader.py",
+        "line": 78,
+        "node_id": "tests/opc/test_pkgreader.py::DescribePackageReader::it_can_load_serialized_parts"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgreader.py",
+        "line": 104,
+        "node_id": "tests/opc/test_pkgreader.py::DescribePackageReader::it_can_walk_phys_pkg_parts"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgreader.py",
+        "line": 166,
+        "node_id": "tests/opc/test_pkgreader.py::DescribePackageReader::it_can_retrieve_srels_for_a_source_uri"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgreader.py",
+        "line": 268,
+        "node_id": "tests/opc/test_pkgreader.py::Describe_ContentTypeMap::it_can_construct_from_ct_item_xml"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgreader.py",
+        "line": 274,
+        "node_id": "tests/opc/test_pkgreader.py::Describe_ContentTypeMap::it_matches_an_override_on_case_insensitive_partname[match_override_fixture0]"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgreader.py",
+        "line": 274,
+        "node_id": "tests/opc/test_pkgreader.py::Describe_ContentTypeMap::it_matches_an_override_on_case_insensitive_partname[match_override_fixture1]"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgreader.py",
+        "line": 274,
+        "node_id": "tests/opc/test_pkgreader.py::Describe_ContentTypeMap::it_matches_an_override_on_case_insensitive_partname[match_override_fixture2]"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgreader.py",
+        "line": 278,
+        "node_id": "tests/opc/test_pkgreader.py::Describe_ContentTypeMap::it_falls_back_to_case_insensitive_extension_default_match[match_default_fixture0]"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgreader.py",
+        "line": 278,
+        "node_id": "tests/opc/test_pkgreader.py::Describe_ContentTypeMap::it_falls_back_to_case_insensitive_extension_default_match[match_default_fixture1]"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgreader.py",
+        "line": 278,
+        "node_id": "tests/opc/test_pkgreader.py::Describe_ContentTypeMap::it_falls_back_to_case_insensitive_extension_default_match[match_default_fixture2]"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgreader.py",
+        "line": 282,
+        "node_id": "tests/opc/test_pkgreader.py::Describe_ContentTypeMap::it_should_raise_on_partname_not_found"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgreader.py",
+        "line": 287,
+        "node_id": "tests/opc/test_pkgreader.py::Describe_ContentTypeMap::it_should_raise_on_key_not_instance_of_PackURI"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgreader.py",
+        "line": 368,
+        "node_id": "tests/opc/test_pkgreader.py::Describe_SerializedPart::it_remembers_construction_values"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgreader.py",
+        "line": 386,
+        "node_id": "tests/opc/test_pkgreader.py::Describe_SerializedRelationship::it_remembers_construction_values"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgreader.py",
+        "line": 403,
+        "node_id": "tests/opc/test_pkgreader.py::Describe_SerializedRelationship::it_knows_when_it_is_external"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgreader.py",
+        "line": 417,
+        "node_id": "tests/opc/test_pkgreader.py::Describe_SerializedRelationship::it_can_calculate_its_target_partname"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgreader.py",
+        "line": 442,
+        "node_id": "tests/opc/test_pkgreader.py::Describe_SerializedRelationship::it_raises_on_target_partname_when_external"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgreader.py",
+        "line": 456,
+        "node_id": "tests/opc/test_pkgreader.py::Describe_SerializedRelationships::it_can_load_from_xml"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgreader.py",
+        "line": 477,
+        "node_id": "tests/opc/test_pkgreader.py::Describe_SerializedRelationships::it_should_be_iterable"
+      },
+      "owning_task": "shared-zip-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgwriter.py",
+        "line": 29,
+        "node_id": "tests/opc/test_pkgwriter.py::DescribePackageWriter::it_can_write_a_package"
+      },
+      "owning_task": "shared-zip-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgwriter.py",
+        "line": 47,
+        "node_id": "tests/opc/test_pkgwriter.py::DescribePackageWriter::it_can_write_a_content_types_stream"
+      },
+      "owning_task": "shared-zip-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgwriter.py",
+        "line": 53,
+        "node_id": "tests/opc/test_pkgwriter.py::DescribePackageWriter::it_can_write_a_pkg_rels_item"
+      },
+      "owning_task": "shared-zip-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgwriter.py",
+        "line": 62,
+        "node_id": "tests/opc/test_pkgwriter.py::DescribePackageWriter::it_can_write_a_list_of_parts"
+      },
+      "owning_task": "shared-zip-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgwriter.py",
+        "line": 147,
+        "node_id": "tests/opc/test_pkgwriter.py::Describe_ContentTypesItem::it_can_compose_content_types_element[xml_for_fixture0]"
+      },
+      "owning_task": "shared-zip-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgwriter.py",
+        "line": 147,
+        "node_id": "tests/opc/test_pkgwriter.py::Describe_ContentTypesItem::it_can_compose_content_types_element[xml_for_fixture1]"
+      },
+      "owning_task": "shared-zip-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgwriter.py",
+        "line": 147,
+        "node_id": "tests/opc/test_pkgwriter.py::Describe_ContentTypesItem::it_can_compose_content_types_element[xml_for_fixture2]"
+      },
+      "owning_task": "shared-zip-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgwriter.py",
+        "line": 147,
+        "node_id": "tests/opc/test_pkgwriter.py::Describe_ContentTypesItem::it_can_compose_content_types_element[xml_for_fixture3]"
+      },
+      "owning_task": "shared-zip-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgwriter.py",
+        "line": 147,
+        "node_id": "tests/opc/test_pkgwriter.py::Describe_ContentTypesItem::it_can_compose_content_types_element[xml_for_fixture4]"
+      },
+      "owning_task": "shared-zip-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgwriter.py",
+        "line": 147,
+        "node_id": "tests/opc/test_pkgwriter.py::Describe_ContentTypesItem::it_can_compose_content_types_element[xml_for_fixture5]"
+      },
+      "owning_task": "shared-zip-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_pkgwriter.py",
+        "line": 147,
+        "node_id": "tests/opc/test_pkgwriter.py::Describe_ContentTypesItem::it_can_compose_content_types_element[xml_for_fixture6]"
+      },
+      "owning_task": "shared-zip-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_rel.py",
+        "line": 16,
+        "node_id": "tests/opc/test_rel.py::Describe_Relationship::it_remembers_construction_values"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_rel.py",
+        "line": 30,
+        "node_id": "tests/opc/test_rel.py::Describe_Relationship::it_should_raise_on_target_part_access_on_external_rel"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_rel.py",
+        "line": 35,
+        "node_id": "tests/opc/test_rel.py::Describe_Relationship::it_should_have_target_ref_for_external_rel"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_rel.py",
+        "line": 39,
+        "node_id": "tests/opc/test_rel.py::Describe_Relationship::it_should_have_relative_ref_for_internal_rel"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_rel.py",
+        "line": 52,
+        "node_id": "tests/opc/test_rel.py::DescribeRelationships::it_can_add_a_relationship"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_rel.py",
+        "line": 66,
+        "node_id": "tests/opc/test_rel.py::DescribeRelationships::it_can_add_an_external_relationship"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_rel.py",
+        "line": 74,
+        "node_id": "tests/opc/test_rel.py::DescribeRelationships::it_can_find_a_relationship_by_rId"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_rel.py",
+        "line": 80,
+        "node_id": "tests/opc/test_rel.py::DescribeRelationships::it_can_find_or_add_a_relationship"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_rel.py",
+        "line": 87,
+        "node_id": "tests/opc/test_rel.py::DescribeRelationships::it_can_find_or_add_an_external_relationship"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_rel.py",
+        "line": 93,
+        "node_id": "tests/opc/test_rel.py::DescribeRelationships::it_can_find_a_related_part_by_rId"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_rel.py",
+        "line": 98,
+        "node_id": "tests/opc/test_rel.py::DescribeRelationships::it_raises_on_related_part_not_found"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_rel.py",
+        "line": 102,
+        "node_id": "tests/opc/test_rel.py::DescribeRelationships::it_can_find_a_related_part_by_reltype"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_rel.py",
+        "line": 107,
+        "node_id": "tests/opc/test_rel.py::DescribeRelationships::it_can_compose_rels_xml"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/opc/test_rel.py",
+        "line": 120,
+        "node_id": "tests/opc/test_rel.py::DescribeRelationships::it_knows_the_next_available_rId_to_help"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test__init__.py",
+        "line": 12,
+        "node_id": "tests/oxml/test__init__.py::DescribeOxmlElement::it_returns_an_lxml_element_with_matching_tag_name"
+      },
+      "owning_task": "namespace-xml-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test__init__.py",
+        "line": 17,
+        "node_id": "tests/oxml/test__init__.py::DescribeOxmlElement::it_adds_supplied_attributes"
+      },
+      "owning_task": "namespace-xml-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test__init__.py",
+        "line": 23,
+        "node_id": "tests/oxml/test__init__.py::DescribeOxmlElement::it_adds_additional_namespace_declarations_when_supplied"
+      },
+      "owning_task": "namespace-xml-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test__init__.py",
+        "line": 33,
+        "node_id": "tests/oxml/test__init__.py::DescribeOxmlParser::it_strips_whitespace_between_elements"
+      },
+      "owning_task": "namespace-xml-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test__init__.py",
+        "line": 49,
+        "node_id": "tests/oxml/test__init__.py::DescribeParseXml::it_accepts_bytes_and_assumes_utf8_encoding"
+      },
+      "owning_task": "namespace-xml-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test__init__.py",
+        "line": 52,
+        "node_id": "tests/oxml/test__init__.py::DescribeParseXml::it_accepts_unicode_providing_there_is_no_encoding_declaration"
+      },
+      "owning_task": "namespace-xml-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test__init__.py",
+        "line": 66,
+        "node_id": "tests/oxml/test__init__.py::DescribeParseXml::it_uses_registered_element_classes"
+      },
+      "owning_task": "namespace-xml-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test__init__.py",
+        "line": 84,
+        "node_id": "tests/oxml/test__init__.py::DescribeRegisterElementCls::it_determines_class_used_for_elements_with_matching_tagname"
+      },
+      "owning_task": "namespace-xml-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_ns.py",
+        "line": 9,
+        "node_id": "tests/oxml/test_ns.py::DescribeNamespacePrefixedTag::it_behaves_like_a_string_when_you_want_it_to"
+      },
+      "owning_task": "namespace-xml-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_ns.py",
+        "line": 13,
+        "node_id": "tests/oxml/test_ns.py::DescribeNamespacePrefixedTag::it_knows_its_clark_name"
+      },
+      "owning_task": "namespace-xml-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_ns.py",
+        "line": 16,
+        "node_id": "tests/oxml/test_ns.py::DescribeNamespacePrefixedTag::it_can_construct_from_a_clark_name"
+      },
+      "owning_task": "namespace-xml-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_ns.py",
+        "line": 20,
+        "node_id": "tests/oxml/test_ns.py::DescribeNamespacePrefixedTag::it_knows_its_local_part"
+      },
+      "owning_task": "namespace-xml-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_ns.py",
+        "line": 23,
+        "node_id": "tests/oxml/test_ns.py::DescribeNamespacePrefixedTag::it_can_compose_a_single_entry_nsmap_for_itself"
+      },
+      "owning_task": "namespace-xml-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_ns.py",
+        "line": 27,
+        "node_id": "tests/oxml/test_ns.py::DescribeNamespacePrefixedTag::it_knows_its_namespace_prefix"
+      },
+      "owning_task": "namespace-xml-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_ns.py",
+        "line": 30,
+        "node_id": "tests/oxml/test_ns.py::DescribeNamespacePrefixedTag::it_knows_its_namespace_uri"
+      },
+      "owning_task": "namespace-xml-read",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 28,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_find_the_first_of_its_children_named_in_a_sequence[first_fixture0]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 28,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_find_the_first_of_its_children_named_in_a_sequence[first_fixture1]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 28,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_find_the_first_of_its_children_named_in_a_sequence[first_fixture2]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 28,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_find_the_first_of_its_children_named_in_a_sequence[first_fixture3]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 28,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_find_the_first_of_its_children_named_in_a_sequence[first_fixture4]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 28,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_find_the_first_of_its_children_named_in_a_sequence[first_fixture5]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 32,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_insert_an_element_before_named_successors[insert_fixture0]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 32,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_insert_an_element_before_named_successors[insert_fixture1]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 32,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_insert_an_element_before_named_successors[insert_fixture2]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 32,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_insert_an_element_before_named_successors[insert_fixture3]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 32,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_insert_an_element_before_named_successors[insert_fixture4]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 37,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_remove_all_children_with_name_in_sequence[remove_fixture0]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 37,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_remove_all_children_with_name_in_sequence[remove_fixture1]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 37,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_remove_all_children_with_name_in_sequence[remove_fixture2]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 37,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_remove_all_children_with_name_in_sequence[remove_fixture3]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 37,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_remove_all_children_with_name_in_sequence[remove_fixture4]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 37,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_remove_all_children_with_name_in_sequence[remove_fixture5]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 37,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_remove_all_children_with_name_in_sequence[remove_fixture6]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 37,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_remove_all_children_with_name_in_sequence[remove_fixture7]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 37,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_remove_all_children_with_name_in_sequence[remove_fixture8]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 37,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_remove_all_children_with_name_in_sequence[remove_fixture9]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 37,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeBaseOxmlElement::it_can_remove_all_children_with_name_in_sequence[remove_fixture10]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 120,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeSerializeForReading::it_pretty_prints_an_lxml_element"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 125,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeSerializeForReading::it_returns_unicode_text"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 149,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeXmlString::it_parses_a_line_to_help_compare[parse_fixture0]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 149,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeXmlString::it_parses_a_line_to_help_compare[parse_fixture1]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 149,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeXmlString::it_parses_a_line_to_help_compare[parse_fixture2]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 149,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeXmlString::it_parses_a_line_to_help_compare[parse_fixture3]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 149,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeXmlString::it_parses_a_line_to_help_compare[parse_fixture4]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 164,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeXmlString::it_knows_if_two_xml_lines_are_equivalent[simple_elm]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 164,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeXmlString::it_knows_if_two_xml_lines_are_equivalent[nsp_tagname]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 164,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeXmlString::it_knows_if_two_xml_lines_are_equivalent[indent]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 164,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeXmlString::it_knows_if_two_xml_lines_are_equivalent[attrs]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 164,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeXmlString::it_knows_if_two_xml_lines_are_equivalent[nsdecl_order]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 164,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeXmlString::it_knows_if_two_xml_lines_are_equivalent[closing_elm]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 239,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeChoice::it_adds_a_getter_property_for_the_choice_element[choice]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 239,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeChoice::it_adds_a_getter_property_for_the_choice_element[None]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 243,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeChoice::it_adds_a_creator_method_for_the_child_element"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 248,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeChoice::it_adds_an_insert_method_for_the_child_element"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 254,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeChoice::it_adds_an_add_method_for_the_child_element"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 261,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeChoice::it_adds_a_get_or_change_to_method_for_the_child_element[get_or_change_to_fixture0]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 261,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeChoice::it_adds_a_get_or_change_to_method_for_the_child_element[get_or_change_to_fixture1]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 261,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeChoice::it_adds_a_get_or_change_to_method_for_the_child_element[get_or_change_to_fixture2]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 328,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeOneAndOnlyOne::it_adds_a_getter_property_for_the_child_element"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 342,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeOneOrMore::it_adds_a_getter_property_for_the_child_element_list"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 346,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeOneOrMore::it_adds_a_creator_method_for_the_child_element"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 351,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeOneOrMore::it_adds_an_insert_method_for_the_child_element"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 357,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeOneOrMore::it_adds_a_private_add_method_for_the_child_element"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 364,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeOneOrMore::it_adds_a_public_add_method_for_the_child_element"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 421,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeOptionalAttribute::it_adds_a_getter_property_for_the_attr_value"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 425,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeOptionalAttribute::it_adds_a_setter_property_for_the_attr[36]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 425,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeOptionalAttribute::it_adds_a_setter_property_for_the_attr[None]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 430,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeOptionalAttribute::it_adds_a_docstring_for_the_property"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 452,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeRequiredAttribute::it_adds_a_getter_property_for_the_attr_value"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 456,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeRequiredAttribute::it_adds_a_setter_property_for_the_attr"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 461,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeRequiredAttribute::it_adds_a_docstring_for_the_property"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 464,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeRequiredAttribute::it_raises_on_get_when_attribute_not_present"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 469,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeRequiredAttribute::it_raises_on_assign_invalid_value[invalid_assign_fixture0]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 469,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeRequiredAttribute::it_raises_on_assign_invalid_value[invalid_assign_fixture1]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 469,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeRequiredAttribute::it_raises_on_assign_invalid_value[invalid_assign_fixture2]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 502,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrMore::it_adds_a_getter_property_for_the_child_element_list"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 506,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrMore::it_adds_a_creator_method_for_the_child_element"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 511,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrMore::it_adds_an_insert_method_for_the_child_element"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 517,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrMore::it_adds_an_add_method_for_the_child_element"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 524,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrMore::it_adds_a_public_add_method_for_the_child_element"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 531,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrMore::it_removes_the_property_root_name_used_for_declaration"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 582,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOne::it_adds_a_getter_property_for_the_child_element[True]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 582,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOne::it_adds_a_getter_property_for_the_child_element[False]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 586,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOne::it_adds_an_add_method_for_the_child_element"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 593,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOne::it_adds_an_insert_method_for_the_child_element"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 599,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOne::it_adds_a_get_or_add_method_for_the_child_element[True]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 599,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOne::it_adds_a_get_or_add_method_for_the_child_element[False]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 605,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOne::it_adds_a_remover_method_for_the_child_element[True]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 605,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOne::it_adds_a_remover_method_for_the_child_element[False]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 669,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOneChoice::it_adds_a_getter_for_the_current_choice[None]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 669,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOneChoice::it_adds_a_getter_for_the_current_choice[choice]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/oxml/test_xmlchemy.py",
+        "line": 669,
+        "node_id": "tests/oxml/test_xmlchemy.py::DescribeZeroOrOneChoice::it_adds_a_getter_for_the_current_choice[choice2]"
+      },
+      "owning_task": "loss-preserving-xml-write",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/test_package.py",
+        "line": 28,
+        "node_id": "tests/test_package.py::DescribePackage::it_can_get_or_add_an_image_part_containing_a_specified_image"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/test_package.py",
+        "line": 40,
+        "node_id": "tests/test_package.py::DescribePackage::it_gathers_package_image_parts_after_unmarshalling"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/test_package.py",
+        "line": 66,
+        "node_id": "tests/test_package.py::DescribeImageParts::it_can_get_a_matching_image_part"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/test_package.py",
+        "line": 84,
+        "node_id": "tests/test_package.py::DescribeImageParts::but_it_adds_a_new_image_part_when_match_fails"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/test_package.py",
+        "line": 105,
+        "node_id": "tests/test_package.py::DescribeImageParts::it_knows_the_next_available_image_partname[existing_partname_numbers0-1]"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/test_package.py",
+        "line": 105,
+        "node_id": "tests/test_package.py::DescribeImageParts::it_knows_the_next_available_image_partname[existing_partname_numbers1-2]"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/test_package.py",
+        "line": 105,
+        "node_id": "tests/test_package.py::DescribeImageParts::it_knows_the_next_available_image_partname[existing_partname_numbers2-3]"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    },
+    {
+      "source": {
+        "commit": "e45454602b53e8e572b179ccf1c91093ec9f4ed7",
+        "source_file": "tests/test_package.py",
+        "line": 129,
+        "node_id": "tests/test_package.py::DescribeImageParts::it_can_add_a_new_image_part"
+      },
+      "owning_task": "opc-package-graph",
+      "status": "pending",
+      "target": null,
+      "red_evidence": null,
+      "passing_result": null
+    }
+  ],
+  "original_helper_apis": [
+    {
+      "name": "PackURI.toJSON",
+      "signature": "toJSON(): string",
+      "test": "package URI values > retains an immutable explicitly converted string value",
+      "status": "passing"
+    }
+  ],
+  "owned_source_sha256": {
+    "packages/docx/src/pack-uri.ts": "c017f5edc2211050db38265f0eea80427ab377d9719939760b209273df30ef36",
+    "packages/docx/src/pack-uri.test.ts": "ac31c48b03619fa0e5ea708397deb51a795a86e5691ae4afaf2718709fbd37fe",
+    "packages/docx/src/pack-uri-batch-operations.ts": "2eb4c1150e6286315ef3ff47616abdf651001053fd070d77bd3c77e4bf7bf7bf",
+    "packages/docx/src/pack-uri-batch.test.ts": "068067a8b2eb725937f4e1ea6f2c79b1f72abb21931671e6a335094fe12ce7ea",
+    "packages/docx/src/style-model-batch-operations.ts": "5fcf5464f75a9bfdc9cc7026dc1e38bfaa73f471d52fa2db7cc0ecb6822c697f",
+    "packages/docx/src/style-model-batch.ts": "cdffb58fc8df0e85e9797dcb8006e5c2933b5e08de1918972c9b35b97bcc2f4b",
+    "packages/docx/src/operation-schema-data.ts": "0a6050ab305e29cfdb3460c1b296e8d001668e28c2bd7b702380d0ca736f4608",
+    "packages/docx/src/style-model-result-schema.ts": "7e139ac1830fd1668ff01ac42fe1f01d6da6dcec3ebe0102715b6e3d97838653"
+  },
+  "batch_tdd": [
+    {
+      "command": "npx vitest run packages/docx/src/pack-uri-batch.test.ts",
+      "result": "11 failures / 1 pass before batch integration; CLI exit 1 on unsupported execution after correcting original memfs input encoding"
+    },
+    {
+      "command": "npx vitest run packages/docx/src/pack-uri-batch.test.ts",
+      "result": "1 failure / 12 passes: static relative factory incorrectly required a typed receiver"
+    },
+    {
+      "command": "npx vitest run packages/docx/src/pack-uri-batch.test.ts",
+      "result": "12 passed after integration and static-schema correction"
+    },
+    {
+      "command": "npx vitest run packages/docx/src/pack-uri-batch.test.ts",
+      "result": "1 failure / 12 passes: proposed URI result schema wrongly described document handles"
+    },
+    {
+      "command": "npx vitest run packages/docx/src/pack-uri-batch.test.ts",
+      "result": "1 failure / 12 passes after result fix: URI classification wrongly listed F12/F13/F14"
+    },
+    {
+      "command": "npx vitest run packages/docx/src/pack-uri-batch.test.ts packages/docx/src/discovery.test.ts packages/docx/src/discovery-completeness.test.ts packages/docx/src/batch-discovery.test.ts packages/docx/src/operation-json-schema.test.ts packages/docx/src/pack-uri.test.ts packages/docx/src/xml-sequence-cases.test.ts",
+      "result": "111 passed in 7 files; includes 13 URI batch/CLI/schema cases"
+    }
+  ],
+  "owned_patch_sha256": {
+    "/tmp/docx-pack-uri-export.patch": "875395bed884c1ae3088527a3bf2cfc21c45d21a4b93c51ef7a7e3ee6ce9a50b",
+    "/tmp/docx-uri-discovery.patch": "ca7c4a3dfc7afe2a18cf14e5e72f9bc79cc83e15053d130423895ceb9e21a228"
+  },
+  "screenshot_receipt": {
+    "transcript_sha256": "ec6293595f06bd04455000037abe343adf4fbec8746b8c2028aba5e322cd1a13",
+    "png_sha256": "42e6cb84b0de0e8b80237e21f6a32cd529ae695c207d55f762913d4e9c3ef6c9",
+    "disposable_path": "/tmp/docx-uri-batch-qa/uri-help.png",
+    "method": "built command engine detailed help; maintained screenshot-poe-code renders exact transcript",
+    "inspection": "heading, description, support, fixed operation ID, receiver and required argument visually inspected"
+  },
+  "typecheck_correction": "Maintained lint found new schema test cast ignored readonly discovery types; corrected to the declared DocxSchemaData type with no runtime change."
+}

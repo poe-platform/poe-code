@@ -8,6 +8,7 @@ function value(type: string): DocxJsonSchema {
   if (type.startsWith("Promise<") && type.endsWith(">")) return value(type.slice(8, -1));
   if (type === "readonly [Length, Length]") return { type: "array", items: docxValueSchema("Length"), minItems: 2, maxItems: 2 };
   if (type === "Uint8Array") return object({ kind: { const: "bytes" }, base64: string });
+  if (type === "PackURI") return string;
   if (type === "Image") return object({ id: string, type: { const: "Image" }, owner: { const: "batch" }, revision: { const: 0 } });
   const variants = splitDocxType(type);
   if (variants.length > 1) return { anyOf: variants.map(value) };

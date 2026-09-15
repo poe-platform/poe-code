@@ -217,6 +217,22 @@ export function resolveAuthorizationServerMetadataUrl(issuer: string | URL): str
   );
 }
 
+function authorizationServerMetadataLocations(issuer: string): string[] {
+  const locations = [
+    resolveAuthorizationServerMetadataUrl(issuer),
+    resolveWellKnownMetadataUrl(issuer, "openid-configuration")
+  ];
+  const issuerUrl = new URL(issuer);
+  if (issuerUrl.pathname !== "/") {
+    const path = issuerUrl.pathname.endsWith("/")
+      ? issuerUrl.pathname.slice(0, -1)
+      : issuerUrl.pathname;
+    issuerUrl.pathname = `${path}/.well-known/openid-configuration`;
+    locations.push(issuerUrl.toString());
+  }
+  return locations;
+}
+
 export class OAuthMetadataDiscovery {
   private readonly fetchImpl: OAuthMetadataFetch;
   private readonly cache: OAuthDiscoveryCache | undefined;
@@ -282,45 +298,41 @@ export class OAuthMetadataDiscovery {
     const authorizationServerErrors: string[] = [];
 
     for (const authorizationServer of resourceMetadata.authorization_servers) {
-      const normalizedAuthorizationServer = normalizeAuthorizationServerIssuer(
-        authorizationServer
-      );
-      const authorizationServerMetadataUrl =
-        resolveAuthorizationServerMetadataUrl(normalizedAuthorizationServer);
+      const normalizedAuthorizationServer = normalizeAuthorizationServerIssuer(authorizationServer);
+      const metadataLocations = authorizationServerMetadataLocations(normalizedAuthorizationServer);
 
-      try {
-        const authorizationServerResponse = await this.fetchImpl(authorizationServerMetadataUrl, {
-          method: "GET",
-          headers: {
-            Accept: "application/json",
-          },
-        });
-        const authorizationServerMetadata = validateAuthorizationServerMetadata(
-          await readJsonResponse(
-            authorizationServerResponse,
-            "Authorization server metadata"
-          ),
-          normalizedAuthorizationServer
-        );
+      for (const authorizationServerMetadataUrl of metadataLocations) {
+        try {
+          const authorizationServerResponse = await this.fetchImpl(authorizationServerMetadataUrl, {
+            method: "GET",
+            headers: {
+              Accept: "application/json"
+            }
+          });
+          const authorizationServerMetadata = validateAuthorizationServerMetadata(
+            await readJsonResponse(authorizationServerResponse, "Authorization server metadata"),
+            normalizedAuthorizationServer
+          );
 
-        const result: OAuthDiscoveryResult = {
-          resource: resourceMetadata.resource,
-          resourceMetadataUrl: resourceMetadataLocation,
-          resourceMetadata,
-          authorizationServer: normalizedAuthorizationServer,
-          authorizationServerMetadataUrl,
-          authorizationServerMetadata,
-        };
+          const result: OAuthDiscoveryResult = {
+            resource: resourceMetadata.resource,
+            resourceMetadataUrl: resourceMetadataLocation,
+            resourceMetadata,
+            authorizationServer: normalizedAuthorizationServer,
+            authorizationServerMetadataUrl,
+            authorizationServerMetadata
+          };
 
-        this.memoryCache.set(cacheKey, result);
-        await this.cache?.set(cacheKey, result);
-        return result;
-      } catch (error) {
-        authorizationServerErrors.push(
-          `${authorizationServerMetadataUrl}: ${
-            error instanceof Error ? error.message : String(error)
-          }`
-        );
+          this.memoryCache.set(cacheKey, result);
+          await this.cache?.set(cacheKey, result);
+          return result;
+        } catch (error) {
+          authorizationServerErrors.push(
+            `${authorizationServerMetadataUrl}: ${
+              error instanceof Error ? error.message : String(error)
+            }`
+          );
+        }
       }
     }
 

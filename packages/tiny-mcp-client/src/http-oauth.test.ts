@@ -96,6 +96,8 @@ describe("discoverOAuthMetadata", () => {
     expect(fetchMock.mock.calls.map(([input]) => input.toString())).toEqual([
       resourceMetadataUrl,
       failingAuthorizationServerMetadataUrl,
+      "https://auth.example.com/.well-known/openid-configuration/issuer-a",
+      "https://auth.example.com/issuer-a/.well-known/openid-configuration",
       successfulAuthorizationServerMetadataUrl
     ]);
     expect(cache.set).toHaveBeenCalledWith(resourceUrl, firstDiscovery);
@@ -103,7 +105,7 @@ describe("discoverOAuthMetadata", () => {
     const secondDiscovery = await discoveryClient.discover(resourceUrl);
 
     expect(secondDiscovery).toEqual(firstDiscovery);
-    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock).toHaveBeenCalledTimes(5);
     expect(cache.get).toHaveBeenCalledWith(resourceUrl);
 
     const secondFetch = vi.fn(async (): Promise<Response> => {

@@ -63,3 +63,46 @@ describe("OAuth protected-resource discovery fallback", () => {
     expect(fetch).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("OAuth authorization-server discovery fallback", () => {
+  it.each([
+    [
+      issuer,
+      "https://auth.example.com/.well-known/openid-configuration/tenant",
+      [authorizationMetadata]
+    ],
+    [
+      issuer,
+      `${issuer}/.well-known/openid-configuration`,
+      [authorizationMetadata, "https://auth.example.com/.well-known/openid-configuration/tenant"]
+    ],
+    [
+      "https://auth.example.com",
+      "https://auth.example.com/.well-known/openid-configuration",
+      ["https://auth.example.com/.well-known/oauth-authorization-server"]
+    ]
+  ])(
+    "discovers issuer %s through %s in priority order",
+    async (server, successfulUrl, earlierUrls) => {
+      const fetch = vi.fn(async (input: string | URL) => {
+        const url = input.toString();
+        if (url === pathMetadata) return json({ resource, authorization_servers: [server] });
+        if (url !== successfulUrl) return new Response(null, { status: 404 });
+        return json({
+          issuer: server,
+          authorization_endpoint: `${server}/authorize`,
+          token_endpoint: `${server}/token`,
+          response_types_supported: ["code"],
+          code_challenge_methods_supported: ["S256"]
+        });
+      });
+      const result = await discoverOAuthMetadata(resource, { fetch });
+      expect(result.authorizationServerMetadataUrl).toBe(successfulUrl);
+      expect(fetch.mock.calls.map(([url]) => url.toString())).toEqual([
+        pathMetadata,
+        ...earlierUrls,
+        successfulUrl
+      ]);
+    }
+  );
+});

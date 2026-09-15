@@ -1,3 +1,4 @@
+import { selectViewportTail } from "../../viewport.js";
 import { getTheme } from "../../internal/theme-detect.js";
 import { hasAnsi, parseAnsi, type StyledSegment } from "../ansi.js";
 import { ScreenBuffer } from "../buffer.js";
@@ -29,21 +30,9 @@ export function renderOutputPane(
     return 0;
   }
 
-  const chunks: VisualLine[][] = [];
-  let retainedRows = 0;
-  const requestedRows = rect.height + Math.max(0, scrollOffset);
-  for (let index = items.length - 1; index >= 0 && retainedRows < requestedRows; index -= 1) {
-    const lines = computeVisualLines([items[index]!], rect.width);
-    const visible = lines.slice(-Math.max(requestedRows - retainedRows, 0));
-    chunks.push(visible);
-    retainedRows += visible.length;
-  }
-  const visualLines = chunks.reverse().flat();
-  const actualOffset = Math.min(
-    Math.max(0, scrollOffset),
-    Math.max(0, visualLines.length - rect.height)
+  const { rows: visualLines, offset: actualOffset } = selectViewportTail(
+    items, rect.height, scrollOffset, item => computeVisualLines([item], rect.width)
   );
-  const startLine = Math.max(visualLines.length - rect.height - actualOffset, 0);
   const textRect: Rect = {
     x: rect.x + TEXT_OFFSET,
     y: rect.y,
@@ -52,7 +41,7 @@ export function renderOutputPane(
   };
 
   for (let row = 0; row < rect.height; row += 1) {
-    const line = visualLines[startLine + row];
+    const line = visualLines[row];
     if (line === undefined) {
       continue;
     }

@@ -99,6 +99,16 @@ current` unless quiet. Empty source selection returns 12 and preserves the archi
 Filesync cannot be combined with update, freshen, delete or copy actions. Separate
 output, recursion, filters and omitted directory entries apply to synchronization.
 
+`-z` / `--archive-comment` reads a replacement archive comment from stdin after
+member input. Input lines join with CRLF, a line containing exactly `.` and LF
+terminates input, and EOF also completes it. CR bytes and non-UTF8 bytes remain
+literal; NUL truncates each input line as in native Unix Zip. Quiet suppresses
+the old-comment display and input prompt. Comment-only updates require a nonempty
+existing archive. Delete and copy ignore this flag; current filesync returns
+without editing comments. Input and resulting comments are bounded by
+`maxFilesFromBytes`, `maxPatternSteps`, `maxTextBytes` and the 65,535-byte format
+limit. Overflow rejects publication rather than truncating the comment.
+
 `zip -d ARCHIVE PATTERNS...` deletes matching archive members without looking for
 their source files. Inclusion and exclusion lists apply to those archive paths.
 Unmatched operand patterns warn unless quiet; no selected members returns status

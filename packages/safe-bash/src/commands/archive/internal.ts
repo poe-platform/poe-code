@@ -126,8 +126,8 @@ export class Budget {
     this.totalBytes += size;
     if (this.members % 128 === 0) await yieldTurn(this.context.signal);
   }
-  async output(value: string, stderr = false): Promise<void> {
-    const bytes = Buffer.from(value);
+  async output(value: string | Uint8Array, stderr = false): Promise<void> {
+    const bytes = typeof value === "string" ? Buffer.from(value, "utf8") : Buffer.from(value);
     if (bytes.length > this.limits.maxTextBytes - this.textBytes) fail("text output limit exceeded");
     this.textBytes += bytes.length;
     await writeBytes(stderr ? this.context.stderr : this.context.stdout, bytes, this.context.signal);

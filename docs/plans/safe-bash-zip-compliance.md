@@ -381,3 +381,21 @@ grammar and actual ZIP deletion/UnZip payload selection with native statuses.
 Reference: https://github.com/LuaDist/zip/blob/master/util.c
 This closes the validated range mismatch; other matcher grammar and compliance
 areas remain open.
+
+## Archive comments
+
+Native Unix Zip captures and public zip.c zipedit logic establish z/archive-comment
+reads input after members, joins lines with CRLF, terminates only on exact dot-LF
+or EOF, preserves CR/raw bytes and applies C-string NUL truncation. Comment-only
+updates require a nonempty existing archive; update/freshen may edit without newer
+members. Delete/copy ignore comments with native warnings; current filesync skips
+editing. Implemented owned, bounded input parsing and raw budgeted prompt output
+before publication. Initial twenty unsupported-option failures validated the gap.
+Memory cases additionally cover fragmented Unicode, prompt bytes, format maximum,
+overflow, empty-chunk work limits, cancellation drainage and shared exhausted stdin.
+Public inspiration: CPython zipfile maximum/large-comment tests.
+Native UnZip integrity and Python independently verified the actual binary member
+and exact Unicode multiline comment in /tmp/safe-bash-zip-comment-result.zip.
+Filesync scoped release 35015808387 successfully published safe-bash 0.1.622;
+range release 35016159365 remains live. Remaining line conversion, entry comments,
+streaming, formats and grammar stay open.

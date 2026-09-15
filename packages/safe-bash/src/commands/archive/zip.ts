@@ -1,5 +1,6 @@
 import { parseZipDate, zipDateMatches } from "./zip/dates.js";
 import { zipEnvironmentArguments } from "./zip/environment.js";
+import { readZipComment } from "./zip/comments.js";
 import { collectBytes, dirname, getCommandArguments, writeBytes, type CommandDefinition, type FileStat } from "../../contracts/index.js";
 import { shellValueByteLength, shellValueBytes } from "../../contracts/value.js";
 import { writeFileOutput } from "../../contracts/filesystem-output.js";
@@ -29,6 +30,7 @@ interface ZipOptions {
   readonly test: boolean;
   readonly mustMatch: boolean;
   readonly filesync: boolean;
+  readonly archiveComment: boolean;
   readonly fromDate: number | undefined;
   readonly beforeDate: number | undefined;
   readonly descriptors: boolean;
@@ -79,6 +81,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
   let test = false;
   let mustMatch = false;
   let filesync = false;
+  let archiveComment = false;
   let fromDate: number | undefined;
   let beforeDate: number | undefined;
   let descriptors = false;
@@ -139,6 +142,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
           offset++;
         }
         else if (flag === "q") quiet = true;
+        else if (flag === "z") archiveComment = true;
         else if (flag === "j") junkPaths = true;
         else if (flag === "X") {
           metadata = argument[offset + 1] === "-" ? "all" : "strip";
@@ -260,7 +264,7 @@ async function parse(scope: ZipScope, limits: ArchiveLimits): Promise<ZipOptions
   }
   if (recursivePatterns && !names.length && !operands.length) throw new ZipFailure(16, "Invalid command arguments", "nothing to select from");
   if (filesync && action !== "add") throw new ZipFailure(16, "Invalid command arguments", "can't use -d, -f, -u, -U, or -g with filesync -FS\n");
-  return { args, action, archive, output, recursive, recursivePatterns, noWild, stopAtDirectories, quiet, junkPaths, omitDirectories, storeLinks, test, mustMatch, filesync, fromDate, beforeDate, descriptors, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
+  return { args, action, archive, output, recursive, recursivePatterns, noWild, stopAtDirectories, quiet, junkPaths, omitDirectories, storeLinks, test, mustMatch, filesync, archiveComment, fromDate, beforeDate, descriptors, zip64, metadata, includes, excludes, level, method, suffixes, operands: [...names, ...operands], firstOperand };
 }
 
 function memberName(path: string, limits: ArchiveLimits): string {
@@ -495,6 +499,8 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
       } finally { ancestors.pop(); }
     }
   };
+  const editComment = parsed.archiveComment && parsed.action !== "delete" && parsed.action !== "copy";
+  if (parsed.archiveComment && parsed.action === "copy" && !parsed.quiet) await budget.output("\tzip warning: can't set method, move, recurse, or comments with copy mode.\n");
   if (parsed.action === "copy") {
     const operands = new Selection(parsed.operands, limits, context.signal, { noWild: parsed.noWild, stopAtDirectories: parsed.stopAtDirectories });
     for (const entry of archive.entries) {
@@ -504,7 +510,7 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
       }
     }
   } else if (parsed.action === "delete") {
-    if (!parsed.quiet && parsed.recursive) await budget.output("\tzip warning: invalid option(s) used with -d; ignored.\n");
+    if (!parsed.quiet && (parsed.recursive || parsed.archiveComment)) await budget.output("\tzip warning: invalid option(s) used with -d; ignored.\n");
     if (!parsed.quiet && !archive.entries.length) await budget.output(`\tzip warning: ${parsed.archive} not found or empty\n`);
     const operands = new Selection(parsed.recursivePatterns ? [] : parsed.operands, limits, context.signal, { noWild: parsed.noWild, stopAtDirectories: parsed.stopAtDirectories });
     if (parsed.operands.length && !parsed.recursivePatterns) {
@@ -535,8 +541,8 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
       return { kind: "current" as const };
     }
   }
-  if (!selected.size && (parsed.action === "freshen" || parsed.action === "update" && (existing || !parsed.includes.length))) return undefined;
-  if (!selected.size && !deleted.size && (parsed.action === "delete" || parsed.action === "copy" || parsed.recursivePatterns || parsed.fromDate !== undefined || parsed.beforeDate !== undefined || !parsed.includes.length)) {
+  if (!selected.size && !(editComment && archive.entries.length) && (parsed.action === "freshen" || parsed.action === "update" && (existing || !parsed.includes.length))) return undefined;
+  if (!selected.size && !deleted.size && !(editComment && archive.entries.length) && (parsed.action === "delete" || parsed.action === "copy" || parsed.recursivePatterns || parsed.fromDate !== undefined || parsed.beforeDate !== undefined || !parsed.includes.length)) {
     const detail = parsed.action !== "delete" && parsed.recursive && parsed.firstOperand >= 0
       ? `try: zip ${parsed.args.slice(0, parsed.firstOperand).join(" ")} . -i ${parsed.args.slice(parsed.firstOperand).join(" ")}`
       : parsed.archive;
@@ -569,8 +575,23 @@ async function prepare(scope: ZipScope, parsed: ZipOptions, budget: Budget) {
   }
   for (const { entry } of selected.values()) { entries.push(entry); append(entry, false); }
   if (!entries.length) queue("\tzip warning: zip file empty\n");
-  if (!publication) return { kind: "stream" as const, archive: { entries, comment: archive.comment }, progress };
-  const bytes = await writeZipArchive({ entries, comment: archive.comment }, limits, context.signal, false, parsed.zip64 === true);
+  let comment = archive.comment;
+  if (editComment) {
+    for (const message of progress) await budget.output(message);
+    progress.length = 0;
+    progressBytes = 0;
+    if (!parsed.quiet) {
+      if (comment.length) {
+        await budget.output("current zip file comment is:\n");
+        await budget.output(comment);
+        if (comment.at(-1) !== 10) await budget.output("\n");
+      }
+      await budget.output("enter new zip file comment (end with .):\n");
+    }
+    comment = await readZipComment(scope.stdin, limits, context.signal);
+  }
+  if (!publication) return { kind: "stream" as const, archive: { entries, comment }, progress };
+  const bytes = await writeZipArchive({ entries, comment }, limits, context.signal, false, parsed.zip64 === true);
   if (parsed.test && parsed.archive !== "-") {
     for (const message of progress) await budget.output(message);
     progress.length = 0;

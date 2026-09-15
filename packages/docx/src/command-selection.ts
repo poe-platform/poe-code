@@ -39,8 +39,14 @@ export function validateDocxSelection(operation: string, options: Readonly<Recor
   if (resource === "tables" && pieces.length === 3 && !has("table") && !token)
     reject("Row and column operations require a table.");
   if (operation === "tables.split" && !has("cell") && !token) reject("Table split requires a cell.");
-  if (action === "add" && ["runs", "links", "fields", "toc", "captions", "notes", "images", "equations"].includes(resource) && !has("paragraph") && !token)
+  if (action === "add" && ["runs", "links", "fields", "toc", "captions", "notes", "equations"].includes(resource) && !has("paragraph") && !token)
     reject("Inline insertion requires a paragraph.");
+  if (operation === "images.add") {
+    if (["run", "image", "link", "control", "revision", "shape", "field", "bookmark"].some(has)) reject("Image insertion requires a whole paragraph or block container.");
+    if (!token && ["headers", "footers"].includes(options.scope as string) && !has("section")) reject("Image insertion in a header or footer requires an explicit owner.");
+    if (!token && ["footnotes", "endnotes"].includes(options.scope as string) && !has("note")) reject("Image insertion in a note requires an explicit owner.");
+    if (!token && options.scope === "comments" && !has("comment")) reject("Image insertion in a comment requires an explicit owner.");
+  }
   if (operation === "equations.replace" && !token) reject("Equation replacement requires a location token.");
   if (["controls.list", "controls.set", "controls.repeat", "controls.bind"].includes(operation) && token) {
     let range;

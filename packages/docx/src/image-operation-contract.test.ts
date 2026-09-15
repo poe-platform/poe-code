@@ -11,7 +11,7 @@ it("advertises only bounded image utility reads after product qualification", ()
   const capabilities = getDocxDiscovery({ operation: "capabilities", inputs: [], options: {} })!.data;
   expect(capabilities).toMatchObject({ features: expect.arrayContaining([expect.objectContaining({ id: "F31", level: "read", detected: null, subsets: expect.arrayContaining([expect.objectContaining({ name: "image-inventory-extraction", level: "read" })]) })]) });
   expect(getDocxDiscovery({ operation: "schema", inputs: [], options: {} })!.data).toMatchObject({ operations: expect.arrayContaining([expect.objectContaining({ id: "images.list", support: "read" }), expect.objectContaining({ id: "images.get", support: "read" }), expect.objectContaining({ id: "images.extract", support: "read" })]) });
-  expect(schema("images.add").support).toBe("reject");
+  expect(schema("images.add")).toMatchObject({ support: "edit", featureIds: expect.arrayContaining(["F32"]) });
   expect(schema("images.set").support).toBe("reject");
 });
 it("declares closed image occurrence records with nullable stored metadata", () => {

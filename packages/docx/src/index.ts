@@ -150,3 +150,5 @@ export type { ControlTemplateData } from "./control-template-types.js";
 export { inspectDocumentPackageResources, type PackageResourceListData, type PackageResourceRecord, type CustomXmlResourceDetails, type GlossaryResourceDetails } from "./ancillary-resources.js";
 export { inspectDocumentProperties, editDocumentProperties, type PropertyInspectionOptions, type PropertyEditOptions, type PropertyInspectionData, type PropertyResourceRecord, type PropertyMutationData, type PropertyWarning } from "./document-properties.js";
 export { inspectDocumentImages, extractDocumentImages, ImageExtractionPublicationError, ImageExtractionCancellationError, type ImageDetails, type ImageRecord, type ImageInspectionData, type ImageInspectionOptions, type ImageExtractionManifestV1, type ImageExtractionData, type ImageExtractionContext } from "./images.js";
+export { characterizeRasterHeader, type RasterHeader } from "./raster-header.js";
+export { insertDocumentImage, type ImageInsertionRequest, type ImageInsertionData, type ImageInsertionContext, type ImageBinaryResolver } from "./image-insertion.js";

@@ -1,5 +1,22 @@
 import { expectTypeOf, it } from "vitest";
 import type { DocxOperationArguments, DocxBatchItem } from "./index.js";
+import type { DocxBatchArgumentMap } from "./operation-types.js";
+
+it("keeps image decorative intent optional and removes all from direct and batch insertion", () => {
+  expectTypeOf<DocxOperationArguments<"images.add">["decorative"]>().toEqualTypeOf<boolean | undefined>();
+  expectTypeOf<DocxBatchArgumentMap["images.add"]["decorative"]>().toEqualTypeOf<boolean | undefined>();
+  // @ts-expect-error Image insertion has one explicit owner and no all flag.
+  const direct: DocxOperationArguments<"images.add"> = { file: { kind: "bytes", base64: "AA==" }, all: true };
+  // @ts-expect-error Batch insertion has the same single-owner intent.
+  const batch: DocxBatchArgumentMap["images.add"] = { file: { kind: "bytes", base64: "AA==" }, all: true };
+  expectTypeOf(direct).toMatchTypeOf<DocxOperationArguments<"images.add">>();
+  expectTypeOf(batch).toMatchTypeOf<DocxBatchArgumentMap["images.add"]>();
+});
+it("removes never-applicable image insertion selectors from both typed transports", () => {
+  type Invalid = "run" | "image" | "link" | "control" | "revision" | "shape" | "field" | "bookmark";
+  expectTypeOf<Extract<keyof DocxOperationArguments<"images.add">, Invalid>>().toEqualTypeOf<never>();
+  expectTypeOf<Extract<keyof DocxBatchArgumentMap["images.add"], Invalid>>().toEqualTypeOf<never>();
+});
 
 it("retains required, optional and nullable operation argument types", () => {
   expectTypeOf<DocxOperationArguments<"text.replace">["find"]>().toEqualTypeOf<string>();

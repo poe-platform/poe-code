@@ -18,7 +18,8 @@ export function resolveDocxSelection(document: DocumentLocations, value: DocxInv
   const { operation, options } = invocation;
   const resource = operation.split(".")[0]!;
   const inserting = operation.endsWith(".add") && !operation.startsWith("tables.rows.") && !operation.startsWith("tables.columns.");
-  const targetKind = inserting && ["images", "runs", "links", "bookmarks", "comments", "fields", "toc", "captions"].includes(resource) ? "paragraph"
+  const targetKind = operation === "images.add" ? options.paragraph !== undefined ? "paragraph" : "story"
+    : inserting && ["runs", "links", "bookmarks", "comments", "fields", "toc", "captions"].includes(resource) ? "paragraph"
     : inserting && ["paragraphs", "tables", "lists"].includes(resource) ? "story"
     : operation === "text.get" && options.section === undefined ? "story" : resourceKinds[resource];
   if (!targetKind || ["control", "revision", "shape", "field", "bookmark"].some(key => options[key] !== undefined && !(key === "bookmark" && ["links", "bookmarks"].includes(resource)) && !(key === "field" && ["fields", "toc", "captions"].includes(resource))) || resource !== "links" && options.link !== undefined)
@@ -33,7 +34,8 @@ export function resolveDocxSelection(document: DocumentLocations, value: DocxInv
   let selected: readonly Location[];
   if (typeof options.select === "string") {
     const location = document.resolve<LocationKind>(options.select, resource === "bookmarks" ? inserting ? "paragraph" : "bookmark" : undefined);
-    const acceptable = text ? ["story", "paragraph", "run", "table", "cell"]
+    const acceptable = operation === "images.add" ? ["story", "cell", "paragraph"]
+      : text ? ["story", "paragraph", "run", "table", "cell"]
       : inserting && ["paragraphs", "tables", "lists"].includes(resource) ? ["story", "cell", "paragraph"]
       : operation === "runs.set" && location.value.range !== null ? ["run", "paragraph"]
       : resource === "tables" ? ["table", "cell"] : [targetKind];

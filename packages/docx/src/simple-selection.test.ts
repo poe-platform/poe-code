@@ -28,6 +28,20 @@ async function fixture(change?: (files: Map<string, string>) => void) {
   return sdk.openDocumentLocations(new Uint8Array(fs.readFileSync("/document") as Uint8Array), context);
 }
 const parse = (...args: string[]) => sdk.parseDocxArguments(args.map(arg => new TextEncoder().encode(arg)));
+it("selects the unique body for image insertion without choosing an existing paragraph", async () => {
+  const document = await fixture();
+  const selected = sdk.resolveDocxSelection(document, parse("images", "add", "in", "--file", "pixel.png", "--dry-run"));
+  expect(selected).toHaveLength(1);
+  expect(selected[0]!.kind).toBe("story");
+  expect(selected[0]!.value.part).toBe("/word/document.xml");
+});
+it("admits image paragraph and cell containers while rejecting run insertion", async () => {
+  const document = await fixture();
+  expect(sdk.resolveDocxSelection(document, parse("images", "add", "in", "--file", "pixel.png", "--paragraph", "1", "--dry-run"))[0]!.kind).toBe("paragraph");
+  expect(sdk.resolveDocxSelection(document, parse("images", "add", "in", "--file", "pixel.png", "--table", "1", "--cell", "A1", "--dry-run"))[0]!.kind).toBe("cell");
+  expect(() => sdk.resolveDocxSelection(document, parse("images", "add", "in", "--file", "pixel.png", "--paragraph", "1", "--run", "1", "--dry-run"))).toThrow();
+  expect(() => sdk.resolveDocxSelection(document, parse("images", "add", "in", "--file", "pixel.png", "--scope", "headers", "--dry-run"))).toThrow();
+});
 
 it("resolves paired direct flags and SDK selectors inside a logical merged cell", async () => {
   const document = await fixture();

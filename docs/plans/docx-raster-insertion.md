@@ -109,8 +109,6 @@ Task69 explicitly owns complete image sizing/metadata/API variants after this
 baseline task. Existing24-entry live image/shape API and158 source unit variants
 remain preparation/pending unless their owning original TS tests actually pass.
 
-## Independent original raster QA procedure
-
 ## Verified task68 gates and local delivery
 
 All implementation paths are frozen after independent approval. The schema
@@ -154,6 +152,12 @@ for the active image campaign; cleanup is pending until no task needs them.
 Unrelated pipeline hunks were compared with the saved task67 baseline and are
 unchanged. Local atomic commits and only task68 implement/test completion follow
 these gates; task69 has not begun.
+
+Verified bounded header improvement locally committed as254ae436d.
+The following atomic improvement delivers original PNG/JPEG insertion with
+its matching utility SDK, engine, closed schema/help and literal Shell tests.
+
+## Independent original raster QA procedure
 
 Root owns new docs/docx/raster-insertion-qa.json before reducing the bounded
 final12-case receipt into durable research; no QA binaries or execution scripts

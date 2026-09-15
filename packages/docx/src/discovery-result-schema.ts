@@ -97,6 +97,16 @@ const imageRecord: DocxJsonSchema = { ...object({ kind: { const: "images" }, loc
 const imageExtractionData = object({ complete: boolean, inventory: { type: "null" },
   manifest: { oneOf: [object({ path: string, bytes: number, sha256: string, published: boolean }), { type: "null" }] },
   entries: array(object({ path: string, part: string, bytes: number, sha256: string, locations: array(location), published: boolean })) });
+export const rasterInsertionOperationContracts: Readonly<Record<string, { description: string; featureIds: readonly string[]; result: DocxJsonSchema }>> = {
+  "images.add": {
+    description: "Insert admitted PNG or JPEG bytes inline into one paragraph or a new trailing container paragraph.",
+    featureIds: ["F06", "F08", "F11", "F12", "F31", "F32", "F35"],
+    result: { oneOf: [object({ version: { const: 1 }, operation: { const: "images.add" }, ok: { const: true },
+      data: object({ ...mutationData.properties, changes: { ...array(object({ kind: { const: "add" }, before: location, after: location })), minItems: 0, maxItems: 1 } }),
+      warnings: array(diagnostic), errors: empty, affected: { enum: [0, 1] }, locations: { ...array(location), minItems: 0, maxItems: 1 } }),
+      object({ version: { const: 1 }, operation: { const: "images.add" }, ok: { const: false }, data: { type: "null" }, warnings: array(diagnostic), errors: { type: "array", minItems: 1, items: diagnostic }, affected: { const: 0 }, locations: empty })] }
+  }
+};
 export const imageOperationContracts = Object.fromEntries([
   ["images.list", "Inventory selected drawing occurrences and exact owner-local references, separate from shared media. Unique groups only selected owners by byte hash; first selected occurrence supplies representative geometry. Missing or opaque metadata reads null; external links remain inert. No render, pixel decoding or native-size parity.", object({ items: array(imageRecord) })],
   ["images.get", "Inspect one selected drawing occurrence with nullable stored metadata, relationships and exact admitted media identity. Shared bytes do not conflate occurrence-local layout. No rendering, linked acquisition or live image model is implied.", object({ item: imageRecord })],

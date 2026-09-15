@@ -50,6 +50,8 @@ it("closes the document runtime over portable ZIP and XML implementations", asyn
   expect.soft(runtime.editDocumentProperties).toBeTypeOf("function");
   expect.soft(runtime.inspectDocumentImages).toBeTypeOf("function");
   expect.soft(runtime.extractDocumentImages).toBeTypeOf("function");
+  expect.soft(runtime.insertDocumentImage).toBeTypeOf("function");
+  expect.soft(runtime.characterizeRasterHeader).toBeTypeOf("function");
   const original = await textFixture('<w:p/>');
   if (typeof runtime.inspectDocumentImages === "function") {
     expect(await runtime.inspectDocumentImages(original, { operation: "images.list" }, textContext)).toEqual({ items: [], warnings: [] });

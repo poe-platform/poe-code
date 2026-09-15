@@ -11,6 +11,18 @@ import type { FileSystem } from "@poe-code/safe-fs/core";
 const limits = { maxArchiveBytes: 65536, maxEntryBytes: 16384, maxTotalBytes: 65536, maxMembers: 32, maxPathBytes: 256, maxDepth: 16, maxExtraBytes: 1024, maxCommentBytes: 1024, maxRetainedBytes: 500000, chunkSize: 1024 };
 const signal = new AbortController().signal;
 const encoder = new TextEncoder();
+it("acquires image insertion document input through the declared capability", async () => {
+  let reads = 0, stdout = "";
+  const result = await createDocxInspectionCommandEngine({ limits }).execute({
+    args: ["images", "add", "input.docx", "--file", "pixel.png", "--paragraph", "1", "--dry-run", "--json"].map(value => encoder.encode(value)),
+    cwd: "/work", filesystem: { async readFile() { reads++; throw new Error("declared refusal"); } },
+    stdin: { [Symbol.asyncIterator]() { return { async next(): Promise<IteratorResult<Uint8Array>> { throw new Error("implicit stdin"); } }; } },
+    stdout: { async write(value) { stdout += new TextDecoder().decode(value); } }, stderr: { async write() {} }, signal
+  });
+  expect(reads).toBe(1);
+  expect(result.exitCode).toBe(3);
+  expect(JSON.parse(stdout).errors[0].code).toBe("source-failure");
+});
 it("preserves public image extraction receipts when diagnostics cancel after publication", async () => {
   const { bytes } = await createDocumentFixture("museum"), volume = Volume.fromJSON({});
   volume.mkdirSync("/out");

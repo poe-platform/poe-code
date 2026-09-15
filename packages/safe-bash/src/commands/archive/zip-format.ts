@@ -187,7 +187,7 @@ export async function readZipArchive(bytes: Uint8Array, limits: ArchiveLimits, s
     if (view.getUint32(offset, true) === 0x06054b50 && offset + 22 + view.getUint16(offset + 20, true) === bytes.length) {
       const size = view.getUint32(offset + 12, true);
       const start = view.getUint32(offset + 16, true);
-      const zip64 = size === 0xffffffff || start === 0xffffffff || view.getUint16(offset + 10, true) === 65535 || offset >= 20 && view.getUint32(offset - 20, true) === 0x07064b50;
+      const zip64 = size === 0xffffffff || start === 0xffffffff || offset >= 20 && view.getUint32(offset - 20, true) === 0x07064b50;
       if (!zip64 && start + size !== offset) continue;
       if (end !== -1) fail("ZIP ambiguous end records");
       end = offset;
@@ -461,9 +461,9 @@ interface EncodedEntry {
 
 export async function* streamZipArchive(archive: ZipArchive, limits: ArchiveLimits, signal: AbortSignal, descriptors = false, forceZip64 = false): ByteSource {
   const chunkSize = admit(limits, signal);
-  number(archive.entries.length, Math.min(limits.maxMembers, 65534), "member");
+  number(archive.entries.length, limits.maxMembers, "member");
   number(archive.comment.length, Math.min(limits.maxTextBytes, 65535), "archive comment");
-  const wideArchive = forceZip64 || archive.entries.some(entry => entry.zip64);
+  const wideArchive = forceZip64 || archive.entries.length > 65535 || archive.entries.some(entry => entry.zip64);
   let length = 22 + archive.comment.length + (wideArchive ? 76 : 0);
   let localLength = 0;
   let total = 0;
@@ -587,8 +587,8 @@ export async function* streamZipArchive(archive: ZipArchive, limits: ArchiveLimi
   const view = new DataView(bytes.buffer);
   const central = wideArchive ? writeZip64End(view, 0, encoded.length, centralSize, localLength, localLength + centralSize) : 0;
   view.setUint32(central, 0x06054b50, true);
-  view.setUint16(central + 8, encoded.length, true);
-  view.setUint16(central + 10, encoded.length, true);
+  view.setUint16(central + 8, Math.min(encoded.length, 65535), true);
+  view.setUint16(central + 10, Math.min(encoded.length, 65535), true);
   view.setUint32(central + 12, centralSize, true);
   view.setUint32(central + 16, wideArchive ? 0xffffffff : localLength, true);
   view.setUint16(central + 20, archive.comment.length, true);

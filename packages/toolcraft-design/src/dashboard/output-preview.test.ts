@@ -94,13 +94,21 @@ it.each([1, 2, 7, 257, 16_383])("keeps surrogate pairs intact across %s-code-uni
   expect(text.length).toBeLessThanOrEqual(MAX_OUTPUT_PREVIEW_CHARS);
   expect(text).toContain("Output truncated");
   expect(text.endsWith("LATEST RESULT\n")).toBe(true);
+  let invalidSurrogate: number | undefined;
   for (let index = 0; index < text.length; index++) {
     const unit = text.charCodeAt(index);
     if (unit >= 0xd800 && unit <= 0xdbff) {
       const next = text.charCodeAt(++index);
-      expect(next >= 0xdc00 && next <= 0xdfff).toBe(true);
+      if (!(next >= 0xdc00 && next <= 0xdfff)) {
+        invalidSurrogate = index - 1;
+        break;
+      }
     } else {
-      expect(unit >= 0xdc00 && unit <= 0xdfff).toBe(false);
+      if (unit >= 0xdc00 && unit <= 0xdfff) {
+        invalidSurrogate = index;
+        break;
+      }
     }
   }
+  expect(invalidSurrogate).toBeUndefined();
 });
